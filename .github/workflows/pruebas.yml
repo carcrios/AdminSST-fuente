@@ -28,7 +28,7 @@ jobs:
   pruebas:
     name: Pruebas (código y navegador)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35   # v175: con el sitio minificado y 345 comprobaciones en navegador, 20 no alcanzan
     steps:
       - uses: actions/checkout@v4
 
