@@ -126,7 +126,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `indicadores.html` | 401 | i18n-en.js, i18n.js, informe-reglas.js |
 | `induccion-responder.html` | 204 | induccion-banco.js, autorizacion-datos.js |
 | `induccion.html` | 262 | registros.js, induccion-banco.js, autorizacion-datos.js, qr.js |
-| `informe-mes.html` | 64 | registros.js, informe-mes-reglas.js, informe-mes.app.js |
+| `informe-mes.html` | 65 | registros.js, informe-mes-reglas.js, informe-mes.app.js |
 | `informe.html` | 372 | i18n-en.js, i18n.js, registros.js, auditorias-plantillas.js, evidencias-reglas.js, inspecciones-plantillas.js, informe-reglas.js |
 | `inspeccion-epp.html` | 1572 | — |
 | `inspecciones.html` | 228 | registros.js, inspecciones-plantillas.js, importar.js, qr.js, inspecciones.app.js |

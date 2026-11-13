@@ -42,6 +42,12 @@ jobs:
         working-directory: herramientas/lint
         run: npm ci --no-audit --no-fund
 
+      # v174: los documentos comerciales (Word) se arman con «docx»; las pruebas revisan su tabla de módulos por plan.
+      - name: Instalar docx (documentos comerciales) y el minificador
+        run: |
+          npm install --no-save --no-audit --no-fund --no-package-lock docx@9.8.1
+          npm install --prefix herramientas --no-save --no-audit --no-fund --no-package-lock terser@5.51.2 clean-css@5.3.3
+
       - name: Pruebas del código (más de mil comprobaciones)
         run: node pruebas/pruebas.js
 
@@ -59,8 +65,11 @@ jobs:
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
 
+      # v174: sobre el sitio MINIFICADO, que es lo que se publica (igual que el empaquetador).
       - name: Pruebas en navegador (celular, permisos, sin señal, firmas)
         working-directory: pruebas
+        env:
+          SSTA_MIN: '1'
         run: node navegador.js
 
   # v165: el mismo navegador en el motor de Safari (iPhone). Por ahora AVISA pero no frena la publicación:
@@ -103,14 +112,14 @@ jobs:
         run: |
           ! grep -rInE "AKfyc[A-Za-z0-9_-]{30,}|-----BEGIN (EC |RSA )?PRIVATE KEY|ssta-licencia-privada" --include=*.js --include=*.html --include=*.gs --exclude-dir=node_modules --exclude-dir=pruebas --exclude-dir=herramientas . || (echo "::error::Hay un posible secreto en el código" && exit 1)
 
+  # v174: el código vive en este repositorio PRIVADO; el sitio se publica en el repositorio público carcrios/AdminSST
+  # (GitHub Pages). Necesita el secreto ADMINSST_TOKEN (un token con permiso de escritura solo sobre AdminSST).
+  # Sin el secreto, no falla: avisa y no publica.
   publicar:
-    name: Publicar en GitHub Pages
+    name: Publicar el sitio en AdminSST
     needs: pruebas
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.despliegue.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -121,14 +130,25 @@ jobs:
           mkdir -p _sitio
           rsync -a ./ _sitio/ --exclude .git --exclude .github --exclude _sitio \
             --exclude backends --exclude pruebas --exclude herramientas --exclude sitio-demo --exclude comercial --exclude fuente \
-            --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico   # v145: documentos internos fuera del sitio público. v167: servidor-todo-en-uno SÍ va: es lo que copia el instalador (instalar.html)
+            --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico --exclude .gitignore
           touch _sitio/.nojekyll
 
-      - uses: actions/configure-pages@v5
+      - name: Minificar el sitio (lo mismo que se probó)
+        run: |
+          npm install --prefix herramientas --no-save --no-audit --no-fund --no-package-lock terser@5.51.2 clean-css@5.3.3
+          node -e "require('./herramientas/minificar').carpeta('_sitio', false).then((n) => console.log('Minificado:', Math.round(n / 1024), 'KB menos'))"
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _sitio
-
-      - id: despliegue
-        uses: actions/deploy-pages@v4
+      - name: Subir a carcrios/AdminSST
+        env:
+          TOKEN: ${{ secrets.ADMINSST_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "::warning::Falta el secreto ADMINSST_TOKEN: no se publicó el sitio."; exit 0; fi
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/carcrios/AdminSST.git" _destino
+          rsync -a --delete --exclude .git --exclude CNAME --exclude empresas/ _sitio/ _destino/
+          cd _destino
+          git config user.name "Publicación automática"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "Sin cambios en el sitio."; exit 0; }
+          git commit -m "Sitio desde AdminSST-fuente ${GITHUB_SHA::7}"
+          git push
