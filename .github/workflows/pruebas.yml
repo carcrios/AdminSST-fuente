@@ -130,7 +130,8 @@ jobs:
           mkdir -p _sitio
           rsync -a ./ _sitio/ --exclude .git --exclude .github --exclude _sitio \
             --exclude backends --exclude pruebas --exclude herramientas --exclude sitio-demo --exclude comercial --exclude fuente \
-            --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico --exclude .gitignore
+            --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico --exclude .gitignore \
+            --exclude servidor-todo-en-uno --exclude admin.html --exclude configurar-empresa.html --exclude asesor.html --exclude instalar.html --exclude consola.css --exclude menus-empresa.js   # v175: solo del proveedor (herramientas/empaquetar.js SOLO_PROVEEDOR)
           touch _sitio/.nojekyll
 
       - name: Minificar el sitio (lo mismo que se probó)
@@ -144,7 +145,7 @@ jobs:
         run: |
           if [ -z "$TOKEN" ]; then echo "::warning::Falta el secreto ADMINSST_TOKEN: no se publicó el sitio."; exit 0; fi
           git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/carcrios/AdminSST.git" _destino
-          rsync -a --delete --exclude .git --exclude CNAME --exclude empresas/ _sitio/ _destino/
+          rsync -a --delete --exclude .git --exclude CNAME --exclude empresas/ _sitio/ _destino/   # --delete también BORRA del público lo que pasó a ser solo del proveedor
           cd _destino
           git config user.name "Publicación automática"
           git config user.email "actions@users.noreply.github.com"

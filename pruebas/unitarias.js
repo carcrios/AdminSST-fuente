@@ -143,7 +143,7 @@ function correr(ok, grupo) {
     ok('licencia firmada y vigente = «vigente»; 30 días antes de vencer = «por-vencer»', res[0] === 'vigente' && res[5] === 'por-vencer', JSON.stringify(res));
     ok('firma alterada o datos cambiados (otra fecha con la firma vieja) = «invalida»', res[1] === 'invalida' && res[3] === 'invalida', JSON.stringify(res));
     ok('vencida = «vencida»; la de otro NIT no sirve para esta empresa', res[2] === 'vencida' && res[4] === 'invalida', JSON.stringify(res));
-    ok('la llave privada nunca está en el proyecto (va en la carpeta del usuario) y el portal no se bloquea sin licencia', /os\.homedir\(\), '\.ssta-licencia-privada\.json'/.test(leer('herramientas/licencia.js')) && /nunca bloquea/i.test(leer('licencia.js')) && !/location\.(href|replace)|throw /.test(leer('licencia.js').split('const Licencia')[1]));
+    ok('la llave privada nunca está en el proyecto (va en la carpeta del usuario); sin licencia no se bloquea y vencida solo pasa a solo lectura a los 60 días', /os\.homedir\(\), '\.ssta-licencia-privada\.json'/.test(leer('herramientas/licencia.js')) && /SOLO LECTURA/.test(leer('licencia.js')) && /GRACIA = 60/.test(leer('fuente/common/14-licencia-modo.js')) && !/location\.(href|replace)|throw /.test(leer('licencia.js').split('const Licencia')[1]));
   });
   grupo('Lógica · servidor (se ejecuta en el simulador de Apps Script)', () => {
     const { crearEntorno } = require('./simulador-apps-script');

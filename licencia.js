@@ -6,14 +6,16 @@
    portal la comprueba con la llave PÚBLICA de abajo; la privada nunca
    está en el sitio (la guarda el proveedor fuera del proyecto).
 
-   Es una licencia «honorable»: si falta o vence, el portal SIGUE
-   funcionando (nunca se bloquea un permiso, un reporte ni los datos de
-   la empresa); solo avisa al administrador para que la renueve.
+   Si vence, el portal sigue igual 60 días y avisa al administrador. Pasados
+   60 días queda en SOLO LECTURA (fuente/common/14-licencia-modo.js): se ve y
+   descarga todo y se pueden reportar accidentes y recibir quejas, pero no
+   registrar lo demás. Los datos nunca se bloquean ni se borran (v175).
 
    Para crear las llaves y firmar licencias: herramientas/licencia.js
    ============================================================ */
-const LICENCIA_LLAVE_PUBLICA = null;   // la pone «node herramientas/licencia.js llaves» (JWK pública)
+const LICENCIA_LLAVE_PUBLICA = {"kty":"EC","crv":"P-256","x":"mEQTH5bTAxAwzqKX8IfwMIp5tTo0UcaoEu5Eo1uS9KM","y":"xCW20SLTuctB7AgbWuiFXvN7AXKW5UjvhoXnWiFKIjU"};   // la pone «node herramientas/licencia.js llaves» (JWK pública)
 
+const SOLO_TXT = 'A los 60 días de vencida, el portal queda en solo lectura (se ve todo y se pueden reportar accidentes, pero no registrar lo demás).';
 const Licencia = {
   _b64: (s) => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)), (c) => c.charCodeAt(0)),
   /** Lee y verifica la licencia. {estado: 'sin'|'invalida'|'vencida'|'por-vencer'|'vigente'|'sin-llave', datos} */
@@ -35,14 +37,16 @@ const Licencia = {
     const en30 = new Date(Date.parse(h) + 30 * 864e5).toISOString().slice(0, 10);
     return { estado: datos.hasta && datos.hasta <= en30 ? 'por-vencer' : 'vigente', datos };
   },
-  /** Aviso para el administrador (en el inicio). Nunca bloquea nada. */
+  /** Aviso para el administrador (en el inicio). */
   async avisar(el) {
     if (!el || typeof Sesion === 'undefined' || !Sesion.yo || !Sesion.yo() || Sesion.rol() !== 'admin') return;
     const r = await this.revisar(); const d = r.datos || {};
     const txt = { sin: 'Esta empresa no tiene licencia registrada.', invalida: 'La licencia registrada no es válida (' + ({ firma: 'la firma no corresponde', nit: 'es de otro NIT', formato: 'formato', contenido: 'no se pudo leer' }[r.motivo] || r.motivo) + ').',
       vencida: 'La licencia venció el ' + (d.hasta || '') + '.', 'por-vencer': 'La licencia vence el ' + (d.hasta || '') + '.' }[r.estado];
     if (!txt) return;
-    el.innerHTML = '<div class="aviso ' + (r.estado === 'por-vencer' ? 'amar' : 'mal') + '"><b>Licencia:</b> ' + txt + ' El portal sigue funcionando; pide la renovación a tu proveedor. <a href="licencia.html">Condiciones de licencia</a></div>';
+    const mas = r.estado === 'vencida' ? SOLO_TXT : 'El portal sigue funcionando.';
+    el.innerHTML = '<div class="aviso ' + (r.estado === 'por-vencer' ? 'amar' : 'mal') + '"><b>Licencia:</b> ' + txt + ' ' + mas +
+      ' Pide la renovación a tu proveedor. <a href="licencia.html">Condiciones de licencia</a></div>';
   }
 };
 if (typeof module !== 'undefined') module.exports = { Licencia };

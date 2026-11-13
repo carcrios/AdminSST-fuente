@@ -65,11 +65,15 @@ CON VARIAS EMPRESAS (desde avanzado/sitio-de-tu-marca, con Node y clasp; ver INS
 
 /* v119: lo que se sube a GitHub, en tandas de menos de 100 archivos (límite de «Upload files»). */
 const SOLO_FUENTE = new Set(['backends', 'pruebas', 'herramientas', 'servidor-unico', 'demo', 'node_modules', '.git', '.github', 'sitio-demo', 'comercial', 'fuente']);   // v166: comercial/ (precios y contrato) nunca va al sitio público
+/* v175: herramientas de QUIEN VENDE el portal. No van al sitio público: sin el servidor (Portal-SSTA.gs), el
+   configurador, la consola, el panel del asesor y el instalador, nadie puede montar el portal por su cuenta.
+   Se usan desde la copia privada (herramientas/proveedor.js las abre en el computador). */
+const SOLO_PROVEEDOR = new Set(['servidor-todo-en-uno', 'admin.html', 'configurar-empresa.html', 'asesor.html', 'instalar.html', 'consola.css', 'menus-empresa.js']);
 function sitioParaSubir(raiz, destino) {
   const t1 = path.join(destino, '1-paginas'), t2 = path.join(destino, '2-archivos'), t3 = path.join(destino, '3-solo-la-primera-vez');
   [t1, t2, t3].forEach((d) => fs.mkdirSync(d, { recursive: true }));
   for (const d of fs.readdirSync(raiz, { withFileTypes: true })) {
-    if (SOLO_FUENTE.has(d.name) || d.name.startsWith('.') || /\.(md|docx)$/i.test(d.name)) continue;
+    if (SOLO_FUENTE.has(d.name) || SOLO_PROVEEDOR.has(d.name) || d.name.startsWith('.') || /\.(md|docx)$/i.test(d.name)) continue;
     const o = path.join(raiz, d.name);
     if (d.isDirectory()) { copiar(o, path.join(t2, d.name)); continue; }
     const dest = d.name === 'empresa.js' || d.name === 'manifest.json' ? t3 : d.name.endsWith('.html') ? t1 : t2;
@@ -115,4 +119,4 @@ async function empaquetar(salida) {
 if (require.main === module) {
   empaquetar(process.argv[2]).then((s) => console.log('Entrega lista en ' + s)).catch((e) => { console.error('✗ ' + e.message); process.exit(1); });
 }
-module.exports = { empaquetar };
+module.exports = { empaquetar, SOLO_PROVEEDOR };

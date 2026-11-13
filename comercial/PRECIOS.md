@@ -17,6 +17,7 @@ Se cobra por empresa, por sede y por obra activa, **nunca por usuario**: cada su
 
 ## Los planes
 
+- **Micro 7.** Para la empresa de hasta 10 trabajadores en riesgo I a III, que cumple los 7 estándares de la Res. 0312 (art. 3). Solo 8 módulos: plan anual, matriz de peligros, personal habilitado (afiliación y exámenes), capacitación y asistencia, inspecciones, EPP, reportes de accidentes y Comité de Convivencia con lo del Decreto 1040 de 2026. Se pasa a SG-SST Esencial cuando la empresa crece. 1 sede.
 - **SG-SST Esencial (la base).** Todo el ciclo del SG-SST de la Res. 0312: plan anual, matriz de peligros, inspecciones, indicadores, COPASST y Comité de Convivencia, auditorías, documental y legal, salud y PVE, emergencias, revisión por la dirección y plan de acción. Incluye EPP y dotación, capacitación y asistencia, inducción, personal habilitado, contratistas y proveedores, presupuesto del SG-SST con su ejecución, reintegro laboral con seguimiento a restricciones, pantalla de planta para televisor e informes de gerencia en inglés. 1 sede.
 - **SG-SST + Obra.** La base más el complemento Obra: permisos de trabajo de alto riesgo (alturas, caliente, confinados, izajes, eléctrico), ATS, preoperacionales y anexo de personal autorizado. Es el que necesita una constructora o un contratista. 1 sede y 1 obra activa.
 - **Integral.** Todo lo anterior más ambiental, calidad y PESV, para varias sedes y gestión HSEQ. 2 sedes y 2 obras activas.
@@ -27,6 +28,7 @@ Se cobra por empresa, por sede y por obra activa, **nunca por usuario**: cada su
 
 | Plan | T1 (hasta 10) | T2 (11 a 50) | T3 (51 a 200) | T4 (más de 200) |
 | --- | --- | --- | --- | --- |
+| Micro 7 | 190.000 | — | — | — |
 | SG-SST Esencial | 350.000 | 480.000 | 650.000 | 850.000 |
 | SG-SST + Obra | 520.000 | 680.000 | 900.000 | 1.150.000 |
 | Integral | 800.000 | 980.000 | 1.250.000 | 1.600.000 |
@@ -35,6 +37,7 @@ Se cobra por empresa, por sede y por obra activa, **nunca por usuario**: cada su
 
 | Plan | T1 y T2 | T3 | T4 |
 | --- | --- | --- | --- |
+| Micro 7 | 900.000 (solo T1) | — | — |
 | SG-SST Esencial | 2.500.000 | 3.200.000 | 4.000.000 |
 | SG-SST + Obra | 3.000.000 | 3.800.000 | 4.800.000 |
 | Integral | 4.000.000 | 5.000.000 | 6.000.000 |

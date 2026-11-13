@@ -11,7 +11,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 
 | Parte | Líneas | Módulos que define |
 |---|---|---|
-| `01-base.js` | 161 | 3 funciones |
+| `01-base.js` | 166 | 3 funciones |
 | `02-clave-y-jornada.js` | 355 | Consola, ClavePortal, Jornada, TraerDeAts |
 | `03-borradores-ayuda-diagnostico.js` | 210 | AvisoPersonal, DraftStore, AyudaCorta, BuscarTodo, Diagnostico |
 | `04-actualizacion-y-cola-sin-senal.js` | 520 | UpdateManager, Outbox, OutboxBadge |
@@ -24,6 +24,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `11-accesibilidad.js` | 423 | ModoSol, Dictado, Letra, Leer, MiFirma, FirmaAlterna, SubirFirma, Accesible |
 | `12-errores-y-autoguardado.js` | 368 | Errores, AutoGuardado |
 | `13-guia-flotante.js` | 171 | GuiaFlotante |
+| `14-licencia-modo.js` | 97 | LicenciaModo |
 
 ## 2. Código del sitio
 
@@ -43,11 +44,11 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `dialogo.js` | 79 | Ventanas del portal en vez de las del navegador (v132) | todas |
 | `empezar-reglas.js` | 179 | Por dónde iniciar (v172; v174 sin la fase de instalar) | empezar, index |
 | `empezar.app.js` | 142 | Por dónde iniciar (v172) | empezar |
-| `empresa-motor.js` | 411 | Lo que hace funcionar empresa.js (v116) | todas |
+| `empresa-motor.js` | 415 | Lo que hace funcionar empresa.js (v116) | todas |
 | `empresa.js` | 746 | Sitio multiempresa (tu marca) | todas |
 | `evidencias-reglas.js` | 190 | Carpeta de evidencias por estándar (v105) | analitica, evidencias, informe |
 | `gtc45-catalogo.js` | 184 | Catálogo de peligros de la GTC 45 (2012) | peligros, percepcion-peligros |
-| `guia-preguntas.js` | 448 | La guía a la que se le pregunta (v172) | ayuda |
+| `guia-preguntas.js` | 427 | La guía a la que se le pregunta (v172) | ayuda |
 | `i18n-en.js` | 282 | Diccionario español → inglés de los reportes y la gerencia (v169) | gerencia, indicadores, informe, pantalla-planta |
 | `i18n.js` | 163 | Reportes y gerencia en inglés (v169) | gerencia, indicadores, informe, pantalla-planta |
 | `iconos-emoji.js` | 126 | v122 | todas |
@@ -59,7 +60,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `inspecciones-plantillas.js` | 983 | Listas de chequeo de las inspecciones | 6 pantallas |
 | `inspecciones.app.js` | 824 | código de inspecciones.html (v162: fuera del HTML para que el celular lo guarde en caché). | inspecciones |
 | `kit-documental.js` | 253 | Documentos del SG-SST con los datos de la empresa | documentos |
-| `licencia.js` | 48 | Licencia de uso del Portal SSTA (v162) | index, licencia |
+| `licencia.js` | 52 | Licencia de uso del Portal SSTA (v162) | index, licencia |
 | `menus-empresa.js` | 122 | Qué ve cada empresa en sus menús (v124) | admin, configurar-empresa |
 | `normas-base.js` | 42 | Lista para empezar la matriz legal de SST (Colombia) | documental |
 | `pantalla-planta.app.js` | 223 | El tablero para el televisor de la planta (v169) | pantalla-planta |
@@ -103,7 +104,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `configurar-empresa.html` | 676 | qr.js, auditorias-plantillas.js, preop-formularios.js, preop-base.js, inspecciones-plantillas.js, ayuda-guias.js, menus-empresa.js |
 | `contratista-portal.html` | 89 | contratistas-docs.js |
 | `contratistas.html` | 529 | registros.js, qr.js, contratistas-docs.js |
-| `convivencia.html` | 738 | cifrado.js, qr.js, registros.js, comites.js |
+| `convivencia.html` | 863 | cifrado.js, qr.js, registros.js, comites.js |
 | `copasst.html` | 104 | qr.js, comites.js |
 | `dashboard.html` | 545 | — |
 | `documental.html` | 430 | registros.js, importar.js, normas-base.js |
@@ -177,7 +178,7 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 | `backends/backend-ats.gs` | 905 | Análisis de Trabajo Seguro (SSTA-F-007) — Portal SSTA | 44 |
 | `backends/backend-epp.gs` | 1098 | Inspección de EPP (SSTA-F-006) — Portal SSTA | 37 |
 | `backends/backend-personal-autorizado.gs` | 1025 |  | 40 |
-| `backends/backend-sgsst.gs` | 3916 | Gestión del SG-SST — Portal SSTA | 263 |
+| `backends/backend-sgsst.gs` | 3931 | Gestión del SG-SST — Portal SSTA | 264 |
 | `backends/permisos/config-alturas.gs` | 18 | Lo ÚNICO propio del permiso de Trabajo en Alturas | 0 |
 | `backends/permisos/config-caliente.gs` | 18 | Lo ÚNICO propio del permiso de Trabajo en Caliente | 0 |
 | `backends/permisos/config-confinados.gs` | 18 | Lo ÚNICO propio del permiso de Espacios Confinados | 0 |
@@ -207,6 +208,7 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 | `node herramientas/lineas-largas.js` | Tope a las líneas kilométricas (v167) |
 | `node herramientas/mapa.js` | MAPA-DEL-CODIGO.md: dónde está cada cosa (v167) |
 | `node herramientas/minificar.js` | Achica el sitio que se sube (v132) |
+| `node herramientas/proveedor.js` | herramientas/proveedor.js — Tus herramientas de proveedor, en tu computador (v175) |
 | `node herramientas/publicar.js` | UN solo comando para sacar una versión (v165) |
 | `node herramientas/sembrar-demo.js` | Crea demo/semilla.json (los datos de ejemplo de la demo) |
 | `node herramientas/subir-version.js` | Sube la versión del portal en TODOS lados a la vez |
@@ -216,6 +218,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3773 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3794 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
 | `pruebas/navegador.js` | 1447 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

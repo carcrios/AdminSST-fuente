@@ -13,7 +13,7 @@ Contrato n.º [___]
 
 1. EL CLIENTE debe implementar y mantener su Sistema de Gestión de Seguridad y Salud en el Trabajo (Decreto 1072 de 2015 y Resolución 0312 de 2019) y quiere una herramienta digital para apoyarlo.
 2. EL PROVEEDOR es titular de los derechos sobre el Portal SSTA: un sitio web que funciona en celulares y computadores, incluso sin señal, y un servidor que se instala en la cuenta de Google de EL CLIENTE.
-3. Las partes acuerdan que la información de EL CLIENTE queda siempre en la cuenta de Google de EL CLIENTE y que el portal nunca se bloquea por falta de pago, porque es una herramienta de seguridad que se usa en campo.
+3. Las partes acuerdan que la información de EL CLIENTE queda siempre en la cuenta de Google de EL CLIENTE y que nunca se bloquea el acceso a ella ni se borra por falta de pago. Si la licencia vence, el portal sigue funcionando igual durante [60] días; después queda en modo de solo lectura según la cláusula séptima.
 
 Por lo anterior, celebran el presente contrato, que se rige por las cláusulas siguientes.
 
@@ -21,7 +21,7 @@ Por lo anterior, celebran el presente contrato, que se rige por las cláusulas s
 
 **PRIMERA. Objeto.** EL PROVEEDOR otorga a EL CLIENTE una licencia de uso no exclusiva, intransferible y sin derecho a sublicenciar del Portal SSTA, para la empresa y el NIT de este contrato, con el plan y los módulos del Anexo 1. Además presta los servicios de instalación, capacitación, soporte, actualizaciones y respaldo descritos aquí y en el Anexo 3.
 
-**SEGUNDA. Plan, tramo y módulos.** El plan contratado (SG-SST Esencial, SG-SST + Obra o Integral), el tramo según el número de trabajadores, las sedes y las obras incluidas son los del Anexo 1. Prender un módulo fuera del plan, agregar una sede u obra o pasar de tramo se acuerda por escrito, incluso por correo, y ajusta el valor desde el mes siguiente.
+**SEGUNDA. Plan, tramo y módulos.** El plan contratado (Micro 7, SG-SST Esencial, SG-SST + Obra o Integral), el tramo según el número de trabajadores, las sedes y las obras incluidas son los del Anexo 1. Prender un módulo fuera del plan, agregar una sede u obra o pasar de tramo se acuerda por escrito, incluso por correo, y ajusta el valor desde el mes siguiente.
 
 **TERCERA. Puesta en marcha (setup).** Con el pago del setup, EL PROVEEDOR: (i) instala el servidor en la cuenta de Google de EL CLIENTE y configura el portal con su marca, formatos y módulos; (ii) carga el personal, las áreas y los equipos que EL CLIENTE entregue en Excel; (iii) dicta hasta [6] horas de capacitación a administradores, SST y supervisores; (iv) acompaña el primer mes de uso. La puesta en marcha termina con un acta firmada por las partes o, si EL CLIENTE no la objeta, [10] días hábiles después de entregado el portal funcionando.
 
@@ -31,7 +31,7 @@ Por lo anterior, celebran el presente contrato, que se rige por las cláusulas s
 
 **SEXTA. Precio y forma de pago.** EL CLIENTE paga el setup [50 % al firmar y 50 % con el acta de puesta en marcha] y la mensualidad del Anexo 1 por mes anticipado, dentro de los [30] días siguientes a recibir la factura electrónica. Si paga el año por anticipado, recibe el descuento del Anexo 1. Los valores se reajustan cada [enero] con el IPC del año anterior. A los valores se suma el IVA cuando aplique.
 
-**SÉPTIMA. Mora sin bloqueo.** Si EL CLIENTE se atrasa más de [30] días, EL PROVEEDOR puede suspender el soporte y las actualizaciones hasta que se ponga al día, previo aviso escrito con [10] días de anticipación. **En ningún caso EL PROVEEDOR bloquea el portal, ni impide el acceso a los datos, ni borra información**: los permisos de trabajo, reportes, preoperacionales y registros siguen funcionando. Sobre las sumas en mora se causan intereses a la tasa máxima legal. Después de [90] días de mora, EL PROVEEDOR puede terminar el contrato según la cláusula novena.
+**SÉPTIMA. Mora y modo de solo lectura.** Si EL CLIENTE se atrasa más de [30] días, EL PROVEEDOR puede suspender el soporte y las actualizaciones hasta que se ponga al día, previo aviso escrito con [10] días de anticipación. Si la licencia vence y no se renueva, el portal sigue funcionando igual durante [60] días calendario contados desde el vencimiento, con un aviso al administrador. Pasado ese plazo, el portal queda en **modo de solo lectura**: EL CLIENTE puede consultar, imprimir y descargar toda su información, y puede seguir reportando accidentes, incidentes, actos y condiciones inseguras y recibiendo quejas de acoso o violencia en el trabajo, pero no puede registrar información nueva en los demás módulos hasta que renueve. **En ningún caso EL PROVEEDOR impide el acceso a los datos ni borra información**, que siempre están en la cuenta de Google de EL CLIENTE. Sobre las sumas en mora se causan intereses a la tasa máxima legal. Después de [90] días de mora, EL PROVEEDOR puede terminar el contrato según la cláusula novena.
 
 **OCTAVA. Vigencia y renovación.** El contrato dura [doce (12) meses] desde la firma y se renueva automáticamente por periodos iguales, salvo que una parte avise por escrito que no lo renovará, con [30] días de anticipación al vencimiento.
 

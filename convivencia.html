@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-iTHm/93Vru8cWGiJ9f+X/nMvrtDWP4r+dmrdl6350eI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-sdNg+zg7LjdXU/Hkdg4wJGWBqHfqNDCr19KJpFmY6a8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Comité de Convivencia · Portal SSTA</title>
@@ -70,7 +70,7 @@ const ETAPAS = [
   { n: 'Seguimiento de compromisos', plazo: 30, mensual: true, ayuda: 'Seguimiento mensual a los compromisos (por fuera del límite de 65 días).' },
   { n: 'Por remitir', plazo: 15, ayuda: 'Sin acuerdo o con incumplimiento: remitir a la alta dirección o a la autoridad competente, máximo 15 días.' }
 ];
-const MODALIDADES = ['Maltrato laboral', 'Persecución laboral', 'Discriminación laboral', 'Entorpecimiento laboral', 'Inequidad laboral', 'Desprotección laboral'];
+const MODALIDADES = ['Maltrato laboral', 'Persecución laboral', 'Discriminación laboral', 'Entorpecimiento laboral', 'Inequidad laboral', 'Desprotección laboral', 'Violencia basada en género'];   // v175: Decreto 1040
 const TIPOS_ACT = ['Trámite y comunicación a las partes', 'Examen del caso', 'Escucha de la parte que se queja', 'Escucha de la parte señalada', 'Escucha de testigos', 'Reunión de diálogo', 'Plan de mejora / acuerdo', 'Seguimiento de compromisos', 'Recomendación a la alta dirección', 'Remisión', 'Otra'];
 const MOTIVOS_CIERRE = ['Acuerdo y compromisos cumplidos', 'Las partes desistieron', 'Los hechos no constituyen acoso laboral', 'Remitida a la alta dirección (sin acuerdo o incumplimiento)', 'Remitida a autoridad competente', 'Otro'];
 const etapaDe = (n) => ETAPAS.find((e) => e.n === n);
@@ -201,7 +201,16 @@ function pedirClaveAnterior() {
     });
   });
 }
-function publico(q) { const o = {}; ['codigo', 'fechaRecepcion', 'etapa', 'estado', 'fechaCierre', 'inicioEtapa', 'venceEtapa', 'venceTotal'].forEach((k) => { o[k] = q[k] || ''; }); return o; }
+function publico(q) {
+  const o = {};
+  ['codigo', 'fechaRecepcion', 'etapa', 'estado', 'fechaCierre', 'inicioEtapa', 'venceEtapa', 'venceTotal', 'medSolicitud', 'medAdopcion', 'medSexual', 'protegeHasta'].forEach((k) => { o[k] = q[k] || ''; });
+  return o;
+}
+/* v175 · Decreto 1040 de 2026: medidas de protección desde que se conoce el hecho (sin prueba previa); en acoso sexual,
+   adoptadas en máximo 5 días hábiles. Y 6 meses de protección contra represalias para quien presentó la queja. */
+const MEDIDAS_1040 = ['Evitar el contacto con la persona señalada', 'Cambio de turno u horario', 'Teletrabajo', 'Traslado de área', 'Redistribución de tareas', 'Acompañamiento psicológico (ARL)', 'Orientación jurídica', 'Otra'];
+const seisMeses = (f) => { if (!f) return ''; const d = new Date(f + 'T12:00:00'); d.setMonth(d.getMonth() + 6); return d.toISOString().slice(0, 10); };
+const plazoMedidas = (q) => ((q.medSexual === 'si' || q.medSexual === true) && q.medSolicitud ? Festivos.sumarHabiles(q.medSolicitud, 5) : '');
 async function guardarQueja(q, datos) {
   // Se cifra con la llave abierta y se marca con SU kid; si el comité cambió de clave
   // mientras tanto, no se guarda (quedaría una queja que nadie podría abrir).
@@ -247,11 +256,12 @@ function campoPersona(pref, p) {
 }
 function formDatos(d) {
   d = d || {};
-  return '<div class="card"><h2>Quien presenta la queja</h2>' + campoPersona('qj', d.quejoso) + '</div>' +
+  return '<div class="card"><h2>Quien presenta la queja</h2>' + campoPersona('qj', d.quejoso) +
+    '<div class="field"><label for="qVin">Vínculo con la empresa</label><select id="qVin">' + ['Trabajador', 'Contratista', 'Aprendiz o practicante', 'Temporal (empresa de servicios)', 'Persona en proceso de selección', 'Otro'].map((v) => '<option' + (d.vinculo === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') + '</select></div></div>' +
     '<div class="card"><h2>Persona(s) señalada(s)</h2>' + campoPersona('qs', (d.querellados || [])[0]) +
     '<div class="field"><label>Otras personas señaladas (una por línea)</label><textarea id="qsOtros">' + esc((d.querellados || []).slice(1).map((x) => [x.nombre, x.cargo].filter(Boolean).join(' — ')).join('\n')) + '</textarea></div>' +
     '<div class="field"><label>Relación entre las partes</label><select id="qRel"><option>Jefe a colaborador</option><option>Entre compañeros</option><option>Colaborador a jefe</option><option>Otra</option></select></div></div>' +
-    '<div class="card"><h2>Los hechos</h2><div class="field"><label>Conductas (Ley 1010 de 2006, art. 2)</label><div class="chips" id="qMod">' + MODALIDADES.map((m) => '<button type="button" data-m="' + esc(m) + '" class="' + ((d.modalidades || []).indexOf(m) !== -1 ? 'on' : '') + '">' + esc(m) + '</button>').join('') + '</div></div>' +
+    '<div class="card"><h2>Los hechos</h2><div class="field"><label>Conductas (Ley 1010 de 2006 y Decreto 1040 de 2026)</label><div class="chips" id="qMod">' + MODALIDADES.map((m) => '<button type="button" data-m="' + esc(m) + '" class="' + ((d.modalidades || []).indexOf(m) !== -1 ? 'on' : '') + '">' + esc(m) + '</button>').join('') + '</div></div>' +
     '<div class="field"><label>Descripción de los hechos</label><textarea id="qHechos" style="min-height:140px;">' + esc(d.hechos || '') + '</textarea></div>' +
     '<div class="field"><label>Fechas de los hechos</label><input type="text" id="qFechas" value="' + esc(d.fechasHechos || '') + '" placeholder="Ej: entre el 2 y el 20 de septiembre"></div>' +
     '<div class="field"><label>Testigos</label><textarea id="qTest" class="u-alto56">' + esc(d.testigos || '') + '</textarea></div>' +
@@ -263,7 +273,7 @@ function leerDatos(base) {
   return Object.assign(base || {}, {
     quejoso: { nombre: v('qjN'), cargo: v('qjC'), area: v('qjA') },
     querellados: [{ nombre: v('qsN'), cargo: v('qsC'), area: v('qsA') }].filter((x) => x.nombre).concat(otros),
-    relacion: v('qRel'), modalidades: [...document.querySelectorAll('#qMod button.on')].map((b) => b.dataset.m),
+    vinculo: v('qVin'), relacion: v('qRel'), modalidades: [...document.querySelectorAll('#qMod button.on')].map((b) => b.dataset.m),
     hechos: v('qHechos'), fechasHechos: v('qFechas'), testigos: v('qTest'), pruebas: v('qPru')
   });
 }
@@ -276,8 +286,12 @@ function nuevaQueja(pre) {
     '<div class="field"><label>Cómo llegó</label><select id="qMedio"><option>Por escrito</option><option>Correo electrónico</option><option>Verbal (se levantó acta)</option><option' + (pre.datos ? ' selected' : '') + '>Buzón</option></select></div></div>' +
     '<div class="field"><label>¿Los hechos son de acoso sexual?</label><select id="qSex"><option value="No">No</option><option value="Sí"' + (pre.sexual ? ' selected' : '') + '>Sí</option></select></div><div id="qSexAviso"></div></div>' +
     formDatos(pre.datos) +
+    '<div class="card"><h2>Medidas de protección (Decreto 1040 de 2026)</h2><p class="ayuda">Se activan desde que se conoce el hecho, sin pedir pruebas. En acoso sexual, las que pida la víctima se adoptan en <b>máximo 5 días hábiles</b>.</p>' +
+    '<div class="grid2"><div class="field"><label for="qMedS">¿Pidió medidas? Fecha</label><input type="date" id="qMedS"></div><div class="field"><label for="qMedA">Fecha en que se adoptaron</label><input type="date" id="qMedA"></div></div>' +
+    '<div class="field"><label>Medidas</label><div class="chips" id="qMed">' + MEDIDAS_1040.map((m) => '<button type="button" data-med="' + esc(m) + '">' + esc(m) + '</button>').join('') + '</div></div></div>' +
     '<button type="button" class="btn amber" id="qGuardar">🔒 Guardar queja cifrada</button><div class="status-msg" id="qMsg"></div>';
   activarChips();
+  $('qMed').addEventListener('click', (e) => { const b = e.target.closest('[data-med]'); if (b) b.classList.toggle('on'); });
   $('qSex').addEventListener('change', () => {
     $('qSexAviso').innerHTML = $('qSex').value === 'Sí' ? '<div class="aviso">El Comité de Convivencia <b>no es competente</b> en casos de acoso sexual: esas conductas no son conciliables (Res. 3461 de 2025, art. 6, parágrafo 1). Se remiten según el protocolo de la empresa y la Ley 2365 de 2024. Se registra solo como remitida.</div>' +
       '<div class="field"><label>Se remite a</label><input type="text" id="qRemA" placeholder="Ej: Gerencia general / Gestión humana"></div>' : '';
@@ -288,6 +302,8 @@ function nuevaQueja(pre) {
     if (!fr) { msg.textContent = 'Falta la fecha de recepción.'; return; }
     if (!datos.quejoso.nombre || !datos.hechos) { msg.textContent = 'Faltan quien presenta la queja o los hechos.'; return; }
     const q = { id: SGSST.nuevoId('QJA'), codigo: siguienteCodigo(fr), fechaRecepcion: fr, estado: 'ABIERTA', etapa: 'Recibida', inicioEtapa: fr, venceEtapa: venceEtapa('Recibida', fr), venceTotal: Festivos.sumarDias(fr, LIMITE_TOTAL), fechaCierre: '' };
+    datos.medidas = [...document.querySelectorAll('#qMed button.on')].map((b) => b.dataset.med);
+    Object.assign(q, { medSolicitud: $('qMedS').value || '', medAdopcion: $('qMedA').value || '', medSexual: datos.sexual || (datos.modalidades || []).indexOf('Violencia basada en género') !== -1 ? 'si' : '', protegeHasta: seisMeses(fr) });
     if (datos.sexual) {
       const a = $('qRemA') ? $('qRemA').value.trim() : '';
       if (!a) { msg.textContent = 'Escribe a quién se remite.'; return; }
@@ -394,6 +410,35 @@ async function abrirBuzon(id) {
 
 /* ── Detalle de la queja ── */
 function persona(p) { return p ? esc([p.nombre, p.cargo, p.area].filter(Boolean).join(' · ')) : '—'; }
+function tarjetaMedidas(q, d) {
+  const pl = plazoMedidas(q), venc = pl && !q.medAdopcion;
+  return '<div class="card"><h2>Medidas de protección y represalias (Decreto 1040)</h2>' +
+    '<div class="dato"><span>Medidas pedidas</span><b>' + esc(q.medSolicitud ? UI.corta(q.medSolicitud) : 'No') + '</b></div>' +
+    '<div class="dato"><span>Adoptadas</span><b>' + esc(q.medAdopcion ? UI.corta(q.medAdopcion) : '—') + '</b></div>' +
+    ((d.medidas || []).length ? '<div class="dato"><span>Cuáles</span><b>' + esc(d.medidas.join(', ')) + '</b></div>' : '') +
+    (venc ? '<div class="aviso ' + (pl < UI.hoy() ? 'mal' : 'amar') + ' u-mt8">Acoso sexual: las medidas pedidas deben adoptarse a más tardar el <b>' + esc(UI.corta(pl)) + '</b> (5 días hábiles).</div>' : '') +
+    (q.protegeHasta ? '<p class="ayuda u-mt8">Protección contra represalias hasta el <b>' + esc(UI.corta(q.protegeHasta)) + '</b>: si se termina el contrato de quien presentó la queja antes de esa fecha y se verifican los hechos, la terminación no tiene efecto. Consulta antes con el área jurídica.</p>' : '') +
+    '<button type="button" class="btn ghost mini" id="qMedidas">Registrar medidas</button></div>';
+}
+async function editarMedidas() {
+  const q = actual, d = P;
+  const m = UI.modal('<h3>Medidas de protección</h3><div class="grid2"><div class="field"><label for="mS">Fecha en que se pidieron</label><input type="date" id="mS" value="' + esc(q.medSolicitud || '') + '"></div>' +
+    '<div class="field"><label for="mA">Fecha en que se adoptaron</label><input type="date" id="mA" value="' + esc(q.medAdopcion || '') + '"></div></div>' +
+    '<div class="field"><label>Medidas</label><div class="chips" id="mL">' + MEDIDAS_1040.map((x) => '<button type="button" data-med="' + esc(x) + '" class="' + ((d.medidas || []).indexOf(x) !== -1 ? 'on' : '') + '">' + esc(x) + '</button>').join('') + '</div></div>' +
+    '<label class="check"><input type="checkbox" id="mSx"' + (q.medSexual === 'si' || q.medSexual === true ? ' checked' : '') + '> Es acoso sexual o violencia basada en género (plazo de 5 días hábiles)</label>' +
+    '<button type="button" class="btn amber" id="mOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="mMsg"></p>');
+  const g = (x) => m.el.querySelector(x);
+  g('#mL').addEventListener('click', (e) => { const b = e.target.closest('[data-med]'); if (b) b.classList.toggle('on'); });
+  g('#mOk').addEventListener('click', async () => {
+    const s0 = g('#mS').value, a0 = g('#mA').value;
+    if (a0 && s0 && a0 < s0) { g('#mMsg').textContent = 'La adopción no puede ser antes de la solicitud.'; return; }
+    Object.assign(q, { medSolicitud: s0, medAdopcion: a0, medSexual: g('#mSx').checked ? 'si' : '', protegeHasta: q.protegeHasta || seisMeses(q.fechaRecepcion) });
+    d.medidas = [...m.el.querySelectorAll('#mL button.on')].map((b) => b.dataset.med);
+    const r = await guardarQueja(q, d);
+    if (!r.ok) { g('#mMsg').textContent = Errores.texto('guardó', r); return; }
+    m.cerrar(); UI.toast('✓ Medidas registradas'); pintarQueja();
+  });
+}
 function pintarQueja() {
   const q = actual, d = P, abierta = q.estado === 'ABIERTA', e = etapaDe(q.etapa);
   const fila = (et, v, c) => '<div class="plazo"><span>' + esc(et) + '</span>' + (c ? '<span class="chip ' + c + '">' + esc(v) + '</span>' : '<b>' + esc(v) + '</b>') + '</div>';
@@ -404,9 +449,11 @@ function pintarQueja() {
         (q.venceTotal ? fila('Límite total (65 días)', UI.corta(q.venceTotal) + ' (' + UI.cuandoTexto(q.venceTotal) + ')', UI.semaforo(q.venceTotal, 7)) : '') +
         (e ? '<p class="ayuda u-mt8">' + esc(e.ayuda) + '</p>' : '') : fila('Cierre', UI.corta(q.fechaCierre))) +
       (abierta ? '<div class="fila-btn"><button type="button" class="btn ghost" id="qEtapa">➡️ Cambiar de etapa</button>' + (q.etapa === 'En examen' && !d.ampliado ? '<button type="button" class="btn ghost" id="qAmpliar">Ampliar examen a 15 días</button>' : '') + '</div>' : '') + '</div>' +
+    tarjetaMedidas(q, d) +
     '<div class="card"><h2>Datos de la queja</h2>' +
       '<div class="dato"><span>Presenta</span><b>' + persona(d.quejoso) + '</b></div>' +
       '<div class="dato"><span>Señalado(s)</span><b>' + ((d.querellados || []).map(persona).join('<br>') || '—') + '</b></div>' +
+      '<div class="dato"><span>Vínculo</span><b>' + esc(d.vinculo || '—') + '</b></div>' +
       '<div class="dato"><span>Relación</span><b>' + esc(d.relacion || '—') + '</b></div>' +
       '<div class="dato"><span>Conductas</span><b>' + esc((d.modalidades || []).join(', ') || '—') + '</b></div>' +
       '<div class="dato"><span>Recibida</span><b>' + esc((d.recepcion && d.recepcion.medio) || '—') + '</b></div>' +
@@ -427,6 +474,7 @@ function pintarQueja() {
         ((d.cierre || {}).observaciones ? '<div class="texto-largo u-mt8">' + esc(d.cierre.observaciones) + '</div>' : '') + '<button type="button" class="btn ghost mini u-mt10" id="qReabrir">Reabrir para seguimiento</button></div>') +
     '<button type="button" class="btn ghost" id="qPdf">🖨️ Expediente en PDF (reservado)</button><div class="status-msg" id="qdMsg"></div>';
   const on = (id, f) => { if ($(id)) $(id).addEventListener('click', f); };
+  on('qMedidas', editarMedidas);
   on('qEtapa', cambiarEtapa); on('qAmpliar', ampliar); on('qEditar', editarDatos); on('qAct', nuevaActuacion); on('qComp', nuevoCompromiso);
   on('qCerrar', cerrarQueja); on('qReabrir', reabrir); on('qPdf', pdfExpediente);
   s.querySelectorAll('[data-cc]').forEach((c) => c.addEventListener('change', async () => {
@@ -699,6 +747,83 @@ async function informe() {
     '<table class="u-mt6"><tr><td style="font-size:8pt;">Res. 3461 de 2025: informe para la alta dirección. No contiene nombres ni hechos de los casos.</td></tr></table>']);
 }
 
+/* ── v175 · Decreto 1040 de 2026: prevención del acoso, la violencia basada en género y la discriminación ──
+   Lo que la empresa debe tener (art. 2.2.1.8.2.1 y siguientes del Decreto 1072, adicionado por el 1040): política
+   participativa con «cero tolerancia», protocolo con ruta de atención, canales confidenciales también para contratistas
+   y aprendices, responsables, reglamento y contratos al día, socialización y capacitación ANUAL. El Ministerio del
+   Trabajo sanciona no tenerlos o no socializarlos. Aquí se lleva el cumplimiento y salen las plantillas en PDF. */
+const ITEMS_1040 = [
+  ['politicaParticipativa', 'Política construida con participación de los trabajadores (y del sindicato, si lo hay)'],
+  ['politicaFirmada', 'Política firmada por el representante legal, con declaración de «cero tolerancia»'],
+  ['politicaPublicada', 'Política publicada y socializada a todos (trabajadores, contratistas, aprendices, temporales)'],
+  ['protocolo', 'Protocolo adoptado: ruta de orientación, recepción, investigación, protección y cierre'],
+  ['canales', 'Canales seguros y confidenciales para quejas (también para contratistas y aprendices)'],
+  ['designacion', 'Responsables designados para atender los casos'],
+  ['reglamento', 'Reglamento interno de trabajo actualizado con el Decreto 1040'],
+  ['contratos', 'Contratos informan la política y el protocolo y su obligatoriedad'],
+  ['socializacion', 'Socialización del año'],
+  ['capacitacion', 'Capacitación anual sobre acoso, violencia y discriminación'],
+  ['estadistica', 'Reporte estadístico del año (sin datos que identifiquen a nadie)'],
+];
+let doc1040 = null;
+async function pintar1040(panel) {
+  const anio = UI.hoy().slice(0, 4), id = 'D1040-' + anio;
+  if (SGSST.url() && !doc1040) {
+    const r = await SGSST.listar('cumple1040', { sinPedir: true });
+    doc1040 = ((r && r.rows) || []).find((x) => x.id === id) || { id, resumen: { anio } };
+  }
+  const d = (doc1040 && doc1040.resumen) || {}, hechos = ITEMS_1040.filter(([k]) => d[k]).length;
+  const capV = d.capacitacion ? Festivos.sumarDias(d.capacitacion, 365) : '';
+  panel.innerHTML =
+    '<div class="card"><h2>Decreto 1040 de 2026 · ' + esc(anio) + '</h2><p class="ayuda">Acoso, violencia basada en género y discriminación en el trabajo. Rige desde el 6 de agosto de 2026, sin plazo de transición; ' +
+    'el Ministerio del Trabajo sanciona no tener la política y el protocolo o no socializarlos.</p>' +
+    '<div class="kpis"><div class="kpi ' + (hechos === ITEMS_1040.length ? 'ok' : hechos >= 6 ? '' : 'mal') + '"><div class="v">' + hechos + ' de ' + ITEMS_1040.length + '</div><div class="n">requisitos al día</div></div>' +
+    (capV ? '<div class="kpi ' + (capV < UI.hoy() ? 'mal' : 'ok') + '"><div class="v">' + esc(UI.corta(capV)) + '</div><div class="n">próxima capacitación</div></div>' : '') + '</div>' +
+    ITEMS_1040.map(([k, t]) => '<div class="field"><label for="c1040_' + k + '">' + esc(t) + '</label><input type="date" id="c1040_' + k + '" data-k="' + k + '" max="' + UI.hoy() + '" value="' + esc(d[k] || '') + '"></div>').join('') +
+    '<div class="field"><label for="c1040_resp">Responsable de atender los casos</label><input type="text" id="c1040_resp" maxlength="120" value="' + esc(d.responsable || '') + '"></div>' +
+    '<button type="button" class="btn amber" id="g1040">Guardar</button><p class="status-msg" id="m1040" aria-live="polite"></p></div>' +
+    '<div class="card"><h2>Plantillas para adaptar y firmar</h2><p class="ayuda">Salen con el nombre de tu empresa. Ajústalas con los trabajadores (la política debe ser participativa) y fírmalas.</p>' +
+    '<div class="fila-btn"><button type="button" class="btn ghost" id="p1040Pol">Política de prevención (PDF)</button><button type="button" class="btn ghost" id="p1040Pro">Protocolo y ruta de atención (PDF)</button></div>' +
+    '<p class="ayuda u-mt8">Canal confidencial: el <b>buzón reservado</b> del comité (pestaña Buzón) recibe quejas sin usuario, también de contratistas y aprendices. Las medidas de protección y el plazo de 5 días hábiles se llevan en cada queja.</p></div>';
+  $('g1040').addEventListener('click', async () => {
+    const doc = { anio, actualizado1040: UI.hoy(), responsable: $('c1040_resp').value.trim() };
+    panel.querySelectorAll('[data-k]').forEach((i) => { doc[i.dataset.k] = i.value || ''; });
+    const r = await SGSST.enviar({ action: 'guardar', tipo: 'cumple1040', id, doc }, { titulo: anio, fecha: UI.hoy() });
+    if (!r.ok) { $('m1040').textContent = Errores.texto('guardó', r); return; }
+    doc1040 = { id, resumen: doc }; UI.toast('✓ Cumplimiento del Decreto 1040 guardado'); pintar1040(panel);
+  });
+  $('p1040Pol').addEventListener('click', pdfPolitica1040);
+  $('p1040Pro').addEventListener('click', pdfProtocolo1040);
+}
+const firmas1040 = () => '<table style="margin-top:36px"><tr><td style="height:60px;vertical-align:bottom">_________________________<br>Representante legal</td>' +
+  '<td style="vertical-align:bottom">_________________________<br>Responsable del SG-SST</td><td style="vertical-align:bottom">_________________________<br>Representante de los trabajadores</td></tr></table>';
+function pdfPolitica1040() {
+  const e = EMPRESA.nombre || 'LA EMPRESA';
+  UI.imprimir([UI.cabecera('SG-POL-1040', 'POLÍTICA DE PREVENCIÓN DEL ACOSO, LA VIOLENCIA BASADA EN GÉNERO Y LA DISCRIMINACIÓN EN EL TRABAJO', 'Decreto 1040 de 2026 · Ley 1010 de 2006 · Ley 2365 de 2024') +
+    '<p><b>' + esc(e) + '</b> declara <b>cero tolerancia</b> frente a cualquier forma de acoso laboral, acoso sexual, violencia basada en género y discriminación en el trabajo, en cualquier lugar donde se trabaje, incluidos los espacios virtuales, los desplazamientos y los eventos de la empresa.</p>' +
+    '<h3>Alcance</h3><p>Aplica a trabajadores, contratistas, aprendices, practicantes, personal temporal, voluntarios, visitantes y personas en proceso de selección, y a quienes ejercen autoridad en nombre de la empresa.</p>' +
+    '<h3>Principios</h3><ul><li>Dignidad y respeto.</li><li>Confidencialidad y reserva de la información.</li><li>Debida diligencia: actuar de inmediato y sin exigir pruebas previas para proteger.</li><li>No revictimización: la víctima no es confrontada con la persona señalada.</li><li>No represalias contra quien presenta una queja o es testigo.</li><li>Enfoque diferencial, interseccional y de género.</li></ul>' +
+    '<h3>Compromisos</h3><ul><li>Adoptar y socializar el protocolo de atención con su ruta (orientación, recepción, investigación, protección y cierre).</li><li>Mantener canales seguros y confidenciales para presentar quejas, por escrito, en forma electrónica o verbal.</li><li>Adoptar medidas de protección desde que se conoce el hecho y, en acoso sexual, en un plazo no superior a cinco (5) días hábiles cuando la víctima las solicite.</li>' +
+    '<li>Capacitar y actualizar a todas las personas cada año.</li><li>Articular esta política con el SG-SST y el Comité de Convivencia Laboral.</li><li>Medir y reportar estadísticamente los casos, protegiendo los datos personales (Ley 1581 de 2012).</li></ul>' +
+    '<h3>Derechos y deberes</h3><p>Toda persona tiene derecho a un trabajo libre de violencia y a ser atendida, protegida y orientada. Todos deben tratar a los demás con respeto, abstenerse de estas conductas, reportarlas y guardar la reserva de los casos.</p>' +
+    '<h3>Indicadores</h3><ul><li>Personas capacitadas en el año / total de personas.</li><li>Quejas atendidas dentro de los plazos / quejas recibidas.</li><li>Medidas de protección adoptadas a tiempo / medidas solicitadas.</li></ul>' +
+    '<p style="font-size:10px">Construida con la participación de los trabajadores el ____ de __________ de ______. Publicada el ____ de __________ de ______.</p>' + firmas1040()]);
+}
+function pdfProtocolo1040() {
+  const e = EMPRESA.nombre || 'LA EMPRESA', resp = (doc1040 && doc1040.resumen && doc1040.resumen.responsable) || '______________________';
+  const fila = (f, q, p) => '<tr><td><b>' + f + '</b></td><td>' + q + '</td><td>' + p + '</td></tr>';
+  UI.imprimir([UI.cabecera('SG-PRO-1040', 'PROTOCOLO DE ATENCIÓN Y RUTA FRENTE AL ACOSO, LA VIOLENCIA BASADA EN GÉNERO Y LA DISCRIMINACIÓN', esc(e) + ' · Decreto 1040 de 2026') +
+    '<h3>Canales para presentar la queja</h3><ul><li>Buzón reservado del Comité de Convivencia (sin usuario, también para contratistas y aprendices).</li><li>Por escrito o por correo al responsable: ' + esc(resp) + '.</li><li>Verbal: se deja constancia escrita y firmada.</li></ul><p>No se exige denuncia penal ni queja disciplinaria para activar la ruta.</p>' +
+    '<h3>Ruta de atención</h3><table><tr><th>Fase</th><th>Qué se hace</th><th>Plazo</th></tr>' +
+    fila('1. Orientación', 'Informar a la persona sus derechos, la ruta, las medidas posibles y la atención de la ARL y la EPS.', 'Inmediato') +
+    fila('2. Recepción', 'Registrar la queja con reserva; activar la ruta interna (Comité de Convivencia o la instancia designada).', 'Máximo 5 días calendario') +
+    fila('3. Protección', 'Medidas sin prueba previa: evitar contacto, cambio de turno, teletrabajo, traslado, redistribución de tareas, acompañamiento psicológico (ARL), orientación jurídica. En acoso sexual, las solicitadas por la víctima.', 'Desde que se conoce el hecho; acoso sexual: máximo 5 días hábiles') +
+    fila('4. Investigación', 'Escuchar a las partes por separado, sin confrontar a la víctima con la persona señalada. La violencia basada en género no es conciliable.', 'Según el procedimiento interno y la Res. 3461 de 2025') +
+    fila('5. Cierre', 'Decisión, seguimiento de compromisos o remisión a la autoridad competente; reporte estadístico sin datos que identifiquen.', 'Seguimiento mensual') + '</table>' +
+    '<h3>Protección contra represalias</h3><p>Ninguna persona que presente una queja o sea testigo puede sufrir represalias. Una terminación del contrato de la víctima dentro de los seis (6) meses siguientes a su queja no tiene efecto si se verifican los hechos.</p>' +
+    '<h3>Reserva</h3><p>La información de los casos es reservada y se trata conforme a la Ley 1581 de 2012. En el portal, las quejas se guardan cifradas con la clave del comité.</p>' + firmas1040()]);
+}
+
 Comite.iniciar({
   clave: 'convivencia', id: ID_COMITE, nombre: 'Comité de Convivencia Laboral', corto: 'Comité de Convivencia', origen: 'Comité de convivencia',
   subtitulo: 'Prevención del acoso laboral · Res. 3461 de 2025',
@@ -712,7 +837,7 @@ Comite.iniciar({
   avisoActa: '🔒 En las actas <b>no</b> se escriben nombres ni hechos de los casos: eso va en cada queja, que se guarda cifrada. Aquí solo códigos (CCL-…) y temas generales.',
   ordenOrdinaria: ['Verificación del quórum', 'Lectura y aprobación del acta anterior', 'Estado general de los casos (solo códigos y etapas)', 'Seguimiento a compromisos y planes de mejora', 'Actividades de prevención del acoso laboral', 'Varios'],
   ordenExtraordinaria: ['Verificación del quórum', 'Atención de la queja (el detalle queda en la queja cifrada)', 'Próximos pasos'],
-  tabsExtra: [{ id: 'quejas', nombre: 'Quejas 🔒', pintar: pintarQuejas, filtrar: (v) => { fQ = v; pintarQuejas($('panel')); } }, { id: 'buzon', nombre: 'Buzón 🔒', pintar: pintarBuzon }, { id: 'informes', nombre: 'Informes', pintar: pintarInformes }],
+  tabsExtra: [{ id: 'd1040', nombre: 'Decreto 1040', pintar: pintar1040 }, { id: 'quejas', nombre: 'Quejas 🔒', pintar: pintarQuejas, filtrar: (v) => { fQ = v; pintarQuejas($('panel')); } }, { id: 'buzon', nombre: 'Buzón 🔒', pintar: pintarBuzon }, { id: 'informes', nombre: 'Informes', pintar: pintarInformes }],
   pantallasExtra: '<div class="screen" id="scrQueja"></div>',
   alCargar: async (ctx) => {
     cfgCif = ctx.comite && ctx.comite.resumen.cifrado ? ctx.comite.resumen.cifrado : null;

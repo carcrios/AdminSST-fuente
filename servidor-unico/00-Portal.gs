@@ -21,7 +21,7 @@
 
 // Los datos de la empresa (nombre, correos, WhatsApp de EPP) están en 01-Empresa.gs:
 // así una actualización del portal puede reemplazar este archivo sin tocarlos.
-const VERSION_PORTAL = 'v174';
+const VERSION_PORTAL = 'v175';
 
 /* ════════════════════════════════════════════════════════════
    De aquí para abajo no hace falta tocar nada.
@@ -96,7 +96,7 @@ const MODULO_DE_TIPO_ = { trabajador: 'habilitacion', reporte: 'reportes', equip
   contratista: 'contratistas', ingreso: 'contratistas', eppcargo: 'dotacion', entrega: 'dotacion', induccion: 'induccion', programa: 'programas', pesv: 'pesv', vehiculo: 'pesv', conductor: 'pesv', siniestro: 'pesv',
   aspecto: 'ambiental', residuo: 'ambiental', consumo: 'ambiental', respel: 'ambiental', contextocal: 'calidad', riesgocal: 'calidad', objcal: 'calidad', pnc: 'calidad', encuesta: 'calidad', encuestacli: 'calidad', encresp: 'calidad',
   preop: 'preop', preopsalud: 'preop', cierremes: 'cierre', cliente: 'asesor',
-  reintegro: 'salud', presupuesto: 'presupuesto', gasto: 'presupuesto' };   // v169
+  reintegro: 'salud', presupuesto: 'presupuesto', gasto: 'presupuesto', cumple1040: 'convivencia' };   // v169
 function llaveProveedor_() {
   const p = propiedades_();
   let k = p.getProperty('LLAVE_PROVEEDOR');

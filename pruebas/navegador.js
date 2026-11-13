@@ -326,6 +326,26 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }
+    console.log('\n▸ v175: Decreto 1040 en Convivencia');
+    {
+      const ctx = await nav.newContext(Object.assign({}, PC)); await ctx.addInitScript(() => { window.print = () => {}; });
+      await entrarComo(ctx, S.url, 0);
+      const pg = await ctx.newPage(), err = []; pg.on('pageerror', (e) => err.push(e.message));
+      await pg.goto(S.url + '/convivencia.html'); await pg.waitForTimeout(3000);
+      await pg.click('[data-tab="d1040"]'); await pg.waitForTimeout(1500);
+      const t = await pg.evaluate(() => document.getElementById('panel').innerText);
+      ok('Decreto 1040: la pestaña muestra los requisitos del año y las plantillas', /Decreto 1040 de 2026/.test(t) && /de 11/.test(t) && /Política de prevención/.test(t), t.slice(0, 200));
+      await pg.fill('#c1040_capacitacion', '2025-09-01'); await pg.fill('#c1040_politicaFirmada', '2026-09-10'); await pg.fill('#c1040_resp', 'Laura Gómez');
+      await pg.click('#g1040'); await pg.waitForTimeout(2500);
+      const t2 = await pg.evaluate(() => document.getElementById('panel').innerText);
+      ok('Decreto 1040: guarda lo cumplido y avisa que la capacitación anual ya toca', /2 de 11/.test(t2) && /próxima capacitación/.test(t2), t2.slice(0, 260));
+      let html = ''; await pg.exposeFunction('__cap175', (h) => { html = h; });
+      await pg.evaluate(() => { const o = UI.imprimir; UI.imprimir = function (p) { window.__cap175((p || []).join('')); return o.apply(UI, arguments); }; });
+      await pg.click('#p1040Pro'); await pg.waitForTimeout(800);
+      ok('Decreto 1040: el protocolo sale con la ruta de 5 fases, el plazo de 5 días hábiles y el responsable', /1\. Orientación/.test(html) && /5\. Cierre/.test(html) && /5 días hábiles/.test(html) && /Laura Gómez/.test(html));
+      ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
+      await ctx.close();
+    }
     console.log('\n▸ v174: agenda con tareas, personal por revisar, firma subida, auditor sin clave y guía que saluda');
     {
       const ctx = await nav.newContext(Object.assign({}, PC));
