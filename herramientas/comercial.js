@@ -22,9 +22,7 @@
    ============================================================ */
 const fs = require('fs'), path = require('path'), os = require('os'), { execFileSync } = require('child_process');
 const RAIZ = path.join(__dirname, '..'), FUENTE = path.join(RAIZ, 'comercial');
-// docx solo hace falta para generar los Word; la tabla de módulos por plan (que usan las pruebas) no lo necesita.
-let D = {};
-try { D = require('docx'); } catch (e) { D = {}; }
+const D = require('docx');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle, AlignmentType,
   Footer, Header, PageNumber, LevelFormat } = D;
 

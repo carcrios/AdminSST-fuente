@@ -42,6 +42,10 @@ jobs:
         working-directory: herramientas/lint
         run: npm ci --no-audit --no-fund
 
+      # v174: los documentos comerciales (Word) se arman con «docx»; las pruebas revisan su tabla de módulos por plan.
+      - name: Instalar docx (documentos comerciales)
+        run: npm install --no-save --no-audit --no-fund --no-package-lock docx@9.8.1
+
       - name: Pruebas del código (más de mil comprobaciones)
         run: node pruebas/pruebas.js
 
