@@ -3,6 +3,15 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v175 — Para vender: el código del proveedor fuera del público, licencia con solo lectura, Micro 7 y Decreto 1040
+
+- **Lo del proveedor ya no se publica**: el servidor (`Portal-SSTA.gs`), el configurador, la consola, el panel del asesor y el instalador quedan solo en el repositorio privado. Se abren en el computador con `node herramientas/proveedor.js` (consola) o `… configurar` / `… instalar`. La publicación automática los **borra** del sitio público.
+- **Licencia firmada y activa** (llave pública en `licencia.js`; la privada fuera del proyecto). Si vence: 60 días igual, con aviso al administrador; después, **solo lectura** (se ve y descarga todo, y se pueden seguir reportando accidentes y recibiendo quejas). Contrato (cláusulas tercera y séptima) y condiciones de licencia actualizados.
+- **Plan Micro 7**: para empresas de hasta 10 trabajadores (7 estándares): 8 módulos (plan anual, peligros, personal, capacitación, inspecciones, EPP, reportes y convivencia). Precio en `comercial/PRECIOS.md`.
+- **Decreto 1040 de 2026** (Convivencia → pestaña «Decreto 1040»): requisitos del año (política participativa con cero tolerancia, protocolo, canales confidenciales, responsables, reglamento y contratos, socialización, capacitación anual, estadística), plantillas en PDF de la **política** y del **protocolo con la ruta**; en cada queja, **medidas de protección** (en acoso sexual, aviso del plazo de 5 días hábiles) y **6 meses de protección contra represalias**; vínculo de quien presenta la queja (trabajador, contratista, aprendiz…).
+- `comercial/GUION-INSTALACION.md`: guion de la videollamada de 45 minutos y del video sobre la pantalla «no es seguro» de Google.
+- **Servidor**: hay que actualizarlo (Decreto 1040).
+
 ## v174 — Ajustes pedidos: Gestión con la semana y el calendario, personal sin mezclas y más
 
 - **Guía flotante como chat**: al abrirla saluda y pregunta en qué te ayuda; la conversación queda en burbujas.

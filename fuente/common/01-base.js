@@ -133,6 +133,11 @@ async function fetchWithRetry(url, options, retries = 2, backoffMs = 800) {
   let lastErr;
   const esPost = options && String(options.method || '').toUpperCase() === 'POST';
   const pesado = esPost && typeof options.body === 'string' && options.body.length > 200000;
+  // v175: licencia vencida hace más de 60 días → solo lectura (salvo reportar accidentes, quejas y entrar).
+  if (esPost && typeof LicenciaModo !== 'undefined') {
+    const rech = await LicenciaModo.revisarEnvio(options.body);
+    if (rech) return new Response(JSON.stringify(rech), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
   if (pesado) retries = 0;
   for (let attempt = 0; attempt <= retries; attempt++) {
     const ctl = typeof AbortController !== 'undefined' && !(options && options.signal) ? new AbortController() : null;

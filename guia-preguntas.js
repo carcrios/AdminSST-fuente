@@ -20,33 +20,12 @@ const GUIA_PREGUNTAS = (function () {
       a: [['Por dónde iniciar', 'empezar.html']],
     },
     {
-      p: ['¿Cómo instalo el portal para una empresa?', 'Instalar el servidor', 'Conectar el servidor de Google'],
-      k: 'instalar instalación servidor apps script google drive enlace conectar desplegar',
+      p: ['¿Cómo se instala el portal?', 'Instalar el servidor', 'Cambiar el logo o el nombre de la empresa', '¿Qué plan tengo?'],
+      k: 'instalar instalación servidor apps script google drive configurar logo nombre nit plan cambiar planes',
       r:
-        'En «Instalar» está el paso a paso: se copia el servidor a la cuenta de Google de la empresa, se publica y se ' +
-        'pega su enlace en el portal. Los datos quedan en el Drive de la empresa. Con «Estado del sistema» compruebas ' +
-        'que responde.',
-      a: [
-        ['Instalar', 'instalar.html'],
-        ['Estado del sistema', 'estado.html'],
-      ],
-    },
-    {
-      p: ['¿Cómo agrego una empresa cliente?', 'Configurar una empresa nueva', 'Cambiar el logo o el nombre de la empresa'],
-      k: 'configurar empresa cliente logo nombre nit colores configurador agregar crear',
-      r:
-        'En el configurador eliges «empresa cliente», llenas nombre, NIT y logo, y eliges el plan (SG-SST, SG-SST + ' +
-        'Obra o Integral). Al guardar sale el archivo de la empresa para subir al sitio.',
-      a: [['Configurador', 'configurar-empresa.html']],
-    },
-    {
-      p: ['¿Qué plan le vendo?', '¿Qué trae cada plan?', 'Diferencia entre los planes'],
-      k: 'plan planes vender precio integral obra sgsst modulos incluye diferencia',
-      r:
-        'SG-SST (base): todo el ciclo de la Res. 0312 con EPP, capacitación, contratistas y proveedores. SG-SST + Obra: ' +
-        'suma permisos de trabajo, ATS, preoperacionales y lo de campo. Integral: suma ambiental, calidad y PESV. En el ' +
-        'configurador los módulos salen agrupados así.',
-      a: [['Configurador', 'configurar-empresa.html']],
+        'La instalación, la configuración de la empresa (nombre, NIT, logo) y el cambio de plan los hace tu proveedor del ' +
+        'portal. Los datos quedan en el Google Drive de tu empresa. Con «Estado del sistema» compruebas que todo responde.',
+      a: [['Estado del sistema', 'estado.html']],
     },
     {
       p: ['¿Cómo creo los usuarios?', 'Dar acceso a un trabajador', 'Qué roles hay'],

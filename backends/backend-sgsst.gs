@@ -62,7 +62,7 @@
    Avisos diarios por correo: se programan solos (v136). Para apagarlos: propiedad AVISOS_APAGADOS = 1.
    ============================================================ */
 
-const VERSION_SGSST = 'v174';   // la muestra el panel del asesor para saber qué clientes están desactualizados
+const VERSION_SGSST = 'v175';   // la muestra el panel del asesor para saber qué clientes están desactualizados
 const API_TOKEN = 'PON-AQUI-EL-TOKEN'; // debe ser IDÉNTICO al del cliente (config.js)
 const CORREOS_AVISO = ['pon-aqui-el-correo@empresa.com']; // accidentes, vencimientos y acciones vencidas
 // Otras hojas que se copian en el respaldo semanal junto con esta (permisos, ATS,
@@ -136,6 +136,10 @@ const TIPOS_GEN = {
       'nSeguimientos', 'ultimoCumple', 'estado', 'fechaCierre', 'motivoCierre', 'estabilidad'],
     largos: ['restricciones'], largoMax: 1500, saltos: true },
   // v169 · Presupuesto del SG-SST (uno por año, con sus rubros) y lo que se gasta contra cada rubro (estándar 1.1.3).
+  // v175 · Decreto 1040 de 2026 (acoso, violencia basada en género y discriminación): el cumplimiento de la empresa.
+  cumple1040: { hoja: 'Decreto 1040 (cumplimiento)', titulo: 'anio', fecha: 'actualizado1040', estado: '', responsable: 'responsable', vence: '',
+    campos: ['anio', 'politicaParticipativa', 'politicaFirmada', 'politicaPublicada', 'protocolo', 'canales', 'designacion', 'responsable',
+      'reglamento', 'contratos', 'socializacion', 'capacitacion', 'estadistica', 'actualizado1040'] },
   presupuesto: { hoja: 'Presupuesto SG-SST', titulo: 'anio', fecha: 'fechaAprobacion', estado: 'estado', responsable: 'responsable', vence: '',
     campos: ['anio', 'responsable', 'aprobadoPor', 'fechaAprobacion', 'estado', 'totalPresupuestado', 'rubros'] },
   // v174 · Tareas y recordatorios propios (calendario de Gestión): cada quien anota lo suyo y el correo diario se lo recuerda.
@@ -289,7 +293,9 @@ const AVISO_GEN = { habeas: 'Responder solicitud de datos personales (Ley 1581)'
   respel: 'Reportar el año anterior en el Registro Único Ambiental (RUA) como generador de RESPEL (fecha según el último dígito del NIT · Res. 0839 de 2023)' };
 const TIPOS = ['trabajador', 'reporte', 'accion', 'mes', 'equipo', 'inspeccion', 'comite', 'reunion', 'queja', 'auditoria'].concat(Object.keys(TIPOS_GEN));
 /* De una queja solo se aceptan estos campos; todo lo demás va dentro de "cifrado". */
-const CAMPOS_QUEJA = ['codigo', 'fechaRecepcion', 'etapa', 'estado', 'fechaCierre', 'inicioEtapa', 'venceEtapa', 'venceTotal', 'cifrado'];
+// v175: Decreto 1040 de 2026 (solo fechas y una marca, fuera del cifrado)
+const CAMPOS_QUEJA = [
+  'codigo', 'fechaRecepcion', 'etapa', 'estado', 'fechaCierre', 'inicioEtapa', 'venceEtapa', 'venceTotal', 'cifrado', 'medSolicitud', 'medAdopcion', 'medSexual', 'protegeHasta'];
 const COLS_REG = ['id', 'tipo', 'version', 'estado', 'fecha', 'titulo', 'responsable', 'vence', 'resumen', 'createdAt', 'updatedAt', 'borrado'];
 const MAX_CHARS_CELDA = 32000;   // v142: tope de Excel por celda (el respaldo .xlsx no trunca los trozos)
 
@@ -455,7 +461,7 @@ function opIdYaAplicado_(opId) {
 const ROLES = { admin: 'Administrador', sst: 'SST (todo el SG-SST)', supervisor: 'Supervisor / campo', comite: 'Integrante de comité', consulta: 'Solo consulta (gerencia, auditor)' };
 const ESCRIBE_ROL = {
   supervisor: ['tarea', 'reporte', 'inspeccion', 'equipo', 'accion', 'simulacro', 'ingreso', 'entrega', 'solrepo', 'dotacion', 'dotaperfil', 'induccion', 'siniestro', 'preop', 'preopsalud', 'encpeligro', 'plantillaform'],
-  comite: ['tarea', 'reunion', 'queja', 'buzon', 'comite', 'informecc', 'accion', 'reporte', 'inspeccion', 'proginsp', 'preop', 'preopsalud', 'encpeligro'],
+  comite: ['tarea', 'cumple1040', 'reunion', 'queja', 'buzon', 'comite', 'informecc', 'accion', 'reporte', 'inspeccion', 'proginsp', 'preop', 'preopsalud', 'encpeligro'],
   consulta: ['tarea', 'revision', 'aprobrec']   // v148: la alta dirección firma su revisión y aprueba recursos (Dec. 1072, art. 2.2.4.6.31; estándar 1.1.3)
 };
 const LIBRE_SIN_SESION = ['reporte', 'accion', 'preop', 'preopsalud', 'encresp', 'encpeligro', 'induccion', 'pqrs', 'buzon', 'habeas'];   // v162: habeas = solicitudes de derechos del titular   // crear (no editar) sin usuario (el preoperacional lo llena quien usa el equipo; encresp: el cliente responde la encuesta del enlace, ver validarRespuestaEnc_; pqrs: v109, la arma el servidor con limpiarPqrsPublica_)
@@ -1281,7 +1287,8 @@ function resumen_(tipo, d) {
   if (tipo === 'queja') {
     return { codigo: texto_(d.codigo), fechaRecepcion: texto_(d.fechaRecepcion), etapa: texto_(d.etapa), estado: texto_(d.estado || 'ABIERTA'),
              fechaCierre: texto_(d.fechaCierre), inicioEtapa: texto_(d.inicioEtapa), venceEtapa: texto_(d.venceEtapa), venceTotal: texto_(d.venceTotal),
-             kid: texto_(d.cifrado && d.cifrado.kid) };
+             kid: texto_(d.cifrado && d.cifrado.kid),
+             medSolicitud: iso10_(d.medSolicitud), medAdopcion: iso10_(d.medAdopcion), medSexual: d.medSexual === 'si' || d.medSexual === true, protegeHasta: iso10_(d.protegeHasta) };
   }
   if (tipo === 'auditoria') {
     const h = { ncMayor: 0, ncMenor: 0, obs: 0, om: 0 };
@@ -2890,6 +2897,7 @@ function itemsRss_(xml) {
   items.slice(0, 40).forEach(function (it) { out.push({ titulo: tag(it, 'title'), enlace: tag(it, 'link'), fecha: tag(it, 'pubDate') }); });
   return out;
 }
+function iso10_(t) { const x = texto_(t).slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(x) ? x : ''; }   // v175
 function fechaIso_(t) { const d = new Date(t); return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'America/Bogota', 'yyyy-MM-dd'); }
 /** "Resolución 1843 de 2025" → clave para saber si ya está en la matriz legal. */
 function claveNorma_(t) {
@@ -3383,7 +3391,8 @@ function instalarAvisosDiarios() {
    pendientes del inicio. Cada pendiente:
    {nivel: 'vencido'|'pronto', texto, fecha, responsable, modulo, tipo, id, diario}
    (diario: false → no va en el correo diario; son tareas del mes, no vencimientos). */
-const MODULO_TIPO_ = { tarea: 'index.html#agenda', reintegro: 'salud.html', habeas: 'habeas.html', solrepo: 'entrega-epp.html', pvecaso: 'pve.html', sve: 'pve.html', informecc: 'convivencia.html', dotacion: 'dotacion.html', dotaperfil: 'dotacion.html', custodiahc: 'matrices-iso.html?m=custodiahc', evid0312: 'evidencias.html', competencia: 'matrices-iso.html', auditorint: 'matrices-iso.html?m=auditorint', calibracion: 'matrices-iso.html?m=calibracion', comunicacion: 'matrices-iso.html', retencion: 'matrices-iso.html', trabajador: 'habilitacion.html', equipo: 'inspecciones.html', accion: 'plan-accion.html', reporte: 'reportes.html', queja: 'convivencia.html',
+const MODULO_TIPO_ = { cumple1040: 'convivencia.html#d1040',
+  tarea: 'index.html#agenda', reintegro: 'salud.html', habeas: 'habeas.html', solrepo: 'entrega-epp.html', pvecaso: 'pve.html', sve: 'pve.html', informecc: 'convivencia.html', dotacion: 'dotacion.html', dotaperfil: 'dotacion.html', custodiahc: 'matrices-iso.html?m=custodiahc', evid0312: 'evidencias.html', competencia: 'matrices-iso.html', auditorint: 'matrices-iso.html?m=auditorint', calibracion: 'matrices-iso.html?m=calibracion', comunicacion: 'matrices-iso.html', retencion: 'matrices-iso.html', trabajador: 'habilitacion.html', equipo: 'inspecciones.html', accion: 'plan-accion.html', reporte: 'reportes.html', queja: 'convivencia.html',
   auditoria: 'auditorias.html', sustancia: 'quimicos.html', gestquim: 'quimicos.html', lugarquim: 'quimicos.html', respel: 'ambiental.html#residuos', medicion: 'peligros.html', emergencia: 'emergencias.html', examen: 'salud.html', psico: 'salud.html',
   politica: 'documental.html', legal: 'documental.html', documento: 'documental.html', proveedor: 'proveedores.html', compraprov: 'proveedores.html', cambio: 'documental.html', contratista: 'contratistas.html',
   induccion: 'induccion.html', programa: 'programas.html', pesv: 'pesv.html', vehiculo: 'pesv.html', conductor: 'pesv.html', cliente: 'asesor.html', pqrs: 'calidad.html',
@@ -3475,6 +3484,12 @@ function pendientes_(dias) {
       anotar(r.venceEtapa, 'Convivencia ' + r.codigo + ' — ' + r.etapa);
       anotar(r.venceTotal, 'Convivencia ' + r.codigo + ' — límite de 65 días');
     }
+    // v175 · Decreto 1040 de 2026: en acoso sexual, las medidas de protección pedidas se adoptan en máximo 5 días hábiles.
+    if (tipo === 'queja' && r.medSexual && r.medSolicitud && !r.medAdopcion) {
+      anotar(sumarHabiles_(r.medSolicitud, 5), 'Convivencia ' + r.codigo + ' — adoptar las medidas de protección (Decreto 1040: 5 días hábiles)');
+    }
+    // Cumplimiento del Decreto 1040: la capacitación y la socialización son anuales.
+    if (tipo === 'cumple1040' && r.capacitacion) anotar(sumarDias_(r.capacitacion, 365), 'Decreto 1040: repetir la capacitación anual sobre acoso y violencia en el trabajo');
     if (tipo === 'auditoria' && r.estado === 'PROGRAMADA') anotar(r.fechaPlan, 'Auditoría: ' + r.titulo);
     // v162: una solicitud de datos personales es pendiente desde que llega (plazo legal corto), no solo 15 días antes.
     if (tipo === 'habeas' && r.estado !== 'RESPONDIDA') { add(r.vence < hoy ? 'vencido' : 'pronto', 'Responder ' + (r.clase || 'solicitud').toLowerCase() + ' de datos personales de ' + texto_(r.nombre) + ' (Ley 1581)', r.vence, base); return; }

@@ -25,6 +25,10 @@
   g.COMPLEMENTOS_PORTAL = { obra: { nombre: 'Obra', para: 'Trabajo de alto riesgo en campo', mods: ['caliente', 'alturas', 'confinados', 'izajes', 'electrico', 'ats', 'preop', 'personal'] } };
   g.MODULOS_INTERNOS = ['asesor'];   // v170: el panel del asesor es de quien vende el portal: no es parte de ningún plan
   g.PLANES_PORTAL = {
+    // v175: para la empresa pequeña de 7 estándares (Res. 0312, art. 3: hasta 10 trabajadores, riesgo I a III):
+    // 8 módulos que cubren los 7 estándares, más Convivencia por el Decreto 1040 de 2026. Usuarios y tablero no cuentan.
+    micro: { nombre: 'Micro 7', para: 'Empresas de hasta 10 trabajadores (7 estándares): plan anual, peligros, personal, capacitación, inspecciones, EPP, reportes y convivencia (Decreto 1040)',
+      mods: ['plananual', 'peligros', 'habilitacion', 'asistencia', 'inspecciones', 'epp', 'reportes', 'convivencia', 'usuarios', 'tablero'] },
     sgsst: { nombre: 'SG-SST Esencial', para: 'Todo el ciclo del SG-SST (Res. 0312): plan, peligros, inspecciones, indicadores, comités, auditorías, salud, EPP, capacitación, contratistas y proveedores', mods: SGSST_BASE },
     sgsstObra: { nombre: 'SG-SST + Obra', para: 'Constructoras y contratistas: el SG-SST completo más permisos de trabajo, ATS, preoperacionales y personal autorizado', mods: SGSST_BASE.concat(g.COMPLEMENTOS_PORTAL.obra.mods) },
     integral: { nombre: 'Integral', para: 'Varias sedes y HSEQ: todo, más ambiental, calidad y PESV', mods: null }   // null = todos
@@ -39,7 +43,7 @@
      contrato): la base que traen todos los planes, el complemento Obra, lo que solo trae Integral y, aparte, las
      herramientas de quien vende el portal, que no se cobran ni cuentan para el plan. Sale de PLANES_PORTAL. */
   g.CATEGORIAS_MODULOS = [
-    ['base', 'Base SG-SST', 'En todos los planes: el ciclo completo de la Res. 0312 (con EPP, capacitación, contratistas y proveedores)', SGSST_BASE.slice()],
+    ['base', 'Base SG-SST', 'En SG-SST Esencial, + Obra e Integral: el ciclo completo de la Res. 0312 (Micro 7 trae solo 8 de estos módulos)', SGSST_BASE.slice()],
     ['obra', 'Complemento Obra', 'En «SG-SST + Obra» e «Integral»: permisos de alto riesgo, ATS, preoperacionales y anexo de personal. No se vende solo', g.COMPLEMENTOS_PORTAL.obra.mods.slice()],
     ['integral', 'Solo en Integral', 'Ambiental, calidad y PESV', ['ambiental', 'calidad', 'pesv']],
     ['interno', 'Herramientas de quien vende el portal', 'No se cobran ni cuentan para el plan', g.MODULOS_INTERNOS.slice()]

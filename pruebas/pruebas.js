@@ -1531,7 +1531,7 @@ grupo('Comités y auditorías: servidor (ejecutado en simulador)', async () => {
   ok('v148: sin usuarios creados (clave pública) la lista de quejas de convivencia no se entrega', G({ action: 'list', tipo: 'queja' }).rows.length === 0);
   const filaQ = Object.values(E.hojas).flatMap((h) => h.filas || []).find((r) => r[0] === 'QJA-1' && r[1] === 'queja');
   const fq = filaQ ? { resumen: JSON.parse(filaQ[8] || '{}'), vence: E.ctx.fechaISO_ ? E.ctx.fechaISO_(filaQ[7]) : filaQ[7] } : null;   // v148: lo que el comité recibe en la lista
-  ok('queja: la lista solo trae código, fechas, etapa y la clave usada (sin contenido)', !!fq && JSON.stringify(Object.keys(fq.resumen).sort()) === JSON.stringify(['codigo', 'estado', 'etapa', 'fechaCierre', 'fechaRecepcion', 'inicioEtapa', 'kid', 'venceEtapa', 'venceTotal']) && fq.vence === mas(5));
+  ok('queja: la lista solo trae código, fechas, etapa, la clave usada y las fechas del Decreto 1040 (sin contenido)', !!fq && JSON.stringify(Object.keys(fq.resumen).sort()) === JSON.stringify(['codigo', 'estado', 'etapa', 'fechaCierre', 'fechaRecepcion', 'inicioEtapa', 'kid', 'medAdopcion', 'medSexual', 'medSolicitud', 'protegeHasta', 'venceEtapa', 'venceTotal']) && fq.vence === mas(5));
   ok('queja: hoja "Quejas convivencia (sin datos)" sin contenido cifrado', E.hojas['Quejas convivencia (sin datos)'].filas.length === 2 && !JSON.stringify(E.hojas['Quejas convivencia (sin datos)'].filas).includes('Y2lmcmFkbw'));
   // v128: buzón reservado del comité (quejas y acoso sexual que llegan cifrados con la llave pública)
   const bzDoc = { clase: 'convivencia', codigo: 'CCL-B-2610-AB12', cifrado: { v: 1, kp: 'a1b2c3d4e5f6a7b8', ek: 'ZWs=', iv: 'aXY=', data: 'c2VjcmV0bw==' } };
@@ -2880,12 +2880,12 @@ grupo('Instalación como asistente y módulos por categoría (v118)', () => {
     const sb = { EMPRESA: { modulos: {} }, console }; sb.window = sb; sb.globalThis = sb; try { require('vm').runInNewContext(fs.readFileSync(path.join(RAIZ, 'empresa-motor.js'), 'utf8'), sb); } catch (e) { /* lo de la página (DOM) no corre aquí: basta el catálogo */ }
     const g = sb.PLANES_PORTAL ? sb : sb.window, P = g.PLANES_PORTAL || {}, todos = (g.CATALOGO_MODULOS || []).map((x) => x[0]);
     const deLista = (l) => { const m = {}; todos.forEach((k) => { m[k] = !l || l.indexOf(k) !== -1; }); return m; };
-    ok('v166: planes SG-SST Esencial, SG-SST + Obra e Integral; todos traen reportes y usuarios y solo módulos que existen', Object.keys(P).join() === 'sgsst,sgsstObra,integral' && Object.keys(P).every((k) => !P[k].mods || (P[k].mods.indexOf('reportes') !== -1 && P[k].mods.indexOf('usuarios') !== -1 && P[k].mods.every((x) => todos.indexOf(x) !== -1))), JSON.stringify(Object.keys(P)));
+    ok('v175: planes Micro 7, SG-SST Esencial, SG-SST + Obra e Integral; todos traen reportes y usuarios y solo módulos que existen', Object.keys(P).join() === 'micro,sgsst,sgsstObra,integral' && Object.keys(P).every((k) => !P[k].mods || (P[k].mods.indexOf('reportes') !== -1 && P[k].mods.indexOf('usuarios') !== -1 && P[k].mods.every((x) => todos.indexOf(x) !== -1))), JSON.stringify(Object.keys(P)));
     const m = deLista(P.sgsstObra && P.sgsstObra.mods); const m2 = Object.assign({}, m, { ambiental: true });
     ok('v165: el configurador reconoce el plan por los módulos prendidos, y «personalizado» si se toca uno suelto', g.planDeModulos(m) === 'sgsstObra' && g.planDeModulos(deLista(P.sgsst.mods)) === 'sgsst' && g.planDeModulos(deLista(null)) === 'integral' && g.planDeModulos(m2) === '');
     // v166: el SG-SST es la base: trae todo el ciclo de la 0312 con EPP, capacitación, contratistas y proveedores; Obra nunca va sola
     const CICLO = ['plananual', 'peligros', 'inspecciones', 'indicadores', 'copasst', 'convivencia', 'auditorias', 'salud', 'plan', 'emergencias', 'revision', 'epp', 'asistencia', 'contratistas', 'proveedores', 'dotacion', 'induccion'];
-    ok('v166: todo plan que se vende trae el ciclo completo del SG-SST (con EPP, capacitación, contratistas y proveedores)', Object.keys(P).every((k) => !P[k].mods || CICLO.every((x) => P[k].mods.indexOf(x) !== -1)), JSON.stringify(Object.keys(P).map((k) => [k, CICLO.filter((x) => P[k].mods && P[k].mods.indexOf(x) === -1)])));
+    ok('v166: todo plan que se vende (salvo Micro 7) trae el ciclo completo del SG-SST (con EPP, capacitación, contratistas y proveedores)', Object.keys(P).every((k) => k === 'micro' || !P[k].mods || CICLO.every((x) => P[k].mods.indexOf(x) !== -1)), JSON.stringify(Object.keys(P).map((k) => [k, CICLO.filter((x) => P[k].mods && P[k].mods.indexOf(x) === -1)])));
     ok('v166: «Obra» es un complemento (no un plan que se venda solo) y el paquete SG-SST + Obra = la base + Obra', !P.obra && g.COMPLEMENTOS_PORTAL && g.COMPLEMENTOS_PORTAL.obra.mods.every((x) => P.sgsstObra.mods.indexOf(x) !== -1) && P.sgsst.mods.every((x) => P.sgsstObra.mods.indexOf(x) !== -1));
     // v170: la lista de módulos va agrupada igual que se vende
     const CAT = g.CATEGORIAS_MODULOS || [], enCat = [].concat(...CAT.map((c) => c[3]));
@@ -2897,9 +2897,9 @@ grupo('Instalación como asistente y módulos por categoría (v118)', () => {
     const COM = ['PROPUESTA.md', 'CONTRATO.md', 'PRECIOS.md', 'DPA.md', 'SLA.md', 'REVENDEDOR.md'];
     ok('v166: comercial/ tiene propuesta, contrato y los cuatro anexos, y no se publica en el sitio', COM.every((f) => fs.existsSync(path.join(RAIZ, 'comercial', f))) && /'comercial'/.test(leer('herramientas/empaquetar.js')) && /--exclude comercial/.test(leer('.github/workflows/pruebas.yml')));
     const tab = require(path.join(RAIZ, 'herramientas', 'comercial.js')).modulosPorPlan();
-    ok('v166: la tabla «Módulos por plan» del Anexo 1 sale de PLANES_PORTAL (los mismos planes y módulos del configurador)', Object.keys(P).every((k) => tab.indexOf(P[k].nombre) !== -1) && /\| Trabajo en alturas \| — \| Sí \| Sí \|/.test(tab) && /\| Inspección de EPP \| Sí \| Sí \| Sí \|/.test(tab), tab.slice(0, 300));
+    ok('v166: la tabla «Módulos por plan» del Anexo 1 sale de PLANES_PORTAL (los mismos planes y módulos del configurador)', Object.keys(P).every((k) => tab.indexOf(P[k].nombre) !== -1) && /\| Trabajo en alturas \| — \| — \| Sí \| Sí \|/.test(tab) && /\| Inspección de EPP \| Sí \| Sí \| Sí \| Sí \|/.test(tab), tab.slice(0, 300));
     const ctr = fs.readFileSync(path.join(RAIZ, 'comercial', 'CONTRATO.md'), 'utf8'), pre = fs.readFileSync(path.join(RAIZ, 'comercial', 'PRECIOS.md'), 'utf8');
-    ok('v166: el contrato dice que el portal nunca se bloquea por mora, coincide con la licencia del portal y nombra los planes que existen', /En ningún caso EL PROVEEDOR bloquea el portal/.test(ctr) && /no se bloquea/.test(leer('licencia.html')) && /hasta el valor pagado/.test(leer('licencia.html')) && /SG-SST Esencial, SG-SST \+ Obra o Integral/.test(ctr) && /«Obra» no se vende solo/.test(pre) && /\{\{MODULOS_POR_PLAN\}\}/.test(pre));
+    ok('v175: el contrato dice que los datos nunca se bloquean y que a los 60 días de vencida la licencia el portal queda en solo lectura (igual en la licencia del portal) y nombra los planes que existen', /En ningún caso EL PROVEEDOR impide el acceso a los datos ni borra información/.test(ctr) && /modo de solo lectura/.test(ctr) && /solo lectura/.test(leer('licencia.html')) && /hasta el valor pagado/.test(leer('licencia.html')) && /Micro 7, SG-SST Esencial, SG-SST \+ Obra o Integral/.test(ctr) && /«Obra» no se vende solo/.test(pre) && /\{\{MODULOS_POR_PLAN\}\}/.test(pre));
   }
   ok('lo oculto no se ve aunque el CSS lo muestre (radios, panel del asesor en clientes)', /\.tipos\[hidden\],\.mods label\[hidden\]/.test(cf));
 });
@@ -3576,7 +3576,9 @@ else { console.error('comando ' + cmd); process.exit(1); }`);
   ok('sitio demo: conserva lo que necesita para funcionar (su servidor en el navegador, la semilla y common.js)', enDemo.includes('servidor-unico') && enDemo.includes('demo') && enDemo.includes('common.js') && enDemo.includes('index.html'));
   fs.rmSync(dd, { recursive: true, force: true });
   const wf = leer('.github/workflows/pruebas.yml');
-  ok('GitHub publica el servidor en un archivo, que es lo que copia el instalador (antes lo excluía y «Copiar el servidor» fallaba)', /const ARCHIVO = 'servidor-todo-en-uno\/Portal-SSTA\.gs'/.test(leer('instalar.html')) && !/--exclude servidor-todo-en-uno/.test(wf) && existe('servidor-todo-en-uno/Portal-SSTA.gs'));
+  ok('v175: el servidor, el configurador, la consola, el asesor y el instalador NO se publican (son del proveedor) y se abren en el computador con herramientas/proveedor.js',
+    ['servidor-todo-en-uno', 'admin.html', 'configurar-empresa.html', 'asesor.html', 'instalar.html'].every((f) => wf.indexOf('--exclude ' + f) !== -1 && leer('herramientas/empaquetar.js').indexOf("'" + f + "'") !== -1) &&
+    existe('servidor-todo-en-uno/Portal-SSTA.gs') && /PAGINAS = \{ consola: 'admin\.html'/.test(leer('herramientas/proveedor.js')));
   ok('la guía de instalación y el LEEME del paquete nombran el camino corto', /instalar-empresa\.js --codigo/.test(leer('INSTALAR-NUEVA-EMPRESA.md')) && /--estado/.test(leer('INSTALAR-NUEVA-EMPRESA.md')) && /instalar-empresa\.js/.test(leer('herramientas/empaquetar.js')) && /instalar-empresa\.js/.test(leer('herramientas/guia/hacer-guia.js')));
 });
 
@@ -3752,6 +3754,25 @@ grupo('v174: ajustes pedidos (auditor, papelera, avisos, firma, listado maestro,
   ok('brigada: la dotación ya no lleva «vence»', !/data-dk="vence"/.test(leer('emergencias.html')) && !/x\.vence/.test(leer('emergencias.html')));
   ok('«Por dónde iniciar» (antes «Empezar con un cliente nuevo») sin la fase de instalar', /<h1>Por dónde iniciar<\/h1>/.test(leer('empezar.html')) && !/'servidor',/.test(leer('empezar-reglas.js')));
   ok('guía flotante: saluda y pregunta en qué ayuda, como un chat', /¿En qué te ayudo\?/.test(leer('common.js')) && /gf-yo/.test(leer('common.css')));
+});
+
+grupo('v175: venta protegida, licencia con solo lectura, Micro 7 y Decreto 1040', () => {
+  const vm = require('vm'), c = { localStorage: { getItem: () => null, setItem() {} }, EMPRESA: {}, document: undefined, setTimeout, Promise, JSON, Date };
+  vm.createContext(c); vm.runInContext(leer('fuente/common/14-licencia-modo.js') + ';this.LM = LicenciaModo;', c);
+  const P = (b) => c.LM.permitido(b);
+  ok('licencia vencida: en solo lectura se puede entrar, consultar, reportar accidentes y presentar quejas; lo demás no', P({ action: 'login' }) && P({ __consulta: 1 }) && P({ action: 'guardar', tipo: 'reporte' }) &&
+    P({ action: 'guardar', tipo: 'buzon' }) && P({ action: 'guardar', tipo: 'queja' }) && !P({ action: 'guardar', tipo: 'inspeccion' }) && !P({ action: 'abrir', permitCode: 'X' }));
+  ok('licencia: el bloqueo de escritura está en el único camino de envío (fetchWithRetry) y es a los 60 días de vencida', /LicenciaModo\.revisarEnvio\(options\.body\)/.test(leer('common.js')) && /GRACIA = 60/.test(leer('common.js')));
+  ok('licencia: la llave pública está puesta y la privada NO está en el proyecto', /LICENCIA_LLAVE_PUBLICA = \{"kty":"EC"/.test(leer('licencia.js')) && !/"d":"/.test(leer('licencia.js')));
+  ok('Micro 7: máximo 8 módulos visibles (más usuarios y tablero) e incluye convivencia por el Decreto 1040', (() => { const m = /micro: \{[^}]*mods: \[([^\]]*)\]/.exec(leer('empresa-motor.js')); if (!m) return false;
+    const l = m[1].split(',').map((x) => x.trim().replace(/'/g, '')).filter((x) => x !== 'usuarios' && x !== 'tablero'); return l.length <= 8 && l.indexOf('convivencia') !== -1; })());
+  ok('Micro 7 tiene precio en PRECIOS.md', /\| Micro 7 \| 190\.000/.test(leer('comercial/PRECIOS.md')));
+  const cv = leer('convivencia.html'), g = leer('backends/backend-sgsst.gs');
+  ok('Decreto 1040: pestaña con los requisitos (política participativa, protocolo, canales, capacitación anual…) y plantillas en PDF', /id: 'd1040', nombre: 'Decreto 1040'/.test(cv) && /function pdfPolitica1040/.test(cv) && /function pdfProtocolo1040/.test(cv) && /cero tolerancia/.test(cv));
+  ok('Decreto 1040: medidas de protección en la queja, plazo de 5 días hábiles en acoso sexual y 6 meses contra represalias', /MEDIDAS_1040/.test(cv) && /sumarHabiles\(q\.medSolicitud, 5\)/.test(cv) && /const seisMeses = /.test(cv) && /sumarHabiles_\(r\.medSolicitud, 5\)/.test(g));
+  ok('Decreto 1040: la capacitación anual avisa cuando toca repetirla', /tipo === 'cumple1040' && r\.capacitacion\) anotar\(sumarDias_\(r\.capacitacion, 365\)/.test(g));
+  ok('quejas: fuera del cifrado solo van fechas y una marca (nunca nombres ni hechos)', /'medSolicitud', 'medAdopcion', 'medSexual', 'protegeHasta'/.test(g) && /k !== 'cifrado' && d\[k\] != null && \(typeof d\[k\] !== 'string' \|\| d\[k\]\.length > 60\)/.test(g));
+  ok('guion de instalación y texto del video de la pantalla «no seguro» (privados, en comercial/)', existe('comercial/GUION-INSTALACION.md') && /no es seguro|no seguro/i.test(leer('comercial/GUION-INSTALACION.md')));
 });
 
 /* ═══════════════════════════════════════════════════════════ */

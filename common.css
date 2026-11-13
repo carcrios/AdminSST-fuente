@@ -1317,3 +1317,6 @@ body.con-barra-inferior .gf-panel{bottom:calc(150px + env(safe-area-inset-bottom
 .gf-otra{padding:6px 0 0;font-size:var(--fs-menor);}
 .gf-pie{border-top:1px solid var(--line);padding:8px 12px;font-size:var(--fs-menor);color:var(--muted);}
 @media print{.gf-btn,.gf-panel{display:none !important;}}
+
+/* v175 · Licencia vencida hace más de 60 días: solo lectura */
+.lic-solo{position:sticky;top:0;z-index:970;background:var(--amarillo-400);color:var(--tinta);border-bottom:1px solid var(--line);padding:8px 16px;font-size:var(--fs-menor);font-weight:700;text-align:center;}
