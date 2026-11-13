@@ -43,8 +43,10 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       # v174: los documentos comerciales (Word) se arman con «docx»; las pruebas revisan su tabla de módulos por plan.
-      - name: Instalar docx (documentos comerciales)
-        run: npm install --no-save --no-audit --no-fund --no-package-lock docx@9.8.1
+      - name: Instalar docx (documentos comerciales) y el minificador
+        run: |
+          npm install --no-save --no-audit --no-fund --no-package-lock docx@9.8.1
+          npm install --prefix herramientas --no-save --no-audit --no-fund --no-package-lock terser@5.51.2 clean-css@5.3.3
 
       - name: Pruebas del código (más de mil comprobaciones)
         run: node pruebas/pruebas.js
@@ -63,8 +65,11 @@ jobs:
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
 
+      # v174: sobre el sitio MINIFICADO, que es lo que se publica (igual que el empaquetador).
       - name: Pruebas en navegador (celular, permisos, sin señal, firmas)
         working-directory: pruebas
+        env:
+          SSTA_MIN: '1'
         run: node navegador.js
 
   # v165: el mismo navegador en el motor de Safari (iPhone). Por ahora AVISA pero no frena la publicación:
@@ -127,6 +132,11 @@ jobs:
             --exclude backends --exclude pruebas --exclude herramientas --exclude sitio-demo --exclude comercial --exclude fuente \
             --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico --exclude .gitignore
           touch _sitio/.nojekyll
+
+      - name: Minificar el sitio (lo mismo que se probó)
+        run: |
+          npm install --prefix herramientas --no-save --no-audit --no-fund --no-package-lock terser@5.51.2 clean-css@5.3.3
+          node -e "require('./herramientas/minificar').carpeta('_sitio', false).then((n) => console.log('Minificado:', Math.round(n / 1024), 'KB menos'))"
 
       - name: Subir a carcrios/AdminSST
         env:
