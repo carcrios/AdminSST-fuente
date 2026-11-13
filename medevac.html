@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-sx6WWt/Ch2YL3GrlToPnom2HxHcorKrlTT0ywOy3atQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>MEDEVAC · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MEDEVAC · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.med-paso{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--n-100);}
+.med-paso input{width:24px;height:24px;flex:0 0 auto;margin-top:2px;}
+.med-paso label{flex:1;font-size:var(--fs-base);line-height:1.4;}
+.med-dato{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--n-100);font-size:var(--fs-base);}
+.med-dato b{text-align:right;overflow-wrap:anywhere;}
+.med-tels{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.med-tels a{flex:1 1 calc(33% - 8px);min-width:100px;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-m);font-weight:800;text-decoration:none;border:2px solid var(--tinta);color:var(--tinta);background:#fff;}
+.med-tels a.llamar{background:var(--rojo-700);border-color:var(--rojo-700);color:#fff;}
+.med-tels a.llamar-blanco{background:#fff;color:var(--rojo-700);border-color:#fff;font-size:var(--fs-titulo);}
+.med-alerta small{display:block;font-weight:600;font-size:var(--fs-menor);margin-top:6px;}
+.med-alerta{background:var(--rojo-700);color:#fff;border-radius:var(--r-m);padding:12px 14px;font-weight:800;font-size:var(--fs-titulo);}
+  .wrap{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px));}   /* v148: nada queda bajo la barra inferior */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="emergencias.html">← Volver</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Emergencias</div>
+    <h1>Evacuación médica (MEDEVAC)</h1>
+    <p>Evacuación médica: a quién llamar y adónde llevar al trabajador</p></div></div>
+  </div>
+  <div class="med-alerta" role="note">Primero, asegura la escena y llama a la línea de emergencias 123.<div class="med-tels"><a class="llamar llamar-blanco" href="tel:123">Llamar al 123</a></div><small>Esta página reúne los datos; no reemplaza la atención.</small></div>
+  <div class="card">
+    <h2>1. ¿Quién es el trabajador?</h2>
+    <div class="field"><label for="medPersona">Nombre o cédula</label><input type="text" id="medPersona" list="medLista" autocomplete="off" placeholder="Escribe para buscar en el personal habilitado"></div>
+    <datalist id="medLista"></datalist>
+    <div id="medFicha"><div class="empty">Elige al trabajador para ver su contacto de emergencia.</div></div>
+  </div>
+  <div class="card">
+    <h2>2. ¿Dónde está?</h2>
+    <div class="field"><label for="medSede">Sede u obra</label><select id="medSede"><option value="">Cargando…</option></select></div>
+    <div id="medSedeDatos"></div>
+  </div>
+  <div class="card">
+    <h2>3. Pasos</h2>
+    <div id="medPasos"></div>
+    <div class="med-tels"><a class="llamar" href="tel:123">Llamar al 123</a></div>
+    <button type="button" class="btn btn-sec u-mt8" id="medCopiar">Copiar los datos para la ambulancia</button>
+  </div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = (id)=> document.getElementById(id);
+/* v140 · MEDEVAC: datos del trabajador (contacto de emergencia, RH, EPS, ARL) y de la sede
+   (hospital, ambulancia, línea de la ARL), con llamar, WhatsApp y mensaje de texto. */
+const PASOS = ['Asegurar la escena: que nadie más corra peligro.', 'Llamar a la línea de emergencias 123 o a la ambulancia de la sede.', 'Dar los primeros auxilios con la brigada; no mover al trabajador si se sospecha lesión de columna.',
+  'Avisar a la ARL por su línea de emergencias.', 'Trasladar al hospital indicado, con un acompañante y la cédula del trabajador.', 'Avisar al contacto de emergencia del trabajador.', 'Reportar el accidente en el portal (la ARL se reporta en 2 días hábiles).'];
+$('medPasos').innerHTML = PASOS.map((p, i)=> '<div class="med-paso"><input type="checkbox" id="mp' + i + '" data-sin-borrador><label for="mp' + i + '">' + esc(p) + '</label></div>').join('');
+const soloNum = (t)=> String(t || '').replace(/[^\d+]/g, '');
+const waNum = (t)=> { let n = String(t || '').replace(/\D/g, ''); if (n.length === 10 && n[0] === '3') n = '57' + n; return n; };
+function botonesTel(t, nombre){
+  const n = soloNum(t); if (!n) return '';
+  const esCel = /^(\+?57)?3\d{9}$/.test(n);
+  return '<div class="med-tels"><a class="llamar" href="tel:' + esc(n) + '" aria-label="Llamar a ' + esc(nombre) + '">Llamar</a>' +
+    (esCel ? '<a href="https://wa.me/' + esc(waNum(n)) + '" target="_blank" rel="noopener" aria-label="WhatsApp a ' + esc(nombre) + '">WhatsApp</a><a href="sms:' + esc(n) + '" aria-label="Mensaje de texto a ' + esc(nombre) + '">SMS</a>' : '') + '</div>';
+}
+const dato = (l, v)=> v ? '<div class="med-dato"><span>' + esc(l) + '</span><b>' + esc(v) + '</b></div>' : '';
+let personas = [], planes = [], elegida = null, sede = null;
+async function cargar(){
+  if (UI.avisoServidor(document.createElement('div'))) { $('medFicha').innerHTML = '<div class="empty">Sin servidor configurado.</div>'; $('medSede').innerHTML = '<option value="">Sin servidor</option>'; return; }
+  const r = await SGSST.listar('trabajador', { sinPedir: true });
+  personas = (r.rows || []).filter((x)=> x.resumen.activo !== false);
+  $('medLista').innerHTML = personas.map((x)=> '<option value="' + esc(x.resumen.nombre + ' · ' + x.resumen.cedula) + '">').join('');
+  const q = new URLSearchParams(location.search).get('id'); if (q) { const p = personas.find((x)=> x.id === q); if (p) { $('medPersona').value = p.resumen.nombre + ' · ' + p.resumen.cedula; elegir(p); } }
+  const e = await SGSST.listar('emergencia', { sinPedir: true });
+  planes = e.rows || [];
+  if (!planes.length && e && e.codigoError === 'SESION') { $('medSede').innerHTML = '<option value="">Entra con tu usuario para ver el hospital y la ambulancia</option>'; $('medSedeDatos').innerHTML = '<p class="ayuda">El jefe, supervisor o brigadista que tenga usuario ve aquí el hospital, la ambulancia y la línea de la ARL de la sede.</p>'; return; }
+  $('medSede').innerHTML = planes.length ? planes.map((x, i)=> '<option value="' + i + '">' + esc(x.resumen.sede || 'Sede') + '</option>').join('') : '<option value="">Sin planes de emergencia</option>';
+  pintarSede();
+}
+async function elegir(p){
+  elegida = p; const s = p.resumen;
+  $('medFicha').innerHTML = '<div class="empty">Abriendo…</div>';
+  const d = await SGSST.doc(p.id);
+  const em = (d && d.emergencia) || null;
+  if (!d) { const ced = String(s.cedula || '').replace(/\D/g, ''); if (ced) return porCedula(ced); }
+  pintarFicha(s, em, !!d);
+}
+function pintarFicha(s, em, d){
+  let h = dato('Nombre', s.nombre) + dato('Cédula', s.cedula) + dato('Cargo', s.cargo) + dato('Empresa', s.empresa);
+  if (!d) h += '<p class="ayuda">Escribe la cédula completa para ver su contacto de emergencia.</p>';
+  else if (!em || !(em.telefono || em.nombre)) h += '<p class="ayuda"><b>No tiene contacto de emergencia registrado.</b> Regístralo en <a href="habilitacion.html">Personal habilitado</a>.</p>' + dato('EPS', em && em.eps) + dato('ARL', em && em.arl) + dato('RH', em && em.rh);
+  else h += dato('Tipo de sangre (RH)', em.rh) + dato('EPS', em.eps) + dato('ARL', em.arl) +
+    '<h3 class="u-mt8">Contacto de emergencia</h3>' + dato('Nombre', em.nombre) + dato('Parentesco', em.parentesco) + dato('Teléfono', em.telefono) + botonesTel(em.telefono, em.nombre || 'contacto') +
+    (em.telefono2 ? dato('Otro teléfono', em.telefono2) + botonesTel(em.telefono2, em.nombre || 'contacto') : '');
+  $('medFicha').innerHTML = h; if (elegida) elegida.em = em;
+}
+function pintarSede(){
+  const x = planes[Number($('medSede').value)]; sede = x ? x.resumen : null;
+  if (!sede) { $('medSedeDatos').innerHTML = '<p class="ayuda">Registra el hospital, la ambulancia y la línea de la ARL en el <a href="emergencias.html">plan de emergencias</a> de la sede.</p>'; return; }
+  const mapa = sede.hospitalDireccion ? '<div class="med-tels"><a href="https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(sede.hospital + ' ' + sede.hospitalDireccion) + '" target="_blank" rel="noopener">Cómo llegar</a></div>' : '';
+  $('medSedeDatos').innerHTML = dato('Dirección de la sede', sede.direccion) + dato('Punto de encuentro', sede.puntoEncuentro) +
+    (sede.hospital ? '<h3 class="u-mt8">Hospital</h3>' + dato('Hospital', sede.hospital) + dato('Dirección', sede.hospitalDireccion) + dato('Tiempo de llegada', sede.hospitalTiempo) + botonesTel(sede.hospitalTelefono, sede.hospital) + mapa : '<p class="ayuda">Falta el hospital en el plan de emergencias de esta sede.</p>') +
+    (sede.ambulanciaTelefono ? '<h3 class="u-mt8">Ambulancia</h3>' + dato('Teléfono', sede.ambulanciaTelefono) + botonesTel(sede.ambulanciaTelefono, 'la ambulancia') : '') +
+    (sede.arlTelefono ? '<h3 class="u-mt8">ARL ' + esc(sede.arlNombre || '') + '</h3>' + dato('Línea de emergencias', sede.arlTelefono) + botonesTel(sede.arlTelefono, 'la ARL') : '');
+}
+$('medSede').addEventListener('change', pintarSede);
+$('medPersona').addEventListener('change', ()=> { const v = $('medPersona').value.trim().toLowerCase(); const ced = (v.match(/\d{5,}/) || [])[0];
+  const p = personas.find((x)=> (ced && String(x.resumen.cedula) === ced) || (x.resumen.nombre || '').toLowerCase() === v.split(' · ')[0]); if (p) elegir(p); else if (ced) porCedula(ced); });
+/* v151: sin usuario también aparece el contacto de emergencia, escribiendo la cédula completa del trabajador. */
+async function porCedula(ced){
+  if (!SGSST.url()) return;
+  $('medFicha').innerHTML = '<div class="empty">Buscando…</div>';
+  let r; try { r = await (await fetchWithRetry(SGSST.url() + '?action=contactoEmergencia&cedula=' + encodeURIComponent(ced) + '&token=' + encodeURIComponent(SGSST.token()))).json(); }
+  catch (e) { $('medFicha').innerHTML = '<div class="empty">Sin señal: no se pudo buscar. Llama al 123.</div>'; return; }
+  if (!r || !r.ok) { $('medFicha').innerHTML = '<div class="empty">' + esc((r && r.error) || 'No se encontró.') + '</div>'; return; }
+  elegida = { resumen: { nombre: r.nombre, cedula: ced, cargo: r.cargo, empresa: r.empresa } };
+  pintarFicha(elegida.resumen, r.emergencia, true);
+}
+$('medCopiar').addEventListener('click', async ()=> {
+  const s = elegida ? elegida.resumen : {}, em = (elegida && elegida.em) || {};
+  const t = ['MEDEVAC — ' + (typeof EMPRESA !== 'undefined' ? (EMPRESA.nombreCorto || EMPRESA.nombre || '') : ''), 'Trabajador: ' + (s.nombre || '—') + ' · C.C. ' + (s.cedula || '—'), em.rh ? 'RH: ' + em.rh : '', em.eps ? 'EPS: ' + em.eps : '', em.arl ? 'ARL: ' + em.arl : '',
+    sede ? 'Sede: ' + (sede.sede || '') + ' · ' + (sede.direccion || '') : '', sede && sede.hospital ? 'Hospital: ' + sede.hospital + ' · ' + (sede.hospitalDireccion || '') : '', em.telefono ? 'Contacto: ' + (em.nombre || '') + ' (' + (em.parentesco || '') + ') ' + em.telefono : ''].filter(Boolean).join('\n');
+  try { await navigator.clipboard.writeText(t); UI.toast('Copiado. Pégalo en el mensaje a la ambulancia o la ARL.'); } catch (e) { Dialogo.avisar(t); }
+});
+cargar();
+</script>
+</body>
+</html>

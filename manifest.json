@@ -1,0 +1,47 @@
+{
+  "name": "Portal SSTA",
+  "short_name": "Portal SSTA",
+  "description": "Sistema de gestión de seguridad y salud en el trabajo: permisos, inspecciones, comités, indicadores y más.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef1f4",
+  "theme_color": "#1f3b57",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Permisos abiertos",
+      "short_name": "Permisos",
+      "description": "Ver los permisos abiertos y cerrarlos",
+      "url": "./dashboard.html"
+    },
+    {
+      "name": "Personal autorizado",
+      "short_name": "Personal",
+      "description": "Registro diario de personal autorizado",
+      "url": "./personal-autorizado.html"
+    }
+  ]
+}

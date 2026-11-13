@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-McxZnNE8QgyHACPMo64R9FzDtYaX9RqKpiJaw13rtZA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Condiciones de licencia · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Condiciones de uso · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.aviso-priv h2{font-size:var(--fs-display);margin:18px 0 6px;}
+.aviso-priv p,.aviso-priv li{font-size:var(--fs-titulo);line-height:1.55;}
+.aviso-priv ul{padding-left:20px;}
+.aviso-priv .quien{background:var(--n-50);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-base);line-height:1.5;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Licencia de uso</div>
+    <h1>Condiciones de licencia</h1>
+    <p>Lo que la empresa recibe al licenciar el Portal SSTA y lo que se compromete a respetar</p></div></div>
+  </div>
+  <div class="card" id="estadoLic"></div>
+  <div class="card aviso-priv">
+    <h2>1. Qué se licencia</h2><p>El derecho de usar el Portal SSTA (sitio web, servidor de Google Apps Script y sus actualizaciones) para la empresa y el NIT que aparecen en la licencia, con el plan y los módulos contratados, durante su vigencia. La licencia es por empresa, no es exclusiva ni se puede ceder, revender ni sublicenciar.</p>
+    <h2>2. Los datos son de la empresa</h2><p>Todo lo que se registra queda en la cuenta de Google de la empresa. El proveedor no tiene acceso salvo que la empresa lo comparta. Al terminar la licencia, la empresa conserva sus hojas y puede descargar todo en cualquier momento (Usuarios → Descargar todo). La empresa es la responsable del tratamiento de los datos personales (Ley 1581 de 2012).</p>
+    <h2>3. Si la licencia vence</h2><p>El portal <b>no se bloquea</b>: los permisos, reportes, preoperacionales y los datos siguen funcionando. Solo se avisa al administrador. Sin licencia vigente no hay actualizaciones ni soporte.</p>
+    <h2>4. Actualizaciones y soporte</h2><p>Durante la vigencia, la empresa recibe las versiones nuevas y soporte por el canal acordado. El diagnóstico de errores se hace con el informe que el portal copia («Copiar diagnóstico»).</p>
+    <h2>5. Responsabilidad</h2><p>El portal ayuda a cumplir el SG-SST, pero no reemplaza el criterio del responsable de SST, de la ARL ni de las autoridades. La empresa revisa que la información, los formatos y las normas apliquen a su actividad. El proveedor responde por el funcionamiento del software según lo contratado y hasta el valor pagado en el último año.</p>
+    <h2>6. Uso prohibido</h2><p>Quitar o falsear la licencia, usar el portal para otra empresa distinta de la licenciada, o copiarlo para venderlo.</p>
+    <h2>7. Renovación</h2><p>La licencia se renueva por el periodo acordado. El proveedor entrega un nuevo texto de licencia que el administrador pega en Configurar empresa.</p>
+  </div>
+</main>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="licencia.js"></script>
+<script>
+(async () => { const r = await Licencia.revisar(), d = r.datos || {}, el = document.getElementById('estadoLic');
+  const t = { sin: 'Esta empresa no tiene licencia registrada.', invalida: 'La licencia registrada no es válida.', vencida: 'Licencia vencida el ' + (d.hasta || '') + '.', 'por-vencer': 'Licencia vigente hasta el ' + (d.hasta || '') + ' (vence pronto).', vigente: 'Licencia vigente hasta el ' + (d.hasta || '') + '.', 'sin-llave': 'Licencia registrada (sin verificar en esta versión).' }[r.estado];
+  el.innerHTML = '<h2>Estado</h2><p>' + esc(t) + '</p>' + (d.empresa ? '<p>' + esc(d.empresa) + (d.nit ? ' · NIT ' + esc(d.nit) : '') + (d.plan ? ' · ' + esc(d.plan) : '') + '</p>' : ''); })();
+</script>
+</body>
+</html>

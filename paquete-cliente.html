@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-TbfsYiaKIXxepqcbGIDer/MWjhpkaiEGkjLG++/T3hw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Paquete para el cliente · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Paquete para el cliente · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.pk-lista{display:grid;gap:6px;max-height:420px;overflow:auto;padding:2px;}
+.pk-it{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border:1.5px solid var(--n-300);border-radius:var(--r-m,10px);padding:8px 10px;min-height:52px;background:var(--paper);cursor:pointer;}
+.pk-it:has(input:checked){border-color:var(--azul-600);background:var(--azul-50);}
+.pk-it input{width:22px;height:22px;}
+.pk-it .t{font-weight:700;}
+.pk-it .m{font-size:var(--fs-menor);color:var(--n-600);}
+.pk-pasos{margin:0 0 4px 18px;padding:0;font-size:var(--fs-menor);}
+.pk-sel{font-size:var(--fs-menor);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Documentación para clientes y contratantes</div>
+    <h1>Paquete para el cliente</h1>
+    <p>Personal y equipos en un solo archivo .zip</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="card">
+    <h2>Cómo funciona</h2>
+    <ol class="pk-pasos"><li>Escribe a qué cliente o proyecto va.</li><li>Marca las personas y los equipos que pide.</li><li>Pulsa «Armar paquete»: se descarga un .zip con un índice en PDF y todos los soportes, ordenados por carpetas.</li><li>Envía el .zip al cliente (correo, WhatsApp o el enlace de Drive).</li></ol>
+    <p class="ayuda">Los soportes salen de lo que está cargado en el portal: en Personal habilitado (cursos, seguridad social, soportes de cada requisito), y en cada equipo («Documentos del equipo»). Lo que falte, súbelo allá primero.</p>
+    <div class="row-2"><div class="field"><label for="pkCliente">Cliente o proyecto</label><input type="text" id="pkCliente" placeholder="Ej: Cliente ABC · Planta norte"></div>
+    <div class="field"><label for="pkElab">Elaboró</label><input type="text" id="pkElab"></div></div>
+  </div>
+  <div class="card"><h2>Personal <span class="pk-sel" id="selP"></span></h2>
+    <div class="row-2"><div class="field"><label for="pkBusP">Buscar</label><input type="search" id="pkBusP" placeholder="Nombre, cédula, cargo o empresa"></div>
+    <div class="field"><label for="pkCtx">Habilitado para</label><select id="pkCtx"><option value="">Requisitos generales</option><option value="alturas">Trabajo en alturas</option><option value="confinados">Espacios confinados</option><option value="caliente">Trabajo en caliente</option><option value="electrico">Riesgo eléctrico</option><option value="izajes">Izaje de cargas</option></select></div></div>
+    <div class="fila-btn"><button type="button" class="btn ghost mini" data-todos="P">Marcar los que se ven</button><button type="button" class="btn ghost mini" data-hab="1">Solo los habilitados</button><button type="button" class="btn ghost mini" data-nada="P">Ninguno</button></div>
+    <div id="lsP" class="pk-lista"><div class="empty">Cargando…</div></div></div>
+  <div class="card"><h2>Equipos <span class="pk-sel" id="selE"></span></h2>
+    <div class="field"><label for="pkBusE">Buscar</label><input type="search" id="pkBusE" placeholder="Código, nombre, categoría o ubicación"></div>
+    <div class="fila-btn"><button type="button" class="btn ghost mini" data-todos="E">Marcar los que se ven</button><button type="button" class="btn ghost mini" data-nada="E">Ninguno</button></div>
+    <div id="lsE" class="pk-lista"></div></div>
+
+  <div class="card"><h2>Opciones</h2>
+    <label class="check"><input type="checkbox" id="pkMed"> Incluir los conceptos médicos de aptitud</label>
+    <p class="ayuda">Solo el concepto (apto, apto con restricciones…), nunca la historia clínica. Envíalo solo si el cliente lo exige y el trabajador lo autorizó (Res. 1843 de 2025; Ley 1581 de 2012).</p>
+    <label class="check"><input type="checkbox" id="pkLink"> Dejar el .zip con enlace de Drive para compartir</label>
+    <p class="ayuda">Cualquiera con el enlace podrá descargarlo. Si no lo marcas, el archivo queda privado en la carpeta «Paquetes para clientes» de Drive.</p>
+    <div id="pkMsg"></div>
+    <button type="button" class="btn amber" id="pkArmar">📦 Armar paquete (.zip)</button>
+    <button type="button" class="btn ghost" id="pkIndice">🖨️ Solo el índice (PDF)</button>
+  </div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="inspecciones-plantillas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v153 · Paquete de documentación para un cliente: el cliente pide los soportes del personal que va a trabajar,
+   de los equipos que se llevan y los programas de vigilancia. Se arma un .zip en el servidor (índice en PDF +
+   soportes por carpetas) y se descarga de una vez. */
+let rows = [], sel = { P: new Set(), E: new Set(), V: new Set() };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const norm = (s)=> String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const CFG = Habilitacion.config();
+const catNombre = (c)=> { const p = (typeof PLANTILLAS_INSPECCION !== 'undefined' ? PLANTILLAS_INSPECCION : []).find((x)=> x.id === c); return p ? p.nombre : (c || ''); };
+function habil(x){ Habilitacion._mapa = Habilitacion._mapa || {}; const r = Habilitacion.revisar(x.resumen.cedula, $('pkCtx').value || 'general'); return r; }
+function personas(){ return de('trabajador').filter((x)=> x.resumen.activo !== false).sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre))); }
+function equipos(){ return de('equipo').filter((x)=> x.resumen.activo !== false && x.resumen.activo !== 0).sort((a, b)=> String(a.resumen.codigo || a.resumen.nombre).localeCompare(String(b.resumen.codigo || b.resumen.nombre))); }
+function pves(){ return []; }   // v156: los PVE no se envían al cliente (son datos de salud del programa interno)
+const nombrePve = (x)=> x.tipo === 'sve' ? (x.resumen.programa === 'Otro' ? x.resumen.programaOtro : x.resumen.programa) || x.titulo : (x.resumen.nombre || x.titulo);
+const CHIP = { ok: ['ok', 'Habilitado'], pronto: ['amar', 'Por vencer'], mal: ['mal', 'No habilitado'], 'sin-registro': ['gris', 'Sin requisitos'], 'sin-datos': ['gris', '—'] };
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lsP').innerHTML = ''; return; }
+  const r = await SGSST.listar('trabajador,equipo');
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || [];
+  try { await Habilitacion.cargar(); } catch (e) {}
+  if (!$('pkElab').value) $('pkElab').value = (Sesion.nombre && Sesion.nombre()) || '';
+  pintar();
+}
+function item(g, id, t, m, chip){ return '<label class="pk-it"><input type="checkbox" data-g="' + g + '" value="' + esc(id) + '"' + (sel[g].has(id) ? ' checked' : '') + '><div><div class="t">' + t + '</div><div class="m">' + m + '</div></div>' + (chip || '') + '</label>'; }
+function visibles(g){
+  if (g === 'P') { const q = norm($('pkBusP').value); return personas().filter((x)=> !q || norm([x.resumen.nombre, x.resumen.cedula, x.resumen.cargo, x.resumen.empresa].join(' ')).includes(q)); }
+  if (g === 'E') { const q = norm($('pkBusE').value); return equipos().filter((x)=> !q || norm([x.resumen.codigo, x.resumen.nombre, x.resumen.categoria, x.resumen.ubicacion].join(' ')).includes(q)); }
+  return pves();
+}
+function pintar(){
+  $('lsP').innerHTML = visibles('P').map((x)=> { const s = x.resumen, h = habil(x), c = CHIP[h.estado] || CHIP['sin-datos'];
+    return item('P', x.id, esc(s.nombre), 'CC ' + esc(s.cedula || '—') + (s.cargo ? ' · ' + esc(s.cargo) : '') + (s.empresa ? ' · ' + esc(s.empresa) : '') + (h.problemas.length ? '<br>' + esc(h.problemas.slice(0, 2).join(' · ')) : ''), '<span class="chip ' + c[0] + '">' + c[1] + '</span>'); }).join('') || '<div class="empty">No hay personas en Personal habilitado.</div>';
+  $('lsE').innerHTML = visibles('E').map((x)=> { const s = x.resumen;
+    return item('E', x.id, esc([s.codigo, s.nombre].filter(Boolean).join(' · ') || x.titulo), esc(catNombre(s.categoria)) + (s.ubicacion ? ' · ' + esc(s.ubicacion) : '') + (s.ultimaInspeccion ? ' · última inspección ' + esc(UI.corta(s.ultimaInspeccion)) : ''), s.ultimoResultado ? '<span class="chip ' + (/no conforme|malo|atenci/i.test(s.ultimoResultado) ? 'mal' : 'ok') + '">' + esc(s.ultimoResultado) + '</span>' : ''); }).join('') || '<div class="empty">No hay equipos en el inventario (Inspecciones → Equipos).</div>';
+  if ($('lsV')) $('lsV').innerHTML = visibles('V').map((x)=> item('V', x.id, esc(nombrePve(x)), (x.tipo === 'sve' ? 'Vigilancia epidemiológica' : 'Programa de alto riesgo') + (x.resumen.estado ? ' · ' + esc(x.resumen.estado) : '') + (x.resumen.cobertura !== undefined && x.resumen.cobertura !== '' ? ' · cobertura ' + esc(x.resumen.cobertura) + ' %' : ''))).join('') || '<div class="empty">No hay programas de vigilancia creados (Salud → Vigilancia).</div>';
+  contar();
+}
+function contar(){ $('selP').textContent = sel.P.size ? '(' + sel.P.size + ')' : ''; $('selE').textContent = sel.E.size ? '(' + sel.E.size + ')' : '';  }
+document.addEventListener('change', (e)=> { const c = e.target.closest('input[data-g]'); if (!c) return; sel[c.dataset.g][c.checked ? 'add' : 'delete'](c.value); contar(); });
+document.querySelectorAll('[data-todos]').forEach((b)=> b.addEventListener('click', ()=> { visibles(b.dataset.todos).forEach((x)=> sel[b.dataset.todos].add(x.id)); pintar(); }));
+document.querySelectorAll('[data-nada]').forEach((b)=> b.addEventListener('click', ()=> { sel[b.dataset.nada].clear(); pintar(); }));
+document.querySelector('[data-hab]').addEventListener('click', ()=> { sel.P.clear(); visibles('P').forEach((x)=> { const h = habil(x); if (h.estado === 'ok' || h.estado === 'pronto') sel.P.add(x.id); }); pintar(); });
+$('pkBusP').addEventListener('input', pintar); $('pkBusE').addEventListener('input', pintar); $('pkCtx').addEventListener('change', pintar);
+
+/* ── Índice: una sola hoja HTML con estilos propios (el servidor la vuelve PDF; también se imprime) ── */
+async function indice(){
+  const E = (typeof EMPRESA !== 'undefined' && EMPRESA) || {}, emp = (E.nombre || E.razonSocial || (PORTAL_CONFIG && PORTAL_CONFIG.EMPRESA) || ''), hoy = UI.hoy();
+  const P = personas().filter((x)=> sel.P.has(x.id)), Eq = equipos().filter((x)=> sel.E.has(x.id)), V = pves().filter((x)=> sel.V.has(x.id));
+  const reqs = [...new Set([].concat(Habilitacion.exigidos($('pkCtx').value || 'general')).concat(Object.keys(CFG.requisitos).filter((k)=> P.some((x)=> ((x.resumen.req || {})[k] || {}).fecha))))]
+    .filter((k)=> $('pkMed').checked || !(CFG.requisitos[k] || {}).apto);
+  const venceDe = (x, k)=> { const r = (x.resumen.req || {})[k], d = CFG.requisitos[k] || {}; if (!r || (!r.fecha && !r.vence)) return ''; return String(r.vence || (r.fecha && d.meses ? Festivos.sumarDias(Festivos.sumarMeses(String(r.fecha).slice(0, 10), d.meses), -1) : '')).slice(0, 10); };
+  const celda = (x, k)=> { const v = venceDe(x, k), r = (x.resumen.req || {})[k] || {}, d = CFG.requisitos[k] || {};
+    if (!r.fecha && !r.vence) return '<td class="f">—</td>';
+    const txt = d.apto ? esc(r.apto || '') + (v ? '<br>' : '') : '';
+    return '<td class="' + (v && v < hoy ? 'm' : '') + '">' + txt + (v ? 'vence ' + esc(UI.corta(v)) : 'vigente') + '</td>'; };
+  const docsV = await Promise.all(V.map(async (x)=> { try { return Object.assign({ _x: x }, (await Registros.abrir(x.id)) || {}); } catch (e) { return { _x: x }; } }));
+  const css = 'body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#10213a;margin:18pt;}h1{font-size:15pt;margin:0 0 2pt;}h2{font-size:11pt;margin:14pt 0 4pt;border-bottom:1.5pt solid #10213a;padding-bottom:2pt;}' +
+    'table{border-collapse:collapse;width:100%;}th,td{border:.6pt solid #8a96a8;padding:3pt 4pt;vertical-align:top;text-align:left;}th{background:#e8edf5;font-size:8pt;}td.m{color:#b42318;font-weight:bold;}td.f{color:#8a96a8;}.meta td{border:0;padding:1pt 0;}.nota{font-size:7.5pt;color:#4a5568;margin-top:10pt;}';
+  const tPersonal = P.length ? '<h2>1. Personal (' + P.length + ')</h2><table><tr><th>#</th><th>Nombre</th><th>Cédula</th><th>Cargo</th><th>Empresa</th>' + reqs.map((k)=> '<th>' + esc((CFG.requisitos[k] || {}).nombre || k) + '</th>').join('') + '</tr>' +
+    P.map((x, i)=> '<tr><td>' + (i + 1) + '</td><td>' + esc(x.resumen.nombre) + '</td><td>' + esc(x.resumen.cedula || '') + '</td><td>' + esc(x.resumen.cargo || '') + '</td><td>' + esc(x.resumen.empresa || emp) + '</td>' + reqs.map((k)=> celda(x, k)).join('') + '</tr>').join('') + '</table>' : '';
+  const tEquipos = Eq.length ? '<h2>' + (P.length ? 2 : 1) + '. Equipos (' + Eq.length + ')</h2><table><tr><th>#</th><th>Código</th><th>Equipo</th><th>Categoría</th><th>Ubicación</th><th>Última inspección</th><th>Resultado</th><th>Vencimientos</th></tr>' +
+    Eq.map((x, i)=> { const s = x.resumen; return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.codigo || '') + '</td><td>' + esc(s.nombre || '') + '</td><td>' + esc(catNombre(s.categoria)) + '</td><td>' + esc(s.ubicacion || '') + '</td><td>' + esc(s.ultimaInspeccion ? UI.corta(s.ultimaInspeccion) : '—') + '</td><td>' + esc(s.ultimoResultado || '—') + '</td><td>' + esc(typeof s.vencimientos === 'string' ? s.vencimientos : Object.keys(s.vencimientos || {}).filter((k)=> { const pl = (typeof PLANTILLAS_INSPECCION !== 'undefined' ? PLANTILLAS_INSPECCION : []).find((x)=> x.id === s.categoria); return !pl || !pl.vencimientos || pl.vencimientos.indexOf(k) !== -1; }).map((k)=> k + ': ' + UI.corta(s.vencimientos[k])).join(' · ')) + '</td></tr>'; }).join('') + '</table>' : '';
+  const nV = (P.length ? 1 : 0) + (Eq.length ? 1 : 0) + 1;
+  const tPve = docsV.length ? '<h2>' + nV + '. Programas de vigilancia y de alto riesgo (' + docsV.length + ')</h2>' + docsV.map((d)=> { const x = d._x, s = x.resumen;
+    return '<table style="margin-bottom:6pt;"><tr><th colspan="4">' + esc(nombrePve(x)) + '</th></tr><tr><td><b>Estado</b><br>' + esc(s.estado || d.estado || '—') + '</td><td><b>Responsable</b><br>' + esc(d.responsable || d.coordinador || s.responsable || '—') + '</td><td><b>Inicio / revisión</b><br>' + esc(UI.corta(d.fechaInicio || d.fechaRevision || '') || '—') + '</td><td><b>Cobertura</b><br>' + esc(s.cobertura !== undefined && s.cobertura !== '' ? s.cobertura + ' % (' + (d.intervenidos || 0) + ' de ' + (d.poblacion || 0) + ')' : (s.cumplimiento !== undefined ? 'Cumplimiento ' + s.cumplimiento + ' %' : '—')) + '</td></tr>' +
+      (d.objetivo ? '<tr><td colspan="4"><b>Objetivo:</b> ' + esc(d.objetivo) + '</td></tr>' : '') +
+      (d.actividadesTexto ? '<tr><td colspan="4"><b>Actividades:</b><br>' + String(d.actividadesTexto).split('\n').filter((l)=> l.trim()).map((l)=> '• ' + esc(l.trim())).join('<br>') + '</td></tr>' : '') + '</table>'; }).join('') : '';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' + css + '</style></head><body>' +
+    '<h1>Documentación para ' + esc($('pkCliente').value.trim() || 'el cliente') + '</h1><table class="meta"><tr><td><b>Empresa:</b> ' + esc(emp) + '</td></tr><tr><td><b>Fecha de corte:</b> ' + esc(UI.corta(hoy)) + (($('pkCtx').value) ? ' · <b>Habilitación para:</b> ' + esc($('pkCtx').selectedOptions[0].textContent) : '') + '</td></tr><tr><td><b>Elaboró:</b> ' + esc($('pkElab').value.trim()) + '</td></tr>' +
+    '<tr><td><b>Contenido:</b> ' + [P.length && P.length + ' persona(s)', Eq.length && Eq.length + ' equipo(s)', docsV.length && docsV.length + ' programa(s) de vigilancia'].filter(Boolean).join(' · ') + '. Los soportes van en las carpetas Personal, Equipos y Programas de vigilancia del .zip.</td></tr></table>' +
+    tPersonal + tEquipos + tPve +
+    '<p class="nota">Información tomada del Portal SSTA el ' + esc(UI.corta(hoy)) + '. Contiene datos personales tratados conforme a la Ley 1581 de 2012: úsela solo para verificar el cumplimiento del contrato y no la comparta con terceros. ' + ($('pkMed').checked ? 'Incluye conceptos de aptitud laboral (sin diagnósticos).' : 'No incluye datos de salud.') + '</p></body></html>';
+}
+function nada(){ return !sel.P.size && !sel.E.size && !sel.V.size; }
+$('pkIndice').addEventListener('click', async ()=> {
+  if (nada()) { UI.toast('Marca al menos una persona, equipo o programa.', 'mal'); return; }
+  const w = window.open('', '_blank'); const h = await indice();
+  if (!w) { UI.toast('El navegador bloqueó la ventana: permite ventanas emergentes.', 'mal'); return; }
+  w.document.write(h); w.document.close(); setTimeout(() => { try { w.print(); } catch (e) {} }, 300);
+});
+$('pkArmar').addEventListener('click', async ()=> {
+  const msg = $('pkMsg'), b = $('pkArmar');
+  if (nada()) { msg.innerHTML = '<div class="aviso mal">Marca al menos una persona, equipo o programa.</div>'; return; }
+  if (!$('pkCliente').value.trim()) { msg.innerHTML = '<div class="aviso mal">Escribe a qué cliente o proyecto va el paquete.</div>'; $('pkCliente').focus(); return; }
+  if ($('pkMed').checked && !await Dialogo.confirmar('Vas a incluir conceptos médicos de aptitud.\n\n¿El cliente los exige y las personas autorizaron compartirlos?')) return;
+  b.disabled = true; msg.innerHTML = '<div class="status-msg">Armando el paquete… puede tardar hasta un minuto si hay muchos soportes.</div>';
+  let r;
+  try { r = await SGSST.enviar({ action: 'paqueteCliente', cliente: $('pkCliente').value.trim(), personas: [...sel.P], equipos: [...sel.E], programas: [...sel.V], incluirMedico: $('pkMed').checked, compartir: $('pkLink').checked, indiceHtml: await indice() }, null, { sinCola: true }); }
+  catch (e) { r = { ok: false, error: e.message }; }
+  b.disabled = false;
+  if (!r || !r.ok) { msg.innerHTML = '<div class="aviso mal">' + esc((r && r.error) || 'No se pudo armar el paquete.') + '</div>'; return; }
+  if (r.base64) {
+    const bin = atob(r.base64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u8], { type: 'application/zip' })), a = document.createElement('a');
+    a.href = url; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=> URL.revokeObjectURL(url), 60000);
+  }
+  const kb = Math.round(r.tamano / 1024);
+  msg.innerHTML = '<div class="aviso ok"><b>Paquete listo:</b> ' + esc(r.nombre) + ' · ' + r.archivos + ' archivo(s) · ' + (kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB') + '.<br>' +
+    (r.base64 ? 'Se descargó en este equipo. ' : 'Pesa mucho para bajarlo directo: descárgalo desde Drive. ') +
+    '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">Abrir en Drive</a>' + (r.compartido ? ' (cualquiera con el enlace puede descargarlo)' : '') + '</div>' +
+    (r.compartido ? '<button type="button" class="btn ghost" id="pkWa">Enviar el enlace por WhatsApp</button>' : '') +
+    (r.omitidos && r.omitidos.length ? '<div class="aviso amar u-mt8"><b>No se incluyeron:</b><br>' + r.omitidos.map(esc).join('<br>') + '</div>' : '');
+  if ($('pkWa')) $('pkWa').addEventListener('click', ()=> window.open('https://wa.me/?text=' + encodeURIComponent('Documentación para ' + $('pkCliente').value.trim() + ': ' + r.url), '_blank'));
+});
+cargar();
+</script>
+</body>
+</html>

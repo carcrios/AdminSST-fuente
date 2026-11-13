@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Por dónde iniciar · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Por dónde iniciar · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.ep-sig{border:2px solid var(--azul-600);}
+.ep-sig .eyebrow{color:var(--muted);font-size:var(--fs-menor);font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.ep-sig h2{margin:4px 0 6px;}
+.ep-barra{height:8px;background:var(--n-150);border-radius:var(--r-pill);overflow:hidden;margin:8px 0 2px;}
+.ep-barra span{display:block;height:100%;background:var(--ok);}
+.ep-paso{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--n-150);}
+.ep-paso:last-child{border-bottom:0;}
+.ep-chk{flex:none;width:26px;height:26px;border-radius:var(--r-pill);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:var(--fs-menor);}
+.ep-paso.hecho .ep-chk{background:var(--ok);border-color:var(--ok);color:#fff;}
+.ep-paso.hecho b{color:var(--muted);text-decoration:line-through;}
+.ep-paso.ahora{background:var(--n-50);border-radius:var(--r-m);padding-left:6px;}
+.ep-txt{flex:1;min-width:0;}
+.ep-txt small{display:block;color:var(--muted);line-height:1.4;}
+.ep-acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Para arrancar</div>
+    <h1>Por dónde iniciar</h1>
+    <p>Un solo camino, en orden: haz el paso que sigue y el portal tacha lo que ya está</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="contenido"><div class="empty">Revisando qué está hecho…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="empezar-reglas.js"></script>
+<script src="empezar.app.js"></script>
+</body>
+</html>

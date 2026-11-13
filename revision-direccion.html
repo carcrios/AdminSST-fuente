@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-vLvWM6IEgp66mWXoccYczgEkzdYp7cdeL/Xs08aUXP0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Revisión por la dirección · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Revisión por la dirección · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.ent{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;background:var(--n-0);}
+.ent h3{margin:0 0 6px;font-size:var(--fs-base);}
+.ent .dato{padding:4px 0;font-size:var(--fs-menor);}
+.aspecto{border-bottom:1px dashed var(--n-150);padding:8px 0;}
+.aspecto b{font-size:var(--fs-base);display:block;margin-bottom:5px;}
+.asp-dato{font-size:var(--fs-menor);color:var(--azul-600);background:var(--bg);border-radius:var(--r-s);padding:6px 9px;margin:0 0 6px;line-height:1.45;}
+.aspecto select{width:100%;min-height:42px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:0 9px;font-size:var(--fs-titulo);background:#fff;margin-bottom:6px;font-family:inherit;}
+.faltan-a{font-size:var(--fs-base);font-weight:600;color:var(--rojo-900);margin-bottom:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.faltan-a .ok{color:var(--ok);}
+.faltan-a button{font:inherit;font-size:var(--fs-menor);font-weight:700;border:1px solid var(--rojo-200);background:var(--rojo-50);color:var(--rojo-800);border-radius:var(--r-s);min-width:32px;min-height:30px;cursor:pointer;}
+.ob-fila{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 0;border-bottom:1px dashed var(--n-150);font-size:var(--fs-base);}
+.ob-fila span:nth-child(2){flex:1;min-width:150px;}
+.aspecto textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px 10px;font-size:var(--fs-titulo);font-family:inherit;min-height:52px;background:var(--n-0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Verificar y actuar</div>
+    <h1>Revisión por la dirección</h1>
+    <p>Revisión anual del SG-SST con los datos del portal · rendición de cuentas</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div><div id="alertas"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="revision">Revisión por la dirección</button>
+    <button type="button" data-tab="rendicion">Rendición de cuentas</button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrRev"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* Lo que la revisión debe permitir (Decreto 1072 de 2015, art. 2.2.4.6.31, numerales 1 a 24).
+   Cada aspecto dice de qué datos del portal sale la respuesta («ver»: títulos de las entradas). */
+const ASPECTOS = [
+  ['Revisar las estrategias implementadas y determinar si han sido eficaces para alcanzar los objetivos, metas y resultados esperados del SG-SST', ['Política y objetivos', 'Estándares mínimos']],
+  ['Revisar el cumplimiento del plan de trabajo anual y su cronograma', ['Plan anual de trabajo']],
+  ['Analizar la suficiencia de los recursos asignados para el SG-SST y el cumplimiento de las responsabilidades asignadas a los integrantes de la empresa', ['Rendición de cuentas', 'Plan anual de trabajo']],
+  ['Analizar la capacidad del SG-SST para satisfacer las necesidades globales de la empresa en materia de seguridad y salud en el trabajo', ['Estándares mínimos']],
+  ['Analizar la necesidad de realizar cambios en el SG-SST, incluida la revisión de la política y sus objetivos', ['Política y objetivos', 'Proveedores y cambios']],
+  ['Evaluar la eficacia de las medidas de seguimiento con base en las revisiones anteriores de la alta dirección y realizar los ajustes necesarios', ['Revisión anterior']],
+  ['Analizar el resultado de los indicadores y de las auditorías anteriores del SG-SST', ['Indicadores', 'Auditorías', 'Estándares mínimos']],
+  ['Aportar información sobre nuevas prioridades y objetivos estratégicos de la organización que puedan ser insumos para la planificación y la mejora continua', []],
+  ['Recolectar información para determinar si las medidas de prevención y control de peligros y riesgos se aplican y son eficaces', ['Peligros y riesgos']],
+  ['Intercambiar información con los trabajadores sobre los resultados y su desempeño en SST', ['Participación de los trabajadores', 'Comités']],
+  ['Servir de base para la adopción de decisiones que tengan por objeto mejorar la identificación de peligros y el control de los riesgos y en general mejorar la gestión en SST', ['Peligros y riesgos']],
+  ['Determinar si promueve la participación de los trabajadores', ['Participación de los trabajadores', 'Comités']],
+  ['Evidenciar que se cumpla con la normatividad nacional vigente aplicable en materia de riesgos laborales, el cumplimiento de los estándares mínimos del SG-SST', ['Requisitos legales', 'Estándares mínimos']],
+  ['Establecer acciones que permitan la mejora continua en SST', ['Plan de acción']],
+  ['Establecer el cumplimiento de planes específicos, de las metas establecidas y de los objetivos propuestos', ['Plan anual de trabajo', 'Política y objetivos']],
+  ['Inspeccionar sistemáticamente los puestos de trabajo, las máquinas y equipos y en general, las instalaciones de la empresa', ['Inspecciones']],
+  ['Vigilar las condiciones en los ambientes de trabajo', ['Peligros y riesgos', 'Inspecciones']],
+  ['Vigilar las condiciones de salud de los trabajadores', ['Salud']],
+  ['Mantener actualizada la identificación de peligros, la evaluación y valoración de los riesgos', ['Peligros y riesgos']],
+  ['Identificar la notificación y la investigación de incidentes, accidentes de trabajo y enfermedades laborales', ['Accidentalidad']],
+  ['Identificar ausentismo laboral por causas asociadas con SST', ['Accidentalidad', 'Salud']],
+  ['Identificar pérdidas como daños a la propiedad, máquinas y equipos entre otros, relacionados con SST', ['Accidentalidad']],
+  ['Identificar deficiencias en la gestión de la SST', ['Plan de acción', 'Auditorías']],
+  ['Identificar la efectividad de los programas de rehabilitación de la salud de los trabajadores', ['Salud']]
+];
+/* v147: entradas que además piden ISO 9001 (9.3.2) e ISO 45001 (9.3) — van al final para no mover
+   la numeración de las revisiones ya guardadas (las de la versión 2 siguen con su lista). */
+const ASPECTOS_ISO = [
+  ['Cambios en las cuestiones externas e internas (contexto), en las necesidades de las partes interesadas y en los requisitos legales y otros requisitos', ['Requisitos legales', 'Política y objetivos']],
+  ['Riesgos y oportunidades: eficacia de las acciones tomadas para abordarlos', ['Peligros y riesgos', 'Plan de acción']],
+  ['Satisfacción del cliente y retroalimentación de las partes interesadas; desempeño de los proveedores externos', ['Proveedores y cambios']],
+  ['No conformidades y acciones correctivas; resultados de la consulta y participación de los trabajadores', ['Plan de acción', 'Participación de los trabajadores']]
+];
+const ASPECTOS_V3 = ASPECTOS.concat(ASPECTOS_ISO);
+/* Revisiones guardadas antes de la v107 (11 aspectos): se muestran con su lista original. */
+const ASPECTOS_V1 = ['Las estrategias implementadas y si fueron eficaces para cumplir la política y los objetivos de SST', 'El cumplimiento del plan anual de trabajo y su cronograma', 'La suficiencia de los recursos asignados (humanos, técnicos y financieros)',
+  'La capacidad del SG-SST para satisfacer las necesidades de la empresa en SST', 'La necesidad de cambios en el SG-SST, incluida la política y los objetivos', 'La eficacia de las medidas de prevención y control de peligros y riesgos',
+  'El cumplimiento de los requisitos legales', 'Los resultados de los indicadores, las auditorías y la autoevaluación de estándares mínimos', 'La investigación de incidentes, accidentes y enfermedades laborales y sus acciones',
+  'El avance de las acciones correctivas, preventivas y de mejora', 'Los aportes de la participación de los trabajadores y del COPASST'].map((t)=> [t, []]);
+const aspectosDe = (d)=> (d.aspectosV === 3 || d.nuevo || !d.aspectos || !Object.keys(d.aspectos).length ? ASPECTOS_V3 : d.aspectosV === 2 ? ASPECTOS : ASPECTOS_V1);
+const CALIF = [['', '¿Cómo está?'], ['ok', 'Adecuado'], ['mejora', 'Requiere mejora'], ['mal', 'No eficaz']];
+const TODO = 'auditoria,accion,reporte,mes,comite,reunion,plananual,peligro,revmatriz,legal,simulacro,emergencia,examen,psico,politica,proveedor,cambio,revision,rendicion,inspeccion,sve';
+let rows = [], tab = 'revision', actual = null;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar(TODO);
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+function pintar(){
+  const h = UI.hoy(), ult = de('revision').filter((x)=> x.resumen.estado === 'CERRADA').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)))[0];
+  $('alertas').innerHTML = !ult || ult.resumen.fecha < Festivos.sumarDias(h, -365) ? '<div class="aviso amar">La alta dirección revisa el SG-SST por lo menos una vez al año y comunica los resultados al COPASST y al responsable del SG-SST (estándar 6.1.3).</div>' : '';
+  (tab === 'revision' ? pintarRevisiones : pintarRendicion)($('panel'));
+}
+
+/* ── Datos del portal para la revisión (lo que la gerencia necesita ver) ── */
+function entradas(anio){
+  const enAnio = (f)=> String(f || '').slice(0, 4) === anio, h = UI.hoy();
+  const aut = de('auditoria').filter((x)=> /^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA').sort((a, b)=> String(b.resumen.fechaEjecucion).localeCompare(String(a.resumen.fechaEjecucion)))[0];
+  const pat = de('plananual').find((x)=> String(x.resumen.anio) === anio);
+  const rep = de('reporte').filter((x)=> enAnio(x.resumen.fecha)), at = rep.filter((x)=> x.resumen.clase === 'Accidente de trabajo');
+  const meses = de('mes').filter((x)=> enAnio(x.resumen.mes + '-01'));
+  const diasP = meses.reduce((a, x)=> a + (Number(x.resumen.diasProgramados) || 0), 0), diasA = meses.reduce((a, x)=> a + (Number(x.resumen.diasAusencia) || 0), 0);
+  const trab = meses.length ? Math.round(meses.reduce((a, x)=> a + (Number(x.resumen.trabajadores) || 0), 0) / meses.length) : 0;
+  const acc = de('accion'), abiertas = acc.filter((x)=> x.estado !== 'CERRADA'), venc = abiertas.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h);
+  const cerradasA = acc.filter((x)=> x.estado === 'CERRADA' && enAnio(x.resumen.fechaCierre)), aTiempo = cerradasA.filter((x)=> !x.resumen.fechaCompromiso || x.resumen.fechaCierre <= x.resumen.fechaCompromiso).length;
+  const aud = de('auditoria').filter((x)=> !/^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && enAnio(x.resumen.fechaEjecucion));
+  const nc = aud.reduce((a, x)=> a + ((x.resumen.hallazgos || {}).ncMayor || 0) + ((x.resumen.hallazgos || {}).ncMenor || 0), 0);
+  const com = (k)=> { const c = de('comite').find((x)=> x.resumen.comite === k), p = c && c.resumen.periodo; const reu = de('reunion').filter((x)=> x.resumen.comite === k && x.resumen.tipo === 'Ordinaria' && enAnio(x.resumen.fecha)).length;
+    return (p ? (p.fin >= h ? 'vigente hasta ' + UI.corta(p.fin) : 'periodo VENCIDO') : 'sin conformar') + ' · ' + reu + ' reuniones ordinarias'; };
+  const pel = de('peligro'), legal = de('legal').filter((x)=> x.resumen.vigente !== 'No' && x.resumen.cumple && x.resumen.cumple !== 'Sin evaluar' && x.resumen.cumple !== 'No aplica');
+  const exV = (()=> { const m = {}; de('examen').forEach((x)=> { const k = x.resumen.cedula || x.resumen.nombre; if (!m[k] || x.resumen.fecha > m[k].resumen.fecha) m[k] = x; }); return Object.values(m).filter((x)=> x.resumen.tipoExamen !== 'Egreso' && x.resumen.proxima && x.resumen.proxima < h).length; })();
+  const psi = de('psico').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)))[0];
+  const pol = de('politica').sort((a, b)=> String(b.resumen.fechaFirma).localeCompare(String(a.resumen.fechaFirma)))[0];
+  const prv = de('proveedor').filter((x)=> x.resumen.activo !== false);
+  return [
+    ['Estándares mínimos', [['Última autoevaluación', aut ? String(aut.resumen.puntaje).replace('.', ',') + ' % · ' + aut.resumen.valoracion + ' (' + UI.corta(aut.resumen.fechaEjecucion) + ')' : 'No registrada']]],
+    ['Política y objetivos', [['Política', pol ? 'versión ' + pol.resumen.versionDoc + ' · firmada ' + UI.corta(pol.resumen.fechaFirma) + ' · ' + pol.resumen.objetivos + ' objetivos' : 'No registrada']]],
+    ['Plan anual de trabajo ' + anio, [['Cumplimiento a la fecha', pat ? pat.resumen.cumplimiento + ' %' : 'Sin plan'], ['Avance del año', pat ? pat.resumen.avance + ' %' : '—'], ['Plan de capacitación', pat ? pat.resumen.capEjecutadas + ' de ' + pat.resumen.capProgramadas + ' ejecutadas' + (pat.resumen.cobertura !== '' ? ' · cobertura ' + pat.resumen.cobertura + ' %' : '') : '—']]],
+    ['Accidentalidad ' + anio, [['Accidentes de trabajo', at.length + (at.some((x)=> x.resumen.mortal) ? ' (con mortalidad)' : '')], ['Días de incapacidad por accidentes', at.reduce((a, x)=> a + (Number(x.resumen.diasIncapacidad) || 0), 0)], ['Incidentes', rep.filter((x)=> x.resumen.clase === 'Incidente').length], ['Actos y condiciones reportados', rep.filter((x)=> /Acto|Condición/.test(x.resumen.clase)).length],
+      ['Investigaciones sin cerrar', rep.filter((x)=> /Accidente|Incidente/.test(x.resumen.clase) && x.resumen.investigacion && x.resumen.investigacion.estado !== 'CERRADA').length], ['Ausentismo por causa médica', diasP ? (Math.round(diasA * 10000 / diasP) / 100).toString().replace('.', ',') + ' % (' + trab + ' trabajadores en promedio)' : 'Sin datos']]],
+    ['Plan de acción', [['Abiertas', abiertas.length], ['Vencidas', venc.length], ['Cerradas en ' + anio, cerradasA.length + (cerradasA.length ? ' (' + Math.round(aTiempo * 100 / cerradasA.length) + ' % a tiempo)' : '')]]],
+    ['Auditorías ' + anio, [['Auditorías cerradas', aud.length], ['No conformidades', nc]]],
+    ['Comités', [['COPASST', com('copasst')], ['Comité de Convivencia', com('convivencia')], ['Comité de emergencias', com('emergencias')]]],
+    ['Peligros y riesgos', [['Peligros en la matriz', pel.length], ['Riesgos no aceptables (I y II)', pel.filter((x)=> ['I', 'II'].indexOf(x.resumen.nivel) !== -1).length], ['Medidas por implementar', pel.reduce((a, x)=> a + (Number(x.resumen.controlesPendientes) || 0), 0)],
+      ['Última revisión con los trabajadores', (de('revmatriz').map((x)=> x.resumen.fecha).sort().pop() || '—')]]],
+    ['Requisitos legales', [['Cumplimiento', legal.length ? Math.round(legal.filter((x)=> x.resumen.cumple === 'Cumple').length * 100 / legal.length) + ' % de ' + legal.length + ' normas evaluadas' : 'Sin evaluar']]],
+    ['Emergencias', [['Simulacros en ' + anio, de('simulacro').filter((x)=> enAnio(x.resumen.fecha)).length], ['Brigadistas capacitados', de('emergencia').reduce((a, x)=> a + (Number(x.resumen.brigadistasCapacitados) || 0), 0) + ' de ' + de('emergencia').reduce((a, x)=> a + (Number(x.resumen.brigadistas) || 0), 0)]]],
+    ['Salud', [['Exámenes periódicos vencidos', exV], ['Riesgo psicosocial', psi ? psi.resumen.nivelGeneral + ' (' + UI.corta(psi.resumen.fecha) + ')' : 'Sin aplicación registrada']]],
+    ['Proveedores y cambios', [['Proveedores y contratistas evaluados al día', prv.filter((x)=> x.resumen.proximaEvaluacion >= h).length + ' de ' + prv.length], ['Cambios gestionados en ' + anio, de('cambio').filter((x)=> enAnio(x.resumen.fecha)).length]]],
+    ['Indicadores', (()=> { const conT = meses.filter((x)=> Number(x.resumen.trabajadores) > 0);
+      if (!conT.length) return [['Meses con datos de indicadores', '0 de 12']];
+      const mesDe = (f)=> String(f || '').slice(0, 7);
+      // v143: indicador del periodo (Res. 0312, art. 30): eventos del año ÷ promedio de trabajadores × 100,
+      // no el promedio de tasas mensuales (que se distorsiona cuando cambia el número de trabajadores).
+      const mesesAnio = conT.map((x)=> x.resumen.mes), atAnio = at.filter((r)=> mesesAnio.indexOf(mesDe(r.resumen.fecha)) !== -1);
+      const promT = conT.reduce((a2, x)=> a2 + Number(x.resumen.trabajadores), 0) / conT.length;
+      const dias = atAnio.reduce((a2, r)=> a2 + (Number(r.resumen.diasIncapacidad) || 0) + (Number(r.resumen.diasCargados) || 0), 0);
+      const f2 = (v)=> v.toFixed(2).replace('.', ',');
+      return [['Meses con datos de indicadores', conT.length + ' de 12'], ['Trabajadores en promedio', Math.round(promT)],
+        ['Frecuencia de accidentalidad del periodo (AT del año × 100 / promedio de trabajadores)', f2(atAnio.length * 100 / promT) + ' (' + atAnio.length + ' AT)'],
+        ['Severidad del periodo (días de incapacidad y cargados × 100 / promedio de trabajadores)', f2(dias * 100 / promT) + ' (' + dias + ' días)']]; })()],
+    ['Inspecciones', [['Inspecciones en ' + anio, de('inspeccion').filter((x)=> enAnio(x.resumen.fecha)).length], ['Con no conformidades', de('inspeccion').filter((x)=> enAnio(x.resumen.fecha) && Number(x.resumen.nc) > 0).length]]],
+    ['Rendición de cuentas', (()=> { const ren = de('rendicion').filter((x)=> String(x.resumen.periodo) === anio); const roles = OBLIGADOS.map((o)=> [o, ren.some((x)=> x.resumen.rol === o) ? 'Rindió cuentas' : 'Pendiente']);
+      return [['Rendiciones del periodo', ren.length]].concat(roles); })()],
+    ['Participación de los trabajadores', [['Reportes de actos y condiciones', rep.filter((x)=> /Acto|Condición/.test(x.resumen.clase)).length], ['Revisiones de la matriz con trabajadores', de('revmatriz').filter((x)=> enAnio(x.resumen.fecha)).length], ['Reuniones de COPASST en ' + anio, de('reunion').filter((x)=> x.resumen.comite === 'copasst' && enAnio(x.resumen.fecha)).length]]],
+    ['Revisión anterior', (()=> { const ant = de('revision').filter((x)=> x.estado === 'CERRADA' && String(x.resumen.periodo) < anio).sort((p, q)=> String(q.resumen.periodo).localeCompare(String(p.resumen.periodo)))[0];
+      if (!ant) return [['Revisión anterior', 'No registrada']];
+      const acc2 = acc.filter((x)=> x.resumen.origenRef === ant.id), cer = acc2.filter((x)=> x.estado === 'CERRADA').length;
+      return [['Periodo', ant.resumen.periodo + ' · ' + (ant.resumen.conclusion || '')], ['Acciones que dejó', acc2.length + (acc2.length ? ' (' + cer + ' cerradas)' : '')]]; })()]
+  ].map(([t, l])=> ({ titulo: t, datos: l.map(([a, b])=> [a, String(b)]) }));
+}
+function entradasHTML(e){ return e.map((s)=> '<div class="ent"><h3>' + esc(s.titulo) + '</h3>' + s.datos.map((d)=> '<div class="dato"><span>' + esc(d[0]) + '</span><b>' + esc(d[1]) + '</b></div>').join('') + '</div>').join(''); }
+
+function pintarRevisiones(panel){
+  const l = de('revision').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nRev">+ Revisión ' + UI.hoy().slice(0, 4) + ' (con los datos del portal)</button></div>' + (l.length ? l.map((x)=> '<button type="button" class="item ' + (x.estado === 'CERRADA' ? 'ok' : 'pronto') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">Revisión ' + esc(x.resumen.periodo) + '</div><div class="m">' + esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.gerente || '') + ' · ' + esc(x.resumen.conclusion || '') + '</div></div><span class="chip ' + (x.estado === 'CERRADA' ? 'ok' : 'pronto') + '">' + (x.estado === 'CERRADA' ? 'Firmada' : 'Borrador') + '</span></div></button>').join('') : '<div class="empty">Sin revisiones registradas.</div>') +
+''
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editarRevision(d); }));
+  $('nRev').addEventListener('click', ()=> { const a = UI.hoy().slice(0, 4);
+    editarRevision({ id: SGSST.nuevoId('REV'), nuevo: true, aspectosV: 3, periodo: a, fecha: UI.hoy(), entradas: entradas(a), aspectos: {}, calif: {}, estado: 'BORRADOR' }); });
+}
+function editarRevision(d){
+  actual = d; const cerrada = d.estado === 'CERRADA', s = $('scrRev');
+  const C = [{ k: 'periodo', l: 'Periodo revisado', medio: true }, { k: 'fecha', l: 'Fecha de la revisión', t: 'date', medio: true }, { k: 'gerente', l: 'Alta dirección (quien revisa)', t: 'persona' }, { k: 'asistentes', l: 'Asistentes', t: 'textarea' }];
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Revisión por la dirección</div><h1>Periodo ' + esc(d.periodo) + '</h1><p>Decreto 1072, art. 2.2.4.6.31 · estándares 6.1.3 y 7.1.2</p></div>' +
+    '<div class="card">' + Registros.form(C, d, 'rv_') + '</div>' +
+    '<div class="card"><h2>Entradas (datos del portal)</h2>' + entradasHTML(d.entradas || []) + (cerrada ? '' : '<button type="button" class="btn ghost mini" id="rvAct">↻ Actualizar con los datos de hoy</button>') + '</div>' +
+    '<div class="card"><h2>Análisis (Dec. 1072, art. 2.2.4.6.31)</h2><div class="faltan-a" id="rvFaltan"></div>' + aspectosDe(d).map((a, i)=> { const ver = (d.entradas || []).filter((e)=> a[1].some((t)=> String(e.titulo).indexOf(t) === 0));
+      return '<div class="aspecto" id="asp-' + i + '"><b>' + (i + 1) + '. ' + esc(a[0]) + '</b>' + (ver.length ? '<div class="asp-dato">' + ver.map((e)=> e.datos.slice(0, 3).map((x)=> esc(x[0]) + ': <b>' + esc(x[1]) + '</b>').join(' · ')).join('<br>') + '</div>' : '') +
+        '<select data-c="' + i + '"' + (cerrada ? ' disabled' : '') + ' aria-label="Calificación del aspecto ' + (i + 1) + '">' + CALIF.map((c)=> '<option value="' + c[0] + '"' + (((d.calif || {})[i] || '') === c[0] ? ' selected' : '') + '>' + c[1] + '</option>').join('') + '</select>' +
+        '<textarea data-a="' + i + '" placeholder="Análisis y conclusión de este punto"' + (cerrada ? ' disabled' : '') + '>' + esc((d.aspectos || {})[i] || '') + '</textarea></div>'; }).join('') + '</div>' +
+    '<div class="card"><h2>Conclusiones y decisiones</h2>' + Registros.form([{ k: 'conclusion', l: 'Conclusión', t: 'select', op: ['El SG-SST es adecuado, conveniente y eficaz', 'El SG-SST requiere ajustes', 'El SG-SST no es eficaz'] },
+      { k: 'conclusionTexto', l: 'Por qué', t: 'textarea' }, { k: 'decisiones', l: 'Decisiones (cambios en política, objetivos, recursos, prioridades)', t: 'textarea' },
+      { k: 'accionesTexto', l: 'Acciones de mejora (una por línea: van al plan de acción)', t: 'textarea' }, { k: 'comunicadaCopasst', l: 'Resultados comunicados al COPASST el', t: 'date', medio: true }, { k: 'comunicadaResponsable', l: 'Comunicados al responsable del SG-SST el', t: 'date', medio: true }], d, 'rc_') +
+      (cerrada ? '' : '<div class="field"><label>Firma de la alta dirección</label>' + UI.padHTML('fGer') + '</div>') + '</div>' +
+    (cerrada ? '' : '<button type="button" class="btn ghost" id="rvGuardar">Guardar borrador</button><button type="button" class="btn verde" id="rvCerrar">✅ Firmar y cerrar la revisión</button>') +
+    '<button type="button" class="btn ghost" id="rvPdf">🖨️ Acta de revisión por la dirección (PDF)</button><div class="status-msg" id="rvMsg"></div>';
+  Registros.activar(s); if (!cerrada) UI.activarPad('fGer', d.firma);
+  const contar = ()=> { const el = $('rvFaltan'); if (!el || cerrada) return; const f = [...s.querySelectorAll('.aspecto')].map((x, i)=> [x, i]).filter(([x])=> !x.querySelector('textarea').value.trim() || !x.querySelector('select').value);
+    el.innerHTML = f.length ? 'Faltan ' + f.length + ' de ' + aspectosDe(d).length + ' aspectos por analizar y calificar: ' + f.slice(0, 10).map(([x, i])=> '<button type="button" data-ir="' + i + '">' + (i + 1) + '</button>').join('') + (f.length > 10 ? ' …' : '') : '<span class="ok">Todos los aspectos analizados ✓</span>';
+    el.querySelectorAll('[data-ir]').forEach((b)=> b.addEventListener('click', ()=> { const t = $('asp-' + b.dataset.ir); t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.querySelector('textarea').focus({ preventScroll: true }); })); };
+  s.addEventListener('input', (e)=> { if (e.target.matches('textarea[data-a]')) contar(); }); s.addEventListener('change', (e)=> { if (e.target.matches('select[data-c]')) contar(); }); contar();
+  if (cerrada) s.querySelectorAll('input,select,textarea').forEach((x)=> { x.disabled = true; });
+  if ($('rvAct')) $('rvAct').addEventListener('click', ()=> { leer(); d.entradas = entradas(String(d.periodo || UI.hoy().slice(0, 4))); editarRevision(d); });
+  if ($('rvGuardar')) $('rvGuardar').addEventListener('click', ()=> guardar(false));
+  if ($('rvCerrar')) $('rvCerrar').addEventListener('click', ()=> guardar(true));
+  $('rvPdf').addEventListener('click', ()=> { if (!cerrada) leer(); pdfRevision(d); });
+  show('scrRev');
+}
+function leer(){
+  const s = $('scrRev'), d = actual;
+  Object.assign(d, Registros.leer([{ k: 'periodo' }, { k: 'fecha' }, { k: 'gerente' }, { k: 'asistentes' }], s, 'rv_'),
+    Registros.leer([{ k: 'conclusion' }, { k: 'conclusionTexto' }, { k: 'decisiones' }, { k: 'accionesTexto' }, { k: 'comunicadaCopasst' }, { k: 'comunicadaResponsable' }], s, 'rc_'));
+  if (!d.aspectosV && (d.nuevo || !d.aspectos || !Object.keys(d.aspectos).length)) d.aspectosV = 3;
+  d.aspectos = {}; s.querySelectorAll('textarea[data-a]').forEach((t)=> { d.aspectos[t.dataset.a] = t.value.trim(); });
+  d.calif = {}; s.querySelectorAll('select[data-c]').forEach((t)=> { d.calif[t.dataset.c] = t.value; });
+  const f = UI.firma('fGer'); if (f) d.firma = f;
+}
+async function guardar(cerrar){
+  leer(); const d = actual, msg = $('rvMsg');
+  // v148: lo que falte se ve (antes el mensaje quedaba al final y parecía que el botón no hacía nada)
+  if (!msg._obs) (msg._obs = new MutationObserver(()=> { if (msg.textContent) { msg.scrollIntoView({ block: 'center', behavior: 'smooth' }); UI.toast(msg.textContent, 'mal'); } })).observe(msg, { childList: true, characterData: true, subtree: true });
+  if (cerrar) {
+    const L = aspectosDe(d), faltan = L.map((a, i)=> i).filter((i)=> !d.aspectos[i] || (d.aspectosV >= 2 && !d.calif[i]));
+    if (faltan.length) { msg.innerHTML = 'Faltan ' + faltan.length + ' aspecto(s) por analizar y calificar: <b>' + faltan.map((i)=> i + 1).join(', ') + '</b>.'; const t = $('asp-' + faltan[0]); if (t) t.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    if (!d.gerente || !d.firma) { msg.textContent = 'Falta quién revisa y su firma.'; return; }
+    d.estado = 'CERRADA';
+  }
+  const lin = String(d.accionesTexto || '').split('\n').map((x)=> x.trim()).filter(Boolean);
+  d.acciones = lin.length; d.accionesCreadas = Number(d.accionesCreadas) || 0;
+  const r = await Registros.guardar('revision', d.id, d, d.nuevo ? 0 : d.version);
+  if (typeof r === 'string') { msg.textContent = r; if (cerrar) d.estado = 'BORRADOR'; return; }
+  // Las acciones de mejora se crean al cerrar, después de guardar (nunca repetidas).
+  if (cerrar && !r.enCola) await Registros.accionesPorLinea(lin, d.accionesCreadas, 'revision', d.id, (t)=> ({ origen: 'Revisión por la dirección', origenRef: d.id, hallazgo: 'Revisión por la dirección ' + d.periodo, accion: t, tipoAccion: 'De mejora', fechaCompromiso: Festivos.sumarDias(UI.hoy(), 90) }), '¿Crear las acciones de mejora en el plan de acción?');
+  UI.toast(cerrar ? '✅ Revisión cerrada.' : '✓ Borrador guardado.'); show('scrLista'); cargar();
+}
+function pdfRevision(d){
+  const ent = '<table>' + (d.entradas || []).map((s)=> '<tr><td class="l" colspan="2" style="background:var(--bg);"><b>' + esc(s.titulo) + '</b></td></tr>' + s.datos.map((x)=> '<tr><td class="l" style="width:45%;">' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td></tr>').join('')).join('') + '</table>';
+  const CN = { ok: 'Adecuado', mejora: 'Requiere mejora', mal: 'No eficaz' };
+  const asp = '<table><tr><td class="l" style="width:38%;">Aspecto (art. 2.2.4.6.31)</td><td class="l" style="width:12%;">Calificación</td><td class="l">Análisis</td></tr>' + aspectosDe(d).map((a, i)=> '<tr><td>' + (i + 1) + '. ' + esc(a[0]) + '</td><td>' + esc(CN[(d.calif || {})[i]] || '—') + '</td><td style="white-space:pre-wrap;">' + esc((d.aspectos || {})[i] || '') + '</td></tr>').join('') + '</table>';
+  UI.imprimir([UI.cabecera('SG-REVISION-DIRECCION', 'REVISIÓN DEL SG-SST POR LA ALTA DIRECCIÓN', 'Periodo ' + d.periodo + ' · ' + UI.corta(d.fecha)) +
+    UI.seccion('DATOS', UI.tablaDatos([['Periodo', d.periodo], ['Fecha', UI.corta(d.fecha)], ['Revisa', d.gerente || ''], ['Asistentes', d.asistentes || '']])) + UI.seccion('ENTRADAS (DATOS DEL SG-SST)', ent),
+    UI.cabecera('SG-REVISION-DIRECCION', 'REVISIÓN DEL SG-SST POR LA ALTA DIRECCIÓN', 'Periodo ' + d.periodo) + UI.seccion('ANÁLISIS (DEC. 1072, ART. 2.2.4.6.31)', asp) +
+    UI.seccion('CONCLUSIÓN', UI.textoLargo((d.conclusion || '') + (d.conclusionTexto ? '\n' + d.conclusionTexto : ''))) + UI.seccion('DECISIONES', UI.textoLargo(d.decisiones)) + UI.seccion('ACCIONES DE MEJORA', UI.textoLargo(d.accionesTexto)) +
+    UI.seccion('COMUNICACIÓN', UI.tablaDatos([['Al COPASST', UI.corta(d.comunicadaCopasst) || '—'], ['Al responsable del SG-SST', UI.corta(d.comunicadaResponsable) || '—']])) +
+    UI.seccion('FIRMA', '<table><tr><td style="height:60px;vertical-align:bottom;">' + UI.firmaHoja(d.firma) + '<br><b>' + esc(d.gerente || '') + '</b><br>Alta dirección</td></tr></table>')]);
+}
+
+/* ── Rendición de cuentas (Dec. 1072, art. 2.2.4.6.8 num. 3; estándar 2.6.1) ── */
+const OBLIGADOS = ['Responsable del SG-SST', 'COPASST o Vigía SST', 'Comité de Convivencia', 'Comité de emergencias / brigada', 'Representante legal / gerente'];
+const ROLES = OBLIGADOS.concat(['Jefe de área o proceso', 'Supervisor de obra', 'Coordinador de alturas / programas de alto riesgo', 'Líder PESV', 'Trabajador con responsabilidades delegadas', 'Otro']);
+/* Responsabilidades típicas de cada rol (se proponen al elegirlo; se pueden ajustar). */
+const RESP_ROL = {
+  'Responsable del SG-SST': 'Diseñar, implementar, administrar y mejorar el SG-SST; plan anual de trabajo; capacitación; identificación de peligros; investigación de AT/EL; indicadores; informar a la alta dirección (Dec. 1072, art. 2.2.4.6.8 y Res. 0312).',
+  'COPASST o Vigía SST': 'Promover medidas de SST; proponer y participar en capacitaciones; vigilar el cumplimiento del SG-SST; inspecciones; participar en la investigación de accidentes; reunirse mensualmente (Res. 2013 de 1986; Dec. 1072, art. 2.2.4.6.2).',
+  'Comité de Convivencia': 'Recibir y tramitar las quejas de acoso laboral; escuchar a las partes; formular planes de mejora; hacer seguimiento a compromisos; reunirse mensualmente y presentar informes trimestrales y uno anual a la alta dirección (Res. 3461 de 2025, Ley 1010 de 2006).',
+  'Comité de emergencias / brigada': 'Plan de prevención, preparación y respuesta ante emergencias; análisis de amenazas y vulnerabilidad; capacitación y dotación de la brigada; simulacros (Dec. 1072, art. 2.2.4.6.25).',
+  'Representante legal / gerente': 'Definir, firmar y divulgar la política; asignar recursos; designar al responsable del SG-SST; revisar el SG-SST anualmente (Dec. 1072, art. 2.2.4.6.8).'
+};
+const C_REN = [{ k: 'rol', l: 'Quién rinde cuentas (rol)', t: 'select', op: ROLES }, { k: 'nombre', l: 'Nombre de quien presenta', t: 'persona', req: true }, { k: 'fecha', l: 'Fecha', t: 'date', medio: true },
+  { k: 'periodo', l: 'Periodo', medio: true, def: UI.hoy().slice(0, 4) }, { k: 'medio', l: 'Medio', t: 'select', op: ['Escrito', 'Reunión con acta', 'Correo electrónico', 'Otro'], medio: true }, { k: 'integrantes', l: 'Integrantes que firman (si es un comité, uno por línea)', t: 'textarea' },
+  { k: 'responsabilidades', l: 'Responsabilidades en SST', t: 'textarea' }, { k: 'resumen', l: 'Qué cumplió (logros y actividades realizadas)', t: 'textarea', req: true },
+  { k: 'indicadores', l: 'Metas e indicadores alcanzados', t: 'textarea' }, { k: 'pendientes', l: 'Qué quedó pendiente y por qué (dificultades)', t: 'textarea' }, { k: 'compromisos', l: 'Compromisos para el siguiente periodo (uno por línea)', t: 'textarea' }, { k: 'recibe', l: 'Recibe (alta dirección o responsable del SG-SST)', t: 'persona' }];
+/* Datos del portal que sirven de soporte a cada rol (se agregan a «indicadores» con un toque). */
+function datosRol(rol, periodo){
+  const enP = (f)=> String(f || '').slice(0, 4) === String(periodo), reu = (k)=> de('reunion').filter((x)=> x.resumen.comite === k && enP(x.resumen.fecha)).length;
+  if (rol === 'COPASST o Vigía SST') return 'Reuniones del COPASST en ' + periodo + ': ' + reu('copasst') + ' · inspecciones registradas: ' + de('inspeccion').filter((x)=> enP(x.resumen.fecha)).length;
+  if (rol === 'Comité de Convivencia') return 'Reuniones del comité en ' + periodo + ': ' + reu('convivencia');
+  if (rol === 'Comité de emergencias / brigada') return 'Reuniones del comité en ' + periodo + ': ' + reu('emergencias') + ' · simulacros: ' + de('simulacro').filter((x)=> enP(x.resumen.fecha)).length;
+  if (rol === 'Responsable del SG-SST' || rol === 'Representante legal / gerente') { const pat = de('plananual').find((x)=> String(x.resumen.anio) === String(periodo)); const aut = de('auditoria').filter((x)=> /^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA').sort((p, q)=> String(q.resumen.fechaEjecucion).localeCompare(String(p.resumen.fechaEjecucion)))[0];
+    return 'Plan anual ' + periodo + ': ' + (pat ? pat.resumen.cumplimiento + ' % de cumplimiento' : 'sin plan') + ' · autoevaluación Res. 0312: ' + (aut ? String(aut.resumen.puntaje).replace('.', ',') + ' %' : 'sin registrar') + ' · acciones abiertas: ' + de('accion').filter((x)=> x.estado !== 'CERRADA').length; }
+  return '';
+}
+function pintarRendicion(panel){
+  const a = UI.hoy().slice(0, 4), l = de('rendicion').sort((x, y)=> String(y.resumen.fecha).localeCompare(String(x.resumen.fecha)));
+  const delAnio = l.filter((x)=> String(x.resumen.periodo) === a);
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nRen">+ Rendición de cuentas</button><button type="button" class="btn ghost" id="pRen">PDF de las rendiciones ' + a + '</button></div>' +
+    '<p class="ayuda">Quienes tienen responsabilidades en el SG-SST rinden cuentas de su desempeño por lo menos una vez al año, por escrito (Dec. 1072, art. 2.2.4.6.8 num. 3; estándar 2.6.1). Los comités la presentan como comité.</p>' +
+    '<div class="card"><h2>Periodo ' + a + ': ¿quién ya rindió cuentas?</h2>' + OBLIGADOS.map((o)=> { const r = delAnio.find((x)=> x.resumen.rol === o);
+      return '<div class="ob-fila"><span class="chip ' + (r ? 'ok' : 'mal') + '">' + (r ? 'Hecha' : 'Pendiente') + '</span><span>' + esc(o) + (r ? ' · ' + esc(r.resumen.nombre) + ' · ' + esc(UI.corta(r.resumen.fecha)) : '') + '</span>' + (r ? '' : '<button type="button" class="btn-mini" data-rol="' + esc(o) + '">Registrar</button>') + '</div>'; }).join('') + '</div>' +
+    (l.length ? l.map((x)=> '<button type="button" class="item ok" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen.rol) + '</div><div class="m">' + esc(x.resumen.nombre) + ' · periodo ' + esc(x.resumen.periodo) + ' · ' + esc(UI.corta(x.resumen.fecha)) + '</div></div></div></button>').join('') : '<div class="empty">Sin rendiciones de cuentas.</div>');
+  const ed = (d)=> Registros.editar({ titulo: 'Rendición de cuentas', campos: C_REN, datos: d,
+    despues: '<button type="button" class="btn ghost mini" id="renDatos">Traer los datos del portal a «Metas e indicadores»</button><div class="field"><label>Firma de quien rinde cuentas</label>' + UI.padHTML('fRen') + '</div><div class="field"><label>Firma de quien recibe</label>' + UI.padHTML('fRen2') + '</div>',
+    alAbrir: (m)=> { UI.activarPad('fRen', d.firma); UI.activarPad('fRen2', d.firmaRecibe);
+      const raiz = (m && m.querySelector) ? m : document, q = (k)=> raiz.querySelector('[id$="_' + k + '"]') || document.querySelector('[id$="_' + k + '"]');
+      const rol = q('rol'), resp = q('responsabilidades');
+      if (rol && resp) rol.addEventListener('change', ()=> { if (!resp.value.trim() && RESP_ROL[rol.value]) resp.value = RESP_ROL[rol.value]; });
+      if (rol && resp && !resp.value.trim() && RESP_ROL[rol.value]) resp.value = RESP_ROL[rol.value];
+      const bd = raiz.querySelector('#renDatos') || document.getElementById('renDatos');
+      if (bd) bd.addEventListener('click', ()=> { const t = datosRol(rol.value, q('periodo').value || a), ind = q('indicadores'); if (!t) { UI.toast('Para este rol no hay datos automáticos: escríbelos.'); return; } ind.value = (ind.value.trim() ? ind.value.trim() + '\n' : '') + t; }); },
+    alGuardar: async (v)=> { v.firma = UI.firma('fRen') || d.firma || ''; v.firmaRecibe = UI.firma('fRen2') || d.firmaRecibe || ''; if (!v.firma) return 'Falta la firma de quien rinde cuentas.';
+      const r = await Registros.guardar('rendicion', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; cargar(); return true; } });
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) ed(d); }));
+  panel.querySelectorAll('[data-rol]').forEach((b)=> b.addEventListener('click', ()=> ed({ id: SGSST.nuevoId('REN'), nuevo: true, fecha: UI.hoy(), periodo: a, rol: b.dataset.rol, medio: 'Escrito', responsabilidades: RESP_ROL[b.dataset.rol] || '' })));
+  $('nRen').addEventListener('click', ()=> ed({ id: SGSST.nuevoId('REN'), nuevo: true, fecha: UI.hoy(), periodo: a, rol: 'Responsable del SG-SST', medio: 'Escrito', responsabilidades: RESP_ROL['Responsable del SG-SST'] }));
+  $('pRen').addEventListener('click', async ()=> { const docs = (await Promise.all(delAnio.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+    if (!docs.length) { UI.toast('No hay rendiciones del periodo.'); return; }
+    const firmas = (d)=> '<table><tr><td style="height:58px;vertical-align:bottom;width:50%;">' + UI.firmaHoja(d.firma) + '<br><b>' + esc(d.nombre || '') + '</b><br>Rinde cuentas · ' + esc(d.rol || '') + '</td><td style="height:58px;vertical-align:bottom;">' + UI.firmaHoja(d.firmaRecibe) + '<br><b>' + esc(d.recibe || '') + '</b><br>Recibe</td></tr>' +
+      (String(d.integrantes || '').trim() ? '<tr><td colspan="2"><b>Integrantes:</b><br>' + String(d.integrantes).split('\n').filter((x)=> x.trim()).map((x)=> esc(x.trim()) + ' ______________________').join('<br>') + '</td></tr>' : '') + '</table>';
+    UI.imprimir(docs.map((d)=> UI.cabecera('SG-RENDICION', 'RENDICIÓN DE CUENTAS EN SST', (d.rol || '') + ' · periodo ' + d.periodo) + UI.seccion('DATOS', UI.tablaDatos([['Rol', d.rol], ['Presenta', d.nombre], ['Fecha', UI.corta(d.fecha)], ['Periodo', d.periodo], ['Medio', d.medio || 'Escrito'], ['Norma', 'Dec. 1072, art. 2.2.4.6.8 num. 3']])) +
+      UI.seccion('RESPONSABILIDADES', UI.textoLargo(d.responsabilidades)) + UI.seccion('LOGROS Y ACTIVIDADES', UI.textoLargo(d.resumen)) + UI.seccion('METAS E INDICADORES', UI.textoLargo(d.indicadores)) +
+      UI.seccion('PENDIENTES Y DIFICULTADES', UI.textoLargo(d.pendientes)) + UI.seccion('COMPROMISOS', UI.textoLargo(d.compromisos)) + UI.seccion('FIRMAS', firmas(d)))); });
+}
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-iTHm/93Vru8cWGiJ9f+X/nMvrtDWP4r+dmrdl6350eI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Comité de Convivencia · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Comité de Convivencia · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.candado{background:var(--ink);color:#fff;border-radius:var(--r-m);padding:16px 15px;margin-bottom:12px;}
+.candado h2{color:#fff;font-family:var(--font-display);font-size:var(--fs-titulo);margin:0 0 6px;}
+.candado p{font-size:var(--fs-menor);color:var(--n-300);line-height:1.45;margin:0 0 10px;}
+.candado .field input{background:#fff;}
+.candado .field > label{color:var(--n-300);}
+.plazo{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--n-150);font-size:var(--fs-base);}
+.plazo:last-child{border-bottom:0;}
+.act{border-left:3px solid var(--azul);padding:4px 0 10px 11px;margin-bottom:8px;font-size:var(--fs-base);line-height:1.45;}
+.act small{display:block;color:var(--muted);font-size:var(--fs-menor);}
+.act .tx{white-space:pre-wrap;}
+.reservado{display:inline-block;background:var(--rojo-50);color:var(--mal);font-weight:800;font-size:var(--fs-etiqueta);letter-spacing:.08em;border-radius:var(--r-xs);padding:3px 8px;}
+.stat{display:flex;justify-content:space-between;font-size:var(--fs-base);padding:6px 0;border-bottom:1px dashed var(--n-150);}
+.stat:last-child{border-bottom:0;}
+</style>
+</head>
+<body>
+<div class="wrap" id="raizComite"></div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="cifrado.js"></script>
+<script src="qr.js"></script>
+<script src="registros.js"></script>
+<script src="comites.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const ID_COMITE = 'CMT-CONVIVENCIA';
+/* Procedimiento preventivo de la Res. 3461 de 2025 (art. 6): días calendario.
+   Ninguna queja puede pasar de 65 días desde que se recibe (sin contar el
+   seguimiento mensual de los compromisos). */
+const LIMITE_TOTAL = 65;
+const ETAPAS = [
+  { n: 'Recibida', plazo: 5, ayuda: 'Dar trámite a la queja: máximo 5 días calendario desde que se recibe.' },
+  { n: 'En examen', plazo: 5, ampliable: 15, ayuda: 'Examinar el caso de forma confidencial: 5 días, ampliables hasta 15.' },
+  { n: 'Escucha de las partes', plazo: 5, ayuda: 'Escuchar a cada parte por separado: 5 días.' },
+  { n: 'Diálogo y plan de mejora', plazo: 15, ayuda: 'Espacios de diálogo y plan de mejora concertado entre las partes: entre 5 y 15 días.' },
+  { n: 'Seguimiento de compromisos', plazo: 30, mensual: true, ayuda: 'Seguimiento mensual a los compromisos (por fuera del límite de 65 días).' },
+  { n: 'Por remitir', plazo: 15, ayuda: 'Sin acuerdo o con incumplimiento: remitir a la alta dirección o a la autoridad competente, máximo 15 días.' }
+];
+const MODALIDADES = ['Maltrato laboral', 'Persecución laboral', 'Discriminación laboral', 'Entorpecimiento laboral', 'Inequidad laboral', 'Desprotección laboral'];
+const TIPOS_ACT = ['Trámite y comunicación a las partes', 'Examen del caso', 'Escucha de la parte que se queja', 'Escucha de la parte señalada', 'Escucha de testigos', 'Reunión de diálogo', 'Plan de mejora / acuerdo', 'Seguimiento de compromisos', 'Recomendación a la alta dirección', 'Remisión', 'Otra'];
+const MOTIVOS_CIERRE = ['Acuerdo y compromisos cumplidos', 'Las partes desistieron', 'Los hechos no constituyen acoso laboral', 'Remitida a la alta dirección (sin acuerdo o incumplimiento)', 'Remitida a autoridad competente', 'Otro'];
+const etapaDe = (n) => ETAPAS.find((e) => e.n === n);
+
+let cfgCif = null, llave = null, llaveAnt = null, quejas = [], actual = null, P = null, inactividad = null;
+let buzon = [], privBuzon = null;   // v128: lo que llega al buzón reservado y su llave privada (solo en memoria)
+let fQ = '';   // v109: filtro de la lista de quejas (lo dejan las cifras)
+
+/* ── Clave en memoria; se cierra sola a los 15 minutos sin uso ── */
+function tocar() { clearTimeout(inactividad); if (llave) inactividad = setTimeout(bloquear, 15 * 60 * 1000); }
+['click', 'keydown', 'touchstart'].forEach((e) => document.addEventListener(e, tocar, { passive: true }));
+function bloquear() {
+  llave = null; llaveAnt = null; actual = null; P = null; privBuzon = null;
+  document.querySelectorAll('.modal-fondo').forEach((m) => m.remove());
+  const hp = document.getElementById('hojaPermiso'); if (hp) hp.innerHTML = '';
+  const enQueja = document.getElementById('scrQueja') && document.getElementById('scrQueja').classList.contains('active');
+  if (enQueja) { $('scrQueja').innerHTML = ''; Comite.show('scrInicio'); }
+  Comite.pintar();
+  UI.toast('🔒 Quejas cerradas.');
+}
+const kidActual = () => cfgCif && cfgCif.actual && cfgCif.actual.kid;
+
+/* ── Plazos ── */
+function venceEtapa(etapa, inicio, ampliado) {
+  const e = etapaDe(etapa); if (!e || !inicio) return '';
+  return Festivos.sumarDias(inicio, ampliado && e.ampliable ? e.ampliable : e.plazo);
+}
+function claseQueja(s) {
+  if (s.estado !== 'ABIERTA') return 'ok';
+  const v = [s.venceEtapa, s.venceTotal].filter(Boolean).sort()[0];
+  return UI.semaforo(v, 2);
+}
+
+/* ── Pestaña Quejas ── */
+function pintarQuejas(panel) {
+  if (!SGSST.url()) { panel.innerHTML = ''; return; }
+  if (!cfgCif || !cfgCif.actual) return pintarCrearClave(panel);
+  if (!llave) return pintarAbrir(panel);
+  const pendMig = quejas.filter((q) => q.resumen.kid && q.resumen.kid !== kidActual());
+  const ab = quejas.filter((q) => q.estado === 'ABIERTA');
+  const venc = (q) => q.estado === 'ABIERTA' && claseQueja(q.resumen) === 'mal', nVenc = quejas.filter(venc).length;
+  const l = quejas.filter((q) => fQ === 'tramite' ? q.estado === 'ABIERTA' : fQ === 'vencidas' ? venc(q) : true).sort((a, b) => (a.estado !== 'ABIERTA') - (b.estado !== 'ABIERTA') || String(b.resumen.fechaRecepcion).localeCompare(String(a.resumen.fechaRecepcion)));
+  panel.innerHTML = '<div class="aviso ok">🔓 Quejas abiertas en este equipo. Se cierran solas a los 15 minutos sin uso. <button type="button" class="btn mini ghost" id="btnBloquear" style="margin-left:6px;">🔒 Cerrar ahora</button></div>' +
+    (pendMig.length || cfgCif.anterior ? '<div class="aviso amar">' + (pendMig.length ? pendMig.length + ' queja(s) siguen con la clave anterior' : 'Falta cerrar el cambio de clave') + ' (el cambio de clave no terminó). <button type="button" class="btn mini ghost" id="btnMigrar">Terminar el cambio</button></div>' : '') +
+    '<div class="kpis"><div class="kpi" data-ir="filtro:tramite"><div class="v">' + ab.length + '</div><div class="n">en trámite</div></div>' +
+    '<div class="kpi ' + (nVenc ? 'mal' : 'ok') + '" data-ir="filtro:' + (nVenc ? 'vencidas' : 'tramite') + '"><div class="v">' + nVenc + '</div><div class="n">con plazo vencido</div></div>' +
+    '<div class="kpi" data-ir="filtro:"><div class="v">' + quejas.length + '</div><div class="n">en total</div></div></div>' +
+    (quejas.length ? UI.chipsFiltro([['', 'Todas (' + quejas.length + ')'], ['tramite', 'En trámite (' + ab.length + ')'], ['vencidas', 'Con plazo vencido (' + nVenc + ')']], fQ) : '') +
+    (l.length ? l.map((q) => {
+      const s = q.resumen, c = claseQueja(s);
+      const v = s.estado === 'ABIERTA' ? [s.venceEtapa, s.venceTotal].filter(Boolean).sort()[0] : '';
+      return '<button type="button" class="item ' + c + '" data-q="' + esc(q.id) + '"><div class="fila"><div><div class="t">' + esc(s.codigo) + ' · ' + esc(s.etapa) + '</div>' +
+        '<div class="m">Recibida ' + esc(UI.corta(s.fechaRecepcion)) + (s.estado === 'ABIERTA' && s.venceTotal ? ' · límite total ' + esc(UI.corta(s.venceTotal)) : '') + (q.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div></div>' +
+        '<span class="chip ' + c + '">' + (s.estado === 'ABIERTA' ? (v && v < UI.hoy() ? 'Venció ' : 'Vence ') + esc(UI.corta(v)) : esc(s.estado === 'REMITIDA' ? 'Remitida' : 'Cerrada')) + '</span></div></button>';
+    }).join('') : '<div class="empty">' + (quejas.length ? 'Ninguna queja en este filtro ✓' : 'No hay quejas registradas.') + '</div>') +
+    '<button type="button" class="btn amber" id="btnNuevaQ">+ Registrar queja</button>' +
+    (pendMig.length || cfgCif.anterior ? '' : '<button type="button" class="btn ghost" id="btnCambiarClave">🔑 Cambiar la clave del comité</button>') +
+    '<p class="ayuda u-mt8">Cambia la clave cuando alguien deje de ser integrante. La clave nueva se reparte en persona, nunca por correo o chat del trabajo.</p>';
+  $('btnBloquear').addEventListener('click', bloquear);
+  if ($('btnMigrar')) $('btnMigrar').addEventListener('click', terminarCambio);
+  panel.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => abrirQueja(b.dataset.q)));
+  panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b) => b.addEventListener('click', () => { fQ = b.dataset.f; pintarQuejas(panel); }));
+  $('btnNuevaQ').addEventListener('click', nuevaQueja);
+  if ($('btnCambiarClave')) $('btnCambiarClave').addEventListener('click', cambiarClave);
+}
+
+function pintarCrearClave(panel) {
+  panel.innerHTML = '<div class="candado"><h2>🔑 Crear la clave del comité</h2><p>Las quejas de acoso laboral son reservadas. Su contenido se cifra en el celular con esta clave: ni el servidor, ni la hoja de Google, ni el administrador del portal pueden leerlo.</p>' +
+    '<div class="field"><label>Clave (mínimo 10 caracteres, letras y números)</label><input type="password" id="ck1" autocomplete="new-password"></div>' +
+    '<div class="field"><label>Repite la clave</label><input type="password" id="ck2" autocomplete="new-password"></div>' +
+    '<label class="check" style="color:#fff;"><input type="checkbox" id="ckOk"> Entendemos que si el comité pierde la clave, las quejas NO se pueden recuperar. La guardaremos en sobre sellado con el presidente y el secretario.</label>' +
+    '<button type="button" class="btn amber" id="ckCrear">Crear clave</button><div class="status-msg" id="ckMsg" style="color:var(--n-300);"></div></div>';
+  $('ckCrear').addEventListener('click', async () => {
+    const a = $('ck1').value, b = $('ck2').value, msg = $('ckMsg');
+    const d = Cifrado.claveDebil(a); if (d) { msg.textContent = d; return; }
+    if (a !== b) { msg.textContent = 'Las dos claves no coinciden.'; return; }
+    if (!$('ckOk').checked) { msg.textContent = 'Marca la casilla de que entienden el riesgo.'; return; }
+    if (!navigator.onLine) { msg.textContent = 'Se necesita señal para crear la clave.'; return; }
+    msg.textContent = 'Creando…';
+    try {
+      const n = await Cifrado.crear(a);
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'comite', id: ID_COMITE, pruebaNueva: n.llave.prueba, campos: { comite: 'convivencia', cifrado: { actual: n.config, anterior: null } } }, null, { sinCola: true });
+      if (!r.ok) { msg.textContent = r.claveExiste ? 'Otro integrante ya creó la clave. Pídesela.' : Errores.texto('guardó', r); await Comite.cargar(); return; }
+      llave = n.llave; tocar();
+      UI.toast('✓ Clave creada.');
+      await Comite.cargar();
+    } catch (e) { msg.textContent = e.message; }
+  });
+}
+function pintarAbrir(panel) {
+  panel.innerHTML = '<div class="candado"><h2>🔒 Quejas reservadas</h2><p>Escribe la clave del comité para verlas en este equipo. Solo la conocen los integrantes del Comité de Convivencia.</p>' +
+    '<div class="field"><label>Clave del comité</label><input type="password" id="abClave" autocomplete="current-password"></div>' +
+    '<button type="button" class="btn amber" id="abOk">Abrir</button><div class="status-msg" id="abMsg" style="color:var(--n-300);"></div></div>' +
+    '<p class="ayuda">' + quejas.length + ' queja(s) registradas. Lo único visible sin la clave es el código, las fechas y la etapa.</p>';
+  const ir = async () => {
+    const msg = $('abMsg'); msg.textContent = 'Comprobando…';
+    try { llave = await Cifrado.abrir($('abClave').value, cfgCif.actual); tocar(); Comite.pintar(); }
+    catch (e) {
+      let txt = e.message;
+      if (cfgCif.anterior) { try { await Cifrado.abrir($('abClave').value, cfgCif.anterior); txt = 'Esa es la clave ANTERIOR: el comité la cambió. Usa la nueva.'; } catch (x) {} }
+      msg.textContent = txt;
+    }
+  };
+  $('abOk').addEventListener('click', ir);
+  $('abClave').addEventListener('keydown', (e) => { if (e.key === 'Enter') ir(); });
+  setTimeout(() => $('abClave') && $('abClave').focus(), 50);
+}
+
+/* ── Abrir, guardar ── */
+async function descifrarDoc(d) {
+  const b = d.cifrado || {};
+  if (llave && b.kid === llave.kid) return Cifrado.descifrar(llave, b);
+  if (llaveAnt && b.kid === llaveAnt.kid) return Cifrado.descifrar(llaveAnt, b);
+  if (cfgCif.anterior && b.kid === cfgCif.anterior.kid) {
+    if (!llaveAnt) llaveAnt = await pedirClaveAnterior();
+    return Cifrado.descifrar(llaveAnt, b);
+  }
+  throw new Error('Esta queja se cifró con una clave que ya no está registrada.');
+}
+function pedirClaveAnterior() {
+  return new Promise((ok, mal) => {
+    const m = UI.modal('<h3>Clave anterior</h3><p class="ayuda">Esta queja todavía está con la clave anterior del comité. Escríbela para pasarla a la nueva.</p><div class="field"><input type="password" id="caV"></div>' +
+      '<button type="button" class="btn amber" id="caOk">Continuar</button><button type="button" class="btn ghost" id="caNo">Cancelar</button><div class="status-msg" id="caMsg"></div>', true);
+    m.el.querySelector('#caNo').addEventListener('click', () => { m.cerrar(); mal(new Error('Cancelado.')); });
+    m.el.querySelector('#caOk').addEventListener('click', async () => {
+      try { const k = await Cifrado.abrir(m.el.querySelector('#caV').value, cfgCif.anterior); m.cerrar(); ok(k); }
+      catch (e) { m.el.querySelector('#caMsg').textContent = e.message; }
+    });
+  });
+}
+function publico(q) { const o = {}; ['codigo', 'fechaRecepcion', 'etapa', 'estado', 'fechaCierre', 'inicioEtapa', 'venceEtapa', 'venceTotal'].forEach((k) => { o[k] = q[k] || ''; }); return o; }
+async function guardarQueja(q, datos) {
+  // Se cifra con la llave abierta y se marca con SU kid; si el comité cambió de clave
+  // mientras tanto, no se guarda (quedaría una queja que nadie podría abrir).
+  if (!llave || llave.kid !== kidActual()) return { ok: false, error: 'La clave del comité cambió. Cierra y vuelve a abrir las quejas con la clave nueva.' };
+  const pub = publico(q);
+  if (pub.estado !== 'ABIERTA' || pub.etapa === 'Seguimiento de compromisos') pub.venceTotal = pub.estado === 'ABIERTA' ? '' : pub.venceTotal;
+  if (pub.estado !== 'ABIERTA') pub.venceEtapa = '';
+  const cifrado = await Cifrado.cifrar(llave, datos);
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'queja', id: q.id, doc: Object.assign({}, pub, { cifrado }), versionBase: q.version || 0, prueba: llave.prueba },
+    { estado: pub.estado, fecha: pub.fechaRecepcion, titulo: pub.codigo, resumen: Object.assign({ kid: llave.kid }, pub) });
+  if (r.ok && r.version) q.version = r.version;
+  return r;
+}
+const pendienteLocal = (id) => !!SGSST._lsGet('ssta-sgsst-pend', {})[id];
+async function abrirQueja(id) {
+  if (!llave) return;
+  if (pendienteLocal(id)) { UI.toast('Esta queja tiene cambios sin enviar desde este equipo. Ábrela cuando se envíen (al volver la señal).', 'mal'); return; }
+  $('scrQueja').innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><h1>Abriendo…</h1></div>';
+  Comite.show('scrQueja');
+  const d = await SGSST.doc(id);
+  if (!d) { $('scrQueja').innerHTML += '<div class="aviso">No se pudo abrir (¿sin señal o pendiente de enviar?).</div>'; return; }
+  try {
+    const datos = await descifrarDoc(d);
+    actual = d; P = datos;
+    if (d.cifrado.kid !== llave.kid) {   // estaba con la clave anterior: se pasa a la nueva
+      const r = await guardarQueja(actual, P);
+      if (r.ok) UI.toast('✓ Queja pasada a la clave nueva.');
+    }
+    pintarQueja();
+  } catch (e) { $('scrQueja').innerHTML += '<div class="aviso">' + esc(e.message) + '</div>'; }
+}
+
+/* ── Nueva queja ── */
+function siguienteCodigo(fecha) {
+  const a = String(fecha).slice(0, 4);
+  const n = quejas.map((q) => String(q.resumen.codigo || '')).filter((c) => c.indexOf('CCL-' + a + '-') === 0).map((c) => Number(c.split('-')[2]) || 0);
+  return 'CCL-' + a + '-' + ('00' + ((n.length ? Math.max.apply(null, n) : 0) + 1)).slice(-3);
+}
+function campoPersona(pref, p) {
+  p = p || {};
+  return '<div class="field"><label>Nombre</label><input type="text" id="' + pref + 'N" value="' + esc(p.nombre || '') + '"></div>' +
+    '<div class="grid2"><div class="field"><label>Cargo</label><input type="text" id="' + pref + 'C" value="' + esc(p.cargo || '') + '"></div><div class="field"><label>Área</label><input type="text" id="' + pref + 'A" value="' + esc(p.area || '') + '"></div></div>';
+}
+function formDatos(d) {
+  d = d || {};
+  return '<div class="card"><h2>Quien presenta la queja</h2>' + campoPersona('qj', d.quejoso) + '</div>' +
+    '<div class="card"><h2>Persona(s) señalada(s)</h2>' + campoPersona('qs', (d.querellados || [])[0]) +
+    '<div class="field"><label>Otras personas señaladas (una por línea)</label><textarea id="qsOtros">' + esc((d.querellados || []).slice(1).map((x) => [x.nombre, x.cargo].filter(Boolean).join(' — ')).join('\n')) + '</textarea></div>' +
+    '<div class="field"><label>Relación entre las partes</label><select id="qRel"><option>Jefe a colaborador</option><option>Entre compañeros</option><option>Colaborador a jefe</option><option>Otra</option></select></div></div>' +
+    '<div class="card"><h2>Los hechos</h2><div class="field"><label>Conductas (Ley 1010 de 2006, art. 2)</label><div class="chips" id="qMod">' + MODALIDADES.map((m) => '<button type="button" data-m="' + esc(m) + '" class="' + ((d.modalidades || []).indexOf(m) !== -1 ? 'on' : '') + '">' + esc(m) + '</button>').join('') + '</div></div>' +
+    '<div class="field"><label>Descripción de los hechos</label><textarea id="qHechos" style="min-height:140px;">' + esc(d.hechos || '') + '</textarea></div>' +
+    '<div class="field"><label>Fechas de los hechos</label><input type="text" id="qFechas" value="' + esc(d.fechasHechos || '') + '" placeholder="Ej: entre el 2 y el 20 de septiembre"></div>' +
+    '<div class="field"><label>Testigos</label><textarea id="qTest" class="u-alto56">' + esc(d.testigos || '') + '</textarea></div>' +
+    '<div class="field"><label>Pruebas aportadas</label><textarea id="qPru" class="u-alto56" placeholder="Ej: correos del 5 y 9 de septiembre (copia en el archivo físico del comité)">' + esc(d.pruebas || '') + '</textarea></div></div>';
+}
+function leerDatos(base) {
+  const v = (id) => ($(id) ? $(id).value.trim() : '');
+  const otros = v('qsOtros').split('\n').map((x) => x.trim()).filter(Boolean).map((x) => { const p = x.split('—'); return { nombre: p[0].trim(), cargo: (p[1] || '').trim(), area: '' }; });
+  return Object.assign(base || {}, {
+    quejoso: { nombre: v('qjN'), cargo: v('qjC'), area: v('qjA') },
+    querellados: [{ nombre: v('qsN'), cargo: v('qsC'), area: v('qsA') }].filter((x) => x.nombre).concat(otros),
+    relacion: v('qRel'), modalidades: [...document.querySelectorAll('#qMod button.on')].map((b) => b.dataset.m),
+    hechos: v('qHechos'), fechasHechos: v('qFechas'), testigos: v('qTest'), pruebas: v('qPru')
+  });
+}
+function activarChips() { const c = $('qMod'); if (c) c.addEventListener('click', (e) => { const b = e.target.closest('[data-m]'); if (b) b.classList.toggle('on'); }); }
+function nuevaQueja(pre) {
+  pre = pre && pre.datos ? pre : {};   // v128: desde el buzón llega con los datos de quien la presentó
+  const s = $('scrQueja');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Comité de Convivencia · <span class="reservado">RESERVADO</span></div><h1>Registrar queja</h1><p>Todo lo que escribas aquí se guarda cifrado</p></div>' +
+    '<div class="card"><div class="grid2"><div class="field"><label>Fecha de recepción</label><input type="date" id="qFR" value="' + UI.hoy() + '"></div>' +
+    '<div class="field"><label>Cómo llegó</label><select id="qMedio"><option>Por escrito</option><option>Correo electrónico</option><option>Verbal (se levantó acta)</option><option' + (pre.datos ? ' selected' : '') + '>Buzón</option></select></div></div>' +
+    '<div class="field"><label>¿Los hechos son de acoso sexual?</label><select id="qSex"><option value="No">No</option><option value="Sí"' + (pre.sexual ? ' selected' : '') + '>Sí</option></select></div><div id="qSexAviso"></div></div>' +
+    formDatos(pre.datos) +
+    '<button type="button" class="btn amber" id="qGuardar">🔒 Guardar queja cifrada</button><div class="status-msg" id="qMsg"></div>';
+  activarChips();
+  $('qSex').addEventListener('change', () => {
+    $('qSexAviso').innerHTML = $('qSex').value === 'Sí' ? '<div class="aviso">El Comité de Convivencia <b>no es competente</b> en casos de acoso sexual: esas conductas no son conciliables (Res. 3461 de 2025, art. 6, parágrafo 1). Se remiten según el protocolo de la empresa y la Ley 2365 de 2024. Se registra solo como remitida.</div>' +
+      '<div class="field"><label>Se remite a</label><input type="text" id="qRemA" placeholder="Ej: Gerencia general / Gestión humana"></div>' : '';
+  });
+  $('qGuardar').addEventListener('click', async () => {
+    const msg = $('qMsg'), fr = $('qFR').value;
+    const datos = leerDatos({ recepcion: { medio: $('qMedio').value }, sexual: $('qSex').value === 'Sí', actuaciones: [], compromisos: [] });
+    if (!fr) { msg.textContent = 'Falta la fecha de recepción.'; return; }
+    if (!datos.quejoso.nombre || !datos.hechos) { msg.textContent = 'Faltan quien presenta la queja o los hechos.'; return; }
+    const q = { id: SGSST.nuevoId('QJA'), codigo: siguienteCodigo(fr), fechaRecepcion: fr, estado: 'ABIERTA', etapa: 'Recibida', inicioEtapa: fr, venceEtapa: venceEtapa('Recibida', fr), venceTotal: Festivos.sumarDias(fr, LIMITE_TOTAL), fechaCierre: '' };
+    if (datos.sexual) {
+      const a = $('qRemA') ? $('qRemA').value.trim() : '';
+      if (!a) { msg.textContent = 'Escribe a quién se remite.'; return; }
+      Object.assign(q, { estado: 'REMITIDA', etapa: 'Remitida (acoso sexual)', fechaCierre: fr, venceEtapa: '', venceTotal: '' });
+      datos.cierre = { fecha: fr, motivo: 'Acoso sexual: el comité no es competente (Res. 3461 de 2025, art. 6, par. 1; Ley 2365 de 2024)', remitidaA: a, observaciones: '' };
+    }
+    const b = $('qGuardar'); b.disabled = true; msg.textContent = 'Cifrando y guardando…';
+    const r = await guardarQueja(q, datos);
+    b.disabled = false;
+    if (!r.ok) { msg.textContent = Errores.texto('guardó', r); return; }
+    UI.toast(r.enCola ? '⏳ Queja guardada (cifrada) en el equipo; se envía al volver la señal.' : '✓ Queja ' + q.codigo + ' registrada.');
+    if (pre.alGuardar) await pre.alGuardar(q);
+    await Comite.cargar();
+    if (!r.enCola) abrirQueja(q.id); else Comite.show('scrInicio');
+  });
+  if (pre.sexual) $('qSex').dispatchEvent(new Event('change'));
+  Comite.show('scrQueja');
+}
+
+/* ── v128: Buzón reservado ──
+   Los trabajadores presentan su queja (o su reporte de acoso sexual) desde buzon.html, sin usuario.
+   Llega cifrada con la llave pública del comité; aquí se abre con la clave del comité. */
+const ENLACE_BUZON = (t) => location.href.replace(/[^/]*$/, '') + 'buzon.html?tipo=' + t;
+async function asegurarBuzon() {
+  const d = await SGSST.doc(ID_COMITE);
+  if (!d) throw new Error('sin conexión');
+  let b = d.buzon;
+  if (!b || !b.publica) {
+    const par = await Cifrado.parBuzon(llave);
+    b = { publica: par.publica, privada: par.privadaCifrada, correo: (b && b.correo) || '' };
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'comite', id: ID_COMITE, prueba: llave.prueba, campos: { buzon: b } }, null, { sinCola: true });
+    if (!r.ok) throw new Error(r.error || 'no se activó');
+    privBuzon = par.privada;
+    return b;
+  }
+  if (!privBuzon) {
+    if (b.privada.kid !== llave.kid && !llaveAnt) throw new Error('El buzón quedó con la clave anterior del comité: termina el cambio de clave (pestaña Quejas).');
+    privBuzon = await Cifrado.abrirBuzon(b.privada.kid === llave.kid ? llave : llaveAnt, b.privada);
+  }
+  return b;
+}
+async function pintarBuzon(panel) {
+  if (!SGSST.url()) { panel.innerHTML = ''; return; }
+  if (!cfgCif || !cfgCif.actual) return pintarCrearClave(panel);
+  if (!llave) return pintarAbrir(panel);
+  panel.innerHTML = '<div class="empty">Abriendo el buzón…</div>';
+  let b;
+  try { b = await asegurarBuzon(); } catch (e) { panel.innerHTML = '<div class="aviso">' + esc(e.message) + '</div>'; return; }
+  const l = buzon.slice().sort((x, y) => String(y.creado || y.resumen.fecha).localeCompare(String(x.creado || x.resumen.fecha)));
+  panel.innerHTML = '<div class="aviso ok">🔓 Buzón activo. Lo que llega se cifra en el celular de quien lo envía: solo este comité, con su clave, lo puede leer.</div>' +
+    '<div class="card"><h2>Formularios para los trabajadores</h2><p class="ayuda">Compártelos (cartelera, correo, QR). No piden usuario. El comité no recibe quejas anónimas.</p>' +
+    '<div class="field"><label>Queja de convivencia laboral (acoso laboral)</label><input type="text" readonly value="' + esc(ENLACE_BUZON('convivencia')) + '" data-seleccionar></div>' +
+    '<div class="field"><label>Reporte de acoso sexual en el trabajo (Ley 2365 de 2024)</label><input type="text" readonly value="' + esc(ENLACE_BUZON('acoso')) + '" data-seleccionar></div>' +
+    '<div class="field"><label>Correo del comité (sale en los formularios y recibe el aviso de que llegó algo, sin el contenido)</label><input type="email" id="bzCorreo" value="' + esc(b.correo || '') + '" placeholder="comite.convivencia@empresa.com"></div>' +
+    '<button type="button" class="btn ghost" id="bzGuardarCorreo">Guardar el correo</button><div class="status-msg" id="bzMsg"></div></div>' +
+    '<h2 style="font-size:var(--fs-campo);margin:14px 0 8px;">Recibidas <span class="n">' + l.length + '</span></h2>' +
+    (l.length ? l.map((x) => '<button type="button" class="item ' + (x.resumen.clase === 'acoso' ? 'mal' : 'pronto') + '" data-bz="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen.codigo || x.id) + ' · ' + (x.resumen.clase === 'acoso' ? 'Acoso sexual' : 'Queja de convivencia') + '</div>' +
+      '<div class="m">Llegó el ' + esc(UI.corta(x.resumen.fecha)) + '</div></div><span class="chip ' + (x.resumen.clase === 'acoso' ? 'mal' : 'pronto') + '">Sin tramitar</span></div></button>').join('')
+      : '<div class="empty">No ha llegado nada al buzón.</div>');
+  $('bzGuardarCorreo').addEventListener('click', async () => {
+    const c = $('bzCorreo').value.trim(), msg = $('bzMsg');
+    if (c && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(c)) { msg.textContent = 'Revisa el correo.'; return; }
+    msg.textContent = 'Guardando…';
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'comite', id: ID_COMITE, prueba: llave.prueba, campos: { buzon: Object.assign({}, b, { correo: c }) } }, null, { sinCola: true });
+    msg.textContent = r.ok ? '✓ Guardado' : Errores.texto('guardó', r);
+  });
+  panel.querySelectorAll('[data-bz]').forEach((el) => el.addEventListener('click', () => abrirBuzon(el.dataset.bz)));
+}
+async function abrirBuzon(id) {
+  const s = $('scrQueja');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><h1>Abriendo…</h1></div>';
+  Comite.show('scrQueja');
+  const d = await SGSST.doc(id);
+  let x;
+  try { if (!d || !d.cifrado) throw new Error('no se pudo leer'); x = await Cifrado.descifrarBuzon(privBuzon, d.cifrado); }
+  catch (e) { s.innerHTML += '<div class="aviso">No se pudo abrir: ' + esc(e.message) + '</div>'; return; }
+  const acoso = d.clase === 'acoso';
+  const fila = (t, v) => v ? '<div class="field"><label>' + esc(t) + '</label><div class="texto-largo">' + esc(Array.isArray(v) ? v.join(' · ') : v) + '</div></div>' : '';
+  const ev = (x.evidencias || []).map((f, i) => '<a class="btn ghost mini" download="' + esc(f.nombre || ('evidencia-' + (i + 1))) + '" href="data:' + esc(f.tipo || 'application/octet-stream') + ';base64,' + f.data + '">Descargar ' + esc(f.nombre || ('Evidencia ' + (i + 1))) + '</a>').join(' ');
+  const p = x.persona || {};
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Buzón · <span class="reservado">RESERVADO</span></div><h1>' + esc(d.codigo) + '</h1><p>' + (acoso ? 'Reporte de acoso sexual en el trabajo' : 'Queja de convivencia laboral') + ' · llegó el ' + esc(UI.corta(d.fecha)) + '</p></div>' +
+    (acoso ? '<div class="aviso">El Comité de Convivencia <b>no es competente</b> en acoso sexual (Res. 3461 de 2025, art. 6, par. 1): se registra como remitida a la instancia que defina el protocolo de la empresa (Ley 2365 de 2024). Si el presunto agresor es un superior jerárquico, la queja va al inspector de trabajo (art. 11, par. 3).</div>' : '') +
+    '<div class="card"><h2>Quien la presenta</h2>' + fila('Nombre', p.nombre) + fila('Cédula', p.cedula) + fila('Cargo y área', [p.cargo, p.area].filter(Boolean).join(' · ')) + fila('Correo', p.correo) + fila('Teléfono', p.telefono) + '</div>' +
+    '<div class="card"><h2>Lo que cuenta</h2>' + fila('Presunto(s) agresor(es) o persona(s) señalada(s)', x.senalados) + fila(acoso ? 'Conductas, cuándo y dónde' : 'Hechos (quién, cuándo, cómo y dónde)', x.hechos) +
+      fila('¿Conoce las conductas de acoso sexual (Ley 2365 de 2024)?', x.conoceConductas) + fila('Evidencia', x.evidencia) + fila('Testigos', x.testigos) + fila('Sugerencias para prevenir', x.sugerencias) +
+      fila('Intención al dar a conocer la situación', x.intencion) + fila('Solicitud específica', x.solicitud) + (ev ? '<div class="field"><label>Archivos de evidencia</label>' + ev + '</div>' : '') + '</div>' +
+    (x.autorizaciones ? '<div class="card"><h2>Autorizaciones</h2>' + fila('Entregar copia de la queja a la parte señalada', x.autorizaciones.copia ? 'Sí' : 'No') + fila('Recibir información e invitaciones al correo', x.autorizaciones.correo ? 'Sí' : 'No') + '</div>' : '') +
+    '<button type="button" class="btn amber" id="bzReg">' + (acoso ? 'Registrar como queja remitida' : 'Registrar como queja del comité') + '</button>' +
+    '<button type="button" class="btn ghost" id="bzArch">Archivar sin registrar</button><div class="status-msg" id="bzMsg2"></div>';
+  const archivar = async (motivo) => {
+    const r = await SGSST.enviar({ action: 'borrar', id, motivo, prueba: llave.prueba }, null, { sinCola: true });
+    if (!r.ok) { UI.toast(Errores.texto('archivó', r), 'mal'); return false; }
+    buzon = buzon.filter((y) => y.id !== id); return true;
+  };
+  $('bzReg').addEventListener('click', () => nuevaQueja({ sexual: acoso,
+    datos: { quejoso: { nombre: p.nombre || '', cargo: p.cargo || '', area: p.area || '' }, querellados: String(x.senalados || '').split('\n').map((t) => t.trim()).filter(Boolean).map((t) => ({ nombre: t, cargo: '', area: '' })),
+      hechos: x.hechos || '', testigos: x.testigos || '', pruebas: [x.evidencia, (x.evidencias || []).length ? (x.evidencias.length + ' archivo(s) en el buzón ' + d.codigo) : ''].filter(Boolean).join(' · ') },
+    alGuardar: () => archivar('Registrada como queja del comité') }));
+  $('bzArch').addEventListener('click', async () => {
+    const mot = await Dialogo.pedir('¿Por qué se archiva sin registrar? (queda en el historial)'); if (mot === null) return;
+    if (await archivar(mot || 'Archivada por el comité')) { UI.toast('✓ Archivada'); Comite.show('scrInicio'); Comite.pintar(); }
+  });
+}
+
+/* ── Detalle de la queja ── */
+function persona(p) { return p ? esc([p.nombre, p.cargo, p.area].filter(Boolean).join(' · ')) : '—'; }
+function pintarQueja() {
+  const q = actual, d = P, abierta = q.estado === 'ABIERTA', e = etapaDe(q.etapa);
+  const fila = (et, v, c) => '<div class="plazo"><span>' + esc(et) + '</span>' + (c ? '<span class="chip ' + c + '">' + esc(v) + '</span>' : '<b>' + esc(v) + '</b>') + '</div>';
+  const s = $('scrQueja');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Comité de Convivencia · <span class="reservado">RESERVADO</span></div><h1>' + esc(q.codigo) + '</h1><p>' + esc(q.etapa) + ' · ' + esc(q.estado === 'ABIERTA' ? 'en trámite' : q.estado.toLowerCase()) + '</p></div>' +
+    '<div class="card"><h2>Plazos</h2>' + fila('Recibida', UI.corta(q.fechaRecepcion)) +
+      (abierta ? fila('Etapa actual', q.etapa) + (q.venceEtapa ? fila('Vence la etapa', UI.corta(q.venceEtapa) + ' (' + UI.cuandoTexto(q.venceEtapa) + ')', UI.semaforo(q.venceEtapa, 1)) : '') +
+        (q.venceTotal ? fila('Límite total (65 días)', UI.corta(q.venceTotal) + ' (' + UI.cuandoTexto(q.venceTotal) + ')', UI.semaforo(q.venceTotal, 7)) : '') +
+        (e ? '<p class="ayuda u-mt8">' + esc(e.ayuda) + '</p>' : '') : fila('Cierre', UI.corta(q.fechaCierre))) +
+      (abierta ? '<div class="fila-btn"><button type="button" class="btn ghost" id="qEtapa">➡️ Cambiar de etapa</button>' + (q.etapa === 'En examen' && !d.ampliado ? '<button type="button" class="btn ghost" id="qAmpliar">Ampliar examen a 15 días</button>' : '') + '</div>' : '') + '</div>' +
+    '<div class="card"><h2>Datos de la queja</h2>' +
+      '<div class="dato"><span>Presenta</span><b>' + persona(d.quejoso) + '</b></div>' +
+      '<div class="dato"><span>Señalado(s)</span><b>' + ((d.querellados || []).map(persona).join('<br>') || '—') + '</b></div>' +
+      '<div class="dato"><span>Relación</span><b>' + esc(d.relacion || '—') + '</b></div>' +
+      '<div class="dato"><span>Conductas</span><b>' + esc((d.modalidades || []).join(', ') || '—') + '</b></div>' +
+      '<div class="dato"><span>Recibida</span><b>' + esc((d.recepcion && d.recepcion.medio) || '—') + '</b></div>' +
+      '<div class="field u-mt10"><label>Hechos</label><div class="texto-largo">' + esc(d.hechos || '—') + (d.fechasHechos ? '\n\nFechas: ' + esc(d.fechasHechos) : '') + '</div></div>' +
+      (d.testigos ? '<div class="field"><label>Testigos</label><div class="texto-largo">' + esc(d.testigos) + '</div></div>' : '') +
+      (d.pruebas ? '<div class="field"><label>Pruebas</label><div class="texto-largo">' + esc(d.pruebas) + '</div></div>' : '') +
+      (abierta ? '<button type="button" class="btn ghost mini" id="qEditar">✏️ Corregir datos</button>' : '') + '</div>' +
+    '<div class="card"><h2>Actuaciones del comité</h2>' + ((d.actuaciones || []).length ? d.actuaciones.slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).map((a) =>
+      '<div class="act"><b>' + esc(a.tipo) + '</b><small>' + esc(UI.corta(a.fecha)) + (a.asistentes ? ' · ' + esc(a.asistentes) : '') + '</small><div class="tx">' + esc(a.texto) + '</div>' + (a.acuerdos ? '<div class="tx"><b>Acuerdos:</b> ' + esc(a.acuerdos) + '</div>' : '') + '</div>').join('') : '<div class="m" style="font-size:var(--fs-base);color:var(--muted);margin-bottom:8px;">Sin actuaciones registradas.</div>') +
+      (abierta ? '<button type="button" class="btn ghost" id="qAct">+ Registrar actuación</button>' : '') + '</div>' +
+    '<div class="card"><h2>Compromisos de las partes</h2>' + ((d.compromisos || []).length ? d.compromisos.map((c, i) =>
+      '<label class="check"><input type="checkbox" data-cc="' + i + '"' + (c.cumplido ? ' checked' : '') + (abierta ? '' : ' disabled') + '> <span>' + esc(c.texto) + '<br><small style="color:var(--muted);">' + esc(c.responsable || '') + ' · ' + esc(UI.corta(c.fecha)) + (c.cumplido ? ' · cumplido ' + esc(UI.corta(c.fechaCumplido)) : '') + '</small></span></label>').join('') : '<div class="m" style="font-size:var(--fs-base);color:var(--muted);margin-bottom:8px;">Sin compromisos.</div>') +
+      (abierta ? '<button type="button" class="btn ghost" id="qComp">+ Agregar compromiso</button>' : '') + '<p class="ayuda u-mt8">Estos compromisos quedan dentro de la queja (cifrados); no van al plan de acción.</p></div>' +
+    (abierta ? '<div class="card"><h2>Cerrar o remitir</h2><div class="field"><label>Motivo</label><select id="qMot">' + MOTIVOS_CIERRE.map((m) => '<option>' + esc(m) + '</option>').join('') + '</select></div>' +
+      '<div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="qFC" value="' + UI.hoy() + '"></div><div class="field"><label>Remitida a (si aplica)</label><input type="text" id="qRem" placeholder="Ej: Gerencia / Inspector de trabajo"></div></div>' +
+      '<div class="field"><label>Observaciones</label><textarea id="qObs"></textarea></div><button type="button" class="btn verde" id="qCerrar">Cerrar la queja</button></div>'
+      : '<div class="card"><h2>Cierre</h2><div class="dato"><span>Motivo</span><b>' + esc((d.cierre || {}).motivo || '—') + '</b></div>' + ((d.cierre || {}).remitidaA ? '<div class="dato"><span>Remitida a</span><b>' + esc(d.cierre.remitidaA) + '</b></div>' : '') +
+        ((d.cierre || {}).observaciones ? '<div class="texto-largo u-mt8">' + esc(d.cierre.observaciones) + '</div>' : '') + '<button type="button" class="btn ghost mini u-mt10" id="qReabrir">Reabrir para seguimiento</button></div>') +
+    '<button type="button" class="btn ghost" id="qPdf">🖨️ Expediente en PDF (reservado)</button><div class="status-msg" id="qdMsg"></div>';
+  const on = (id, f) => { if ($(id)) $(id).addEventListener('click', f); };
+  on('qEtapa', cambiarEtapa); on('qAmpliar', ampliar); on('qEditar', editarDatos); on('qAct', nuevaActuacion); on('qComp', nuevoCompromiso);
+  on('qCerrar', cerrarQueja); on('qReabrir', reabrir); on('qPdf', pdfExpediente);
+  s.querySelectorAll('[data-cc]').forEach((c) => c.addEventListener('change', async () => {
+    const it = P.compromisos[+c.dataset.cc]; it.cumplido = c.checked; it.fechaCumplido = c.checked ? UI.hoy() : '';
+    await guardar('✓ Compromiso actualizado');
+  }));
+}
+async function guardar(ok) {
+  if (!llave || !actual || !P) { UI.toast('Las quejas se cerraron. Ábrelas de nuevo.', 'mal'); return false; }
+  const msg = $('qdMsg'); if (msg) msg.textContent = 'Cifrando y guardando…';
+  const r = await guardarQueja(actual, P);
+  if (r.ok && r.enCola) {
+    // Sin señal: queda en el equipo. No se sigue editando hasta que se envíe (si no, el
+    // siguiente cambio chocaría con este).
+    actual = null; P = null; Comite.show('scrInicio'); await Comite.cargar();
+    UI.toast('⏳ Guardado (cifrado) en el equipo. Se envía al volver la señal; ábrela de nuevo después.');
+    return true;
+  }
+  if (!r.ok) { if (msg) msg.textContent = r.conflicto ? 'Otro integrante cambió esta queja. Ciérrala y vuelve a abrirla.' : Errores.texto('guardó', r); return false; }
+  const i = quejas.findIndex((x) => x.id === actual.id);
+  if (i !== -1) { quejas[i].estado = actual.estado; Object.assign(quejas[i].resumen, publico(actual), { kid: kidActual() }); }
+  pintarQueja();
+  if ($('qdMsg')) $('qdMsg').textContent = r.enCola ? '⏳ Guardado (cifrado) en el equipo; se envía al volver la señal.' : ok;
+  return true;
+}
+function cambiarEtapa() {
+  const q = actual;
+  const m = UI.modal('<h3>Cambiar de etapa</h3><div class="field"><label>Nueva etapa</label><select id="ceE">' + ETAPAS.map((e) => '<option' + (e.n === q.etapa ? ' selected' : '') + '>' + esc(e.n) + '</option>').join('') + '</select><div class="ayuda" id="ceA"></div></div>' +
+    '<div class="field"><label>Desde</label><input type="date" id="ceF" value="' + UI.hoy() + '"></div>' +
+    '<button type="button" class="btn amber" id="ceOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  const ay = () => { const e = etapaDe(m.el.querySelector('#ceE').value); m.el.querySelector('#ceA').textContent = e ? e.ayuda : ''; };
+  m.el.querySelector('#ceE').addEventListener('change', ay); ay();
+  m.el.querySelector('#ceOk').addEventListener('click', async () => {
+    const et = m.el.querySelector('#ceE').value, f = m.el.querySelector('#ceF').value || UI.hoy();
+    m.cerrar();
+    P.actuaciones = (P.actuaciones || []).concat({ uid: SGSST.nuevoOpId(), fecha: f, tipo: 'Cambio de etapa', texto: 'Pasa de "' + actual.etapa + '" a "' + et + '".' });
+    actual.etapa = et; actual.inicioEtapa = f; P.ampliado = false;
+    actual.venceEtapa = venceEtapa(et, f, false);
+    if (et === 'Seguimiento de compromisos') actual.venceTotal = '';
+    else if (!actual.venceTotal) actual.venceTotal = Festivos.sumarDias(actual.fechaRecepcion, LIMITE_TOTAL);
+    await guardar('✓ Etapa actualizada');
+  });
+}
+async function ampliar() {
+  if (!await Dialogo.confirmar('¿Ampliar el examen del caso hasta 15 días? Queda anotado en las actuaciones.')) return;
+  P.ampliado = true; actual.venceEtapa = venceEtapa('En examen', actual.inicioEtapa, true);
+  P.actuaciones = (P.actuaciones || []).concat({ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), tipo: 'Examen del caso', texto: 'Se amplía el examen del caso hasta el ' + UI.corta(actual.venceEtapa) + '.' });
+  await guardar('✓ Examen ampliado');
+}
+function editarDatos() {
+  const s = $('scrQueja');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" id="edVolver">← Volver a la queja</a><div class="eyebrow"><span class="reservado">RESERVADO</span></div><h1>' + esc(actual.codigo) + '</h1><p>Corregir datos</p></div>' + formDatos(P) +
+    '<button type="button" class="btn amber" id="edOk">🔒 Guardar</button><div class="status-msg" id="qdMsg"></div>';
+  $('qRel').value = P.relacion || 'Jefe a colaborador';
+  activarChips();
+  $('edVolver').addEventListener('click', (e) => { e.preventDefault(); pintarQueja(); });
+  $('edOk').addEventListener('click', async () => { leerDatos(P); await guardar('✓ Datos corregidos'); window.scrollTo(0, 0); });
+}
+function nuevaActuacion() {
+  const m = UI.modal('<h3>Registrar actuación</h3><div class="field"><label>Tipo</label><select id="naT">' + TIPOS_ACT.map((t) => '<option>' + esc(t) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Fecha</label><input type="date" id="naF" value="' + UI.hoy() + '"></div>' +
+    '<div class="field"><label>Participantes</label><input type="text" id="naP" placeholder="Ej: presidente, secretario y la parte que se queja"></div>' +
+    '<div class="field"><label>Qué se hizo / qué se dijo</label><textarea id="naX" style="min-height:120px;"></textarea></div>' +
+    '<div class="field"><label>Acuerdos (si hubo)</label><textarea id="naA" class="u-alto60"></textarea></div>' +
+    '<button type="button" class="btn amber" id="naOk">🔒 Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  m.el.querySelector('#naOk').addEventListener('click', async () => {
+    const v = (id) => m.el.querySelector(id).value.trim();
+    if (!v('#naX')) { UI.toast('Describe la actuación.', 'mal'); return; }
+    m.cerrar();
+    P.actuaciones = (P.actuaciones || []).concat({ uid: SGSST.nuevoOpId(), fecha: v('#naF'), tipo: v('#naT'), asistentes: v('#naP'), texto: v('#naX'), acuerdos: v('#naA') });
+    await guardar('✓ Actuación registrada');
+  });
+}
+function nuevoCompromiso() {
+  const m = UI.modal('<h3>Compromiso</h3><div class="field"><label>Compromiso</label><textarea id="ncT"></textarea></div>' +
+    '<div class="grid2"><div class="field"><label>Quién</label><input type="text" id="ncR" placeholder="Ej: las dos partes"></div><div class="field"><label>Fecha</label><input type="date" id="ncF" value="' + Festivos.sumarDias(UI.hoy(), 30) + '"></div></div>' +
+    '<button type="button" class="btn amber" id="ncOk">🔒 Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  m.el.querySelector('#ncOk').addEventListener('click', async () => {
+    const v = (id) => m.el.querySelector(id).value.trim();
+    if (!v('#ncT')) { UI.toast('Escribe el compromiso.', 'mal'); return; }
+    m.cerrar();
+    P.compromisos = (P.compromisos || []).concat({ uid: SGSST.nuevoOpId(), texto: v('#ncT'), responsable: v('#ncR'), fecha: v('#ncF'), cumplido: false, fechaCumplido: '' });
+    await guardar('✓ Compromiso agregado');
+  });
+}
+async function cerrarQueja() {
+  const mot = $('qMot').value, rem = $('qRem').value.trim();
+  if (/Remitida/.test(mot) && !rem) { $('qdMsg').textContent = 'Escribe a quién se remite.'; return; }
+  const pend = (P.compromisos || []).filter((c) => !c.cumplido).length;
+  if (pend && /cumplidos/.test(mot) && !await Dialogo.confirmar(pend + ' compromiso(s) sin marcar como cumplidos. ¿Cerrar de todas formas?')) return;
+  if (!await Dialogo.confirmar('¿Cerrar la queja ' + actual.codigo + '?')) return;
+  P.cierre = { fecha: $('qFC').value || UI.hoy(), motivo: mot, remitidaA: rem, observaciones: $('qObs').value.trim() };
+  actual.estado = /Remitida/.test(mot) ? 'REMITIDA' : 'CERRADA';
+  actual.fechaCierre = P.cierre.fecha; actual.etapa = actual.estado === 'REMITIDA' ? 'Remitida' : 'Cerrada';
+  await guardar('✓ Queja cerrada');
+}
+async function reabrir() {
+  const mo = await Dialogo.pedir('¿Por qué se reabre? (queda en las actuaciones)'); if (!mo) return;
+  P.actuaciones = (P.actuaciones || []).concat({ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), tipo: 'Otra', texto: 'Se reabre: ' + mo });
+  actual.estado = 'ABIERTA'; actual.etapa = 'Seguimiento de compromisos'; actual.inicioEtapa = UI.hoy(); actual.venceEtapa = venceEtapa(actual.etapa, UI.hoy()); actual.fechaCierre = ''; actual.venceTotal = '';
+  await guardar('✓ Reabierta para seguimiento');
+}
+async function pdfExpediente() {
+  if (!await Dialogo.confirmar('Este PDF contiene información RESERVADA de la queja. Imprímelo solo para el archivo del comité.')) return;
+  const q = actual, d = P;
+  const act = (d.actuaciones || []).length ? '<table><tr><th style="width:12%">Fecha</th><th style="width:22%">Actuación</th><th>Detalle</th></tr>' + d.actuaciones.slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).map((a) => '<tr><td>' + esc(UI.corta(a.fecha)) + '</td><td>' + esc(a.tipo) + (a.asistentes ? '<br><span class="nota">' + esc(a.asistentes) + '</span>' : '') + '</td><td style="white-space:pre-wrap;">' + esc(a.texto) + (a.acuerdos ? '\nAcuerdos: ' + esc(a.acuerdos) : '') + '</td></tr>').join('') + '</table>' : '<table><tr><td>Sin actuaciones.</td></tr></table>';
+  const comp = (d.compromisos || []).length ? '<table><tr><th>Compromiso</th><th style="width:18%">Quién</th><th style="width:12%">Fecha</th><th style="width:14%">Cumplido</th></tr>' + d.compromisos.map((c) => '<tr><td>' + esc(c.texto) + '</td><td>' + esc(c.responsable || '') + '</td><td>' + esc(UI.corta(c.fecha)) + '</td><td>' + (c.cumplido ? 'Sí ' + esc(UI.corta(c.fechaCumplido)) : 'No') + '</td></tr>').join('') + '</table>' : '<table><tr><td>Sin compromisos.</td></tr></table>';
+  UI.imprimir([UI.cabecera('SG-CONVIVENCIA-QUEJA', 'EXPEDIENTE DE QUEJA — COMITÉ DE CONVIVENCIA LABORAL', 'RESERVADO · ' + q.codigo) +
+    UI.seccion('DATOS', UI.tablaDatos([['Código', q.codigo], ['Recibida', UI.corta(q.fechaRecepcion) + ' · ' + ((d.recepcion || {}).medio || '')], ['Estado', q.estado + ' · ' + q.etapa], ['Límite total', UI.corta(q.venceTotal) || '—'],
+      ['Presenta', [d.quejoso && d.quejoso.nombre, d.quejoso && d.quejoso.cargo].filter(Boolean).join(' · ')], ['Señalado(s)', (d.querellados || []).map((x) => [x.nombre, x.cargo].filter(Boolean).join(' · ')).join('; ')],
+      ['Relación', d.relacion || ''], ['Conductas', (d.modalidades || []).join(', ')]])) +
+    UI.seccion('HECHOS', UI.textoLargo((d.hechos || '') + (d.fechasHechos ? '\n\nFechas: ' + d.fechasHechos : '') + (d.testigos ? '\n\nTestigos: ' + d.testigos : '') + (d.pruebas ? '\n\nPruebas: ' + d.pruebas : ''))) +
+    UI.seccion('ACTUACIONES DEL COMITÉ', act) + UI.seccion('COMPROMISOS', comp) +
+    (d.cierre ? UI.seccion('CIERRE', UI.tablaDatos([['Fecha', UI.corta(d.cierre.fecha)], ['Motivo', d.cierre.motivo], ['Remitida a', d.cierre.remitidaA || '—'], ['Observaciones', d.cierre.observaciones || '—']])) : '') +
+    '<table class="u-mt6"><tr><td style="font-size:8pt;">Documento reservado del Comité de Convivencia Laboral (Res. 3461 de 2025). Su divulgación está prohibida.</td></tr></table>']);
+}
+
+/* ── Cambio de clave (cuando sale un integrante) ── */
+function cambiarClave() {
+  if (!navigator.onLine) { UI.toast('Se necesita señal para cambiar la clave.', 'mal'); return; }
+  const m = UI.modal('<h3>🔑 Cambiar la clave del comité</h3><p class="ayuda">Todas las quejas se vuelven a cifrar con la clave nueva. No cierres esta pantalla hasta que termine.</p>' +
+    '<div class="field"><label>Clave nueva</label><input type="password" id="nk1" autocomplete="new-password"></div><div class="field"><label>Repite la clave nueva</label><input type="password" id="nk2" autocomplete="new-password"></div>' +
+    '<button type="button" class="btn amber" id="nkOk">Cambiar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="nkMsg"></div>', true);
+  m.el.querySelector('#nkOk').addEventListener('click', async () => {
+    const a = m.el.querySelector('#nk1').value, b = m.el.querySelector('#nk2').value, msg = m.el.querySelector('#nkMsg');
+    const dbl = Cifrado.claveDebil(a); if (dbl) { msg.textContent = dbl; return; }
+    if (a !== b) { msg.textContent = 'No coinciden.'; return; }
+    m.el.querySelector('#nkOk').disabled = true;
+    try {
+      msg.textContent = 'Creando la clave nueva…';
+      const n = await Cifrado.crear(a);
+      const viejaCfg = cfgCif.actual, viejaLlave = llave;
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'comite', id: ID_COMITE, cambioClave: true, kidBase: viejaLlave.kid, prueba: viejaLlave.prueba, pruebaNueva: n.llave.prueba,
+        campos: { cifrado: { actual: n.config, anterior: viejaCfg } } }, null, { sinCola: true });
+      if (!r.ok) throw new Error(r.error || 'sin conexión');
+      cfgCif = { actual: n.config, anterior: viejaCfg }; llave = n.llave; llaveAnt = viejaLlave;
+      await migrar((t) => { msg.textContent = t; });
+      m.cerrar(); UI.toast('✓ Clave cambiada. Repártela en persona.');
+    } catch (e) { msg.textContent = 'No terminó: ' + e.message + '. Puedes continuar luego con "Terminar el cambio".'; m.el.querySelector('#nkOk').disabled = false; }
+    await Comite.cargar();
+  });
+}
+async function migrar(progreso) {
+  const ant = cfgCif.anterior; if (!ant) return;
+  if (!llave) throw new Error('falta la clave nueva');
+  const fresca = await SGSST.listar('queja');      // incluye las quejas creadas mientras tanto
+  if (fresca.desdeCopia) throw new Error('sin conexión');
+  quejas = fresca.rows;
+  const l = quejas.filter((q) => q.resumen.kid === ant.kid);
+  for (let i = 0; i < l.length; i++) {
+    progreso('Pasando ' + (i + 1) + ' de ' + l.length + '…');
+    const d = await SGSST.doc(l[i].id);
+    if (!d || !d.cifrado) throw new Error('no se pudo leer ' + l[i].resumen.codigo);
+    if (d.cifrado.kid === llave.kid) continue;
+    if (!llaveAnt) throw new Error('falta la clave anterior');
+    const datos = await Cifrado.descifrar(llaveAnt, d.cifrado);
+    const r = await guardarQueja(d, datos);
+    if (!r.ok || r.enCola) throw new Error('no se guardó ' + l[i].resumen.codigo + ': ' + (r.error || 'sin conexión'));
+    l[i].resumen.kid = kidActual();
+  }
+  progreso('Terminando…');
+  const campos = { cifrado: { anterior: null } };
+  // v128: la llave privada del buzón también pasa a la clave nueva.
+  const dc = await SGSST.doc(ID_COMITE);
+  if (dc && dc.buzon && dc.buzon.privada && dc.buzon.privada.kid !== llave.kid && llaveAnt) campos.buzon = Object.assign({}, dc.buzon, { privada: await Cifrado.recifrarBuzon(llaveAnt, llave, dc.buzon.privada) });
+  privBuzon = null;
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'comite', id: ID_COMITE, prueba: llave.prueba, campos }, null, { sinCola: true });
+  if (!r.ok) throw new Error(r.error || 'no se cerró el cambio');
+  cfgCif.anterior = null; llaveAnt = null;
+}
+async function terminarCambio() {
+  try {
+    if (!llaveAnt && quejas.some((q) => q.resumen.kid === cfgCif.anterior.kid)) llaveAnt = await pedirClaveAnterior();
+    const m = UI.modal('<h3>Terminando el cambio de clave…</h3><div class="status-msg" id="tcMsg"></div>', true);
+    await migrar((t) => { m.el.querySelector('#tcMsg').textContent = t; });
+    m.cerrar(); UI.toast('✓ Cambio de clave terminado.');
+  } catch (e) { UI.toast(e.message, 'mal'); }
+  await Comite.cargar();
+}
+
+/* ── Informes trimestral y anual (sin nombres) ── */
+function pintarInformes(panel) {
+  const a = Number(UI.hoy().slice(0, 4)), t = Math.ceil(Number(UI.hoy().slice(5, 7)) / 3);
+  const opciones = []; for (let y = a; y >= a - 2; y--) { opciones.push('<option value="' + y + '-A">Anual ' + y + '</option>'); for (let k = 4; k >= 1; k--) if (y < a || k <= t) opciones.push('<option value="' + y + '-T' + k + '">' + k + '.º trimestre ' + y + '</option>'); }
+  panel.innerHTML = '<div class="card"><h2>Informe de gestión a la alta dirección</h2><p class="ayuda">La Res. 3461 de 2025 pide informes trimestrales y anuales. El informe lleva cifras, no nombres ni hechos.</p>' +
+    '<div class="field"><label>Periodo</label><select id="inP">' + opciones.join('') + '</select></div>' +
+    '<div class="field"><label>Actividades de prevención realizadas</label><textarea id="inAct" placeholder="Ej: taller de comunicación asertiva (12/08, 34 personas); campaña de buen trato"></textarea></div>' +
+    '<div class="field"><label>Recomendaciones a la alta dirección</label><textarea id="inRec"></textarea></div>' +
+    '<button type="button" class="btn amber" id="inOk">Calcular, guardar e imprimir</button><div id="inRes"></div></div><div class="card"><h2>Informes guardados</h2><div id="inGuardados" class="status-msg">Cargando…</div></div>';
+  const sel = $('inP'); sel.value = (t > 1 ? a + '-T' + (t - 1) : (a - 1) + '-T4');
+  try { const g = JSON.parse(localStorage.getItem('ssta-convivencia-informe') || '{}'); $('inAct').value = g.act || ''; $('inRec').value = g.rec || ''; } catch (e) {}
+  $('inOk').addEventListener('click', informe);
+  cargarInformes();
+}
+/* v150: el informe queda guardado en el servidor (antes solo se imprimía y vivía en este celular) */
+let informesCC = [];
+async function cargarInformes() {
+  const box = $('inGuardados'); if (!box) return;
+  try { const r = await SGSST.listar('informecc'); informesCC = ((r && r.rows) || []).filter((x) => x.tipo === 'informecc'); } catch (e) { informesCC = []; }
+  box.className = '';
+  box.innerHTML = informesCC.length ? informesCC.sort((a, b) => String(b.resumen.periodo).localeCompare(String(a.resumen.periodo))).map((x) =>
+    '<button type="button" class="item ok" data-inf="' + esc(x.resumen.periodo) + '"><div class="t">' + esc(x.resumen.periodoNombre || x.titulo || '') + '</div><div class="m">Guardado ' + esc(UI.corta(x.resumen.fechaInforme || '')) + '</div></button>').join('')
+    : '<div class="empty">Aún no hay informes guardados.</div>';
+  box.querySelectorAll('[data-inf]').forEach((b) => b.addEventListener('click', () => { const x = informesCC.find((i) => i.resumen.periodo === b.dataset.inf); $('inP').value = b.dataset.inf; $('inAct').value = x.resumen.actividades || ''; $('inRec').value = x.resumen.recomendaciones || ''; UI.toast('Informe cargado: revisa y pulsa «Calcular, guardar e imprimir».'); }));
+}
+function rango(v) {
+  const [y, p] = v.split('-');
+  if (p === 'A') return { ini: y + '-01-01', fin: y + '-12-31', nombre: 'Año ' + y, tipo: 'ANUAL' };
+  const k = Number(p.slice(1)), m1 = (k - 1) * 3 + 1, m3 = k * 3;
+  const fin = new Date(Date.UTC(Number(y), m3, 0)).toISOString().slice(0, 10);
+  return { ini: y + '-' + ('0' + m1).slice(-2) + '-01', fin, nombre: k + '.º trimestre de ' + y, tipo: 'TRIMESTRAL' };
+}
+/* Firmas del informe: presidente, secretario y cada integrante (principal y suplente) con espacio para firmar,
+   y el recibido de la alta dirección. Res. 3461 de 2025: el informe lo firma el comité. */
+function firmasComite(ms, pres, sec) {
+  const linea = (n, r, extra) => '<td style="height:62px;vertical-align:bottom;width:50%;"><div style="border-top:1px solid #000;margin-top:34px;padding-top:2px;"><b>' + esc(n || '') + '</b><br>' + esc(r) + (extra ? ' · ' + esc(extra) : '') + '</div></td>';
+  const otros = ms.filter((m) => m !== pres && m !== sec);
+  const celdas = [linea(pres && pres.nombre, 'Presidente del comité'), linea(sec && sec.nombre, 'Secretario del comité')].concat(otros.map((m) => linea(m.nombre, m.rol || 'Integrante', [m.representa ? 'representa al ' + String(m.representa).toLowerCase() : '', m.calidad].filter(Boolean).join(' · '))));
+  let h = '<table>';
+  for (let i = 0; i < celdas.length; i += 2) h += '<tr>' + celdas[i] + (celdas[i + 1] || '<td></td>') + '</tr>';
+  return h + '<tr>' + linea('', 'Recibido por la alta dirección', 'fecha: ____ / ____ / ________') + '<td></td></tr></table>';
+}
+async function informe() {
+  const R = rango($('inP').value), res = $('inRes');
+  try { localStorage.setItem('ssta-convivencia-informe', JSON.stringify({ act: $('inAct').value, rec: $('inRec').value })); } catch (e) {}
+  const enPeriodo = quejas.filter((q) => q.resumen.fechaRecepcion <= R.fin && (q.estado === 'ABIERTA' || !q.resumen.fechaCierre || q.resumen.fechaCierre >= R.ini));
+  const recibidas = enPeriodo.filter((q) => q.resumen.fechaRecepcion >= R.ini);
+  const cerradas = enPeriodo.filter((q) => q.estado !== 'ABIERTA' && q.resumen.fechaCierre >= R.ini && q.resumen.fechaCierre <= R.fin);
+  const dias = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
+  const tiempos = cerradas.map((q) => dias(q.resumen.fechaRecepcion, q.resumen.fechaCierre));
+  const enTermino = tiempos.filter((d) => d <= LIMITE_TOTAL).length;
+  const abiertasFin = enPeriodo.filter((q) => q.estado === 'ABIERTA' || q.resumen.fechaCierre > R.fin);
+  const porEtapa = {}; abiertasFin.forEach((q) => { const e = q.estado === 'ABIERTA' ? q.resumen.etapa : 'En trámite'; porEtapa[e] = (porEtapa[e] || 0) + 1; });
+  const mod = {}, rel = {}; let comp = 0, compOk = 0, remSex = 0, remitidas = 0;
+  if (llave) {
+    res.innerHTML = '<div class="status-msg">Abriendo las quejas del periodo…</div>';
+    for (const q of enPeriodo) {
+      try {
+        const d = await SGSST.doc(q.id); const x = await descifrarDoc(d);
+        if (q.resumen.fechaRecepcion >= R.ini) { (x.modalidades || []).forEach((m) => { mod[m] = (mod[m] || 0) + 1; }); if (x.relacion) rel[x.relacion] = (rel[x.relacion] || 0) + 1; if (x.sexual) remSex++; }
+        (x.compromisos || []).forEach((c) => { if (c.fecha && c.fecha >= R.ini && c.fecha <= R.fin) { comp++; if (c.cumplido) compOk++; } });
+      } catch (e) {}
+    }
+  }
+  cerradas.forEach((q) => { if (q.estado === 'REMITIDA') remitidas++; });
+  const reu = Comite.reuniones.filter((r) => r.resumen.tipo === 'Ordinaria' && r.resumen.fecha >= R.ini && r.resumen.fecha <= R.fin).length;
+  const meses = Math.round(dias(R.ini, R.fin) / 30.4);
+  const st = (et, v) => '<div class="stat"><span>' + esc(et) + '</span><b>' + esc(v) + '</b></div>';
+  const lista = (o) => Object.keys(o).length ? Object.keys(o).map((k) => k + ': ' + o[k]).join(' · ') : '—';
+  const filas = [['Quejas recibidas', recibidas.length], ['Quejas cerradas en el periodo', cerradas.length], ['  · remitidas (sin acuerdo, incumplimiento o no competencia)', remitidas], ['  · de acoso sexual (remitidas: el comité no es competente)', llave ? remSex : '— (abre las quejas)'],
+    ['En trámite al final del periodo', abiertasFin.length], ['Tiempo promedio de trámite (días)', tiempos.length ? Math.round(tiempos.reduce((a, b) => a + b, 0) / tiempos.length) : '—'],
+    ['Cerradas dentro de los 65 días', cerradas.length ? Math.round(enTermino * 100 / cerradas.length) + ' %' : '—'],
+    ['Compromisos con fecha en el periodo (cumplidos / total)', llave ? compOk + ' / ' + comp : '— (abre las quejas)'], ['Reuniones ordinarias realizadas', reu + ' de ' + meses + ' meses']];
+  res.innerHTML = '<div class="u-mt12">' + filas.map((f) => st(f[0], String(f[1]))).join('') + st('Por etapa (en trámite)', lista(porEtapa)) + (llave ? st('Conductas reportadas', lista(mod)) + st('Relación entre las partes', lista(rel)) : '') + '</div>' +
+    (llave ? '' : '<div class="aviso amar u-mt10">Abre las quejas (pestaña Quejas) para incluir conductas, relación entre las partes y compromisos.</div>');
+  const per = Comite.periodo(), ms = (per && per.miembros) || [];
+  const pres = ms.find((m) => /presidente/i.test(m.rol)), sec = ms.find((m) => /secretario/i.test(m.rol));
+  const t = '<table>' + filas.map((f) => '<tr><td class="l" style="width:70%;">' + esc(f[0]) + '</td><td>' + esc(String(f[1])) + '</td></tr>').join('') +
+    '<tr><td class="l">Casos en trámite por etapa</td><td>' + esc(lista(porEtapa)) + '</td></tr>' + (llave ? '<tr><td class="l">Conductas reportadas (Ley 1010 de 2006)</td><td>' + esc(lista(mod)) + '</td></tr><tr><td class="l">Relación entre las partes</td><td>' + esc(lista(rel)) + '</td></tr>' : '') + '</table>';
+  try {
+    const previo = informesCC.find((i) => i.resumen.periodo === $('inP').value);
+    const r = await Registros.guardar('informecc', 'ICC-' + $('inP').value, { periodo: $('inP').value, periodoNombre: R.nombre, tipoInforme: R.tipo, fechaInforme: UI.hoy(),
+      estadisticasTexto: filas.map((f) => f[0].trim() + ': ' + f[1]).join('\n') + '\nPor etapa: ' + lista(porEtapa), actividades: $('inAct').value, recomendaciones: $('inRec').value }, previo ? previo.version : 0);
+    if (typeof r === 'string') UI.toast(r, 'mal'); else { UI.toast('Informe guardado.'); cargarInformes(); }
+  } catch (e) { UI.toast('No se pudo guardar el informe: ' + e.message, 'mal'); }
+  UI.imprimir([UI.cabecera('SG-CONVIVENCIA-INFORME', 'INFORME ' + R.tipo + ' DE GESTIÓN — COMITÉ DE CONVIVENCIA LABORAL', R.nombre + ' (' + UI.corta(R.ini) + ' a ' + UI.corta(R.fin) + ')') +
+    UI.seccion('ESTADÍSTICAS (SIN DATOS PERSONALES)', t) + UI.seccion('ACTIVIDADES DE PREVENCIÓN', UI.textoLargo($('inAct').value)) +
+    UI.seccion('RECOMENDACIONES A LA ALTA DIRECCIÓN', UI.textoLargo($('inRec').value)) +
+    UI.seccion('FIRMAS DEL COMITÉ', firmasComite(ms, pres, sec)) +
+    '<table class="u-mt6"><tr><td style="font-size:8pt;">Res. 3461 de 2025: informe para la alta dirección. No contiene nombres ni hechos de los casos.</td></tr></table>']);
+}
+
+Comite.iniciar({
+  clave: 'convivencia', id: ID_COMITE, nombre: 'Comité de Convivencia Laboral', corto: 'Comité de Convivencia', origen: 'Comité de convivencia',
+  subtitulo: 'Prevención del acoso laboral · Res. 3461 de 2025',
+  norma: 'Ley 1010 de 2006 · Res. 3461 de 2025',
+  formatoActa: 'SG-CONVIVENCIA-ACTA', formatoConformacion: 'SG-COMITE-CONFORMACION',
+  ayudaReuniones: 'Reunión ordinaria una vez al mes y extraordinaria cuando un caso requiere intervención inmediata (p. ej. acoso sexual o riesgo para la persona); la queja ordinaria sigue sus etapas. Quórum: la mitad más uno de los integrantes. Periodo de 2 años (Res. 3461 de 2025).',
+  ayudaConformacion: 'El empleador designa a sus representantes; los trabajadores eligen a los suyos por votación secreta. No pueden ser integrantes quienes hayan sido denunciados o víctimas de acoso laboral en el último año. Todos firman un acuerdo de confidencialidad.',
+  ayudaCapacitacion: 'La ARL capacita a los integrantes en competencias para la resolución de conflictos (Res. 3461 de 2025, art. 14). Estándar 1.1.8 de la Res. 0312.',
+  ejemploCapacitacion: 'Ej: Resolución de conflictos y comunicación asertiva',
+  ejemploMotivo: 'Ej: atención de la queja CCL-2026-004 (el detalle va en la queja)',
+  avisoActa: '🔒 En las actas <b>no</b> se escriben nombres ni hechos de los casos: eso va en cada queja, que se guarda cifrada. Aquí solo códigos (CCL-…) y temas generales.',
+  ordenOrdinaria: ['Verificación del quórum', 'Lectura y aprobación del acta anterior', 'Estado general de los casos (solo códigos y etapas)', 'Seguimiento a compromisos y planes de mejora', 'Actividades de prevención del acoso laboral', 'Varios'],
+  ordenExtraordinaria: ['Verificación del quórum', 'Atención de la queja (el detalle queda en la queja cifrada)', 'Próximos pasos'],
+  tabsExtra: [{ id: 'quejas', nombre: 'Quejas 🔒', pintar: pintarQuejas, filtrar: (v) => { fQ = v; pintarQuejas($('panel')); } }, { id: 'buzon', nombre: 'Buzón 🔒', pintar: pintarBuzon }, { id: 'informes', nombre: 'Informes', pintar: pintarInformes }],
+  pantallasExtra: '<div class="screen" id="scrQueja"></div>',
+  alCargar: async (ctx) => {
+    cfgCif = ctx.comite && ctx.comite.resumen.cifrado ? ctx.comite.resumen.cifrado : null;
+    // Si la clave del comité cambió (en otro equipo), la llave abierta deja de servir para guardar.
+    if (llave && llave.kid !== kidActual()) {
+      if (cfgCif && cfgCif.anterior && cfgCif.anterior.kid === llave.kid) llaveAnt = llave;
+      llave = null; actual = null; P = null;
+      setTimeout(() => UI.toast('🔑 La clave del comité cambió. Escribe la clave nueva.', 'mal'), 50);
+    }
+    if (SGSST.url()) quejas = (await SGSST.listar('queja')).rows;
+    if (SGSST.url()) buzon = (await SGSST.listar('buzon', { sinPedir: true })).rows || [];
+  },
+  alertas: () => {
+    const out = [], v = quejas.filter((q) => q.estado === 'ABIERTA' && claseQueja(q.resumen) === 'mal');
+    if (v.length) out.push('<div class="aviso">⚠ ' + v.length + ' queja(s) con plazo vencido: ' + esc(v.map((q) => q.resumen.codigo).join(', ')) + '.</div>');
+    if (buzon.length) out.push('<div class="aviso">' + buzon.length + ' sin tramitar en el buzón reservado (pestaña Buzón). Hay 5 días calendario para darle trámite.</div>');
+    if (EMPRESA.demo) out.push('<div class="aviso info">🧪 Demo: la clave del comité es <b>Convivencia2026</b>.</div>');
+    return out;
+  }
+});
+</script>
+</body>
+</html>

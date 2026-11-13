@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mXYMEbxyyZgcY2qGN1YAe5hhr6YH6sLvAZkqJne/Etc='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<meta name="robots" content="noindex">
+<title>Encuesta de satisfacción · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Encuesta de satisfacción · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.hdr .marca-titulo{align-items:center;}
+.hdr h1{font-size:var(--fs-display);}
+.intro{font-size:var(--fs-titulo);line-height:1.5;}
+.intro b{font-weight:700;}
+.pq{background:#fff;border:1.5px solid var(--line);border-radius:var(--r-l);padding:14px 14px 12px;margin-bottom:10px;scroll-margin-top:14px;}
+.pq .q{display:flex;gap:9px;font-size:var(--fs-titulo);font-weight:700;line-height:1.35;margin-bottom:10px;}
+.pq .q .num{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--bg);color:var(--n-700);font-size:var(--fs-base);display:flex;align-items:center;justify-content:center;}
+.pq .q .opc{font-weight:500;color:var(--muted);font-size:var(--fs-menor);}
+.pq.lista{border-color:var(--verde-100);}
+.pq.lista .q .num{background:var(--ok);color:#fff;}
+.pq.falta{border-color:var(--mal);background:var(--n-50);}
+.pq .msg-falta{display:none;color:var(--mal);font-size:var(--fs-base);font-weight:700;margin-top:8px;}
+.pq.falta .msg-falta{display:block;}
+.esc{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+.esc button,.nps button,.sn button{border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);min-height:52px;font-family:inherit;color:var(--ink);cursor:pointer;padding:4px 2px;}
+.esc button b{display:block;font-size:var(--fs-display);line-height:1.1;}
+.esc button small{display:block;font-size:var(--fs-etiqueta);color:var(--muted);line-height:1.15;margin-top:2px;}
+.esc button.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.esc button.on small{color:var(--line);}
+.nps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;}
+.nps button{min-height:46px;font-size:var(--fs-display);font-weight:700;}
+.nps button.on{color:#fff;}
+.nps button.on.det{background:var(--mal);border-color:var(--mal);}
+.nps button.on.pas{background:var(--ambar-500);border-color:var(--ambar-500);}
+.nps button.on.pro{background:var(--ok);border-color:var(--ok);}
+.nps-ref{display:flex;justify-content:space-between;font-size:var(--fs-menor);color:var(--muted);margin-top:6px;}
+.sn{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sn button{min-height:48px;font-size:var(--fs-campo);font-weight:700;}
+.sn button.on[data-v="Sí"]{background:var(--ok);border-color:var(--ok);color:#fff;}
+.sn button.on[data-v="No"]{background:var(--mal);border-color:var(--mal);color:#fff;}
+.pq textarea{width:100%;min-height:96px;border:1.5px solid var(--line);border-radius:var(--r-m);padding:11px 12px;font-size:var(--fs-campo);font-family:inherit;line-height:1.4;background:var(--n-0);resize:vertical;}
+.cuenta{font-size:var(--fs-menor);color:var(--muted);text-align:right;margin-top:3px;}
+.estado{text-align:center;padding:28px 16px;}
+.estado .ic{width:58px;height:58px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:var(--fs-h1);font-weight:700;background:var(--bg);color:var(--n-700);}
+.estado.ok .ic{background:var(--verde-50);color:var(--ok);}
+.estado.mal .ic{background:var(--rojo-50);color:var(--mal);}
+.estado h2{font-size:var(--fs-display);margin:0 0 8px;font-family:var(--font-display);}
+.estado p{font-size:var(--fs-titulo);line-height:1.5;color:var(--n-700);margin:0 0 6px;}
+.progreso{height:6px;background:var(--n-150);border-radius:var(--r-xs);overflow:hidden;margin:2px 0 12px;}
+.progreso span{display:block;height:100%;width:0;background:var(--ok);transition:width .2s;}
+.barra-env{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg,var(--bg)) 30%);padding:14px 0 calc(10px + env(safe-area-inset-bottom));}
+.barra-env .btn{min-height:52px;font-size:var(--fs-campo);}
+.privacidad{font-size:var(--fs-menor);color:var(--muted);line-height:1.45;text-align:center;margin:6px 4px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="marca-titulo"><span class="marca marca-grande" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Encuesta de satisfacción del cliente</div>
+    <h1 id="tEmpresa">Encuesta de satisfacción</h1>
+    <p id="tSub">Su opinión nos ayuda a mejorar</p></div></div>
+  </div>
+
+  <div id="scrCarga" class="card estado"><div class="ic">…</div><h2>Abriendo la encuesta</h2><p>Un momento, por favor.</p></div>
+  <div id="scrAviso" class="card estado" hidden></div>
+
+  <div id="scrForm" hidden>
+    <div class="card intro" id="eIntro"></div>
+    <div class="progreso" aria-hidden="true"><span id="eProg"></span></div>
+    <div id="ePreg"></div>
+    <div class="card">
+      <div class="field" id="eComF" hidden><label>Comentarios o sugerencias (opcional)</label><textarea id="eCom" maxlength="1500" placeholder="Cuéntenos lo que quiera: lo que hicimos bien y lo que podemos mejorar"></textarea></div>
+      <div class="grid2"><div class="field"><label>¿Quién responde? (opcional)</label><input type="text" id="eNom" maxlength="120" autocomplete="name" placeholder="Nombre"></div>
+      <div class="field"><label>Cargo (opcional)</label><input type="text" id="eCargo" maxlength="80" autocomplete="organization-title" placeholder="Ej.: Jefe de mantenimiento"></div></div>
+    </div>
+    <div class="barra-env"><div id="eMsg" role="alert"></div><button type="button" class="btn amber" id="eEnviar">Enviar mis respuestas</button>
+      <p class="privacidad">Sus respuestas solo las ve el equipo de la empresa que le envió esta encuesta. El enlace sirve para una sola respuesta.</p></div>
+  </div>
+
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* Encuesta pública (sin usuario): el cliente abre el enlace que le enviaron desde Calidad
+   (calidad.html → «Enviar encuesta a un cliente»). El enlace lleva el número de la encuesta y
+   una clave aleatoria larga en el #, que no viaja a GitHub Pages ni queda en sus registros.
+   El servidor (encuestaPublica) solo devuelve las preguntas de ESA encuesta si la clave coincide,
+   recibe UNA respuesta (tipo encresp, en LIBRE_SIN_SESION), la valida y calcula él mismo el
+   promedio y el NPS. Si la encuesta no existe, está cerrada, venció o ya se respondió, lo dice. */
+const $ = (id)=> document.getElementById(id);
+const ESC5 = ['Muy malo', 'Malo', 'Aceptable', 'Bueno', 'Excelente'];
+const nomEmpresa = (typeof EMPRESA !== 'undefined' && (EMPRESA.nombre || EMPRESA.nombreCorto)) || 'Encuesta de satisfacción';
+$('tEmpresa').textContent = nomEmpresa;
+let ENC = null, ENLACE = null;
+const resp = {};
+
+/** #r=ENV-…​.<clave> (o ?enc=…&k=…). */
+function leerEnlace(){
+  let h = ''; try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { h = location.hash.slice(1); }
+  const m = /(?:^|&)r=(ENV-[A-Za-z0-9-]{3,60})\.([A-Za-z0-9]{24,64})\b/.exec(h);
+  if (m) return { e: m[1], k: m[2] };
+  const q = new URLSearchParams(location.search), e = q.get('enc') || '', k = q.get('k') || '';
+  return /^ENV-[A-Za-z0-9-]{3,60}$/.test(e) && /^[A-Za-z0-9]{24,64}$/.test(k) ? { e, k } : null;
+}
+function aviso(tipo, titulo, texto, reintentar){
+  $('scrCarga').hidden = true; $('scrForm').hidden = true;
+  const a = $('scrAviso'); a.hidden = false; a.className = 'card estado ' + (tipo || '');
+  a.innerHTML = '<div class="ic">' + (tipo === 'ok' ? '✓' : tipo === 'mal' ? '!' : 'i') + '</div><h2>' + esc(titulo) + '</h2><p>' + esc(texto) + '</p>' +
+    (reintentar ? '<button type="button" class="btn ghost" id="eReint">Intentar de nuevo</button>' : '');
+  if (reintentar) $('eReint').addEventListener('click', ()=> { a.hidden = true; $('scrCarga').hidden = false; abrir(); });
+  window.scrollTo(0, 0);
+}
+async function abrir(){
+  ENLACE = leerEnlace();
+  if (!ENLACE) return aviso('mal', 'El enlace está incompleto', 'Abra de nuevo el enlace completo desde el mensaje o el correo que le enviaron (termina en una serie larga de letras y números).');
+  if (!SGSST.url()) return aviso('mal', 'La encuesta no está disponible', 'El portal de esta empresa todavía no tiene servidor configurado. Avísele a quien le envió la encuesta.');
+  let r;
+  try { r = await SGSST.consultar({ action: 'encuestaPublica', e: ENLACE.e, k: ENLACE.k }); }
+  catch (e) { return aviso('', 'Sin conexión', 'No pudimos abrir la encuesta. Revise su conexión a internet e intente de nuevo.', true); }
+  if (!r || !r.ok) {
+    if (r && r.codigoError === 'CERRADA') return aviso('', /respondida/i.test(r.error || '') ? 'Esta encuesta ya fue respondida' : 'Esta encuesta ya no recibe respuestas', r.error || '');
+    if (r && r.codigoError === 'NOENCUESTA') return aviso('mal', 'No encontramos esta encuesta', r.error || 'Revise que el enlace esté completo.');
+    return aviso('mal', 'No se pudo abrir la encuesta', (r && r.error) || 'Intente de nuevo más tarde.', true);
+  }
+  ENC = r; pintar();
+}
+function pintar(){
+  $('tSub').textContent = 'Para ' + ENC.cliente + (ENC.periodo ? ' · ' + ENC.periodo : '');
+  $('eIntro').innerHTML = (ENC.intro ? '<p style="margin:0 0 8px;white-space:pre-wrap;">' + esc(ENC.intro) + '</p>' :
+      '<p style="margin:0 0 8px;">' + (ENC.contacto ? 'Hola, <b>' + esc(ENC.contacto) + '</b>. ' : 'Hola. ') + 'En <b>' + esc(nomEmpresa) + '</b> queremos saber cómo le fue con nuestro trabajo' + (ENC.periodo ? ' durante <b>' + esc(ENC.periodo) + '</b>' : '') + '. Son ' + ENC.preguntas.length + ' preguntas; le toma unos 2 minutos.</p>') +
+    '<p style="margin:0;font-size:var(--fs-base);color:var(--muted);">Toque la respuesta de cada pregunta. Las marcadas como «opcional» puede dejarlas en blanco.' + (ENC.fechaLimite ? ' Puede responder hasta el ' + esc(UI.corta(ENC.fechaLimite)) + '.' : '') + '</p>';
+  $('ePreg').innerHTML = ENC.preguntas.map((q, i)=> {
+    let ctl = '';
+    if (q.tipo === 'escala') ctl = '<div class="esc" role="radiogroup" aria-label="' + esc(q.texto) + '">' + [1, 2, 3, 4, 5].map((n)=> '<button type="button" data-v="' + n + '" role="radio" aria-checked="false"><b>' + n + '</b><small>' + ESC5[n - 1] + '</small></button>').join('') + '</div>';
+    else if (q.tipo === 'nps') ctl = '<div class="nps" role="radiogroup" aria-label="' + esc(q.texto) + '">' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n)=> '<button type="button" data-v="' + n + '" role="radio" aria-checked="false" class="' + (n <= 6 ? 'det' : n <= 8 ? 'pas' : 'pro') + '">' + n + '</button>').join('') + '</div><div class="nps-ref"><span>0 = nada probable</span><span>10 = muy probable</span></div>';
+    else if (q.tipo === 'sino') ctl = '<div class="sn" role="radiogroup" aria-label="' + esc(q.texto) + '"><button type="button" data-v="Sí" role="radio" aria-checked="false">Sí</button><button type="button" data-v="No" role="radio" aria-checked="false">No</button></div>';
+    else ctl = '<textarea maxlength="1500" aria-label="' + esc(q.texto) + '" placeholder="Escriba aquí su respuesta"></textarea><div class="cuenta"><span data-n>0</span> / 1500</div>';
+    return '<div class="pq" data-i="' + i + '" id="pq' + i + '"><div class="q"><span class="num">' + (i + 1) + '</span><span>' + esc(q.texto) + (q.obligatoria ? '' : ' <span class="opc">(opcional)</span>') + '</span></div>' + ctl + '<div class="msg-falta">Falta responder esta pregunta</div></div>';
+  }).join('');
+  // Comentario general solo si la encuesta no trae ya una pregunta de respuesta escrita.
+  $('eComF').hidden = ENC.preguntas.some((q)=> q.tipo === 'texto');
+  if (ENC.contacto) $('eNom').value = ENC.contacto;
+  $('scrCarga').hidden = true; $('scrAviso').hidden = true; $('scrForm').hidden = false;
+  progreso();
+}
+const obligatorias = ()=> ENC.preguntas.filter((q)=> q.obligatoria);
+const contestada = (q)=> resp[q.id] !== undefined && resp[q.id] !== '';
+function progreso(){ const o = obligatorias(); $('eProg').style.width = (o.length ? Math.round(o.filter(contestada).length * 100 / o.length) : 100) + '%'; }
+$('ePreg').addEventListener('click', (e)=> {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  const caja = b.closest('.pq'), q = ENC.preguntas[+caja.dataset.i];
+  caja.querySelectorAll('button[data-v]').forEach((x)=> { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+  resp[q.id] = q.tipo === 'sino' ? b.dataset.v : Number(b.dataset.v);
+  caja.classList.remove('falta'); caja.classList.add('lista'); progreso();
+});
+$('ePreg').addEventListener('input', (e)=> {
+  const t = e.target; if (t.tagName !== 'TEXTAREA') return;
+  const caja = t.closest('.pq'), q = ENC.preguntas[+caja.dataset.i];
+  resp[q.id] = t.value.trim(); caja.querySelector('[data-n]').textContent = t.value.length;
+  caja.classList.toggle('lista', !!resp[q.id]); if (resp[q.id]) caja.classList.remove('falta'); progreso();
+});
+function marcarFaltan(lista){
+  document.querySelectorAll('.pq').forEach((c)=> c.classList.remove('falta'));
+  lista.forEach((i)=> $('pq' + i).classList.add('falta'));
+  $('eMsg').innerHTML = lista.length ? '<div class="v-resumen"><b>Falta responder ' + (lista.length === 1 ? 'la pregunta' : 'las preguntas') + ' ' + lista.map((i)=> i + 1).join(', ') + '</b>' +
+    (lista.length <= 2 ? ':<br>• ' + lista.map((i)=> esc(ENC.preguntas[i].texto)).join('<br>• ') : ' (marcadas en rojo).') + '</div>' : '';   // la barra de abajo no tapa la pantalla
+  if (lista.length) try { $('pq' + lista[0]).scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
+}
+$('eEnviar').addEventListener('click', async ()=> {
+  const faltan = ENC.preguntas.map((q, i)=> q.obligatoria && !contestada(q) ? i : -1).filter((i)=> i >= 0);
+  if (faltan.length) return marcarFaltan(faltan);
+  const nom = $('eNom').value.replace(/\s+/g, ' ').trim();
+  if (nom && /\d/.test(nom)) { $('eMsg').innerHTML = '<div class="v-resumen">El nombre de quien responde no puede llevar números.</div>'; Valida.marcar($('eNom'), 'sin números'); return; }
+  const b = $('eEnviar'); b.disabled = true; b.textContent = 'Enviando…'; $('eMsg').innerHTML = '';
+  const respuestas = {}; ENC.preguntas.forEach((q)=> { if (contestada(q)) respuestas[q.id] = resp[q.id]; });
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'encresp', id: 'RSP-' + ENLACE.e,
+    doc: { e: ENLACE.e, k: ENLACE.k, respuestas, comentario: $('eComF').hidden ? '' : $('eCom').value.trim(), encuestado: nom, cargo: $('eCargo').value.trim() } }, null, { sinCola: true });
+  b.disabled = false; b.textContent = 'Enviar mis respuestas';
+  if (r && r.ok) return aviso('ok', '¡Gracias por responder!', 'Sus respuestas llegaron a ' + nomEmpresa + '. Las usamos para mejorar nuestro servicio. Ya puede cerrar esta página.');
+  if (r && r.codigoError === 'FALTAN' && Array.isArray(r.faltan)) { const l = ENC.preguntas.map((q, i)=> r.faltan.indexOf(q.texto) !== -1 ? i : -1).filter((i)=> i >= 0); if (l.length) return marcarFaltan(l); }
+  if (r && r.codigoError === 'CERRADA') return aviso('', /respondida/i.test(r.error || '') ? 'Esta encuesta ya fue respondida' : 'Esta encuesta ya no recibe respuestas', r.error || '');
+  if (r && r.codigoError === 'NOENCUESTA') return aviso('mal', 'No encontramos esta encuesta', r.error || '');
+  $('eMsg').innerHTML = '<div class="v-resumen">No se pudo enviar: ' + esc((r && r.error) || 'intente de nuevo') + '</div>';
+});
+// Otro enlace pegado en la misma pestaña (solo cambia el #): se abre esa encuesta.
+window.addEventListener('hashchange', ()=> location.reload());
+abrir();
+</script>
+</body>
+</html>

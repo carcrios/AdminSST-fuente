@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7Fm9ykA3LL8+4fcXN14HypC5uPqFElIKayeIHq4cv7A='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Verificar certificado · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Verificar certificado · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.vf{text-align:center;padding:18px 10px;} .vf .ic{font-size:var(--fs-hero);} .vf h2{margin:6px 0;}
+.vf dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;text-align:left;max-width:420px;margin:12px auto 0;font-size:var(--fs-base);} .vf dt{font-weight:700;color:var(--tenue,var(--ink-muted));}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="screen active">
+  <div class="hdr"><div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Portal SSTA</div><h1>Verificar certificado</h1><p>Comprueba que un certificado es auténtico</p></div></div></div>
+  <div class="card"><div id="vf" class="vf"><div class="empty">Verificando…</div></div></div>
+</div>
+</main>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+/* v162 · Página pública (sin usuario) a la que lleva el QR de un certificado. Muestra lo que dice el servidor de la
+   empresa, no lo que diga el papel: así un certificado alterado se descubre. */
+(async function () {
+  const q = new URLSearchParams(location.search), c = q.get('c'), k = q.get('k'), box = document.getElementById('vf');
+  if (!c || !k) { box.innerHTML = '<div class="ic">⚠️</div><h2>Falta el código</h2><p>Escanea el QR del certificado.</p>'; return; }
+  let r; try { r = await SGSST.consultar({ action: 'verificarCertificado', c, k }); } catch (e) { r = { ok: false, error: navigator.onLine ? 'El servidor no responde.' : 'Sin señal: inténtalo con internet.' }; }
+  if (!r || !r.ok) { box.innerHTML = '<div class="ic">⚠️</div><h2>No se pudo verificar</h2><p>' + esc((r && r.error) || '') + '</p>'; return; }
+  if (!r.valido) { box.innerHTML = '<div class="ic">❌</div><h2>Certificado NO válido</h2><p>' + esc(r.motivo || '') + '</p>'; return; }
+  const d = (t, v)=> v ? '<dt>' + esc(t) + '</dt><dd>' + esc(v) + '</dd>' : '';
+  box.innerHTML = '<div class="ic">✅</div><h2>Certificado auténtico</h2><p>Emitido por <b>' + esc(r.empresa) + '</b></p><dl>' + d('Persona', r.persona) + d('Cédula', r.cedula) + d('Curso', r.curso) + d('Fecha', UI.corta(r.fecha)) +
+    d('Intensidad', r.horas ? r.horas + ' hora(s)' : '') + d('Resultado', r.resultado) + d('Instructor(a)', r.instructor) + d('Vigente hasta', r.vence ? UI.corta(r.vence) : '') + d('Código', r.id) + '</dl>';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-q74fTTSnssH8Kf4JMjWnqFZatApE6y8xUaaR89v1KMA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Sustancias químicas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sustancias químicas · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.pics{display:flex;flex-wrap:wrap;gap:2px 4px;margin:6px 0 2px;}
+.pics svg{width:30px;height:30px;flex:none;}
+.lugar{margin-bottom:14px;}
+.lugar h3{font-size:var(--fs-titulo);margin:0 0 4px;}
+.lugar .meta{font-size:var(--fs-menor);color:var(--muted);line-height:1.4;}
+.conds{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;}
+.conds span{font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-xl);padding:4px 9px;}
+.conds .si{background:var(--verde-50);color:var(--verde-600);} .conds .no{background:var(--rojo-100);color:var(--rojo-800);}
+.susl{display:flex;flex-direction:column;gap:2px;margin:6px 0;}
+.susl button{display:flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-size:var(--fs-base);text-align:left;padding:4px 0;min-height:40px;color:var(--ink);cursor:pointer;}
+.susl button svg{width:22px;height:22px;flex:none;}
+.par{border-radius:var(--r-m);padding:8px 10px;margin:6px 0;font-size:var(--fs-base);line-height:1.35;}
+.par.N{background:var(--rojo-50);color:var(--rojo-900);} .par.P{background:var(--ambar-100);color:var(--ambar-900);}
+.par b{display:block;margin-bottom:2px;}
+.mx-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.mx{border-collapse:collapse;font-size:var(--fs-etiqueta);background:#fff;}
+.mx th,.mx td{border:1px solid var(--line);padding:4px;text-align:center;min-width:30px;}
+.mx th svg{width:26px;height:26px;display:block;margin:auto;}
+.mx th.r{text-align:left;white-space:nowrap;font-weight:700;position:sticky;left:0;background:#fff;z-index:1;box-shadow:1px 0 0 var(--line);}
+.mx td.S{background:var(--verde-50);color:var(--verde-600);} .mx td.P{background:var(--ambar-100);color:var(--ambar-700);} .mx td.N{background:var(--rojo-100);color:var(--rojo-800);font-weight:800;}
+.req{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:var(--fs-base);line-height:1.35;}
+.req:last-child{border-bottom:0;}
+.req .e{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.req .e.ok{background:var(--verde-50);color:var(--verde-600);} .req .e.mal{background:var(--rojo-100);color:var(--rojo-800);}
+.req small{display:block;color:var(--muted);margin-top:2px;}
+.picsel{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;}
+.picsel button{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);padding:4px 8px 4px 4px;font:inherit;font-size:var(--fs-menor);font-weight:600;text-align:left;cursor:pointer;color:var(--ink);min-height:44px;}
+.picsel button svg{width:34px;height:34px;flex:none;}
+.picsel button.on{border-color:var(--rojo-500);background:var(--rojo-50);}
+.nfpasel{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.btn-mini{min-height:40px;margin:4px 6px 0 0;}
+.acciones-top{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.acciones-top .btn{flex:1 1 150px;margin-top:0;}
+.selq{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:var(--r-m);padding:4px 10px;}
+.selq label{display:flex;gap:8px;align-items:center;min-height:42px;font-size:var(--fs-base);border-bottom:1px solid var(--bg);}
+.selq label:last-child{border-bottom:0;}
+.selq input{width:20px;height:20px;flex:none;}
+.falta{font-size:var(--fs-menor);line-height:1.4;padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;}
+.falta div{flex:1;min-width:0;} .falta small{display:block;color:var(--mal);}
+.vista{overflow:hidden;border:1px dashed var(--line);border-radius:var(--r-m);padding:6px;background:var(--n-50);margin:8px 0;}
+.vista .zoom{transform-origin:0 0;}
+/* ── Etiqueta SGA (pantalla y hoja impresa) ── */
+/* Carta con márgenes de 10 mm: quedan ~194 × 255 mm útiles. 2 grandes, 2 × 3 medianas o 3 × 5 pequeñas, centradas. */
+.etqs{display:flex;flex-wrap:wrap;gap:2mm;align-content:flex-start;justify-content:center;}
+.etq{box-sizing:border-box;border:.6mm solid #000;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;display:flex;flex-direction:column;padding:2.5mm;break-inside:avoid;page-break-inside:avoid;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.etq.g{width:190mm;height:124mm;font-size:9.5pt;padding:4mm;}
+.etq.m{width:94mm;height:82mm;font-size:6.4pt;}
+.etq.p{width:62mm;height:48mm;font-size:5.1pt;padding:1.8mm;}
+.etq .nom{font-weight:900;text-transform:uppercase;line-height:1.05;font-size:2.3em;overflow-wrap:anywhere;}
+.etq.p .nom{font-size:1.9em;}
+.etq .ids{font-size:.95em;margin-top:.6mm;}
+.etq .fila{display:flex;align-items:center;gap:2mm;margin:1.2mm 0;}
+.etq .picts{display:flex;flex-wrap:wrap;gap:.4mm;}
+.etq.g .picts svg{width:24mm;height:24mm;} .etq.m .picts svg{width:13.5mm;height:13.5mm;} .etq.p .picts svg{width:9.5mm;height:9.5mm;}
+.etq .pal{font-weight:900;text-transform:uppercase;font-size:2.4em;letter-spacing:.3px;}
+.etq.p .pal{font-size:2em;}
+.etq .cols{display:flex;gap:3mm;flex:1;min-height:0;}
+.etq .cols > div{flex:1;min-width:0;}
+.etq .bl{margin-top:.8mm;}
+.etq .bl b{display:block;text-transform:uppercase;font-size:.9em;border-bottom:.2mm solid #000;margin-bottom:.4mm;}
+.etq .bl p{margin:0 0 .3mm;}
+.etq .pie{margin-top:auto;border-top:.3mm solid #000;padding-top:1mm;display:flex;gap:2mm;align-items:flex-end;}
+.etq .pie > div:first-child{flex:1;min-width:0;}
+.etq .nfpa svg{display:block;}
+.etq.g .nfpa svg{width:24mm;height:24mm;} .etq.m .nfpa svg{width:14mm;height:14mm;} .etq.p .nfpa svg{width:10mm;height:10mm;}
+.etq .tras{font-size:.95em;margin-top:.6mm;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST · Riesgo químico</div>
+    <h1>Sustancias químicas</h1>
+    <p>Inventario con el SGA, etiquetas para imprimir, lugares de almacenamiento y compatibilidad, Res. 773 de 2021</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="inventario">Inventario <span class="n" id="nInv">0</span></button>
+    <button type="button" data-tab="almacen">Almacenamiento <span class="n" id="nAlm">0</span></button>
+    <button type="button" data-tab="gestion">Res. 773 <span class="n" id="nGes">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="importar.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* PURO-INICIO (lo que sigue no toca la pantalla: lo prueba pruebas.js) */
+/* Pictogramas del SGA (Decreto 1496 de 2018 adopta el SGA de la ONU; Res. 773 de 2021 lo aplica en
+   los lugares de trabajo). Los nombres son los mismos de antes: los registros viejos siguen sirviendo. */
+const PICTOS = [
+  { n: 'Explosivo', c: 'EXP', g: 'GHS01' }, { n: 'Inflamable', c: 'INF', g: 'GHS02' }, { n: 'Comburente', c: 'COM', g: 'GHS03' },
+  { n: 'Gas a presión', c: 'GAS', g: 'GHS04' }, { n: 'Corrosivo', c: 'COR', g: 'GHS05' }, { n: 'Toxicidad aguda', c: 'TOX', g: 'GHS06' },
+  { n: 'Irritante / nocivo', c: 'IRR', g: 'GHS07' }, { n: 'Peligro grave para la salud', c: 'SAL', g: 'GHS08' }, { n: 'Peligro para el medio ambiente', c: 'AMB', g: 'GHS09' }];
+const PIC = {}; PICTOS.forEach((p)=> { PIC[p.n] = p; PIC[p.c] = p; PIC[p.g] = p; });
+/* Dibujo de cada pictograma: rombo de borde rojo y símbolo negro (viewBox 0 0 100 100). */
+const LLAMA = 'M50 20C54 32 66 38 66 54C66 64 59 71 50 71C41 71 34 64 34 54C34 46 39 42 42 36C43 42 45 45 48 46C46 38 47 28 50 20Z';
+const estrella = (cx, cy, R, r, n)=> { const p = []; for (let i = 0; i < n * 2; i++) { const a = Math.PI * i / n - Math.PI / 2, d = i % 2 ? r : R; p.push((cx + d * Math.cos(a)).toFixed(1) + ',' + (cy + d * Math.sin(a)).toFixed(1)); } return p.join(' '); };
+const SIMBOLO = {
+  EXP: '<circle cx="57" cy="60" r="11"/><polygon points="27,33 39,40 33,43"/><polygon points="44,24 48,37 41,35"/><polygon points="24,50 37,49 33,55"/><polygon points="58,27 57,40 52,36"/><polygon points="68,36 61,45 60,40"/><rect x="31" y="74" width="38" height="4"/>',
+  INF: '<path d="' + LLAMA + '"/><path d="M50 52C53 57 56 59 56 63C56 67 53 69 50 69C47 69 44 67 44 63C44 59 48 57 50 52Z" fill="#fff"/><rect x="32" y="74" width="36" height="4"/>',
+  COM: '<g transform="translate(50 19) scale(.62) translate(-50 -20)"><path d="' + LLAMA + '"/></g><circle cx="50" cy="60" r="10" fill="none" stroke="#000" stroke-width="5"/><rect x="32" y="74" width="36" height="4"/>',
+  GAS: '<g transform="rotate(-25 50 56)"><rect x="27" y="49" width="42" height="15" rx="7.5"/><rect x="68" y="53" width="6" height="7"/><rect x="73" y="51" width="3" height="11"/></g>',
+  COR: '<g transform="rotate(-35 37 32)"><rect x="32" y="20" width="9" height="22" rx="2"/></g><g transform="rotate(35 63 32)"><rect x="59" y="20" width="9" height="22" rx="2"/></g><circle cx="41" cy="47" r="2.2"/><circle cx="42" cy="54" r="2.2"/><circle cx="59" cy="47" r="2.2"/><circle cx="58" cy="54" r="2.2"/><path d="M26 64h15l3 4 3-4h1v12H26z"/><path d="M53 63h13c3 0 5 2 5 5v8H53z"/><path d="M55 63v-3h3v3M59 63v-4h3v4M63 63v-3h3v3" stroke="#000" stroke-width="1.5" fill="none"/>',
+  TOX: '<path d="M50 24c-9 0-15 6-15 14 0 5 3 8 6 10v6h18v-6c3-2 6-5 6-10 0-8-6-14-15-14z"/><circle cx="44.5" cy="38" r="4" fill="#fff"/><circle cx="55.5" cy="38" r="4" fill="#fff"/><polygon points="50,43 47.5,48 52.5,48" fill="#fff"/><path d="M31 59L69 75M69 59L31 75" stroke="#000" stroke-width="5" stroke-linecap="round"/><circle cx="30" cy="58" r="3.4"/><circle cx="70" cy="58" r="3.4"/><circle cx="30" cy="76" r="3.4"/><circle cx="70" cy="76" r="3.4"/>',
+  IRR: '<path d="M45 23h10l-2 34h-6z"/><circle cx="50" cy="67" r="5"/>',
+  SAL: '<circle cx="50" cy="28" r="7"/><path d="M33 76C33 54 40 39 50 39S67 54 67 76Z"/><polygon points="' + estrella(50, 58, 10, 4.2, 8) + '" fill="#fff"/>',
+  AMB: '<path d="M35 73L36 40M36 52l-8-7M36 47l7-8M36 60l6-5" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="59" cy="66" rx="10" ry="5"/><polygon points="68,66 76,60 76,72"/><circle cx="53" cy="65" r="1.5" fill="#fff"/><path d="M25 75h50" stroke="#000" stroke-width="2"/>' };
+function pictoSVG(c, titulo){
+  const p = PIC[c]; if (!p) return '';
+  return '<svg viewBox="0 0 100 100" role="img" aria-label="' + esc(p.n) + '"><title>' + esc(p.g + ' · ' + p.n) + '</title><polygon points="50,4 96,50 50,96 4,50" fill="#fff" stroke="#e3000f" stroke-width="7" stroke-linejoin="round"/>' + SIMBOLO[p.c] + '</svg>';
+}
+/* Rombo NFPA 704 (opcional; no lo exige la Res. 773, pero muchas empresas lo usan). nfpa = "salud,inflamabilidad,reactividad,especial" */
+const nfpaPartes = (t)=> { const p = String(t || '').split(','); return { s: p[0] || '', i: p[1] || '', r: p[2] || '', e: p[3] || '' }; };
+function nfpaSVG(t){
+  const n = nfpaPartes(t); if (n.s === '' && n.i === '' && n.r === '' && !n.e) return '';
+  const txt = (x, y, v, tam)=> '<text x="' + x + '" y="' + y + '" font-family="Arial" font-weight="700" font-size="' + (tam || 20) + '" text-anchor="middle" dominant-baseline="central">' + esc(v) + '</text>';
+  return '<svg viewBox="0 0 100 100" role="img" aria-label="NFPA 704"><title>NFPA 704</title>' +
+    '<polygon points="50,1 74.5,25.5 50,50 25.5,25.5" fill="#e3000f" stroke="#000" stroke-width="1.5"/><polygon points="25.5,25.5 50,50 25.5,74.5 1,50" fill="#1e5aa8" stroke="#000" stroke-width="1.5"/>' +
+    '<polygon points="74.5,25.5 99,50 74.5,74.5 50,50" fill="#ffd200" stroke="#000" stroke-width="1.5"/><polygon points="50,50 74.5,74.5 50,99 25.5,74.5" fill="#fff" stroke="#000" stroke-width="1.5"/>' +
+    txt(50, 27, n.i) + txt(26, 51, n.s) + txt(74, 51, n.r) + txt(50, 75, n.e, n.e.length > 2 ? 11 : 15) + '</svg>';
+}
+/* Indicaciones de peligro (H) y consejos de prudencia (P) más comunes, en español (SGA de la ONU).
+   Si se escribe solo el código, la etiqueta pone el texto; si se escribe código y texto, manda lo escrito. */
+const FRASES_H = { H200: 'Explosivo inestable.', H201: 'Explosivo; peligro de explosión en masa.', H202: 'Explosivo; grave peligro de proyección.', H203: 'Explosivo; peligro de incendio, de onda expansiva o de proyección.', H204: 'Peligro de incendio o de proyección.', H205: 'Peligro de explosión en masa en caso de incendio.',
+  H220: 'Gas extremadamente inflamable.', H221: 'Gas inflamable.', H222: 'Aerosol extremadamente inflamable.', H223: 'Aerosol inflamable.', H224: 'Líquido y vapores extremadamente inflamables.', H225: 'Líquido y vapores muy inflamables.', H226: 'Líquido y vapores inflamables.', H227: 'Líquido combustible.', H228: 'Sólido inflamable.', H229: 'Recipiente a presión: puede reventar si se calienta.', H230: 'Puede explotar incluso en ausencia de aire.',
+  H240: 'Peligro de explosión en caso de calentamiento.', H241: 'Peligro de incendio o explosión en caso de calentamiento.', H242: 'Peligro de incendio en caso de calentamiento.', H250: 'Se inflama espontáneamente en contacto con el aire.', H251: 'Se calienta espontáneamente; puede inflamarse.', H252: 'Se calienta espontáneamente en grandes cantidades; puede inflamarse.',
+  H260: 'En contacto con el agua desprende gases inflamables que pueden inflamarse espontáneamente.', H261: 'En contacto con el agua desprende gases inflamables.', H270: 'Puede provocar o agravar un incendio; comburente.', H271: 'Puede provocar un incendio o una explosión; muy comburente.', H272: 'Puede agravar un incendio; comburente.',
+  H280: 'Contiene gas a presión; puede explotar si se calienta.', H281: 'Contiene gas refrigerado; puede provocar quemaduras o lesiones criogénicas.', H290: 'Puede ser corrosivo para los metales.',
+  H300: 'Mortal en caso de ingestión.', H301: 'Tóxico en caso de ingestión.', H302: 'Nocivo en caso de ingestión.', H304: 'Puede ser mortal en caso de ingestión y de penetración en las vías respiratorias.', H310: 'Mortal en contacto con la piel.', H311: 'Tóxico en contacto con la piel.', H312: 'Nocivo en contacto con la piel.',
+  H314: 'Provoca quemaduras graves en la piel y lesiones oculares graves.', H315: 'Provoca irritación cutánea.', H317: 'Puede provocar una reacción cutánea alérgica.', H318: 'Provoca lesiones oculares graves.', H319: 'Provoca irritación ocular grave.',
+  H330: 'Mortal si se inhala.', H331: 'Tóxico si se inhala.', H332: 'Nocivo si se inhala.', H334: 'Puede provocar síntomas de alergia o asma o dificultades respiratorias si se inhala.', H335: 'Puede irritar las vías respiratorias.', H336: 'Puede provocar somnolencia o vértigo.',
+  H340: 'Puede provocar defectos genéticos.', H341: 'Se sospecha que provoca defectos genéticos.', H350: 'Puede provocar cáncer.', H351: 'Se sospecha que provoca cáncer.', H360: 'Puede perjudicar la fertilidad o dañar al feto.', H361: 'Se sospecha que perjudica la fertilidad o daña al feto.', H362: 'Puede ser nocivo para los lactantes alimentados con leche materna.',
+  H370: 'Provoca daños en los órganos.', H371: 'Puede provocar daños en los órganos.', H372: 'Provoca daños en los órganos tras exposiciones prolongadas o repetidas.', H373: 'Puede provocar daños en los órganos tras exposiciones prolongadas o repetidas.',
+  H400: 'Muy tóxico para los organismos acuáticos.', H401: 'Tóxico para los organismos acuáticos.', H402: 'Nocivo para los organismos acuáticos.', H410: 'Muy tóxico para los organismos acuáticos, con efectos nocivos duraderos.', H411: 'Tóxico para los organismos acuáticos, con efectos nocivos duraderos.', H412: 'Nocivo para los organismos acuáticos, con efectos nocivos duraderos.', H413: 'Puede ser nocivo para los organismos acuáticos, con efectos nocivos duraderos.',
+  H420: 'Causa daños a la salud pública y al medio ambiente al destruir el ozono en la atmósfera superior.' };
+const FRASES_P = { P101: 'Si se necesita consultar a un médico, tener a mano el recipiente o la etiqueta.', P102: 'Mantener fuera del alcance de los niños.', P103: 'Leer la etiqueta antes del uso.', P201: 'Procurarse las instrucciones antes del uso.', P202: 'No manipular antes de haber leído y comprendido todas las precauciones de seguridad.',
+  P210: 'Mantener alejado del calor, superficies calientes, chispas, llamas y otras fuentes de ignición. No fumar.', P211: 'No pulverizar sobre una llama u otra fuente de ignición.', P220: 'Mantener alejado de la ropa y otros materiales combustibles.', P233: 'Mantener el recipiente herméticamente cerrado.',
+  P240: 'Conectar a tierra y equipotencialmente el recipiente y el equipo receptor.', P241: 'Utilizar material eléctrico, de ventilación o de iluminación antideflagrante.', P242: 'Utilizar herramientas que no produzcan chispas.', P243: 'Tomar medidas de precaución contra las descargas electrostáticas.', P251: 'No perforar ni quemar, incluso después de su uso.',
+  P260: 'No respirar polvos, humos, gases, nieblas, vapores o aerosoles.', P261: 'Evitar respirar polvos, humos, gases, nieblas, vapores o aerosoles.', P264: 'Lavarse las manos concienzudamente tras la manipulación.', P270: 'No comer, beber ni fumar durante su utilización.', P271: 'Utilizar solo al aire libre o en un lugar bien ventilado.',
+  P272: 'Las prendas de trabajo contaminadas no podrán sacarse del lugar de trabajo.', P273: 'No dispersar en el medio ambiente.', P280: 'Usar guantes, ropa de protección y protección para los ojos y la cara.', P284: 'Usar equipo de protección respiratoria.',
+  'P301+P310': 'EN CASO DE INGESTIÓN: llamar inmediatamente a un centro de toxicología o a un médico.', 'P301+P330+P331': 'EN CASO DE INGESTIÓN: enjuagarse la boca. NO provocar el vómito.', 'P302+P352': 'EN CASO DE CONTACTO CON LA PIEL: lavar con abundante agua.',
+  'P303+P361+P353': 'EN CASO DE CONTACTO CON LA PIEL (o el pelo): quitar inmediatamente la ropa contaminada. Enjuagar la piel con agua o ducharse.', 'P304+P340': 'EN CASO DE INHALACIÓN: llevar a la persona al aire libre y mantenerla en una posición que le facilite respirar.',
+  'P305+P351+P338': 'EN CASO DE CONTACTO CON LOS OJOS: enjuagar con agua cuidadosamente durante varios minutos. Quitar los lentes de contacto, si lleva y resulta fácil. Seguir enjuagando.', 'P308+P313': 'EN CASO DE exposición demostrada o supuesta: consultar a un médico.',
+  P310: 'Llamar inmediatamente a un centro de toxicología o a un médico.', P312: 'Llamar a un centro de toxicología o a un médico si la persona se encuentra mal.', P330: 'Enjuagarse la boca.', P331: 'NO provocar el vómito.',
+  'P332+P313': 'En caso de irritación cutánea: consultar a un médico.', 'P337+P313': 'Si persiste la irritación ocular: consultar a un médico.', 'P362+P364': 'Quitar la ropa contaminada y lavarla antes de volverla a usar.', P391: 'Recoger el vertido.',
+  'P403+P233': 'Almacenar en un lugar bien ventilado. Mantener el recipiente cerrado herméticamente.', 'P403+P235': 'Almacenar en un lugar bien ventilado. Mantener fresco.', P405: 'Guardar bajo llave.', 'P410+P403': 'Proteger de la luz del sol. Almacenar en un lugar bien ventilado.',
+  P501: 'Eliminar el contenido y el recipiente conforme a la reglamentación vigente (gestor autorizado de RESPEL).' };
+/** Lista de frases {c: código, t: texto} desde lo escrito ("H225, H319" o una por línea con su texto). */
+function frases(txt){
+  return String(txt || '').split(/\s*[;\n]\s*|,\s*(?=[HPhp]\s?\d{3})/).map((t)=> t.trim()).filter(Boolean).map((t)=> {
+    const m = /^([HP]\s?\d{3}(?:\s*\+\s*[HP]\s?\d{3})*)\s*[:.\-–]?\s*(.*)$/i.exec(t);
+    if (!m) return { c: '', t };
+    const c = m[1].toUpperCase().replace(/\s+/g, ''), dic = c[0] === 'H' ? FRASES_H : FRASES_P;
+    return { c, t: m[2] || dic[c] || c.split('+').map((x)=> dic[x]).filter(Boolean).join(' ') || '' };
+  });
+}
+/* Pictograma que corresponde a cada indicación de peligro (para sugerirlo; manda la etiqueta del proveedor). */
+const H_PICTO = { EXP: [200, 201, 202, 203, 204, 205, 240, 241], INF: [220, 221, 222, 223, 224, 225, 226, 228, 241, 242, 250, 251, 252, 260, 261], COM: [270, 271, 272], GAS: [280, 281], COR: [290, 314, 318],
+  TOX: [300, 301, 310, 311, 330, 331], IRR: [302, 312, 315, 317, 319, 332, 335, 336, 420], SAL: [304, 334, 340, 341, 350, 351, 360, 361, 370, 371, 372, 373], AMB: [400, 410, 411] };
+function sugerirPictos(frasesH){
+  const nums = frases(frasesH).filter((f)=> f.c[0] === 'H').map((f)=> Number(f.c.slice(1, 4))), s = new Set();
+  Object.keys(H_PICTO).forEach((c)=> { if (nums.some((n)=> H_PICTO[c].includes(n))) s.add(c); });
+  if (s.has('TOX')) s.delete('IRR');                  // regla del SGA: con la calavera no va el signo de exclamación (salvo otras clases)
+  if (s.has('COR')) { const solo = nums.filter((n)=> H_PICTO.IRR.includes(n)); if (solo.every((n)=> [315, 319].includes(n))) s.delete('IRR'); }
+  return PICTOS.filter((p)=> s.has(p.c)).map((p)=> p.n);
+}
+/** Lo que le falta a una sustancia para imprimir su etiqueta SGA (Res. 773 de 2021, art. 7). */
+function faltaEtiqueta(s){
+  const l = [], pics = String(s.pictogramas || '').split(/\s*,\s*/).filter(Boolean), sinPeligro = s.palabra === 'Sin palabra de advertencia' && !pics.length;
+  if (!String(s.nombre || '').trim()) l.push('identificador del producto');
+  if (!sinPeligro) {
+    if (!pics.length) l.push('pictogramas');
+    if (!s.palabra || s.palabra === 'Sin palabra de advertencia') l.push('palabra de advertencia');
+    const h = frases(s.frasesH); if (!h.length) l.push('indicaciones de peligro (H)'); else if (h.some((f)=> !f.t)) l.push('texto de ' + h.filter((f)=> !f.t).map((f)=> f.c || '?').join(', '));
+    const p = frases(s.consejosP); if (!p.length) l.push('consejos de prudencia (P)'); else if (p.some((f)=> !f.t)) l.push('texto de ' + p.filter((f)=> !f.t).map((f)=> f.c || '?').join(', '));
+  }
+  if (!String(s.fabricante || '').trim()) l.push('proveedor o fabricante');
+  if (!String(s.telProveedor || '').trim()) l.push('teléfono o dirección del proveedor');
+  if (!String(s.telEmergencia || '').trim()) l.push('teléfono de emergencias');
+  return l;
+}
+/* Tamaños de impresión en hoja carta (márgenes de 8 mm). */
+const TAMANOS = { g: { n: 'Grande', d: '19 × 12,4 cm · 2 por hoja', por: 2 }, m: { n: 'Mediana', d: '9,4 × 8,2 cm · 6 por hoja', por: 6 }, p: { n: 'Pequeña (trasvase)', d: '6,2 × 4,8 cm · 15 por hoja', por: 15 } };
+/** HTML de una etiqueta SGA. s: resumen de la sustancia; tam: g|m|p; o.nfpa: incluir el rombo NFPA 704. */
+function etiquetaHTML(s, tam, o){
+  o = o || {};
+  const pics = String(s.pictogramas || '').split(/\s*,\s*/).map((n)=> (PIC[n] || {}).c).filter(Boolean);
+  const H = frases(s.frasesH), P = frases(s.consejosP), largo = (l)=> l.reduce((a, f)=> a + f.t.length + 6, 0);
+  const lista = (l, soloCod)=> l.map((f)=> '<p>' + (f.c ? '<b style="display:inline;border:0;text-transform:none;font-size:1em;">' + esc(f.c) + '</b> ' : '') + (soloCod && f.c ? '' : esc(f.t)) + '</p>').join('');
+  // Lo que cabe: la grande lleva todo; la mediana resume los P si son muchos; la pequeña, solo códigos P.
+  const pCod = tam === 'p' || (tam === 'm' && largo(P) + largo(H) > 520), hCod = tam === 'p' && largo(H) > 170;
+  const pal = s.palabra && s.palabra !== 'Sin palabra de advertencia' ? '<div class="pal">' + esc(s.palabra) + '</div>' : '';
+  const ids = [s.cas ? 'CAS ' + s.cas : '', s.onu ? 'ONU ' + s.onu : '', tam !== 'p' && s.cantidad ? 'Contenido: ' + s.cantidad : ''].filter(Boolean).join(' · ');
+  const bH = H.length ? '<div class="bl"><b>Indicaciones de peligro</b>' + lista(H, hCod) + '</div>' : '';
+  const bP = P.length ? '<div class="bl"><b>Consejos de prudencia</b>' + lista(P, pCod) + (pCod ? '<p>Texto completo en la ficha de datos de seguridad.</p>' : '') + '</div>' : '';
+  const nf = o.nfpa ? nfpaSVG(s.nfpa) : '';
+  return '<div class="etq ' + tam + '"><div class="nom">' + esc(s.nombre || '') + '</div>' + (ids ? '<div class="ids">' + esc(ids) + '</div>' : '') +
+    '<div class="fila"><div class="picts">' + pics.map((c)=> pictoSVG(c)).join('') + '</div>' + pal + '</div>' +
+    (tam === 'g' ? '<div class="cols"><div>' + bH + '</div><div>' + bP + '</div></div>' : bH + bP) +
+    '<div class="pie"><div>' + (s.fabricante ? '<div><b>Proveedor:</b> ' + esc(s.fabricante) + (s.telProveedor ? ' · ' + esc(s.telProveedor) : '') + '</div>' : '') +
+    (s.telEmergencia ? '<div><b>Emergencias:</b> ' + esc(s.telEmergencia) + '</div>' : '') +
+    (tam === 'p' ? '<div class="tras">Trasvasado el ____/____/______ por ______________</div>' : '') + '</div>' + (nf ? '<div class="nfpa">' + nf + '</div>' : '') + '</div></div>';
+}
+/** Hojas para imprimir: copias de cada etiqueta, repartidas por hoja según el tamaño. */
+function hojasEtiquetas(lista, tam, copias, o){
+  const todas = []; lista.forEach((s)=> { for (let i = 0; i < Math.max(1, copias || 1); i++) todas.push(etiquetaHTML(s, tam, o)); });
+  const por = TAMANOS[tam].por, hojas = [];
+  for (let i = 0; i < todas.length; i += por) hojas.push('<div class="etqs">' + todas.slice(i, i + por).join('') + '</div>');
+  return hojas;
+}
+/* Condiciones de un lugar de almacenamiento y lo que exige según lo que guarda. */
+const CONDS = [['ventilacion', 'Ventilación'], ['contencion', 'Dique o bandeja de contención'], ['kitDerrames', 'Kit de derrames'], ['extintor', 'Extintor'], ['lavaojos', 'Ducha o lavaojos'], ['senalizacion', 'Señalización de peligros']];
+function alertasLugar(reg, sustancias){
+  if (!reg) return ['Lugar sin registrar: agrégalo a la lista para anotar sus condiciones.'];
+  const cl = new Set(); sustancias.forEach((s)=> String(s.pictogramas || '').split(/\s*,\s*/).forEach((n)=> { if (PIC[n]) cl.add(PIC[n].c); }));
+  const liquidos = sustancias.some((s)=> !s.estadoFisico || /Líquido|Pasta/.test(s.estadoFisico)), l = [];
+  if (reg.ventilacion !== true) l.push('Sin ventilación' + (cl.has('INF') || cl.has('TOX') ? ' (hay inflamables o tóxicos)' : ''));
+  if (reg.contencion !== true && liquidos && sustancias.length) l.push('Sin dique o bandeja de contención para los líquidos');
+  if (reg.kitDerrames !== true) l.push('Sin kit de derrames');
+  if (reg.extintor !== true && (cl.has('INF') || cl.has('COM') || cl.has('EXP'))) l.push('Sin extintor y guarda inflamables o comburentes');
+  if (reg.lavaojos !== true && cl.has('COR')) l.push('Sin ducha o lavaojos y guarda corrosivos');
+  if (reg.senalizacion !== true) l.push('Sin señalización de los peligros');
+  return l;
+}
+/* PURO-FIN */
+
+/* Matriz de compatibilidad de almacenamiento por pictograma (referencia de buenas
+   prácticas; no la fija la Res. 773). S: pueden ir juntos · P: con precaución
+   (separar con distancia, bandejas o estantes distintos) · N: no juntos.
+   Siempre se confirma con las secciones 7 (almacenamiento) y 10 (reactividad) de cada FDS. */
+const COD = ['EXP', 'INF', 'COM', 'GAS', 'COR', 'TOX', 'IRR', 'SAL', 'AMB'];
+const MX = {
+  EXP: { EXP: 'P', INF: 'N', COM: 'N', GAS: 'N', COR: 'N', TOX: 'N', IRR: 'N', SAL: 'N', AMB: 'N' },
+  INF: { INF: 'S', COM: 'N', GAS: 'P', COR: 'P', TOX: 'N', IRR: 'S', SAL: 'S', AMB: 'S' },
+  COM: { COM: 'S', GAS: 'P', COR: 'P', TOX: 'N', IRR: 'P', SAL: 'P', AMB: 'S' },
+  GAS: { GAS: 'S', COR: 'P', TOX: 'P', IRR: 'S', SAL: 'S', AMB: 'S' },
+  COR: { COR: 'S', TOX: 'P', IRR: 'S', SAL: 'S', AMB: 'S' },
+  TOX: { TOX: 'S', IRR: 'S', SAL: 'S', AMB: 'S' }, IRR: { IRR: 'S', SAL: 'S', AMB: 'S' }, SAL: { SAL: 'S', AMB: 'S' }, AMB: { AMB: 'S' } };
+const mx = (a, b)=> (MX[a] && MX[a][b]) || (MX[b] && MX[b][a]) || 'S';
+const POR_QUE = {
+  'EXP': 'Los explosivos van en un área exclusiva, aparte de todo lo demás.',
+  'EXP-EXP': 'Solo explosivos compatibles entre sí, según el fabricante.',
+  'INF-COM': 'El comburente aporta oxígeno: aviva o inicia el fuego del inflamable.',
+  'INF-TOX': 'En un incendio, el tóxico se dispersa con el humo: sepáralos.',
+  'COM-TOX': 'El comburente puede reaccionar con el tóxico y liberarlo en un incendio.',
+  'INF-GAS': 'Los cilindros van aparte, asegurados con cadena y lejos de calor e inflamables.',
+  'COM-GAS': 'Los cilindros van aparte, asegurados y lejos de oxidantes.',
+  'INF-COR': 'Muchos corrosivos reaccionan con inflamables: estantes o bandejas distintas.',
+  'COM-COR': 'Oxidantes y corrosivos pueden reaccionar: estantes o bandejas distintas.',
+  'GAS-COR': 'Los vapores corrosivos dañan válvulas y cilindros: separa con distancia.',
+  'GAS-TOX': 'Una fuga combinada agrava la exposición: separa con distancia o barrera.',
+  'COR-TOX': 'Pueden reaccionar entre sí: separa con bandejas o estantes distintos.',
+  'COM-IRR': 'Revisa la sección 10 de la ficha: algunos reaccionan con oxidantes.',
+  'COM-SAL': 'Revisa la sección 10 de la ficha: algunos reaccionan con oxidantes.',
+  'ACIDO-BASE': 'Ácidos y bases reaccionan con violencia (calor y salpicaduras): estantes o bandejas separadas.' };
+const VIGENCIA_FDS_MESES = 60;   // Res. 773 de 2021, art. 18: revisar la FDS como máximo cada 5 años
+const TIPOS_LUGAR = ['Bodega de químicos', 'Gabinete de seguridad', 'Estantería', 'Cuarto o caseta de químicos', 'Contenedor exterior', 'Otro'];
+
+const C_SUS = [{ k: 'nombre', l: 'Nombre comercial (identificador del producto)', req: true }, { k: 'fabricante', l: 'Fabricante / proveedor', medio: true }, { k: 'telProveedor', l: 'Dirección y teléfono del proveedor', medio: true, ph: 'Ej: Calle 10 # 20-30, Bogotá · 601 000 0000' },
+  { k: 'telEmergencia', l: 'Teléfono de emergencias (sección 1 de la ficha)', ph: 'Ej: línea de emergencias del proveedor o centro de información toxicológica' },
+  { k: 'uso', l: 'Uso', medio: true, ph: 'Ej: desengrase de piezas' }, { k: 'area', l: 'Área o proceso donde se usa', medio: true },
+  { k: 'lugarSel', l: 'Dónde se almacena', t: 'select', req: true, op: [] }, { k: 'ubicacion', l: 'Nombre del lugar nuevo', ph: 'Ej: Bodega de químicos' },
+  { k: 'estadoFisico', l: 'Estado físico', t: 'select', vacio: true, op: ['Líquido', 'Sólido', 'Gas', 'Aerosol', 'Pasta / gel'], medio: true }, { k: 'cantidad', l: 'Cantidad máxima almacenada', medio: true, ph: 'Ej: 4 galones' },
+  { k: 'cas', l: 'N.º CAS (sustancia principal)', medio: true }, { k: 'onu', l: 'N.º ONU (transporte)', medio: true },
+  { k: 'palabra', l: 'Palabra de advertencia', t: 'select', vacio: true, op: ['Peligro', 'Atención', 'Sin palabra de advertencia'], medio: true },
+  { k: 'corrosivoTipo', l: 'Si es corrosivo: ¿ácido o base?', t: 'select', op: [['', '— No aplica / no sé —'], ['Ácido', 'Ácido'], ['Base', 'Base (álcali)']], medio: true, ayuda: 'Ácidos y bases no se almacenan juntos.' },
+  { k: 'frasesH', l: 'Indicaciones de peligro (frases H)', t: 'textarea', ph: 'Ej: H225, H319, H336', ayuda: 'Basta el código: la etiqueta pone el texto. Si el código no está en la lista del portal, escríbelo con su texto (uno por línea).' },
+  { k: 'consejosP', l: 'Consejos de prudencia (frases P)', t: 'textarea', ph: 'Ej: P210, P280, P305+P351+P338, P501' },
+  { k: 'carcinogena', l: 'Carcinógena, mutágena o tóxica para la reproducción (prioritaria, estándar 4.1.3)', t: 'check' }, { k: 'toxicidadAguda', l: 'Toxicidad aguda (prioritaria, estándar 4.1.3)', t: 'check' },
+  { k: 'hojaSeguridad', l: '¿Tiene ficha de datos de seguridad (16 secciones) en el sitio?', t: 'select', op: ['Sí', 'No'], medio: true },
+  { k: 'fdsEspanol', l: '¿La ficha está en español?', t: 'select', vacio: true, op: ['Sí', 'No'], medio: true },
+  { k: 'fechaHoja', l: 'Fecha de la ficha (emisión o revisión)', t: 'date', medio: true }, { k: 'venceHoja', l: 'Próxima revisión de la ficha', t: 'date', medio: true, ayuda: 'Vacía: 5 años después de la fecha de la ficha (Res. 773 de 2021, art. 18), o antes si el proveedor la actualiza.' },
+  { k: 'etiquetaSGA', l: 'Etiqueta del envase', t: 'select', vacio: true, op: ['Conforme al SGA', 'Incompleta', 'Sin etiqueta'], medio: true }, { k: 'expuestos', l: 'Trabajadores expuestos', t: 'number', medio: true },
+  { k: 'trasvasa', l: 'Se trasvasa a envases secundarios', t: 'check' }, { k: 'envasesRotulados', l: 'Los envases secundarios están rotulados', t: 'check' },
+  { k: 'epp', l: 'EPP según la ficha (sección 8)', ph: 'Ej: guantes de nitrilo, monogafas, respirador con cartucho para vapores orgánicos' },
+  { k: 'controles', l: 'Controles (sustitución, ventilación, almacenamiento, procedimientos)', t: 'textarea' }, { k: 'estado', l: 'Estado', t: 'select', op: ['En uso', 'Fuera de uso'] }];
+/* Lo de la etiqueta, para completar antes de imprimir. */
+const C_ETQ = ['nombre', 'fabricante', 'telProveedor', 'telEmergencia', 'cas', 'onu', 'palabra', 'frasesH', 'consejosP', 'cantidad'];
+const C_LUG = [{ k: 'nombre', l: 'Nombre del lugar', req: true, ph: 'Ej: Bodega de químicos del taller' }, { k: 'area', l: 'Área o sede', medio: true },
+  { k: 'tipoLugar', l: 'Tipo', t: 'select', op: TIPOS_LUGAR, medio: true }, { k: 'tipoLugarOtro', l: '¿Cuál?', ph: 'Escribe el tipo de lugar' },
+  { k: 'responsable', l: 'Responsable', t: 'persona' }, { k: 'capacidad', l: 'Capacidad máxima', t: 'number', medio: true }, { k: 'unidadCapacidad', l: 'Unidad', t: 'select', op: ['L', 'galones', 'kg', 'envases'], medio: true },
+  { k: 'ventilacion', l: 'Ventilación natural o mecánica', t: 'check' }, { k: 'contencion', l: 'Dique o bandeja de contención de derrames', t: 'check' }, { k: 'kitDerrames', l: 'Kit de derrames cerca', t: 'check' },
+  { k: 'extintor', l: 'Extintor adecuado cerca', t: 'check' }, { k: 'lavaojos', l: 'Ducha o lavaojos cerca', t: 'check' }, { k: 'senalizacion', l: 'Señalización de peligros (pictogramas y prohibiciones)', t: 'check' },
+  { k: 'fechaRevision', l: 'Última revisión del lugar', t: 'date', medio: true }, { k: 'activo', l: 'En uso', t: 'check' },
+  { k: 'observaciones', l: 'Observaciones', t: 'textarea' }];
+const C_GES = [{ k: 'responsable', l: 'Responsable del programa de riesgo químico', t: 'persona' },
+  { k: 'capacitacionSGA', l: 'Última capacitación en SGA (etiquetas, pictogramas y fichas)', t: 'date', medio: true }, { k: 'capacitados', l: 'Personas capacitadas', t: 'number', medio: true },
+  { k: 'proximaCapacitacion', l: 'Próxima capacitación', t: 'date', ayuda: 'Vacía: un año después de la última (Res. 773 de 2021, art. 21: mínimo una vez al año).' },
+  { k: 'inventarioRevisado', l: 'Última revisión completa del inventario', t: 'date' },
+  { k: 'senalizacion', l: 'Áreas de almacenamiento y uso señalizadas con sus peligros', t: 'check' },
+  { k: 'fdsDisponibles', l: 'Fichas disponibles para consulta en los sitios de uso (física o digital)', t: 'check' },
+  { k: 'kitDerrames', l: 'Kit antiderrames y elementos para emergencias químicas', t: 'check' },
+  { k: 'lavaojos', l: 'Ducha o lavaojos donde se manejan corrosivos o irritantes', t: 'check' },
+  { k: 'procedimiento', l: 'Procedimiento de respuesta a derrames y exposiciones', t: 'check' }];
+const ID_GES = 'QUIMICOS-GESTION';
+let rows = [], tab = 'inventario';
+let fInv = '';   // v109: filtro del inventario (lo dejan las cifras de arriba o un enlace #ir=…)
+window.filtrarKpi = (v)=> { if (tab === 'inventario') fInv = v || ''; pintar(); };
+const sinFdsVig = (x)=> x.resumen.estado !== 'Fuera de uso' && (x.resumen.hojaSeguridad !== 'Sí' || (x.resumen.venceHoja && x.resumen.venceHoja < UI.hoy()));
+const porResolver = (x)=> x.resumen.estado !== 'Fuera de uso' && problemas(x).length > 0;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const enUso = ()=> de('sustancia').filter((x)=> x.resumen.estado !== 'Fuera de uso');
+const clases = (r)=> String(r.pictogramas || '').split(/\s*,\s*/).map((n)=> (PIC[n] || {}).c).filter(Boolean);
+const picHtml = (r)=> clases(r).map((c)=> pictoSVG(c)).join('');
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('sustancia,gestquim,lugarquim,accion');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+/* ── Validación: resalta el campo y dice qué falta ── */
+function marcar(el, pref, errs){
+  el.querySelectorAll('.field-invalid').forEach((x)=> x.classList.remove('field-invalid'));
+  errs.forEach((e)=> { const i = el.querySelector('#' + pref + e.k); if (!i) return; i.classList.add('field-invalid'); const f = i.closest('.field'); if (f) f.classList.add('field-invalid'); });
+  if (!errs.length) return null;
+  const i = el.querySelector('#' + pref + errs[0].k); if (i && i.scrollIntoView) i.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return 'Revisa: ' + errs.map((e)=> e.m).join(' · ');
+}
+function vigilarFaltantes(el, pref, campos){
+  el.querySelector('[data-guardar]').addEventListener('click', ()=> {
+    const v = Registros.leer(campos, el, pref);
+    campos.filter((c)=> c.req).forEach((c)=> { const i = el.querySelector('#' + pref + c.k); if (!i) return; const mal = v[c.k] === '' || v[c.k] == null; i.classList.toggle('field-invalid', mal); const f = i.closest('.field'); if (f) f.classList.toggle('field-invalid', mal); });
+  }, true);
+}
+/* Lista con «Otro»: muestra el campo para escribir y lo guarda en lugar de «Otro». */
+function conOtro(el, pref, k){
+  const s = el.querySelector('#' + pref + k), t = el.querySelector('#' + pref + k + 'Otro'); if (!s || !t) return;
+  s.setAttribute('data-sin-otro', '');   // ya tiene su propio «¿Cuál?»: que valida.js no agregue otro cuadro  const f = ()=> { t.closest('.field').style.display = s.value === 'Otro' ? '' : 'none'; }; s.addEventListener('change', f); f();
+}
+const prepOtro = (d, k, ops)=> { if (d[k] && !ops.includes(d[k])) { d[k + 'Otro'] = d[k]; d[k] = 'Otro'; } };
+const leerOtro = (v, k)=> { if (v[k] === 'Otro') v[k] = String(v[k + 'Otro'] || '').trim(); delete v[k + 'Otro']; };
+/* ── Lugares de almacenamiento ── */
+const lugaresReg = ()=> de('lugarquim').filter((x)=> x.resumen.activo !== false).sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+function lugarDe(r){
+  const s = r.resumen || r, L = lugaresReg();
+  return (s.lugarId && L.find((l)=> l.id === s.lugarId)) || (s.ubicacion && L.find((l)=> UI.norm(l.resumen.nombre) === UI.norm(s.ubicacion))) || null;
+}
+/* ── Estado de cada sustancia ── */
+function problemas(x){
+  const s = x.resumen, h = UI.hoy(), l = [];
+  if (s.hojaSeguridad !== 'Sí') l.push('Sin ficha de datos de seguridad');
+  else if (s.venceHoja && s.venceHoja < h) l.push('Ficha para revisar desde ' + UI.corta(s.venceHoja));
+  else if (s.fdsEspanol === false || s.fdsEspanol === 'No') l.push('Ficha que no está en español');
+  if (!s.etiquetaSGA) l.push('Etiqueta sin revisar');
+  else if (s.etiquetaSGA !== 'Conforme al SGA') l.push('Etiqueta ' + s.etiquetaSGA.toLowerCase());
+  if (s.trasvasa === true && s.envasesRotulados !== true) l.push('Envases secundarios sin rotular');
+  if (!clases(s).length && s.palabra !== 'Sin palabra de advertencia') l.push('Sin pictogramas registrados');
+  if (!lugarDe(x)) l.push(s.ubicacion ? 'Lugar «' + s.ubicacion + '» sin registrar' : 'Sin lugar de almacenamiento');
+  return l;
+}
+const prioritaria = (s)=> s.carcinogena === true || s.toxicidadAguda === true;
+/* ── Compatibilidad: por lugar de almacenamiento, cada par de sustancias ── */
+function compatPar(a, b){
+  const ca = clases(a.resumen), cb = clases(b.resumen); let peor = 'S', motivos = [];
+  const subir = (v, k)=> { if (v === 'S') return; if (v === 'N') peor = 'N'; else if (peor !== 'N') peor = 'P'; const t = POR_QUE[k] || POR_QUE[k.split('-').reverse().join('-')]; if (t && !motivos.includes(t)) motivos.push(t); };
+  ca.forEach((x)=> cb.forEach((y)=> { const v = mx(x, y); const k = x === 'EXP' || y === 'EXP' ? (x === y ? 'EXP-EXP' : 'EXP') : [x, y].sort((p, q)=> COD.indexOf(p) - COD.indexOf(q)).join('-'); subir(v, k); }));
+  const ta = a.resumen.corrosivoTipo, tb = b.resumen.corrosivoTipo;
+  if (ta && tb && ta !== tb) subir('N', 'ACIDO-BASE');
+  return { v: peor, motivos };
+}
+/** Grupos por lugar: los registrados (aunque estén vacíos), los escritos a mano sin registrar y «sin lugar». */
+function lugares(){
+  const g = {};
+  lugaresReg().forEach((r)=> { g['id:' + r.id] = { id: r.id, reg: r.resumen, nombre: r.resumen.nombre, l: [] }; });
+  enUso().forEach((x)=> { const L = lugarDe(x); let k;
+    if (L) k = 'id:' + L.id; else { const n = String(x.resumen.ubicacion || '').trim(); k = n ? 'txt:' + UI.norm(n) : 'sin'; if (!g[k]) g[k] = { id: null, reg: null, nombre: n || 'Sin lugar de almacenamiento', sin: !n, l: [] }; }
+    g[k].l.push(x); });
+  return Object.values(g).map((L)=> {
+    const pares = [];
+    for (let i = 0; i < L.l.length; i++) for (let j = i + 1; j < L.l.length; j++) { const c = compatPar(L.l[i], L.l[j]); if (c.v !== 'S') pares.push({ a: L.l[i], b: L.l[j], v: c.v, motivos: c.motivos }); }
+    pares.sort((p, q)=> (p.v === 'N' ? 0 : 1) - (q.v === 'N' ? 0 : 1));
+    return Object.assign(L, { pares, n: pares.filter((p)=> p.v === 'N').length, alertas: L.sin ? [] : alertasLugar(L.reg, L.l.map((x)=> x.resumen)) });
+  }).sort((a, b)=> (a.sin - b.sin) || b.n - a.n || (b.l.length ? 1 : 0) - (a.l.length ? 1 : 0) || String(a.nombre).localeCompare(String(b.nombre)));
+}
+/* ── Requisitos de la Res. 773 de 2021 (texto vigente: verifícalo en la norma) ── */
+function gestion(){ return de('gestquim').find((x)=> x.id === ID_GES); }
+function requisitos(){
+  const g = (gestion() || {}).resumen || {}, h = UI.hoy(), hace12 = Festivos.sumarMeses(h, -12), u = enUso(), lg = lugares();
+  const sinFds = u.filter((x)=> x.resumen.hojaSeguridad !== 'Sí').length, fdsViejas = u.filter((x)=> x.resumen.hojaSeguridad === 'Sí' && x.resumen.venceHoja && x.resumen.venceHoja < h).length;
+  const sinEtq = u.filter((x)=> x.resumen.etiquetaSGA !== 'Conforme al SGA').length, sinRot = u.filter((x)=> x.resumen.trasvasa === true && x.resumen.envasesRotulados !== true).length;
+  const incompat = lg.reduce((a, L)=> a + L.n, 0), hayCorr = u.some((x)=> clases(x.resumen).some((c)=> c === 'COR' || c === 'IRR'));
+  const prio = u.filter((x)=> prioritaria(x.resumen)), prioSinCtl = prio.filter((x)=> !String(x.resumen.controles || '').trim()).length;
+  const lugAl = lg.filter((L)=> !L.sin && L.l.length && L.alertas.length).length;
+  return [
+    { ok: u.length > 0 && !!g.inventarioRevisado && g.inventarioRevisado >= hace12, t: 'Inventario actualizado de los productos químicos y sus peligros', a: 'Art. 21', d: u.length ? u.length + ' en uso · ' + (g.inventarioRevisado ? 'revisado el ' + UI.corta(g.inventarioRevisado) : 'falta anotar la revisión completa del inventario') : 'Sin sustancias en el inventario', btn: 'inv' },
+    { ok: u.length > 0 && !sinFds && !sinEtq && !sinRot, t: 'Productos con etiqueta del SGA y ficha de datos de seguridad', a: 'Art. 21', d: [sinFds ? sinFds + ' sin ficha' : '', sinEtq ? sinEtq + ' con etiqueta incompleta, sin etiqueta o sin revisar' : '', sinRot ? sinRot + ' con envases secundarios sin rotular' : ''].filter(Boolean).join(' · ') || 'Todas con ficha y etiqueta' },
+    { ok: u.length > 0 && !fdsViejas, t: 'Fichas revisadas como máximo cada 5 años (antes si hay información nueva)', a: 'Art. 18', d: fdsViejas ? fdsViejas + ' ficha(s) para revisar' : 'Ninguna ficha vencida' },
+    { ok: g.fdsDisponibles === true, t: 'Fichas disponibles para consulta de los trabajadores en todo momento', a: 'Art. 21', d: g.fdsDisponibles === true ? 'Sí' : 'Sin confirmar' },
+    { ok: g.senalizacion === true, t: 'Señalización de los productos y áreas con sus peligros y medidas de seguridad', a: 'Art. 21', d: g.senalizacion === true ? 'Sí' : 'Sin confirmar' },
+    { ok: !!g.capacitacionSGA && g.capacitacionSGA >= hace12, t: 'Capacitación en el SGA (etiquetas, pictogramas, fichas) por lo menos una vez al año', a: 'Art. 21', d: g.capacitacionSGA ? 'Última: ' + UI.corta(g.capacitacionSGA) + (g.capacitados ? ' · ' + g.capacitados + ' persona(s)' : '') : 'Sin capacitación registrada' },
+    { ok: g.kitDerrames === true && (g.lavaojos === true || !hayCorr) && g.procedimiento === true, t: 'Elementos y procedimiento para atender emergencias químicas', a: 'Art. 21', d: [g.kitDerrames === true ? 'kit antiderrames ✓' : 'falta kit antiderrames', hayCorr ? (g.lavaojos === true ? 'lavaojos ✓' : 'falta ducha o lavaojos') : '', g.procedimiento === true ? 'procedimiento ✓' : 'falta procedimiento'].filter(Boolean).join(' · ') },
+    { ok: !incompat, t: 'Almacenamiento por compatibilidad (buena práctica; secciones 7 y 10 de la FDS)', a: 'Guía', d: incompat ? incompat + ' par(es) incompatible(s) en el mismo lugar' : 'Sin incompatibles juntos según la matriz de referencia' },
+    { ok: !lugAl, t: 'Lugares de almacenamiento con ventilación, contención, kit de derrames, extintor, lavaojos y señalización según lo que guardan', a: 'Guía', d: lugAl ? lugAl + ' lugar(es) con condiciones por resolver (pestaña Almacenamiento)' : 'Sin pendientes en los lugares registrados' },
+    { ok: !prioSinCtl, t: 'Sustancias carcinógenas o de toxicidad aguda identificadas y con controles', a: 'Res. 0312, 4.1.3', d: prio.length ? prio.length + ' prioritaria(s)' + (prioSinCtl ? ' · ' + prioSinCtl + ' sin controles anotados' : ' con controles') : 'Ninguna marcada como prioritaria' }];
+}
+function pintar(){
+  const u = enUso(), lg = lugares(), req = requisitos();
+  const conProb = u.filter((x)=> problemas(x).length).length, incompat = lg.reduce((a, L)=> a + L.n, 0), cumple = req.filter((r)=> r.ok).length;
+  const sinEtq = u.filter((x)=> faltaEtiqueta(x.resumen).length).length;
+  $('nInv').textContent = de('sustancia').length; $('nAlm').textContent = lugaresReg().length; $('nGes').textContent = req.length - cumple;
+  $('kpis').innerHTML = '<div class="kpi" data-ir="tab:inventario|filtro:"><div class="v">' + u.length + '</div><div class="n">sustancias en uso</div><div class="f">' + u.filter((x)=> prioritaria(x.resumen)).length + ' prioritaria(s) (carcinógenas o toxicidad aguda)</div></div>' +
+    '<div class="kpi ' + (conProb ? 'mal' : 'ok') + '" data-ir="tab:inventario|filtro:' + (conProb ? 'resolver' : '') + '"><div class="v">' + conProb + '</div><div class="n">con ficha, etiqueta o lugar por resolver</div><div class="f">' + sinEtq + ' sin datos completos para la etiqueta</div></div>' +
+    '<div class="kpi ' + (incompat ? 'mal' : 'ok') + '" data-ir="tab:almacen' + (incompat ? '|sel:.lugar .par.N' : '') + '"><div class="v">' + incompat + '</div><div class="n">pares incompatibles almacenados juntos</div></div>' +
+    '<div class="kpi ' + (cumple === req.length ? 'ok' : cumple >= req.length - 2 ? '' : 'mal') + '" data-ir="tab:gestion"><div class="v">' + cumple + ' / ' + req.length + '</div><div class="n">requisitos de la Res. 773 y buenas prácticas</div></div>';
+  ({ inventario: pintarInv, almacen: pintarAlm, gestion: pintarGes })[tab]($('panel'));
+}
+/* ── Inventario ── */
+function pintarInv(panel){
+  const l = de('sustancia').slice().sort((a, b)=> (a.resumen.estado === 'Fuera de uso') - (b.resumen.estado === 'Fuera de uso') || problemas(b).length - problemas(a).length || prioritaria(b.resumen) - prioritaria(a.resumen) || String(a.titulo).localeCompare(String(b.titulo)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="bNueva">+ Agregar sustancia</button><button type="button" class="btn" id="bEtq">Etiquetas SGA para imprimir</button></div>' +
+    '<div class="fila-btn u-mb10"><button type="button" class="btn ghost" id="bPdf">Inventario (PDF)</button><button type="button" class="btn ghost" id="bAcc">Acciones de lo que falta</button><button type="button" class="btn ghost" id="bExcel">Cargar desde Excel</button></div>' +
+    (l.length ? UI.chipsFiltro([['', 'Todas (' + l.length + ')'], ['resolver', 'Por resolver (' + l.filter(porResolver).length + ')'], ['sinfds', 'Sin ficha vigente (' + l.filter(sinFdsVig).length + ')'], ['prioritarias', 'Prioritarias (' + l.filter((x)=> x.resumen.estado !== 'Fuera de uso' && prioritaria(x.resumen)).length + ')']], fInv) : '') +
+    '<input type="search" class="buscar" id="bus" placeholder="Buscar por nombre, uso, lugar o CAS">' + '<div id="lInv"></div>';
+  panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  const fk = { resolver: porResolver, sinfds: sinFdsVig, prioritarias: (x)=> x.resumen.estado !== 'Fuera de uso' && prioritaria(x.resumen) }[fInv] || (()=> true);
+  const pintarL = ()=> { const q = UI.norm($('bus').value).trim();
+    const f = l.filter(fk).filter((x)=> !q || UI.norm([x.resumen.nombre, x.resumen.uso, x.resumen.area, x.resumen.ubicacion, x.resumen.cas, x.resumen.fabricante].join(' ')).includes(q));
+    $('lInv').innerHTML = f.length ? f.map((x)=> { const s = x.resumen, p = problemas(x), fuera = s.estado === 'Fuera de uso', c = fuera ? 'gris' : p.length ? 'mal' : prioritaria(s) ? 'pronto' : 'ok', L = lugarDe(x);
+      return '<button type="button" class="item ' + c + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.nombre) + (s.palabra && s.palabra !== 'Sin palabra de advertencia' ? ' <small style="color:' + (s.palabra === 'Peligro' ? 'var(--mal)' : '#7a5800') + ';font-weight:800;">' + esc(s.palabra.toUpperCase()) + '</small>' : '') + '</div>' +
+        '<div class="m">' + esc([s.uso, L ? 'Lugar: ' + L.resumen.nombre : s.ubicacion ? 'Lugar: ' + s.ubicacion : '', s.cantidad].filter(Boolean).join(' · ')) + '</div>' + (clases(s).length ? '<div class="pics">' + picHtml(s) + '</div>' : '') +
+        (p.length && !fuera ? '<div class="m" style="color:var(--mal);font-weight:600;">' + esc(p.join(' · ')) + '</div>' : '') + (x.resumen._adj ? '<div class="m">' + x.resumen._adj + ' adjunto(s)</div>' : '') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' +
+        '<span class="chip ' + c + '">' + (fuera ? 'Fuera de uso' : prioritaria(s) ? 'Prioritaria' : p.length ? 'Por resolver' : 'Al día') + '</span></div></button>'; }).join('')
+      : '<div class="empty">' + (l.length ? (fInv ? 'Ninguna sustancia en este filtro ✓' : 'Ninguna coincide.') : 'Sin sustancias registradas. Empieza por las que hay en bodega y en cada área (Res. 773 de 2021, art. 21).') + '</div>';
+    $('lInv').querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editarSus(d); }));
+  };
+  $('bus').addEventListener('input', pintarL); pintarL();
+  $('bNueva').addEventListener('click', ()=> editarSus({ id: SGSST.nuevoId('SUS'), nuevo: true, estado: 'En uso', hojaSeguridad: 'Sí', fdsEspanol: 'Sí', etiquetaSGA: 'Conforme al SGA', estadoFisico: 'Líquido', pictogramas: [] }));
+  $('bEtq').addEventListener('click', ()=> abrirEtiquetas());
+  $('bPdf').addEventListener('click', pdfInventario);
+  $('bAcc').addEventListener('click', accionesFaltantes);
+  $('bExcel').addEventListener('click', importarSus);
+}
+/* Selector de pictogramas y rombo NFPA (formulario de la sustancia y «completar» de la etiqueta). */
+function extrasHTML(d){
+  const sel = new Set(d.pictogramas || []), n = nfpaPartes(d.nfpa), op = (v)=> '<option value="">—</option>' + [0, 1, 2, 3, 4].map((x)=> '<option' + (String(x) === v ? ' selected' : '') + '>' + x + '</option>').join('');
+  const esp = [['', '—'], ['W', 'W (no usar agua)'], ['OX', 'OX (oxidante)'], ['SA', 'SA (asfixiante simple)'], ['COR', 'COR (corrosivo)'], ['ACID', 'ACID (ácido)'], ['ALK', 'ALK (álcali)']];
+  return '<div class="field"><label>Pictogramas del SGA (como en la etiqueta del proveedor)</label><div class="picsel" data-picts>' + PICTOS.map((p)=> '<button type="button" data-v="' + esc(p.n) + '" class="' + (sel.has(p.n) ? 'on' : '') + '" aria-pressed="' + sel.has(p.n) + '">' + pictoSVG(p.c) + esc(p.n) + '</button>').join('') + '</div>' +
+    '<button type="button" class="btn-mini" data-sugerir>Sugerir desde las frases H</button></div>' +
+    '<details class="field"' + (d.nfpa ? ' open' : '') + '><summary style="font-weight:700;font-size:var(--fs-base);min-height:40px;cursor:pointer;">Rombo NFPA 704 (opcional)</summary><div class="nfpasel">' +
+    '<div class="field"><label>Salud (azul)</label><select data-nf="s">' + op(n.s) + '</select></div><div class="field"><label>Inflamabilidad (rojo)</label><select data-nf="i">' + op(n.i) + '</select></div>' +
+    '<div class="field"><label>Reactividad (amarillo)</label><select data-nf="r">' + op(n.r) + '</select></div><div class="field"><label>Especial (blanco)</label><select data-nf="e">' + esp.map((e)=> '<option value="' + e[0] + '"' + (e[0] === n.e ? ' selected' : '') + '>' + e[1] + '</option>').join('') + '</select></div>' +
+    '</div><div class="ayuda">La Res. 773 de 2021 pide el SGA; el NFPA 704 es complementario (sale en la etiqueta si lo marcas al imprimir).</div></details>';
+}
+function activarExtras(el, pref){
+  el.querySelector('[data-picts]').addEventListener('click', (e)=> { const b = e.target.closest('button[data-v]'); if (b) { b.classList.toggle('on'); b.setAttribute('aria-pressed', b.classList.contains('on')); } });
+  el.querySelector('[data-sugerir]').addEventListener('click', ()=> { const h = el.querySelector('#' + pref + 'frasesH'), s = sugerirPictos(h ? h.value : '');
+    if (!s.length) { UI.toast('Escribe primero las frases H (por ejemplo H225, H319).'); return; }
+    el.querySelectorAll('[data-picts] button').forEach((b)=> { const on = s.includes(b.dataset.v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    UI.toast('Sugeridos: ' + s.join(', ') + '. Compáralos con la etiqueta del proveedor.'); });
+}
+/* «Dirección y teléfono del proveedor» lleva letras (la dirección): que valida.js no lo trate como solo teléfono.
+   Se marca antes de que corra su revisión automática (va en un microtask, después de abrir la ventana). */
+function sinFiltroTel(el, pref){ const i = el.querySelector('#' + pref + 'telProveedor'); if (i) i.closest('.field').setAttribute('data-sin-valida', ''); }
+function leerExtras(el, v){
+  v.pictogramas = [...el.querySelectorAll('[data-picts] button.on')].map((b)=> b.dataset.v);
+  const n = {}; el.querySelectorAll('[data-nf]').forEach((s)=> { n[s.dataset.nf] = s.value; });
+  v.nfpa = n.s || n.i || n.r || n.e ? [n.s, n.i, n.r, n.e].join(',') : '';
+}
+/* Validación común de la sustancia (fechas, números y códigos). */
+function erroresSus(v){
+  const e = [], h = UI.hoy();
+  if (v.expuestos !== '' && v.expuestos != null && (!(Number(v.expuestos) >= 0) || Math.round(v.expuestos) !== Number(v.expuestos))) e.push({ k: 'expuestos', m: 'trabajadores expuestos: número entero de 0 en adelante' });
+  if (v.fechaHoja && v.fechaHoja > h) e.push({ k: 'fechaHoja', m: 'la fecha de la ficha no puede ser futura' });
+  if (v.fechaHoja && v.venceHoja && v.venceHoja < v.fechaHoja) e.push({ k: 'venceHoja', m: 'la próxima revisión debe ser después de la fecha de la ficha' });
+  ['frasesH', 'consejosP'].forEach((k)=> { const mal = String(v[k] || '').split(/[\s,;+\n]+/).filter((t)=> /^[HP]\d/i.test(t) && !/^[HP]\d{3}[a-z]?[:.]?$/i.test(t));
+    if (mal.length) e.push({ k, m: 'código mal escrito: ' + mal.join(', ') + ' (son tres dígitos, ej. ' + (k === 'frasesH' ? 'H225' : 'P210') + ')' }); });
+  if (v.onu && !/^\d{4}$/.test(String(v.onu).replace(/^(UN|ONU)\s*/i, ''))) e.push({ k: 'onu', m: 'el número ONU tiene 4 dígitos' });
+  if (v.cas && !/^\d{2,7}-\d{2}-\d$/.test(String(v.cas).trim())) e.push({ k: 'cas', m: 'el CAS se escribe así: 7647-01-0' });
+  return e;
+}
+function editarSus(d){
+  if (typeof d.pictogramas === 'string') d.pictogramas = d.pictogramas.split(/\s*,\s*/).filter(Boolean);
+  if (d.fdsEspanol === true) d.fdsEspanol = 'Sí'; else if (d.fdsEspanol === false) d.fdsEspanol = 'No';   // registros viejos: casilla
+  const L = lugaresReg(), ya = lugarDe(d);
+  d.lugarSel = ya ? ya.id : d.ubicacion ? '__otro' : '';
+  const campos = C_SUS.map((c)=> c.k === 'lugarSel' ? Object.assign({}, c, { op: [['', '— Elige el lugar —']].concat(L.map((l)=> [l.id, l.resumen.nombre + (l.resumen.area ? ' · ' + l.resumen.area : '')]), [['__otro', 'Otro lugar (escribir)']]),
+    ayuda: L.length ? 'Los lugares se administran en la pestaña Almacenamiento.' : 'Aún no hay lugares registrados: elige «Otro lugar» y escríbelo; se puede agregar a la lista.' }) : c);
+  Registros.editar({ titulo: d.nuevo ? 'Nueva sustancia química' : d.nombre, campos, datos: d,
+    despues: extrasHTML(d) + '<div class="ayuda">Adjunta abajo la ficha de datos de seguridad (PDF) una vez guardes.</div>',
+    alAbrir: (el, pref)=> {
+      sinFiltroTel(el, pref); activarExtras(el, pref); vigilarFaltantes(el, pref, campos);
+      const sel = el.querySelector('#' + pref + 'lugarSel'), txt = el.querySelector('#' + pref + 'ubicacion');
+      const ver = ()=> { txt.closest('.field').style.display = sel.value === '__otro' ? '' : 'none'; }; sel.addEventListener('change', ver); ver();
+      // Los pictogramas y el NFPA van después de las frases P.
+      const ex = el.querySelector('[data-picts]').closest('.field'), nf = el.querySelector('details.field'), ancla = el.querySelector('#' + pref + 'consejosP');
+      if (ex && ancla) { ancla.closest('.field').after(ex); ex.after(nf); }
+    },
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Sustancias químicas'); if (ok) cargar(); return ok; },
+    alGuardar: async (v, el, pref)=> {
+      leerExtras(el, v);
+      const errs = erroresSus(v);
+      if (v.lugarSel === '__otro' && !String(v.ubicacion || '').trim()) errs.unshift({ k: 'ubicacion', m: 'escribe el nombre del lugar' });
+      const msg = marcar(el, pref, errs); if (msg) return msg;
+      let nuevoLugar = '';
+      if (v.lugarSel && v.lugarSel !== '__otro') { const l = L.find((x)=> x.id === v.lugarSel); v.lugarId = v.lugarSel; v.ubicacion = l ? l.resumen.nombre : v.ubicacion; }
+      else { v.lugarId = ''; v.ubicacion = String(v.ubicacion || '').trim(); const igual = L.find((x)=> UI.norm(x.resumen.nombre) === UI.norm(v.ubicacion)); if (igual) { v.lugarId = igual.id; v.ubicacion = igual.resumen.nombre; } else nuevoLugar = v.ubicacion; }
+      delete v.lugarSel;
+      if (v.fechaHoja && !v.venceHoja) v.venceHoja = Festivos.sumarMeses(v.fechaHoja, VIGENCIA_FDS_MESES);
+      if (v.venceHoja && v.fechaHoja && v.venceHoja > Festivos.sumarMeses(v.fechaHoja, VIGENCIA_FDS_MESES)) {
+        v.venceHoja = Festivos.sumarMeses(v.fechaHoja, VIGENCIA_FDS_MESES);
+        UI.toast('La próxima revisión de la ficha quedó a 5 años de su fecha (máximo de la Res. 773 de 2021, art. 18).'); }
+      if (!v.pictogramas.includes('Corrosivo')) v.corrosivoTipo = '';
+      if (v.trasvasa !== true) v.envasesRotulados = false;
+      if (nuevoLugar && await Dialogo.confirmar('«' + nuevoLugar + '» no está en la lista de lugares de almacenamiento. ¿Agregarlo a la lista (luego anotas sus condiciones)?')) {
+        const id = SGSST.nuevoId('LUQ'), r0 = await Registros.guardar('lugarquim', id, { nombre: nuevoLugar, area: v.area || '', tipoLugar: 'Bodega de químicos', activo: true }, 0);
+        if (typeof r0 !== 'string') v.lugarId = id; }
+      const r = await Registros.guardar('sustancia', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      await cargar();
+      // ¿Quedó junto a algo incompatible?
+      if (v.estado !== 'Fuera de uso') { const G = lugares().find((x)=> x.l.some((y)=> y.id === d.id)), malos = G ? G.pares.filter((p)=> p.v === 'N' && (p.a.id === d.id || p.b.id === d.id)) : [];
+        if (malos.length) UI.toast('⚠ En "' + G.nombre + '" queda junto a sustancias incompatibles: ' + malos.map((p)=> (p.a.id === d.id ? p.b : p.a).resumen.nombre).join(', ') + '. Revisa Almacenamiento.', 'mal'); }
+      return true; } });
+}
+/* ── Etiquetas SGA para imprimir ── */
+function abrirEtiquetas(o){
+  o = o || {};
+  const st = { modo: o.lugar ? 'lugar' : o.ids ? 'elegir' : 'todas', area: '', lugar: o.lugar || '', sel: new Set(o.ids || []), tam: 'm', copias: 1, nfpa: false };
+  const m = UI.modal('<h3>Etiquetas SGA para imprimir</h3><div id="etqCuerpo"></div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>', true);
+  const cuerpo = m.el.querySelector('#etqCuerpo');
+  const areas = ()=> [...new Set(enUso().map((x)=> String(x.resumen.area || '').trim()).filter(Boolean))].sort();
+  const elegidas = ()=> { const u = enUso().slice().sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+    if (st.modo === 'area') return u.filter((x)=> UI.norm(x.resumen.area) === UI.norm(st.area));
+    if (st.modo === 'lugar') { const G = lugares().find((L)=> (L.id || L.nombre) === st.lugar); return G ? G.l : []; }
+    if (st.modo === 'elegir') return u.filter((x)=> st.sel.has(x.id));
+    return u; };
+  const pintarE = ()=> {
+    const lg = lugares().filter((L)=> L.l.length && !L.sin), lista = elegidas(), faltan = lista.map((x)=> ({ x, f: faltaEtiqueta(x.resumen) })).filter((y)=> y.f.length);
+    const chip = (v, t)=> '<button type="button" data-modo="' + v + '" class="' + (st.modo === v ? 'on' : '') + '">' + t + '</button>';
+    cuerpo.innerHTML = '<div class="field"><label>¿Cuáles?</label><div class="chips" id="eModo">' + chip('todas', 'Todas en uso') + chip('area', 'Por área') + chip('lugar', 'Por lugar') + chip('elegir', 'Elegir') + '</div></div>' +
+      (st.modo === 'area' ? '<div class="field"><label>Área</label><select id="eArea"><option value="">— Elige —</option>' + areas().map((a)=> '<option' + (a === st.area ? ' selected' : '') + '>' + esc(a) + '</option>').join('') + '</select></div>' : '') +
+      (st.modo === 'lugar' ? '<div class="field"><label>Lugar de almacenamiento</label><select id="eLugar"><option value="">— Elige —</option>' + lg.map((L)=> '<option value="' + esc(L.id || L.nombre) + '"' + ((L.id || L.nombre) === st.lugar ? ' selected' : '') + '>' + esc(L.nombre) + ' (' + L.l.length + ')</option>').join('') + '</select></div>' : '') +
+      (st.modo === 'elegir' ? '<div class="field"><label>Sustancias</label><div class="selq" id="eSel">' + enUso().slice().sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre))).map((x)=> '<label><input type="checkbox" value="' + esc(x.id) + '"' + (st.sel.has(x.id) ? ' checked' : '') + '> ' + esc(x.resumen.nombre) + '</label>').join('') + '</div></div>' : '') +
+      '<div class="field"><label>Tamaño</label><div class="chips" id="eTam">' + Object.keys(TAMANOS).map((k)=> '<button type="button" data-tam="' + k + '" class="' + (st.tam === k ? 'on' : '') + '">' + TAMANOS[k].n + '</button>').join('') + '</div><div class="ayuda">' + esc(TAMANOS[st.tam].d) + (st.tam === 'p' ? ' · para envases secundarios: lleva línea de fecha y responsable del trasvase (Res. 773 de 2021, art. 14).' : '') + '</div></div>' +
+      '<div class="grid2"><div class="field"><label>Copias de cada una</label><input type="number" id="eCop" min="1" max="60" step="1" inputmode="numeric" value="' + st.copias + '"></div><div class="field" style="display:flex;align-items:flex-end;"><label class="check u-m0"><input type="checkbox" id="eNfpa"' + (st.nfpa ? ' checked' : '') + '> Incluir rombo NFPA 704</label></div></div>' +
+      '<div class="aviso ' + (faltan.length ? 'amar' : lista.length ? 'ok' : 'info') + '" id="eFalta">' + (lista.length ? (faltan.length ? '<b>Qué falta (' + faltan.length + ' de ' + lista.length + '):</b> complétalo antes de imprimir.' + faltan.map((y)=> '<div class="falta"><div><b>' + esc(y.x.resumen.nombre) + '</b><small>Falta: ' + esc(y.f.join(', ')) + '</small></div><button type="button" class="btn-mini" data-comp="' + esc(y.x.id) + '">Completar</button></div>').join('')
+        : '✓ Las ' + lista.length + ' etiqueta(s) tienen todos los elementos del SGA: identificador, pictogramas, palabra de advertencia, indicaciones H, consejos P y proveedor con teléfonos.') : 'Elige las sustancias.') + '</div>' +
+      (lista.length ? '<div class="ayuda">Vista previa (' + lista.length * Math.max(1, st.copias) + ' etiqueta(s) · ' + Math.ceil(lista.length * Math.max(1, st.copias) / TAMANOS[st.tam].por) + ' hoja(s) carta):</div><div class="vista" id="eVista"><div class="zoom">' + etiquetaHTML(lista[0].resumen, st.tam, { nfpa: st.nfpa }) + '</div></div>' : '') +
+      '<button type="button" class="btn amber" id="eImp"' + (lista.length ? '' : ' disabled') + '>Imprimir ' + (lista.length ? lista.length * Math.max(1, st.copias) + ' etiqueta(s)' : '') + '</button>';
+    const v = cuerpo.querySelector('#eVista'); if (v) requestAnimationFrame(()=> { const z = v.querySelector('.zoom'), e = z.firstElementChild, k = Math.min(1, (v.clientWidth - 12) / e.offsetWidth); z.style.transform = 'scale(' + k + ')'; v.style.height = (e.offsetHeight * k + 12) + 'px'; });
+    cuerpo.querySelector('#eModo').addEventListener('click', (e)=> { const b = e.target.closest('[data-modo]'); if (b) { st.modo = b.dataset.modo; pintarE(); } });
+    cuerpo.querySelector('#eTam').addEventListener('click', (e)=> { const b = e.target.closest('[data-tam]'); if (b) { st.tam = b.dataset.tam; pintarE(); } });
+    if (cuerpo.querySelector('#eArea')) cuerpo.querySelector('#eArea').addEventListener('change', (e)=> { st.area = e.target.value; pintarE(); });
+    if (cuerpo.querySelector('#eLugar')) cuerpo.querySelector('#eLugar').addEventListener('change', (e)=> { st.lugar = e.target.value; pintarE(); });
+    if (cuerpo.querySelector('#eSel')) cuerpo.querySelector('#eSel').addEventListener('change', (e)=> { if (e.target.checked) st.sel.add(e.target.value); else st.sel.delete(e.target.value); pintarE(); });
+    cuerpo.querySelector('#eCop').addEventListener('change', (e)=> { const n = Math.round(Number(e.target.value)); if (!(n >= 1 && n <= 60)) { e.target.classList.add('field-invalid'); UI.toast('Copias: de 1 a 60.', 'mal'); e.target.value = st.copias; return; } st.copias = n; pintarE(); });
+    cuerpo.querySelector('#eNfpa').addEventListener('change', (e)=> { st.nfpa = e.target.checked; pintarE(); });
+    cuerpo.querySelectorAll('[data-comp]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.comp); if (d) completarEtiqueta(d, pintarE); }));
+    cuerpo.querySelector('#eImp').addEventListener('click', async ()=> {
+      if (faltan.length && !await Dialogo.confirmar(faltan.length + ' etiqueta(s) quedan incompletas (' + faltan.map((y)=> y.x.resumen.nombre).slice(0, 4).join(', ') + (faltan.length > 4 ? '…' : '') + '). ¿Imprimir así?')) return;
+      UI.imprimir(hojasEtiquetas(lista.map((x)=> x.resumen), st.tam, st.copias, { nfpa: st.nfpa }), false);
+    });
+  };
+  pintarE();
+}
+/** Completa lo de la etiqueta de una sustancia sin abrir todo el formulario. */
+function completarEtiqueta(d, alTerminar){
+  if (typeof d.pictogramas === 'string') d.pictogramas = d.pictogramas.split(/\s*,\s*/).filter(Boolean);
+  const campos = C_ETQ.map((k)=> C_SUS.find((c)=> c.k === k));
+  Registros.editar({ titulo: 'Etiqueta: ' + (d.nombre || ''), campos, datos: d, adjuntos: false,
+    antes: '<div class="aviso info">Elementos de la etiqueta del SGA (Res. 773 de 2021, art. 7). Cópialos de la etiqueta del proveedor o de la sección 2 de la ficha de datos de seguridad.</div>',
+    despues: extrasHTML(d),
+    alAbrir: (el, pref)=> { sinFiltroTel(el, pref); activarExtras(el, pref); vigilarFaltantes(el, pref, campos); },
+    alGuardar: async (v, el, pref)=> {
+      leerExtras(el, v);
+      const msg = marcar(el, pref, erroresSus(v)); if (msg) return msg;
+      if (!v.pictogramas.includes('Corrosivo')) v.corrosivoTipo = '';
+      delete v.lugarSel;
+      const r = await Registros.guardar('sustancia', d.id, v, d.version); if (typeof r === 'string') return r;
+      await cargar(); if (alTerminar) alTerminar(); return true; } });
+}
+/* ── Inventario desde Excel (los pictogramas se escriben separados por coma: «Inflamable, Irritante» o GHS02, GHS07) ── */
+function importarSus(){
+  const pics = PICTOS.map((p)=> [p.n, p.n]).concat(PICTOS.map((p)=> [p.n, p.g]));
+  const cols = [{ k: 'nombre', l: 'Nombre comercial', req: true, ej: 'Thinner' }, { k: 'fabricante', l: 'Fabricante', ej: 'Proveedor S.A.S.', vista: false, sin: ['proveedor'] }, { k: 'uso', l: 'Uso', ej: 'Limpieza de piezas', vista: false },
+    { k: 'area', l: 'Área', ej: 'Taller', vista: false, sin: ['proceso'] }, { k: 'ubicacion', l: 'Dónde se almacena', req: true, ej: 'Bodega de químicos', sin: ['ubicacion', 'almacenamiento', 'lugar'] },
+    { k: 'estadoFisico', l: 'Estado físico', tipo: 'lista', op: ['Líquido', 'Sólido', 'Gas', 'Aerosol', 'Pasta / gel'], ej: 'Líquido', vista: false }, { k: 'cantidad', l: 'Cantidad máxima', ej: '4 galones', vista: false },
+    { k: 'cas', l: 'CAS', ej: '', vista: false }, { k: 'onu', l: 'ONU', ej: '1263', vista: false },
+    { k: 'pictogramas', l: 'Pictogramas', tipo: 'listas', op: pics, ej: 'Inflamable, Irritante / nocivo', sin: ['pictogramas sga'] },
+    { k: 'palabra', l: 'Palabra de advertencia', tipo: 'lista', op: ['Peligro', 'Atención', 'Sin palabra de advertencia'], ej: 'Peligro', vista: false }, { k: 'frasesH', l: 'Frases H', ej: 'H225, H336', vista: false },
+    { k: 'consejosP', l: 'Frases P', ej: 'P210, P280, P501', vista: false, sin: ['consejos de prudencia'] }, { k: 'telProveedor', l: 'Teléfono del proveedor', ej: '601 000 0000', vista: false }, { k: 'telEmergencia', l: 'Teléfono de emergencias', ej: '', vista: false },
+    { k: 'carcinogena', l: 'Carcinógena', tipo: 'sino', ej: 'No', vista: false }, { k: 'toxicidadAguda', l: 'Toxicidad aguda', tipo: 'sino', ej: 'No', vista: false },
+    { k: 'corrosivoTipo', l: 'Corrosivo ácido o base', tipo: 'lista', op: ['Ácido', 'Base'], ej: '', vista: false },
+    { k: 'hojaSeguridad', l: 'Tiene ficha de seguridad', tipo: 'lista', op: ['Sí', 'No'], def: 'No', ej: 'Sí', vista: false, sin: ['fds', 'hoja de seguridad'] }, { k: 'fdsEspanol', l: 'Ficha en español', tipo: 'lista', op: ['Sí', 'No'], ej: 'Sí', vista: false },
+    { k: 'fechaHoja', l: 'Fecha de la ficha', tipo: 'fecha', ej: '10/02/2024', vista: false }, { k: 'etiquetaSGA', l: 'Etiqueta', tipo: 'lista', op: ['Conforme al SGA', 'Incompleta', 'Sin etiqueta'], ej: 'Conforme al SGA', vista: false },
+    { k: 'expuestos', l: 'Trabajadores expuestos', tipo: 'numero', ej: '5', vista: false }, { k: 'epp', l: 'EPP', ej: 'Guantes de nitrilo, monogafas', vista: false },
+    { k: 'controles', l: 'Controles', ej: '', vista: false }, { k: 'estado', l: 'Estado', tipo: 'lista', op: ['En uso', 'Fuera de uso'], def: 'En uso', ej: 'En uso', vista: false }];
+  const ya = (f)=> de('sustancia').find((x)=> Importar.norm(x.resumen.nombre) === Importar.norm(f.nombre) && Importar.norm(x.resumen.ubicacion) === Importar.norm(f.ubicacion));
+  const lugaresYa = [...new Set(de('sustancia').map((x)=> String(x.resumen.ubicacion || '').trim()).concat(lugaresReg().map((l)=> l.resumen.nombre)).filter(Boolean))];
+  Importar.abrir({ titulo: 'Sustancias químicas desde Excel', archivo: 'sustancias-quimicas', columnas: cols, tipoDoc: 'sustancia',
+    id: (f)=> { const e = ya(f); return e ? e.id : Importar.idDe('SUS', f.nombre, f.ubicacion); }, existe: (id)=> de('sustancia').some((x)=> x.id === id),
+    armar: (f, existe)=> { const c = {}; cols.forEach((x)=> { if (f[x.k] !== '' && f[x.k] != null) c[x.k] = f[x.k]; });
+      if (Array.isArray(f.pictogramas) && f.pictogramas.length) c.pictogramas = [...new Set(f.pictogramas)]; else if (!existe) c.pictogramas = [];
+      // El lugar se escribe igual que el que ya existe (o que la primera fila que lo trae) y se enlaza al lugar registrado.
+      c.ubicacion = lugaresYa.find((l)=> Importar.norm(l) === Importar.norm(f.ubicacion)) || f.ubicacion; if (!lugaresYa.includes(c.ubicacion)) lugaresYa.push(c.ubicacion);
+      const L = lugaresReg().find((l)=> Importar.norm(l.resumen.nombre) === Importar.norm(c.ubicacion)); c.lugarId = L ? L.id : '';
+      if (c.fechaHoja) c.venceHoja = Festivos.sumarMeses(c.fechaHoja, VIGENCIA_FDS_MESES);
+      if (c.pictogramas && !c.pictogramas.includes('Corrosivo')) c.corrosivoTipo = ''; if (existe && c.corrosivoTipo === '') delete c.corrosivoTipo; return c; },
+    alTerminar: ()=> cargar() });
+}
+/* ── Almacenamiento: lugares, lo que hay en cada uno y su compatibilidad ── */
+function pintarAlm(panel){
+  const lg = lugares();
+  let h = '<div class="acciones-top"><button type="button" class="btn amber" id="bLugar">+ Agregar lugar de almacenamiento</button></div>' +
+    '<div class="fila-btn u-mb10"><button type="button" class="btn ghost" id="bPdfLug">Lugares y lo que guardan (PDF)</button><button type="button" class="btn ghost" id="bPdfMx">Matriz de compatibilidad (PDF)</button></div>' +
+    '<p class="ayuda">Cada lugar con sus condiciones y las sustancias que guarda. Según los pictogramas, se marcan los pares que <b>no</b> deben ir juntos y los que van <b>con precaución</b>. Es una referencia: confirma con las secciones 7 y 10 de cada ficha.</p>';
+  h += lg.length ? lg.map((L, i)=> { const r = L.reg;
+    return '<div class="card lugar"><h3>' + esc(L.nombre) + ' <small style="color:var(--muted);font-weight:600;">' + L.l.length + ' sustancia(s)</small></h3>' +
+      (r ? '<div class="meta">' + esc([r.tipoLugar, r.area, r.responsable ? 'Responsable: ' + r.responsable : '', r.capacidad !== '' && r.capacidad != null ? 'Capacidad: ' + r.capacidad + ' ' + (r.unidadCapacidad || '') : ''].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="conds">' + CONDS.map((c)=> '<span class="' + (r[c[0]] === true ? 'si' : 'no') + '">' + (r[c[0]] === true ? '✓ ' : '✗ ') + esc(c[1]) + '</span>').join('') + '</div>'
+        : L.sin ? '<div class="meta">Sustancias en uso sin lugar asignado: ábrelas y elige dónde se almacenan, o usa «Asignar sustancias» en un lugar.</div>' : '<div class="meta">Escrito en las sustancias pero no está en la lista de lugares.</div>') +
+      (L.alertas.length ? '<div class="aviso amar" style="margin:8px 0;">' + L.alertas.map((a)=> esc(a)).join('<br>') + '</div>' : '') +
+      (L.l.length ? '<div class="susl">' + L.l.map((x)=> '<button type="button" data-sus="' + esc(x.id) + '">' + picHtml(x.resumen) + '<span>' + esc(x.resumen.nombre) + (x.resumen.cantidad ? ' · ' + esc(x.resumen.cantidad) : '') + '</span></button>').join('') + '</div>' : '<div class="meta" style="margin:6px 0;">Sin sustancias asignadas.</div>') +
+      (L.l.length > 1 ? (L.pares.length ? L.pares.map((p)=> '<div class="par ' + p.v + '"><b>' + (p.v === 'N' ? '✗ No juntos' : '⚠ Con precaución') + ': ' + esc(p.a.resumen.nombre) + ' + ' + esc(p.b.resumen.nombre) + '</b>' + esc(p.motivos.join(' ')) + '</div>').join('') : '<div class="par" style="background:var(--verde-50);color:var(--verde-600);">✓ Sin incompatibilidades entre estas sustancias según la matriz de referencia.</div>') : '') +
+      '<div>' + (L.id ? '<button type="button" class="btn-mini" data-ed="' + esc(L.id) + '">Editar lugar</button><button type="button" class="btn-mini" data-asig="' + esc(L.id) + '">Asignar sustancias</button>' : !L.sin ? '<button type="button" class="btn-mini" data-reg="' + i + '">Registrar este lugar</button>' : '') +
+      (L.l.length > 1 ? '<button type="button" class="btn-mini" data-mx="' + i + '">Ver matriz</button>' : '') + (L.l.length && !L.sin ? '<button type="button" class="btn-mini" data-etq="' + esc(L.id || L.nombre) + '">Etiquetas</button>' : '') + '</div></div>'; }).join('')
+    : '<div class="empty">Sin lugares de almacenamiento. Agrega la bodega, los gabinetes y las estanterías donde hay químicos.</div>';
+  h += '<div class="card"><h2>Matriz de referencia por pictograma</h2><div class="mx-wrap"><table class="mx"><tr><th></th>' + COD.map((c)=> '<th title="' + esc(PIC[c].n) + '">' + pictoSVG(c) + '</th>').join('') + '</tr>' +
+    COD.map((a)=> '<tr><th class="r">' + esc(PIC[a].n) + '</th>' + COD.map((b)=> { const v = mx(a, b); return '<td class="' + v + '">' + (v === 'S' ? '✓' : v === 'P' ? '!' : '✗') + '</td>'; }).join('') + '</tr>').join('') + '</table></div>' +
+    '<p class="ayuda">✓ pueden ir juntos · ! con precaución (distancia, bandejas o estantes distintos) · ✗ no juntos. Además: ácidos y bases, siempre separados.</p></div>';
+  panel.innerHTML = h;
+  panel.querySelectorAll('[data-mx]').forEach((b)=> b.addEventListener('click', ()=> { const L = lg[+b.dataset.mx];
+    UI.modal('<h3>' + esc(L.nombre) + '</h3><div class="mx-wrap">' + matrizLugar(L) + '</div><p class="ayuda">✓ juntas · ! con precaución · ✗ no juntas.</p><button type="button" class="btn ghost" data-cerrar>Cerrar</button>'); }));
+  panel.querySelectorAll('[data-sus]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.sus); if (d) editarSus(d); }));
+  panel.querySelectorAll('[data-ed]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.ed); if (d) editarLugar(d); }));
+  panel.querySelectorAll('[data-reg]').forEach((b)=> b.addEventListener('click', ()=> { const L = lg[+b.dataset.reg]; editarLugar({ id: SGSST.nuevoId('LUQ'), nuevo: true, nombre: L.nombre, area: (L.l[0] || { resumen: {} }).resumen.area || '', tipoLugar: TIPOS_LUGAR[0], unidadCapacidad: 'L', activo: true }); }));
+  panel.querySelectorAll('[data-asig]').forEach((b)=> b.addEventListener('click', ()=> asignarSustancias(b.dataset.asig)));
+  panel.querySelectorAll('[data-etq]').forEach((b)=> b.addEventListener('click', ()=> abrirEtiquetas({ lugar: b.dataset.etq })));
+  $('bLugar').addEventListener('click', ()=> editarLugar({ id: SGSST.nuevoId('LUQ'), nuevo: true, tipoLugar: TIPOS_LUGAR[0], unidadCapacidad: 'L', activo: true }));
+  $('bPdfMx').addEventListener('click', pdfMatriz);
+  $('bPdfLug').addEventListener('click', pdfLugares);
+}
+function editarLugar(d){
+  prepOtro(d, 'tipoLugar', TIPOS_LUGAR);
+  if (d.activo == null) d.activo = true;
+  Registros.editar({ titulo: d.nuevo ? 'Nuevo lugar de almacenamiento' : d.nombre, campos: C_LUG, datos: d,
+    antes: '<p class="ayuda">Bodega, gabinete o estantería donde se guardan químicos. Las condiciones salen en la pestaña y en la inspección de almacenamiento.</p>',
+    alAbrir: (el, pref)=> { conOtro(el, pref, 'tipoLugar'); vigilarFaltantes(el, pref, C_LUG); },
+    borrar: d.nuevo ? null : async ()=> { const n = enUso().filter((x)=> (lugarDe(x) || {}).id === d.id).length;
+      if (n && !await Dialogo.confirmar('Este lugar tiene ' + n + ' sustancia(s) asignada(s): quedarán con el nombre escrito pero sin lugar registrado. ¿Borrarlo?')) return false;
+      const ok = await Registros.borrar(d.id, 'Borrado desde Sustancias químicas'); if (ok) cargar(); return ok; },
+    alGuardar: async (v, el, pref)=> {
+      const e = [];
+      if (v.tipoLugar === 'Otro' && !String(v.tipoLugarOtro || '').trim()) e.push({ k: 'tipoLugarOtro', m: 'escribe el tipo de lugar' });
+      if (v.capacidad !== '' && !(Number(v.capacidad) >= 0)) e.push({ k: 'capacidad', m: 'la capacidad es un número de 0 en adelante' });
+      if (v.fechaRevision && v.fechaRevision > UI.hoy()) e.push({ k: 'fechaRevision', m: 'la fecha de revisión no puede ser futura' });
+      v.nombre = String(v.nombre || '').trim();
+      if (lugaresReg().some((x)=> x.id !== d.id && UI.norm(x.resumen.nombre) === UI.norm(v.nombre))) e.push({ k: 'nombre', m: 'ya hay un lugar con ese nombre' });
+      const msg = marcar(el, pref, e); if (msg) return msg;
+      leerOtro(v, 'tipoLugar');
+      const r = await Registros.guardar('lugarquim', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      // Si cambió el nombre, las sustancias enlazadas siguen enlazadas por su id.
+      await cargar(); return true; } });
+}
+/** Asigna sustancias a un lugar (parche: lugarId y ubicacion). */
+function asignarSustancias(idLugar){
+  const L = lugaresReg().find((x)=> x.id === idLugar); if (!L) return;
+  const u = enUso().slice().sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  const m = UI.modal('<h3>Sustancias en «' + esc(L.resumen.nombre) + '»</h3><p class="ayuda">Marca las que se guardan aquí. Si una estaba en otro lugar, pasa a este.</p><div class="selq" id="aSel">' +
+    u.map((x)=> { const y = lugarDe(x); return '<label><input type="checkbox" value="' + esc(x.id) + '"' + (y && y.id === idLugar ? ' checked' : '') + '> ' + esc(x.resumen.nombre) + (y && y.id !== idLugar ? ' <small style="color:var(--muted);">(en ' + esc(y.resumen.nombre) + ')</small>' : !y && x.resumen.ubicacion ? ' <small style="color:var(--muted);">(' + esc(x.resumen.ubicacion) + ')</small>' : '') + '</label>'; }).join('') +
+    '</div><button type="button" class="btn amber" id="aOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="aMsg"></div>', true);
+  m.el.querySelector('#aOk').addEventListener('click', async ()=> {
+    const marcadas = new Set([...m.el.querySelectorAll('#aSel input:checked')].map((i)=> i.value));
+    const cambios = u.filter((x)=> { const y = lugarDe(x), aqui = !!(y && y.id === idLugar); return marcadas.has(x.id) !== aqui; });
+    if (!cambios.length) { m.cerrar(); return; }
+    m.el.querySelector('#aOk').disabled = true; m.el.querySelector('#aMsg').textContent = 'Guardando…';
+    for (const x of cambios) { const campos = marcadas.has(x.id) ? { lugarId: idLugar, ubicacion: L.resumen.nombre } : { lugarId: '', ubicacion: '' };
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'sustancia', id: x.id, campos }, { resumen: Object.assign({}, x.resumen, campos) });
+      if (!r.ok) { m.el.querySelector('#aMsg').textContent = 'No se guardó ' + x.resumen.nombre + ': ' + (r.error || ''); m.el.querySelector('#aOk').disabled = false; return; } }
+    m.cerrar(); UI.toast('✓ ' + cambios.length + ' sustancia(s) actualizada(s).'); await cargar();
+  });
+}
+function matrizLugar(L, pdf){
+  const n = L.l, cel = (i, j)=> { if (i === j) return pdf ? '<td style="background:var(--line);"></td>' : '<td style="background:var(--bg);"></td>'; const v = compatPar(n[i], n[j]).v;
+    return pdf ? '<td class="a" style="background:' + (v === 'N' ? '#f6d4cf' : v === 'P' ? '#fbecc0' : '#d5efdd') + ';">' + (v === 'S' ? 'Sí' : v === 'P' ? 'Prec.' : 'NO') + '</td>' : '<td class="' + v + '">' + (v === 'S' ? '✓' : v === 'P' ? '!' : '✗') + '</td>'; };
+  return '<table class="mx"><tr><th></th>' + n.map((x, j)=> '<th title="' + esc(x.resumen.nombre) + '">' + (j + 1) + '</th>').join('') + '</tr>' +
+    n.map((x, i)=> '<tr><th class="r">' + (i + 1) + '. ' + esc(x.resumen.nombre) + '</th>' + n.map((_, j)=> cel(i, j)).join('') + '</tr>').join('') + '</table>';
+}
+/* ── Res. 773 de 2021 ── */
+function pintarGes(panel){
+  const req = requisitos();
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="gEd">Capacitación, señalización y emergencias</button></div>' +
+    '<div class="fila-btn u-mb10"><button type="button" class="btn ghost" id="gPdf">Estado del programa (PDF)</button><a class="btn ghost" href="inspecciones.html">Inspección de almacenamiento</a></div>' +
+    '<div class="card"><h2>Obligaciones del empleador</h2>' + req.map((r)=> '<div class="req"><span class="e ' + (r.ok ? 'ok' : 'mal') + '">' + (r.ok ? '✓' : '✗') + '</span><div><b>' + esc(r.t) + '</b> <small style="display:inline;">· ' + esc(r.a) + '</small><small>' + esc(r.d) + '</small>' +
+      (r.btn === 'inv' ? '<button type="button" class="btn-mini u-mt6" id="gInv">Anotar: inventario revisado hoy</button>' : '') + '</div></div>').join('') +
+    '<p class="ayuda u-mt8">Resumen de la Res. 773 de 2021 (SGA en los lugares de trabajo; el Decreto 1496 de 2018 adopta el SGA en Colombia). Verifica el texto vigente de la norma.</p></div>';
+  $('gEd').addEventListener('click', editarGes);
+  $('gPdf').addEventListener('click', pdfGestion);
+  if ($('gInv')) $('gInv').addEventListener('click', async ()=> { await guardarGes({ inventarioRevisado: UI.hoy() }); UI.toast('✓ Revisión del inventario anotada.'); });
+}
+async function guardarGes(campos){
+  const g = gestion(), r = await SGSST.enviar({ action: 'parche', tipo: 'gestquim', id: ID_GES, campos }, { resumen: Object.assign({}, g ? g.resumen : {}, campos) });
+  if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return false; }
+  await cargar(); return true;
+}
+async function editarGes(){
+  const g = gestion(), d = g ? await Registros.abrir(ID_GES) : { id: ID_GES, nuevo: true };
+  if (!d) return;
+  Registros.editar({ titulo: 'Programa de riesgo químico', campos: C_GES, datos: d,
+    alGuardar: async (v, el, pref)=> {
+      const e = [];
+      if (v.capacitados !== '' && !(Number(v.capacitados) >= 0)) e.push({ k: 'capacitados', m: 'personas capacitadas: número de 0 en adelante' });
+      if (v.capacitacionSGA && v.capacitacionSGA > UI.hoy()) e.push({ k: 'capacitacionSGA', m: 'la última capacitación no puede ser futura' });
+      const msg = marcar(el, pref, e); if (msg) return msg;
+      if (v.capacitacionSGA && (!v.proximaCapacitacion || v.proximaCapacitacion <= v.capacitacionSGA)) v.proximaCapacitacion = Festivos.sumarMeses(v.capacitacionSGA, 12);
+      const r = await Registros.guardar('gestquim', ID_GES, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; await cargar(); return true; } });
+}
+/* ── Acciones de lo que falta (una por problema; no repite las que siguen abiertas) ── */
+async function accionesFaltantes(){
+  const abiertas = de('accion').filter((a)=> a.estado !== 'CERRADA' && /^(SUS|QUIMICOS|LUQ)-/.test(a.resumen.origenRef || '')).map((a)=> a.resumen.origenRef + '|' + UI.norm(a.resumen.hallazgo).slice(0, 60));
+  const ya = (ref, hall)=> abiertas.includes(ref + '|' + UI.norm(hall).slice(0, 60));
+  const nuevas = [];
+  enUso().forEach((x)=> problemas(x).forEach((p)=> { const hall = x.resumen.nombre + ': ' + p; if (!ya(x.id, hall)) nuevas.push({ origenRef: x.id, hallazgo: hall, accion: p.startsWith('Sin ficha') || p.startsWith('Ficha') ? 'Conseguir la ficha de datos de seguridad vigente y en español de ' + x.resumen.nombre + ' y adjuntarla' : p.startsWith('Etiqueta sin revisar') ? 'Revisar la etiqueta de ' + x.resumen.nombre + ' y anotar si cumple el SGA' : p.startsWith('Etiqueta') ? 'Etiquetar ' + x.resumen.nombre + ' conforme al SGA (generador de etiquetas del portal)' : p.startsWith('Envases') ? 'Rotular los envases secundarios de ' + x.resumen.nombre : /lugar/i.test(p) ? 'Asignar ' + x.resumen.nombre + ' a un lugar de almacenamiento registrado' : 'Registrar los pictogramas de ' + x.resumen.nombre + ' según su etiqueta', prioridad: prioritaria(x.resumen) ? 'Alta' : 'Media' }); }));
+  lugares().forEach((L)=> { L.pares.filter((p)=> p.v === 'N').forEach((p)=> { const hall = 'Incompatibles juntos en ' + L.nombre + ': ' + p.a.resumen.nombre + ' + ' + p.b.resumen.nombre; if (!ya(p.a.id, hall)) nuevas.push({ origenRef: p.a.id, hallazgo: hall, accion: 'Separar ' + p.a.resumen.nombre + ' de ' + p.b.resumen.nombre + '. ' + p.motivos.join(' '), prioridad: 'Alta' }); });
+    if (L.id && L.l.length) L.alertas.forEach((a)=> { const hall = L.nombre + ': ' + a; if (!ya(L.id, hall)) nuevas.push({ origenRef: L.id, hallazgo: hall, accion: 'Corregir en ' + L.nombre + ': ' + a.toLowerCase(), prioridad: 'Media' }); }); });
+  requisitos().filter((r)=> !r.ok && r.a === 'Art. 21' && !/^Productos con etiqueta|^Inventario/.test(r.t)).forEach((r)=> { const hall = 'Res. 773 de 2021: ' + r.t; if (!ya(ID_GES, hall)) nuevas.push({ origenRef: ID_GES, hallazgo: hall + ' (' + r.d + ')', accion: 'Cumplir: ' + r.t.charAt(0).toLowerCase() + r.t.slice(1), prioridad: 'Media' }); });
+  if (!nuevas.length) { UI.toast('No hay nada nuevo por crear: lo que falta ya tiene acción abierta o todo está al día.'); return; }
+  if (!await Dialogo.confirmar('Se crean ' + nuevas.length + ' acción(es) en el plan de acción:\n\n· ' + nuevas.slice(0, 8).map((n)=> n.hallazgo).join('\n· ') + (nuevas.length > 8 ? '\n…' : ''))) return;
+  const resp = await Dialogo.pedir('Responsable:', ((gestion() || {}).resumen || {}).responsable || ''); if (!resp) return;
+  const f = Festivos.sumarHabiles(UI.hoy(), 10); let n = 0;
+  for (const a of nuevas) { const r = await UI.guardarAccion(Object.assign({ origen: 'Sustancias químicas', tipoAccion: 'Correctiva', responsable: resp, fechaCompromiso: a.prioridad === 'Alta' ? Festivos.sumarHabiles(UI.hoy(), 5) : f }, a)); if (r.ok) n++; else break; }
+  UI.toast('✓ ' + n + ' acción(es) creada(s).'); cargar();
+}
+/* ── PDF ── */
+function pdfInventario(){
+  const l = de('sustancia').slice().sort((a, b)=> (a.resumen.estado === 'Fuera de uso') - (b.resumen.estado === 'Fuera de uso') || String(a.resumen.ubicacion).localeCompare(String(b.resumen.ubicacion)) || String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  if (!l.length) { UI.toast('El inventario está vacío.'); return; }
+  const h = UI.hoy(), t = '<table><tr><th style="width:3%">N°</th><th style="width:13%">Sustancia</th><th style="width:9%">Fabricante</th><th style="width:10%">Uso · área</th><th style="width:9%">Almacenamiento</th><th style="width:6%">Estado · cantidad</th><th style="width:7%">CAS · ONU</th><th style="width:12%">Pictogramas SGA</th><th style="width:6%">Palabra</th><th style="width:7%">Frases H</th><th style="width:5%">Prioritaria</th><th style="width:7%">Ficha (FDS)</th><th style="width:5%">Etiqueta</th><th>EPP</th></tr>' +
+    l.map((x, i)=> { const s = x.resumen, fds = s.hojaSeguridad !== 'Sí' ? 'NO TIENE' : (s.fechaHoja ? esc(UI.corta(s.fechaHoja)) : 'Sí') + (s.venceHoja ? '<br>revisar ' + esc(UI.corta(s.venceHoja)) : ''), malF = s.hojaSeguridad !== 'Sí' || (s.venceHoja && s.venceHoja < h), L = lugarDe(x);
+      return '<tr' + (s.estado === 'Fuera de uso' ? ' style="color:var(--n-450);"' : '') + '><td class="a">' + (i + 1) + '</td><td>' + esc(s.nombre) + (s.estado === 'Fuera de uso' ? '<br>(fuera de uso)' : '') + '</td><td>' + esc(s.fabricante || '') + '</td><td>' + esc([s.uso, s.area].filter(Boolean).join(' · ')) + '</td><td>' + esc(L ? L.resumen.nombre : s.ubicacion || '') + '</td><td>' + esc([s.estadoFisico, s.cantidad].filter(Boolean).join(' · ')) + '</td><td>' + esc([s.cas, s.onu ? 'ONU ' + s.onu : ''].filter(Boolean).join(' · ')) + '</td><td>' + esc(s.pictogramas || '—') + '</td><td>' + esc(s.palabra || '') + '</td><td>' + esc(s.frasesH || '') + '</td><td class="a">' + (prioritaria(s) ? 'SÍ' : '') + '</td><td' + (malF ? ' style="background:var(--rojo-100);"' : '') + '>' + fds + '</td><td' + (s.etiquetaSGA && s.etiquetaSGA !== 'Conforme al SGA' ? ' style="background:var(--rojo-100);"' : '') + '>' + esc(s.etiquetaSGA || '') + '</td><td>' + esc(s.epp || '') + '</td></tr>'; }).join('') + '</table>';
+  UI.imprimir([UI.cabecera('SG-SUSTANCIAS', 'INVENTARIO DE SUSTANCIAS QUÍMICAS', 'Corte ' + UI.corta(h) + ' · ' + enUso().length + ' en uso · Res. 773 de 2021') + t], true);
+}
+function pdfLugares(){
+  const lg = lugares().filter((L)=> !L.sin);
+  if (!lg.length) { UI.toast('Sin lugares de almacenamiento.'); return; }
+  const filas = lg.map((L, i)=> { const r = L.reg || {};
+    return '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(L.nombre) + (L.reg ? '' : '<br>(sin registrar)') + '</td><td>' + esc([r.tipoLugar, r.area].filter(Boolean).join(' · ')) + '</td><td>' + esc(r.responsable || '') + '</td><td>' + esc(r.capacidad !== '' && r.capacidad != null ? r.capacidad + ' ' + (r.unidadCapacidad || '') : '') + '</td>' +
+      CONDS.map((c)=> '<td class="a" style="background:' + (r[c[0]] === true ? '#d5efdd' : '#f6d4cf') + ';">' + (r[c[0]] === true ? 'Sí' : 'No') + '</td>').join('') +
+      '<td>' + esc(L.l.map((x)=> x.resumen.nombre + (x.resumen.cantidad ? ' (' + x.resumen.cantidad + ')' : '')).join(', ')) + '</td><td>' + esc([L.n ? L.n + ' par(es) incompatible(s)' : ''].concat(L.alertas).filter(Boolean).join(' · ')) + '</td></tr>'; }).join('');
+  UI.imprimir([UI.cabecera('SG-LUGARES-QUIMICOS', 'LUGARES DE ALMACENAMIENTO DE SUSTANCIAS QUÍMICAS', 'Corte ' + UI.corta(UI.hoy()) + ' · ' + lg.length + ' lugar(es)') +
+    '<table><tr><th style="width:3%">N°</th><th style="width:11%">Lugar</th><th style="width:9%">Tipo · área</th><th style="width:8%">Responsable</th><th style="width:6%">Capacidad</th>' + CONDS.map((c)=> '<th style="width:5%">' + esc(c[1]) + '</th>').join('') + '<th>Sustancias que guarda</th><th style="width:16%">Por resolver</th></tr>' + filas + '</table>'], true);
+}
+function pdfMatriz(){
+  const lg = lugares().filter((L)=> L.l.length);
+  if (!lg.length) { UI.toast('Sin sustancias en uso.'); return; }
+  const ref = '<table><tr><td class="l"></td>' + COD.map((c)=> '<td class="l" style="font-size:8px;">' + esc(PIC[c].n) + '</td>').join('') + '</tr>' + COD.map((a)=> '<tr><td class="l">' + esc(PIC[a].n) + '</td>' + COD.map((b)=> { const v = mx(a, b); return '<td class="a" style="background:' + (v === 'N' ? '#f6d4cf' : v === 'P' ? '#fbecc0' : '#d5efdd') + ';">' + (v === 'S' ? 'Sí' : v === 'P' ? 'Prec.' : 'NO') + '</td>'; }).join('') + '</tr>').join('') + '</table>';
+  const hojas = [UI.cabecera('SG-COMPATIBILIDAD', 'MATRIZ DE COMPATIBILIDAD DE ALMACENAMIENTO', 'Corte ' + UI.corta(UI.hoy())) + UI.seccion('REFERENCIA POR PICTOGRAMA DEL SGA', ref + '<p style="font-size:9px;margin:4px 0 0;">Sí: pueden almacenarse juntos · Prec.: con precaución (separar con distancia, bandejas o estantes distintos) · NO: no se almacenan juntos. Ácidos y bases siempre separados. Referencia de buenas prácticas: se confirma con las secciones 7 y 10 de cada ficha de datos de seguridad.</p>')];
+  lg.forEach((L)=> hojas.push(UI.cabecera('SG-COMPATIBILIDAD', 'MATRIZ DE COMPATIBILIDAD: ' + String(L.nombre).toUpperCase(), L.l.length + ' sustancia(s) · ' + L.n + ' par(es) incompatible(s)') +
+    matrizLugar(L, true).replace('class="mx"', '') + (L.pares.length ? UI.seccion('PARES QUE REQUIEREN ATENCIÓN', '<table><tr><td class="l">Sustancias</td><td class="l">Resultado</td><td class="l">Por qué</td></tr>' + L.pares.map((p)=> '<tr><td>' + esc(p.a.resumen.nombre + ' + ' + p.b.resumen.nombre) + '</td><td>' + (p.v === 'N' ? 'NO JUNTOS' : 'Con precaución') + '</td><td>' + esc(p.motivos.join(' ')) + '</td></tr>').join('') + '</table>') : '')));
+  UI.imprimir(hojas, true);
+}
+function pdfGestion(){
+  const req = requisitos(), g = (gestion() || {}).resumen || {};
+  UI.imprimir([UI.cabecera('SG-GESTION-QUIMICA', 'GESTIÓN DEL RIESGO QUÍMICO · RES. 773 DE 2021', 'Corte ' + UI.corta(UI.hoy())) +
+    UI.seccion('DATOS', UI.tablaDatos([['Responsable', g.responsable || '—'], ['Sustancias en uso', String(enUso().length)], ['Última capacitación en SGA', g.capacitacionSGA ? UI.corta(g.capacitacionSGA) + (g.capacitados ? ' · ' + g.capacitados + ' persona(s)' : '') : '—'], ['Próxima capacitación', UI.corta(g.proximaCapacitacion) || '—'], ['Última revisión del inventario', UI.corta(g.inventarioRevisado) || '—'], ['Lugares de almacenamiento', String(lugaresReg().length)]])) +
+    UI.seccion('REQUISITOS', '<table><tr><td class="l" style="width:4%">N°</td><td class="l">Requisito</td><td class="l" style="width:12%">Referencia</td><td class="l" style="width:9%">Estado</td><td class="l" style="width:32%">Detalle</td></tr>' + req.map((r, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(r.t) + '</td><td>' + esc(r.a) + '</td><td class="a" style="background:' + (r.ok ? '#d5efdd' : '#f6d4cf') + ';">' + (r.ok ? 'Cumple' : 'Pendiente') + '</td><td>' + esc(r.d) + '</td></tr>').join('') + '</table>')]);
+}
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar().then(async ()=> { if (location.hash.length > 1 && !/^#ir=/.test(location.hash)) { const id = decodeURIComponent(location.hash.slice(1));
+  if (/^SUS-/.test(id)) { const d = await Registros.abrir(id); if (d) editarSus(d); }
+  else if (/^LUQ-/.test(id) || id === 'almacenamiento') { document.querySelector('#tabs [data-tab="almacen"]').click(); if (/^LUQ-/.test(id)) { const d = await Registros.abrir(id); if (d) editarLugar(d); } }
+  else if (id === 'etiquetas') abrirEtiquetas();
+  else if (id === ID_GES) document.querySelector('#tabs [data-tab="gestion"]').click(); } });
+</script>
+</body>
+</html>

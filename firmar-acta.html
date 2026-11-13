@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-hCPawWlh0RtDZwM/M3slKXNa+3bOUhYqyE2hBCSidaw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Firmar acta · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Firmar acta · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.asis{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1.5px solid var(--line);border-radius:var(--r-m,10px);background:var(--paper);margin:0 0 8px;min-height:52px;width:100%;text-align:left;font:inherit;cursor:pointer;}
+.asis.on{border-color:var(--azul-600,#2a5bd7);background:var(--azul-50,#eef4ff);}
+.asis small{color:var(--muted);}
+.asis .ok{color:var(--ok);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrActa">
+  <div class="hdr">
+    <a class="back" href="index.html">← Portal</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow" id="eyebrow">Acta de comité</div>
+    <h1 id="titulo">Firmar el acta</h1>
+    <p id="sub">Cargando…</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="cuerpo"></div>
+  <div class="status-msg" id="msg" role="status"></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrListo"><div class="card listo" id="listo"></div></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+/* v149: firma de actas con el enlace que comparte el secretario del comité (sin usuario).
+   El enlace sirve solo para ESTA acta y solo para firmar. De Convivencia no se muestra el contenido. */
+const $ = UI.$, q = new URLSearchParams(location.search), ID = q.get('id') || '', K = q.get('k') || '';
+const NOMBRE_COMITE = { copasst: 'COPASST', convivencia: 'Comité de Convivencia Laboral', emergencias: 'Comité de Emergencias', vigia: 'Vigía de SST' };
+let acta = null, elegido = null;
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  if (!ID || !K) { $('sub').textContent = 'Este enlace está incompleto. Pídele el enlace al secretario del comité.'; return; }
+  try { acta = await (await fetchWithRetry(SGSST.url() + '?action=actaPublica&id=' + encodeURIComponent(ID) + '&k=' + encodeURIComponent(K) + '&token=' + encodeURIComponent(SGSST.token()))).json(); }
+  catch (e) { $('sub').textContent = 'Sin señal: abre el enlace de nuevo cuando tengas conexión.'; return; }
+  if (!acta || !acta.ok) { $('sub').textContent = (acta && acta.error) || 'No se pudo abrir el acta.'; return; }
+  $('eyebrow').textContent = NOMBRE_COMITE[acta.comite] || acta.comite;
+  $('titulo').textContent = 'Acta ' + (acta.numero || '') + ' · reunión ' + String(acta.tipoReunion || '').toLowerCase();
+  $('sub').textContent = UI.corta(acta.fecha) + (acta.lugar ? ' · ' + acta.lugar : '');
+  pintar();
+}
+function pintar(){
+  const a = acta;
+  $('cuerpo').innerHTML = (a.temas.length ? '<div class="card"><h2>Temas tratados</h2><ol>' + a.temas.map((t)=> '<li>' + esc(t) + '</li>').join('') + '</ol></div>' : (a.comite === 'convivencia' ? '<div class="aviso info">El contenido de las actas del Comité de Convivencia es reservado: aquí solo se firma la asistencia.</div>' : '')) +
+    '<div class="card"><h2>¿Quién eres?</h2><p class="ayuda">Toca tu nombre. Si no estás en la lista (invitado), toca «No estoy en la lista».</p>' +
+    a.asistentes.map((p)=> '<button type="button" class="asis' + (elegido === p.i ? ' on' : '') + '" data-i="' + p.i + '"' + (p.firmado ? ' disabled' : '') + '><span><b>' + esc(p.nombre) + '</b><br><small>' + esc(p.cargo || '') + '</small></span>' + (p.firmado ? '<span class="ok">Ya firmó</span>' : '') + '</button>').join('') +
+    '<button type="button" class="asis' + (elegido === -1 ? ' on' : '') + '" data-i="-1"><span><b>No estoy en la lista</b><br><small>Firmar como invitado</small></span></button></div>' +
+    (elegido === null ? '' : '<div class="card"><div class="field"><label for="fNom">Nombre completo *</label><input type="text" id="fNom" autocomplete="name" value="' + esc(elegido >= 0 ? (a.asistentes.find((x)=> x.i === elegido) || {}).nombre || '' : '') + '"' + (elegido >= 0 ? ' readonly' : '') + '></div>' +
+      '<div class="grid2"><div class="field"><label for="fCed">Cédula *</label><input type="text" id="fCed" inputmode="numeric"></div><div class="field"><label for="fCargo">Cargo</label><input type="text" id="fCargo"></div></div>' +
+      '<div class="field"><label>Tu firma *</label>' + UI.padHTML('fFirma') + '</div>' +
+      '<p class="ayuda">Con tu firma declaras que asististe a esta reunión.</p>' +
+      '<button type="button" class="btn amber" id="enviar" style="width:100%;min-height:52px;">Firmar el acta</button></div>');
+  $('cuerpo').querySelectorAll('[data-i]').forEach((b)=> b.addEventListener('click', ()=> { elegido = +b.dataset.i; pintar(); const n = $('fCed'); if (n) n.focus(); }));
+  if (elegido !== null) { UI.activarPad('fFirma'); Valida.soloDigitos($('fCed'), 10); $('enviar').addEventListener('click', enviar); }
+}
+async function enviar(){
+  const firma = UI.firma('fFirma'), nombre = $('fNom').value.trim(), cedula = $('fCed').value.trim();
+  const falta = [!nombre && 'tu nombre', Valida.cedula(cedula) && 'tu cédula', !firma && 'tu firma'].filter(Boolean);
+  if (falta.length) { $('msg').textContent = 'Falta: ' + falta.join(', ') + '.'; return; }
+  const body = { action: 'firmarActa', token: SGSST.token(), id: ID, clave: K, i: elegido, nombre, cedula, cargo: $('fCargo').value.trim(), firma, opId: 'fa-' + Date.now() + '-' + Math.random().toString(36).slice(2) };
+  const b = $('enviar'); b.disabled = true; $('msg').textContent = 'Enviando…';
+  let r;
+  try { r = await (await fetchWithRetry(SGSST.url(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })).json(); }
+  catch (e) { if (typeof Outbox !== 'undefined') { await Outbox.add(SGSST.url(), body); r = { ok: true, enCola: true }; } else r = { ok: false, error: 'Sin señal.' }; }
+  b.disabled = false;
+  if (!r.ok) { $('msg').textContent = r.error || 'No se pudo firmar.'; return; }
+  $('listo').innerHTML = '<div class="ic">✓</div><h2>¡Gracias, ' + esc(nombre.split(' ')[0]) + '!</h2><p>' + (r.enCola ? 'Tu firma quedó guardada en este celular y se envía sola cuando haya señal.' : r.yaFirmado ? 'Ya habías firmado esta acta.' : 'Tu firma quedó en el acta.') + '</p><a class="btn ghost" href="index.html">Ir al portal</a>';
+  document.querySelectorAll('.screen').forEach((s)=> s.classList.toggle('active', s.id === 'scrListo')); window.scrollTo(0, 0);
+}
+cargar();
+</script>
+</body>
+</html>

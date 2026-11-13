@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-TmJx7gPP+wcd5rD6+UfqOqO2+YRZV1dXQKS6J9wljsY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Portal del contratista · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Portal del contratista · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.cp-l{margin:0;padding:0;list-style:none;} .cp-l li{border-bottom:1px solid var(--n-150);padding:10px 0;}
+.cp-l .t{font-weight:700;} .cp-f{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:6px;} @media (max-width:520px){ .cp-f{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="screen active">
+  <div class="hdr"><div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Portal del contratista</div><h1 id="cpNom">Tus documentos</h1><p id="cpSub">Verificando el enlace…</p></div></div></div>
+  <div id="cpMsg"></div>
+  <div id="cpCuerpo" hidden>
+    <div class="card"><h2>Documentos de tu empresa</h2><p class="ayuda u-mtn4">Sube cada soporte (PDF o foto) con su fecha de expedición: el vencimiento se calcula solo. Quedan «por revisar» hasta que el área SST los apruebe.</p><ul class="cp-l" id="cpDocs"></ul></div>
+    <div class="card"><h2>Tu personal</h2><p class="ayuda u-mtn4">Registra a quienes van a trabajar en la empresa. SST revisa sus requisitos antes de habilitarlos.</p><ul class="cp-l" id="cpTrab"></ul>
+      <details class="u-mt8"><summary class="btn ghost mini">＋ Registrar una persona</summary>
+        <div class="cp-f"><div class="field"><label for="tNom">Nombre completo</label><input type="text" id="tNom" maxlength="120" data-no-ac></div><div class="field"><label for="tCed">Cédula</label><input type="text" id="tCed" inputmode="numeric" maxlength="12" data-no-ac></div>
+        <div class="field"><label for="tCar">Cargo</label><input type="text" id="tCar" maxlength="80" data-no-ac></div></div>
+        <button type="button" class="btn" id="tOk">Registrar</button><div class="status-msg" id="tMsg" role="status"></div></details></div>
+    <div class="card"><h2>Inducción</h2><p class="ayuda u-mtn4">Cada persona hace la inducción de contratista desde su celular antes de entrar.</p><a class="btn ghost" id="cpInd" href="induccion-responder.html">Abrir la inducción</a></div>
+  </div>
+</div>
+</main>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="contratistas-docs.js"></script>
+<script>
+/* v162 · Portal del contratista (sin usuario, con su enlace): sus documentos y vencimientos, subir soportes y
+   registrar a su personal. No ve nada más de la empresa. */
+const $ = (id)=> document.getElementById(id), Q = new URLSearchParams(location.search), ID = Q.get('id') || '', K = Q.get('k') || '';
+let datos = null;
+const enviar = (o)=> fetchWithRetry(SGSST.url(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ id: ID, k: K, opId: 'ctr-' + Date.now() }, o)) }).then((r)=> r.json());
+async function cargar(){
+  if (!ID || !K || !SGSST.url()) { $('cpSub').textContent = 'Enlace incompleto.'; return; }
+  let r; try { r = await SGSST.consultar({ action: 'contratistaPortal', id: ID, k: K }); } catch (e) { r = { ok: false, error: 'Sin señal.' }; }
+  if (!r.ok) { $('cpSub').textContent = 'Enlace no válido'; $('cpMsg').innerHTML = '<div class="aviso mal">' + esc(r.error || '') + '</div>'; return; }
+  datos = r; $('cpNom').textContent = r.contratista.nombre; $('cpSub').textContent = 'Para ' + r.empresa + (r.contratista.nit ? ' · NIT ' + r.contratista.nit : ''); $('cpCuerpo').hidden = false;
+  const h = UI.hoy();
+  $('cpDocs').innerHTML = DOCS_CONTRATISTA.map((d)=> { const x = r.documentos[d.k] || {}, est = x.noAplica ? ['', 'No aplica'] : x.porRevisar ? ['pronto', 'Por revisar'] : !x.fecha ? (d.opcional ? ['', 'Si aplica'] : ['mal', 'Falta']) : x.vence && x.vence < h ? ['mal', 'Vencido'] : ['ok', 'Vigente'];
+    return '<li><div class="t">' + esc(d.n) + ' <span class="chip ' + est[0] + '">' + est[1] + '</span></div><div class="m">' + (x.fecha ? 'Expedido ' + esc(UI.corta(x.fecha)) : '') + (x.vence ? ' · vence ' + esc(UI.corta(x.vence)) : '') + '</div>' +
+      (x.noAplica ? '' : '<details><summary class="btn-mini">Subir soporte</summary><div class="cp-f"><div class="field"><label for="f_' + d.k + '">Fecha de expedición</label><input type="date" id="f_' + d.k + '" max="' + h + '"></div><div class="field"><label for="a_' + d.k + '">Archivo (PDF o foto)</label><input type="file" id="a_' + d.k + '" accept="application/pdf,image/*"></div></div><button type="button" class="btn-mini" data-subir="' + d.k + '" data-meses="' + (d.meses || 0) + '">Enviar</button> <span class="status-msg" id="m_' + d.k + '"></span></details>') + '</li>'; }).join('');
+  $('cpTrab').innerHTML = r.trabajadores.length ? r.trabajadores.map((t)=> '<li><div class="t">' + esc(t.nombre) + (t.porRevisar ? ' <span class="chip pronto">Por revisar</span>' : '') + '</div><div class="m">CC ' + esc(t.cedula) + (t.cargo ? ' · ' + esc(t.cargo) : '') +
+    Object.keys(t.req || {}).map((q)=> { const v = t.req[q].vence; return v ? ' · ' + esc(q.replace(/_/g, ' ')) + ' ' + (v < h ? '<b class="u-mal">vencido</b>' : 'hasta ' + esc(UI.corta(v))) : ''; }).join('') + '</div></li>').join('') : '<li class="empty">Aún no hay personas registradas.</li>';
+  const e = Q.get('e'); $('cpInd').href = 'induccion-responder.html' + (e ? '?e=' + encodeURIComponent(e) : '');
+}
+document.addEventListener('click', async (ev)=> {
+  const b = ev.target.closest('[data-subir]'); if (!b) return; const k = b.dataset.subir, f = $('a_' + k).files[0], fe = $('f_' + k).value, m = $('m_' + k);
+  if (!fe || !f) { m.textContent = 'Elige la fecha y el archivo.'; return; }
+  if (f.size > 8 * 1024 * 1024) { m.textContent = 'El archivo pesa más de 8 MB.'; return; }
+  b.disabled = true; m.textContent = 'Enviando…';
+  const base64 = await new Promise((ok)=> { const r = new FileReader(); r.onload = ()=> ok(String(r.result).split(',')[1]); r.readAsDataURL(f); });
+  let r; try { r = await enviar({ action: 'contratistaSubir', doc: k, fecha: fe, meses: b.dataset.meses, nombre: f.name, mime: f.type, base64 }); } catch (e) { r = { ok: false, error: 'Sin señal.' }; }
+  b.disabled = false; m.textContent = r.ok ? '✓ Recibido' : (r.error || 'No se pudo'); if (r.ok) setTimeout(cargar, 800);
+});
+$('tOk').addEventListener('click', async ()=> {
+  const nom = $('tNom').value.trim(), ced = $('tCed').value.replace(/\D/g, ''), mc = Valida.cedula(ced), m = $('tMsg');
+  if (nom.split(/\s+/).length < 2) { m.textContent = 'Escribe nombre y apellido.'; return; } if (mc) { m.textContent = 'Cédula: ' + mc + '.'; return; }
+  $('tOk').disabled = true; let r; try { r = await enviar({ action: 'contratistaTrabajador', nombre: nom, cedula: ced, cargo: $('tCar').value.trim() }); } catch (e) { r = { ok: false, error: 'Sin señal.' }; }
+  $('tOk').disabled = false; m.textContent = r.ok ? '✓ Registrada' : (r.error || 'No se pudo'); if (r.ok) { ['tNom', 'tCed', 'tCar'].forEach((x)=> { $(x).value = ''; }); cargar(); }
+});
+cargar();
+</script>
+</body>
+</html>

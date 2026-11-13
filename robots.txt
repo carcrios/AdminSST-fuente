@@ -1,0 +1,3 @@
+# Portal SSTA: herramienta interna con datos de trabajadores. No se publica en buscadores.
+User-agent: *
+Disallow: /

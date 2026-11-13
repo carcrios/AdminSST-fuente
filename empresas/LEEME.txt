@@ -1,0 +1,1 @@
+Aquí va un archivo <código>.json por cada empresa cliente (se genera con configurar-empresa.html).

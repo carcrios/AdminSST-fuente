@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ZBBHorP1c518wJ01D8MnHgjhj3WZib81H5Oiq6H/QQk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Gestión de la calidad · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gestión de la calidad · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.dofa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.dofa div{border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);line-height:1.4;min-height:70px;}
+.dofa h4{margin:0 0 4px;font-size:var(--fs-menor);text-transform:uppercase;letter-spacing:.05em;}
+.dofa ul{margin:0;padding-left:16px;}
+.dofa .f{background:var(--verde-50);} .dofa .d{background:var(--rojo-50);} .dofa .o{background:var(--azul-50);} .dofa .a{background:var(--ambar-100);}
+.tabla-m{width:100%;border-collapse:collapse;font-size:var(--fs-menor);background:#fff;border-radius:var(--r-m);overflow:hidden;margin-bottom:10px;}
+.tabla-m th,.tabla-m td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;}
+.tabla-m th{background:var(--n-50);font-size:var(--fs-menor);color:var(--muted);}
+.barras{display:flex;align-items:flex-end;gap:3px;height:42px;margin-top:6px;}
+.barras span{flex:1;background:#7fb08f;border-radius:3px 3px 0 0;min-height:2px;} .barras span.mal{background:var(--rojo-300);}
+.criterio{display:flex;justify-content:space-between;font-size:var(--fs-base);padding:4px 0;border-bottom:1px solid var(--line);}
+.criterio b{white-space:nowrap;}
+.sub-t{font-size:var(--fs-menor);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 2px 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;}
+.sub-t small{font-weight:600;text-transform:none;letter-spacing:0;}
+.tabla-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;}
+/* Encuesta por enlace: editor de preguntas, enlace y QR */
+.pe{border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px;margin-bottom:8px;background:var(--n-0);}
+.pe .pe-top{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+.pe .pe-n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--bg);font-size:var(--fs-menor);font-weight:700;display:flex;align-items:center;justify-content:center;}
+.pe .pe-top select{flex:1;min-width:0;min-height:44px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:0 8px;font-size:var(--fs-base);font-family:inherit;background:#fff;}
+.pe .pe-x{flex:0 0 auto;width:44px;height:44px;border:1.5px solid var(--line);border-radius:var(--r-s);background:#fff;font-size:var(--fs-display);color:var(--mal);cursor:pointer;}
+.pe textarea{width:100%;min-height:52px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:9px 10px;font-size:var(--fs-titulo);font-family:inherit;line-height:1.35;resize:vertical;background:#fff;}
+.pe label.check{font-size:var(--fs-base);margin-top:4px;display:flex;gap:8px;align-items:center;min-height:36px;}
+.pe label.check input{width:20px;height:20px;}
+.qr-caja{text-align:center;margin:4px 0 8px;}
+.qr-caja canvas{width:220px;max-width:70%;height:auto;image-rendering:pixelated;border:1px solid var(--line);border-radius:var(--r-m);}
+.enlace-txt{word-break:break-all;font-size:var(--fs-menor);background:var(--n-50);border:1px dashed var(--line);border-radius:var(--r-s);padding:8px 10px;margin-bottom:6px;user-select:all;-webkit-user-select:all;}
+.resp-q{border-bottom:1px dashed var(--n-150);padding:8px 0;font-size:var(--fs-base);}
+.resp-q:last-child{border-bottom:0;}
+.resp-q .v{font-weight:700;margin-top:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">HSEQ · Calidad</div>
+    <h1>Gestión de la calidad</h1>
+    <p>ISO 9001: contexto, riesgos y oportunidades, objetivos, producto no conforme, PQRS y satisfacción del cliente</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="contexto">Contexto</button>
+    <button type="button" data-tab="riesgos">Riesgos y oportunidades <span class="n" id="nRie">0</span></button>
+    <button type="button" data-tab="objetivos">Objetivos <span class="n" id="nObj">0</span></button>
+    <button type="button" data-tab="pnc">No conforme <span class="n" id="nPnc">0</span></button>
+    <button type="button" data-tab="pqrs">PQRS <span class="n" id="nPqr">0</span></button>
+    <button type="button" data-tab="satisfaccion">Satisfacción <span class="n" id="nEnc">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="qr.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const ID_CTX = 'CTX-CALIDAD';
+const DIAS_PQRS = Number(((typeof EMPRESA !== 'undefined' && EMPRESA.calidad) || {}).diasPQRS) || 15;   // plazo interno de respuesta (días hábiles)
+const ESCALA5 = [['5', '5 · Excelente'], ['4', '4 · Bueno'], ['3', '3 · Aceptable'], ['2', '2 · Malo'], ['1', '1 · Muy malo']];
+const CRITERIOS = [['calidad', 'Calidad del producto o servicio'], ['oportunidad', 'Cumplimiento y oportunidad'], ['atencion', 'Atención y comunicación'], ['precio', 'Relación calidad / precio']];
+/* Riesgos y oportunidades: probabilidad × impacto (1 a 5). Método de referencia: ajústalo a tu procedimiento. */
+const nivelRO = (p, i)=> { const n = (Number(p) || 1) * (Number(i) || 1); return { n, t: n >= 15 ? 'Alto' : n >= 6 ? 'Medio' : 'Bajo' }; };
+const C_RIE = [{ k: 'sistema', l: 'Sistema de gestión', t: 'select', op: ['Calidad', 'SST', 'Ambiental', 'Integrado'], medio: true }, { k: 'proceso', l: 'Proceso', req: true, medio: true }, { k: 'tipoRO', l: 'Tipo', t: 'select', op: ['Riesgo', 'Oportunidad'], medio: true },
+  { k: 'descripcion', l: 'Descripción', req: true, ph: 'Ej: Retraso de un proveedor crítico de materia prima' }, { k: 'causa', l: 'Causa o fuente', ph: 'Ej: un solo proveedor calificado' },
+  { k: 'probabilidad', l: 'Probabilidad (1 a 5)', t: 'select', op: ['1', '2', '3', '4', '5'], medio: true }, { k: 'impacto', l: 'Impacto (1 a 5)', t: 'select', op: ['1', '2', '3', '4', '5'], medio: true },
+  { k: 'tratamiento', l: 'Acción para abordarlo', t: 'textarea' }, { k: 'responsable', l: 'Responsable', t: 'persona', medio: true }, { k: 'fechaCompromiso', l: 'Fecha', t: 'date', medio: true },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['ABIERTO', 'EN TRATAMIENTO', 'TRATADO'] }];
+const C_OBJ = [{ k: 'sistema', l: 'Sistema de gestión', t: 'select', op: ['Calidad', 'SST', 'Ambiental', 'Integrado'], medio: true }, { k: 'objetivo', l: 'Objetivo', req: true, ph: 'Ej: Entregar a tiempo los pedidos' }, { k: 'indicador', l: 'Indicador', req: true, medio: true, ph: 'Ej: Entregas a tiempo' },
+  { k: 'formula', l: 'Fórmula', medio: true, ph: 'Ej: entregas a tiempo / entregas totales × 100' }, { k: 'meta', l: 'Meta', t: 'number', req: true, medio: true }, { k: 'unidad', l: 'Unidad', medio: true, ph: '%' },
+  { k: 'sentido', l: 'Se cumple si el valor es', t: 'select', op: [['mayor', 'mayor o igual a la meta'], ['menor', 'menor o igual a la meta']], medio: true }, { k: 'frecuencia', l: 'Frecuencia', t: 'select', op: ['Mensual', 'Trimestral', 'Semestral', 'Anual'], medio: true },
+  { k: 'responsable', l: 'Responsable', t: 'persona' }, { k: 'estado', l: 'Estado', t: 'select', op: ['VIGENTE', 'INACTIVO'] }];
+const C_PNC = [{ k: 'fecha', l: 'Fecha', t: 'date', req: true, medio: true }, { k: 'detectadoEn', l: 'Dónde se detectó', t: 'select', op: ['Recepción', 'Proceso', 'Inspección final', 'Entrega', 'Cliente'], medio: true },
+  { k: 'producto', l: 'Producto o servicio', req: true, medio: true }, { k: 'cliente', l: 'Cliente (si aplica)', medio: true }, { k: 'descripcion', l: 'Qué no cumple', t: 'textarea', req: true },
+  { k: 'cantidad', l: 'Cantidad afectada', medio: true }, { k: 'costo', l: 'Costo estimado ($)', t: 'number', medio: true },
+  { k: 'tratamiento', l: 'Tratamiento', t: 'select', op: ['Corrección / reproceso', 'Reclasificación', 'Concesión del cliente', 'Rechazo / desecho', 'Devolución al proveedor', 'Reposición al cliente'], medio: true }, { k: 'responsable', l: 'Responsable', t: 'persona', medio: true },
+  { k: 'requiereAC', l: '¿Requiere acción correctiva (análisis de causa)?', t: 'select', op: ['No', 'Sí'], medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['ABIERTO', 'CERRADO'], medio: true }];
+const C_PQR = [{ k: 'fecha', l: 'Fecha de recibo', t: 'date', req: true, medio: true }, { k: 'tipoPQRS', l: 'Tipo', t: 'select', op: ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación'], medio: true },
+  { k: 'cliente', l: 'Cliente o quien la presenta', req: true, medio: true }, { k: 'canal', l: 'Canal', t: 'select', op: ['Correo', 'Teléfono', 'WhatsApp', 'Presencial', 'Página web', 'Encuesta', 'Portal (Reportar un evento)'], medio: true },
+  { k: 'presenta', l: 'Quién la presenta', t: 'select', vacio: true, op: ['Cliente', 'Trabajador', 'Contratista', 'Comunidad', 'Otro'], medio: true }, { k: 'contacto', l: 'Contacto para responder', medio: true, ph: 'Correo o teléfono' },
+  { k: 'area', l: 'Área o proceso', medio: true },
+  { k: 'descripcion', l: 'Qué dice el cliente', t: 'textarea', req: true }, { k: 'responsable', l: 'Responsable de responder', t: 'persona', medio: true }, { k: 'fechaLimite', l: 'Responder a más tardar', t: 'date', medio: true },
+  { k: 'respuesta', l: 'Respuesta dada', t: 'textarea' }, { k: 'fechaRespuesta', l: 'Fecha de la respuesta', t: 'date', medio: true }, { k: 'procede', l: '¿Procede? (queja o reclamo justificado)', t: 'select', op: ['Por analizar', 'Sí', 'No'], medio: true },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['ABIERTA', 'RESPONDIDA', 'CERRADA'] }];
+let rows = [], tab = 'contexto', ctxDoc = null;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const hace12 = ()=> Festivos.sumarMeses(UI.hoy(), -12);
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('contextocal,riesgocal,objcal,pnc,pqrs,encuesta,encuestacli,encresp');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows;
+  ctxDoc = de('contextocal').length ? await SGSST.doc(ID_CTX) : null;
+  pintar();
+}
+/* ── Indicadores del módulo ── */
+/* Las respuestas por enlace (encresp) traen los mismos campos que la encuesta registrada a mano:
+   entran al mismo cálculo (no hay un segundo indicador). */
+const respuestasSat = ()=> de('encuesta').concat(de('encresp'));
+function satisfaccion(lista){
+  const l = lista || respuestasSat().filter((x)=> String(x.resumen.fecha) >= hace12());
+  if (!l.length) return null;
+  const conProm = l.filter((x)=> Number(x.resumen.promedio) > 0);   // una encuesta solo con NPS no baja el promedio
+  const prom = conProm.length ? conProm.reduce((a, x)=> a + Number(x.resumen.promedio), 0) / conProm.length : 0;
+  const conNps = l.filter((x)=> x.resumen.nps !== '' && x.resumen.nps != null);
+  const nps = conNps.length ? Math.round((conNps.filter((x)=> Number(x.resumen.nps) >= 9).length - conNps.filter((x)=> Number(x.resumen.nps) <= 6).length) * 100 / conNps.length) : null;
+  const crit = {}; CRITERIOS.forEach(([k])=> { const v = l.map((x)=> Number(x.resumen[k])).filter((n)=> n > 0); crit[k] = v.length ? v.reduce((a, b)=> a + b, 0) / v.length : null; });
+  return { n: l.length, pct: conProm.length ? Math.round(prom * 20) : null, nps, crit };
+}
+function pintar(){
+  const h = UI.hoy(), pq = de('pqrs'), abiertas = pq.filter((x)=> x.estado === 'ABIERTA'), venc = abiertas.filter((x)=> x.resumen.fechaLimite && x.resumen.fechaLimite < h);
+  const pncMes = de('pnc').filter((x)=> String(x.resumen.fecha).slice(0, 7) === h.slice(0, 7)).length, obj = de('objcal').filter((x)=> x.resumen.estado !== 'INACTIVO'), objOk = obj.filter((x)=> x.resumen.cumple === 'Sí').length;
+  const altos = de('riesgocal').filter((x)=> x.resumen.nivel === 'Alto' && x.estado !== 'TRATADO').length, sat = satisfaccion();
+  $('nRie').textContent = de('riesgocal').length; $('nObj').textContent = obj.length; $('nPnc').textContent = de('pnc').filter((x)=> x.estado !== 'CERRADO').length; $('nPqr').textContent = abiertas.length; $('nEnc').textContent = respuestasSat().length;
+  $('kpis').innerHTML = '<div class="kpi ' + (sat && sat.pct != null ? (sat.pct >= 85 ? 'ok' : sat.pct >= 70 ? '' : 'mal') : '') + '" data-ir="tab:satisfaccion"><div class="v">' + (sat && sat.pct != null ? sat.pct + '%' : '—') + '</div><div class="n">satisfacción del cliente (12 meses)</div><div class="f">' + (sat ? sat.n + ' encuesta(s)' + (sat.nps != null ? ' · NPS ' + sat.nps : '') : 'sin encuestas') + '</div></div>' +
+    '<div class="kpi ' + (venc.length ? 'mal' : abiertas.length ? 'pronto' : 'ok') + '" data-ir="tab:pqrs|filtro:' + (venc.length ? 'pqrsVencidas' : 'pqrsAbiertas') + '"><div class="v">' + abiertas.length + '</div><div class="n">PQRS abiertas</div><div class="f">' + venc.length + ' vencida(s) · plazo ' + DIAS_PQRS + ' días hábiles</div></div>' +
+    '<div class="kpi ' + (pncMes ? 'pronto' : 'ok') + '" data-ir="tab:pnc"><div class="v">' + pncMes + '</div><div class="n">producto no conforme este mes</div></div>' +
+    '<div class="kpi ' + (obj.length && objOk === obj.length ? 'ok' : obj.length ? '' : 'mal') + '" data-ir="tab:objetivos"><div class="v">' + objOk + ' / ' + obj.length + '</div><div class="n">objetivos de calidad cumplidos</div><div class="f">' + altos + ' riesgo(s) alto(s) sin tratar</div></div>';
+  ({ contexto: pintarCtx, riesgos: pintarRie, objetivos: pintarObj, pnc: pintarPnc, pqrs: pintarPqr, satisfaccion: pintarSat })[tab]($('panel'));
+}
+function item(x, titulo, subs, chip, clase){ return '<button type="button" class="item ' + (clase || '') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + titulo + '</div>' + (subs || []).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' + (chip ? '<span class="chip ' + (clase || '') + '">' + chip + '</span>' : '') + '</div></button>'; }
+async function accionDe(tipo, id, a){
+  if (!await Dialogo.confirmar('¿Crear la acción en el plan de acción?')) return;
+  const resp = await Dialogo.pedir('Responsable:', a.responsable || ''); if (!resp) return;
+  const r = await UI.guardarAccion(Object.assign({ origen: 'Calidad', origenRef: id, responsable: resp }, a));
+  if (r.ok) await SGSST.enviar({ action: 'parche', tipo, id, campos: { accionId: r.id } });
+}
+function editar(tipo, titulo, campos, d, alistar, despues){
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + titulo, campos, datos: d,
+    // v109: la PQRS que llega desde «Reportar un evento» trae fotos (se ven aquí, no se editan).
+    antes: tipo === 'pqrs' && (d.fotos || []).length ? '<div class="fotos u-mb10">' + d.fotos.map(UI.src).filter(Boolean).map((f)=> '<div class="f"><img src="' + f + '" alt="Foto de la PQRS"></div>').join('') + '</div>' : '',
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Calidad'); if (ok) cargar(); return ok; },
+    alGuardar: async (v)=> { const e = alistar ? alistar(v, d) : null; if (typeof e === 'string') return e;
+      const r = await Registros.guardar(tipo, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      if (despues && !r.enCola) await despues(v, d);
+      cargar(); return true; } });
+}
+const abrirCon = (panel, tipo, titulo, campos, alistar, despues)=> panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editar(tipo, titulo, campos, d, alistar, despues); }));
+
+/* ── Contexto (4.1, 4.2, 4.3) ── */
+const lineas = (t)=> String(t || '').split('\n').map((x)=> x.trim()).filter(Boolean);
+function pintarCtx(panel){
+  const c = ctxDoc || {}, lis = (l)=> (l || []).length ? '<ul>' + l.map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<i style="color:var(--muted);">—</i>';
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="bCtx">' + (ctxDoc ? 'Actualizar el contexto' : 'Definir el contexto') + '</button><button type="button" class="btn ghost" id="pCtx">Contexto de la organización (PDF)</button></div>' +
+    '<p class="ayuda">Cuestiones internas y externas (DOFA), partes interesadas y sus requisitos, y el alcance del sistema de gestión de la calidad (ISO 9001, 4.1 a 4.3). Se revisan por lo menos una vez al año.</p>' +
+    (c.alcance ? '<div class="card"><h2>Alcance</h2><div class="texto-largo">' + esc(c.alcance) + '</div></div>' : '') +
+    ((c.exclusiones || []).length ? '<div class="card"><h2>Requisitos que no aplican</h2><ul>' + c.exclusiones.map((x)=> '<li><b>' + esc(x.requisito) + '</b>: ' + esc(x.justificacion) + '</li>').join('') + '</ul></div>' : '') +
+    ((c.consulta || []).length ? '<div class="card"><h2>Consulta y participación de los trabajadores</h2><ul>' + c.consulta.map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '') +
+    '<div class="dofa"><div class="f"><h4>Fortalezas</h4>' + lis(c.fortalezas) + '</div><div class="d"><h4>Debilidades</h4>' + lis(c.debilidades) + '</div><div class="o"><h4>Oportunidades</h4>' + lis(c.oportunidades) + '</div><div class="a"><h4>Amenazas</h4>' + lis(c.amenazas) + '</div></div>' +
+    '<div class="card"><h2>Partes interesadas</h2>' + ((c.partes || []).length ? '<table class="tabla-m"><tr><th>Parte</th><th>Necesidades y expectativas</th><th>Seguimiento</th></tr>' + c.partes.map((p)=> '<tr><td>' + esc(p.parte) + '</td><td>' + esc(p.necesidades) + '</td><td>' + esc(p.seguimiento) + '</td></tr>').join('') + '</table>' : '<div class="empty">Sin partes interesadas.</div>') + '</div>' +
+    (c.fechaRevision ? '<div class="m" style="font-size:var(--fs-menor);margin-bottom:8px;">Revisado el ' + esc(UI.corta(c.fechaRevision)) + (c.responsable ? ' por ' + esc(c.responsable) : '') + ' · próxima revisión ' + esc(UI.corta(c.proximaRevision)) + '</div>' : '');
+  $('bCtx').addEventListener('click', editarCtx);
+  $('pCtx').addEventListener('click', ()=> { if (!ctxDoc) { UI.toast('Primero define el contexto.'); return; } const t = (l)=> '<ul style="margin:2px 0;padding-left:14px;">' + (l || []).map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ul>';
+    UI.imprimir([UI.cabecera('SG-CONTEXTO', 'CONTEXTO DE LA ORGANIZACIÓN (ISO 9001, 4.1 A 4.3)', 'Revisado el ' + UI.corta(c.fechaRevision)) + UI.seccion('ALCANCE', '<table><tr><td>' + esc(c.alcance || '') + '</td></tr></table>') +
+      UI.seccion('ANÁLISIS DOFA', '<table><tr><th>Fortalezas</th><th>Debilidades</th></tr><tr><td>' + t(c.fortalezas) + '</td><td>' + t(c.debilidades) + '</td></tr><tr><th>Oportunidades</th><th>Amenazas</th></tr><tr><td>' + t(c.oportunidades) + '</td><td>' + t(c.amenazas) + '</td></tr></table>') +
+      UI.seccion('PARTES INTERESADAS', '<table><tr><th>Parte interesada</th><th>Necesidades y expectativas</th><th>Seguimiento</th></tr>' + (c.partes || []).map((p)=> '<tr><td>' + esc(p.parte) + '</td><td>' + esc(p.necesidades) + '</td><td>' + esc(p.seguimiento) + '</td></tr>').join('') + '</table>')]); });
+}
+async function editarCtx(){
+  const d = ctxDoc ? await Registros.abrir(ID_CTX) : { id: ID_CTX, nuevo: true, fechaRevision: UI.hoy() };
+  if (!d) return;
+  const datos = Object.assign({}, d, { fortalezasT: (d.fortalezas || []).join('\n'), debilidadesT: (d.debilidades || []).join('\n'), oportunidadesT: (d.oportunidades || []).join('\n'), amenazasT: (d.amenazas || []).join('\n'),
+    partesT: (d.partes || []).map((p)=> (p.tipoParte ? [p.parte, p.tipoParte, p.necesidades, p.seguimiento] : [p.parte, p.necesidades, p.seguimiento]).join(' | ')).join('\n'),
+    exclusionesT: (d.exclusiones || []).map((x)=> [x.requisito, x.justificacion].join(' | ')).join('\n'), consultaT: (d.consulta || []).join('\n') });
+  const campos = [{ k: 'alcance', l: 'Alcance del sistema de gestión de la calidad', t: 'textarea', ph: 'Productos o servicios, sedes y requisitos que no aplican (con su justificación)' },
+    { k: 'fortalezasT', l: 'Fortalezas (una por línea)', t: 'textarea' }, { k: 'debilidadesT', l: 'Debilidades (una por línea)', t: 'textarea' },
+    { k: 'oportunidadesT', l: 'Oportunidades (una por línea)', t: 'textarea' }, { k: 'amenazasT', l: 'Amenazas (una por línea)', t: 'textarea' },
+    { k: 'exclusionesT', l: 'Requisitos que no aplican y por qué (ISO 9001, 4.3; p. ej. 8.3 diseño y desarrollo)', t: 'textarea', ph: '8.3 Diseño y desarrollo | la empresa ejecuta diseños entregados por el cliente' },
+    { k: 'partesT', l: 'Partes interesadas: parte | tipo (interna/externa) | necesidades | seguimiento (una por línea)', t: 'textarea', ph: 'Clientes | externa | producto a tiempo y conforme | encuesta de satisfacción y PQRS' },
+    { k: 'consultaT', l: 'Consulta y participación de los trabajadores (ISO 45001, 5.4): cómo se hace (una por línea)', t: 'textarea', ph: 'COPASST mensual · buzón · charla diaria · encuesta de percepción de peligros' },
+    { k: 'responsable', l: 'Responsable', t: 'persona', medio: true }, { k: 'fechaRevision', l: 'Fecha de revisión', t: 'date', medio: true }];
+  Registros.editar({ titulo: 'Contexto de la organización', campos, datos,
+    alGuardar: async (v)=> { const doc = { alcance: v.alcance, fortalezas: lineas(v.fortalezasT), debilidades: lineas(v.debilidadesT), oportunidades: lineas(v.oportunidadesT), amenazas: lineas(v.amenazasT),
+        exclusiones: lineas(v.exclusionesT).map((l)=> { const p = l.split('|').map((x)=> x.trim()); return { requisito: p[0] || '', justificacion: p[1] || '' }; }),
+        consulta: lineas(v.consultaT),
+        partes: lineas(v.partesT).map((l)=> { const p = l.split('|').map((x)=> x.trim()); return p.length >= 4 ? { parte: p[0] || '', tipoParte: p[1] || '', necesidades: p[2] || '', seguimiento: p[3] || '' } : { parte: p[0] || '', necesidades: p[1] || '', seguimiento: p[2] || '' }; }),
+        responsable: v.responsable, fechaRevision: v.fechaRevision || UI.hoy(), proximaRevision: Festivos.sumarMeses(v.fechaRevision || UI.hoy(), 12) };
+      const r = await Registros.guardar('contextocal', ID_CTX, doc, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; await cargar(); return true; } });
+}
+/* ── Riesgos y oportunidades (6.1) ── */
+function pintarRie(panel){
+  const l = de('riesgocal').sort((a, b)=> (a.estado === 'TRATADO') - (b.estado === 'TRATADO') || (Number(b.resumen.probabilidad) * Number(b.resumen.impacto)) - (Number(a.resumen.probabilidad) * Number(a.resumen.impacto)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nRieB">+ Riesgo u oportunidad</button><button type="button" class="btn ghost" id="pRie">Matriz de riesgos y oportunidades (PDF)</button></div>' +
+    '<p class="ayuda">Valoración de referencia: probabilidad × impacto (1 a 5). Alto: 15 o más · medio: 6 a 14 · bajo: hasta 5. Los riesgos altos van al plan de acción.</p>' +
+    (l.length ? l.map((x)=> { const s = x.resumen, c = x.estado === 'TRATADO' ? 'gris' : s.tipoRO === 'Oportunidad' ? 'ok' : s.nivel === 'Alto' ? 'mal' : s.nivel === 'Medio' ? 'pronto' : 'ok';
+      return item(x, (s.tipoRO === 'Oportunidad' ? '🌱 ' : '⚠️ ') + esc(s.descripcion), [esc([s.proceso, 'P' + s.probabilidad + ' × I' + s.impacto + ' = ' + (Number(s.probabilidad) * Number(s.impacto))].join(' · ')), s.tratamiento ? 'Acción: ' + esc(s.tratamiento) : ''], esc(x.estado === 'TRATADO' ? 'Tratado' : s.nivel || ''), c); }).join('') : '<div class="empty">Sin riesgos ni oportunidades identificados.</div>');
+  const alistar = (v)=> { if (v.fechaCompromiso && Valida.fecha(v.fechaCompromiso)) return 'Fecha: ' + Valida.fecha(v.fechaCompromiso) + '.'; const n = nivelRO(v.probabilidad, v.impacto); v.nivel = n.t; v.fechaIdentificacion = v.fechaIdentificacion || UI.hoy(); };
+  const despues = async (v, d)=> { if (v.tipoRO === 'Riesgo' && v.nivel === 'Alto' && !d.accionId && v.estado !== 'TRATADO') await accionDe('riesgocal', d.id, { hallazgo: 'Riesgo alto (' + v.proceso + '): ' + v.descripcion, accion: v.tratamiento || 'Definir e implementar el tratamiento del riesgo', responsable: v.responsable, fechaCompromiso: v.fechaCompromiso, prioridad: 'Alta', tipoAccion: 'Preventiva' }); };
+  abrirCon(panel, 'riesgocal', 'Riesgo u oportunidad', C_RIE, alistar, despues);
+  $('nRieB').addEventListener('click', ()=> editar('riesgocal', 'Riesgo u oportunidad', C_RIE, { id: SGSST.nuevoId('RIC'), nuevo: true, tipoRO: 'Riesgo', probabilidad: '3', impacto: '3', estado: 'ABIERTO' }, alistar, despues));
+  $('pRie').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-RIESGOS-CALIDAD', 'MATRIZ DE RIESGOS Y OPORTUNIDADES (ISO 9001, 6.1)', 'Corte ' + UI.corta(UI.hoy())) +
+    '<table><tr><th>Proceso</th><th>Tipo</th><th>Descripción</th><th>Causa</th><th>P</th><th>I</th><th>Nivel</th><th>Acción</th><th>Responsable</th><th>Fecha</th><th>Estado</th></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(s.proceso) + '</td><td>' + esc(s.tipoRO) + '</td><td>' + esc(s.descripcion) + '</td><td>' + esc(s.causa || '') + '</td><td class="a">' + esc(s.probabilidad) + '</td><td class="a">' + esc(s.impacto) + '</td><td class="a" style="background:' + (s.nivel === 'Alto' ? '#f6d4cf' : s.nivel === 'Medio' ? '#fbecc0' : '#d5efdd') + ';">' + esc(s.nivel) + '</td><td>' + esc(s.tratamiento || '') + '</td><td>' + esc(s.responsable || '') + '</td><td>' + esc(UI.corta(s.fechaCompromiso)) + '</td><td>' + esc(x.estado) + '</td></tr>'; }).join('') + '</table>'], true));
+}
+/* ── Objetivos de calidad (6.2) ── */
+const cumpleObj = (s, v)=> v === '' || v == null ? '' : (s.sentido === 'menor' ? Number(v) <= Number(s.meta) : Number(v) >= Number(s.meta)) ? 'Sí' : 'No';
+function pintarObj(panel){
+  const l = de('objcal');
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nObjB">+ Objetivo de calidad</button><button type="button" class="btn ghost" id="pObj">Objetivos e indicadores (PDF)</button></div>' +
+    '<p class="ayuda">Objetivos medibles y coherentes con la política de calidad, con su indicador, meta y frecuencia. Cada medición queda guardada y se compara con la meta.</p>' +
+    (l.length ? l.map((x)=> { const s = x.resumen, c = x.estado === 'INACTIVO' ? 'gris' : s.cumple === 'Sí' ? 'ok' : s.cumple === 'No' ? 'mal' : 'pronto';
+      return '<div class="item ' + c + '"><div class="fila"><div><div class="t">' + esc(s.objetivo) + '</div><div class="m">' + esc(s.indicador) + ' · meta ' + (s.sentido === 'menor' ? '≤ ' : '≥ ') + esc(s.meta) + esc(s.unidad || '') + ' · ' + esc(s.frecuencia || '') + '</div>' +
+        '<div class="m">' + (s.ultimoPeriodo ? 'Último: <b>' + esc(s.ultimoValor) + esc(s.unidad || '') + '</b> (' + esc(s.ultimoPeriodo) + ')' : 'Sin mediciones') + (s.responsable ? ' · ' + esc(s.responsable) : '') + '</div><div class="barras" data-barras="' + esc(x.id) + '"></div></div>' +
+        '<span class="chip ' + c + '">' + (x.estado === 'INACTIVO' ? 'Inactivo' : s.cumple === 'Sí' ? 'Cumple' : s.cumple === 'No' ? 'No cumple' : 'Sin medir') + '</span></div>' +
+        '<div class="acc" style="display:flex;gap:6px;margin-top:8px;"><button type="button" class="btn-mini" data-medir="' + esc(x.id) + '">+ Medición</button><button type="button" class="btn-mini" style="background:var(--ink-soft);" data-edobj="' + esc(x.id) + '">✏️ Editar</button></div></div>'; }).join('') : '<div class="empty">Sin objetivos de calidad.</div>');
+  // Barras de las últimas mediciones (del documento completo).
+  l.forEach(async (x)=> { const d = await SGSST.doc(x.id); const el = panel.querySelector('[data-barras="' + x.id + '"]'); if (!d || !el) return; const m = (d.mediciones || []).slice(-12);
+    if (!m.length) return; const max = Math.max(Number(d.meta) || 0, ...m.map((y)=> Number(y.valor) || 0)) || 1;
+    el.innerHTML = m.map((y)=> '<span class="' + (cumpleObj(d, y.valor) === 'No' ? 'mal' : '') + '" style="height:' + Math.round((Number(y.valor) || 0) * 100 / max) + '%" title="' + esc(y.periodo + ': ' + y.valor) + '"></span>').join(''); });
+  panel.querySelectorAll('[data-edobj]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.edobj); if (d) editar('objcal', 'Objetivo de calidad', C_OBJ, d, (v)=> { v.cumple = cumpleObj(v, v.ultimoValor); }); }));
+  panel.querySelectorAll('[data-medir]').forEach((b)=> b.addEventListener('click', ()=> medir(l.find((x)=> x.id === b.dataset.medir))));
+  $('nObjB').addEventListener('click', ()=> editar('objcal', 'Objetivo de calidad', C_OBJ, { id: SGSST.nuevoId('OBC'), nuevo: true, sentido: 'mayor', unidad: '%', frecuencia: 'Mensual', estado: 'VIGENTE' }));
+  $('pObj').addEventListener('click', async ()=> { const docs = (await Promise.all(l.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+    UI.imprimir([UI.cabecera('SG-OBJETIVOS-CALIDAD', 'OBJETIVOS E INDICADORES DE CALIDAD (ISO 9001, 6.2)', 'Corte ' + UI.corta(UI.hoy())) +
+      '<table><tr><th>Objetivo</th><th>Indicador</th><th>Fórmula</th><th>Meta</th><th>Frecuencia</th><th>Responsable</th><th>Mediciones (periodo: valor)</th><th>Estado</th></tr>' +
+      docs.map((d)=> '<tr><td>' + esc(d.objetivo) + '</td><td>' + esc(d.indicador) + '</td><td>' + esc(d.formula || '') + '</td><td class="a">' + (d.sentido === 'menor' ? '≤ ' : '≥ ') + esc(d.meta) + esc(d.unidad || '') + '</td><td>' + esc(d.frecuencia || '') + '</td><td>' + esc(d.responsable || '') + '</td><td>' +
+        (d.mediciones || []).slice(-12).map((m)=> esc(m.periodo) + ': <b' + (cumpleObj(d, m.valor) === 'No' ? ' style="color:var(--rojo-800);"' : '') + '>' + esc(m.valor) + '</b>').join(' · ') + '</td><td>' + esc(cumpleObj(d, d.ultimoValor) === 'Sí' ? 'Cumple' : cumpleObj(d, d.ultimoValor) === 'No' ? 'No cumple' : 'Sin medir') + '</td></tr>').join('') + '</table>'], true); });
+}
+function medir(x){
+  const s = x.resumen, m = UI.modal('<h3>Medición · ' + esc(s.indicador) + '</h3><p class="ayuda">Meta ' + (s.sentido === 'menor' ? '≤ ' : '≥ ') + esc(s.meta) + esc(s.unidad || '') + (s.formula ? ' · ' + esc(s.formula) : '') + '</p>' +
+    '<div class="grid2"><div class="field"><label>Periodo</label><input type="month" id="mP" value="' + Festivos.sumarMeses(UI.hoy().slice(0, 8) + '01', -1).slice(0, 7) + '"></div><div class="field"><label>Valor</label><input type="number" step="any" inputmode="decimal" id="mV"></div></div>' +
+    '<div class="field"><label>Análisis (si no cumple: por qué y qué se hará)</label><textarea id="mA"></textarea></div>' +
+    '<button type="button" class="btn amber" id="mOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="mMsg"></div>', true);
+  m.el.querySelector('#mOk').addEventListener('click', async ()=> {
+    const p = m.el.querySelector('#mP').value, v = m.el.querySelector('#mV').value, a = m.el.querySelector('#mA').value.trim();
+    if (!p || v === '') { m.el.querySelector('#mMsg').textContent = 'Faltan el periodo y el valor.'; return; }
+    const cumple = cumpleObj(s, Number(v)), nuevo = !s.ultimoPeriodo || p >= s.ultimoPeriodo;
+    const campos = nuevo ? { ultimoValor: Number(v), ultimoPeriodo: p, cumple } : {};
+    const med = { uid: x.id + ':' + p, periodo: p, valor: Number(v), analisis: a, fecha: UI.hoy() };
+    // Si ese periodo ya se midió, se corrige el valor (la lista "agregar" no repite el mismo periodo).
+    const d = await SGSST.doc(x.id), ant = ((d && d.mediciones) || []).find((z)=> z && z.periodo === p);
+    let cuerpo = { action: 'parche', tipo: 'objcal', id: x.id, campos, agregar: { mediciones: [med] } };
+    if (ant) {
+      if (!await Dialogo.confirmar(p + ' ya tiene una medición (' + ant.valor + '). ¿Reemplazarla por ' + v + '?')) return;
+      campos.mediciones = d.mediciones.map((z)=> z && z.periodo === p ? med : z); delete cuerpo.agregar;
+    }
+    const r = await SGSST.enviar(cuerpo);
+    if (!r.ok) { m.el.querySelector('#mMsg').textContent = Errores.texto('guardó', r); return; }
+    m.cerrar();
+    if (cumple === 'No' && await Dialogo.confirmar('No se cumplió la meta. ¿Crear una acción en el plan de acción?')) await accionDe('objcal', x.id, { hallazgo: 'Objetivo de calidad no cumplido (' + p + '): ' + s.indicador + ' = ' + v + ' (meta ' + s.meta + ')', accion: a || 'Analizar la causa y definir acciones para cumplir la meta', tipoAccion: 'Correctiva', responsable: s.responsable });
+    cargar();
+  });
+}
+/* ── Producto o servicio no conforme (8.7) ── */
+function pintarPnc(panel){
+  const l = de('pnc').sort((a, b)=> (a.estado === 'CERRADO') - (b.estado === 'CERRADO') || String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nPncB">+ Producto o servicio no conforme</button><button type="button" class="btn ghost" id="pPnc">Registro de producto no conforme (PDF)</button></div>' +
+    '<p class="ayuda">Lo que no cumple los requisitos se identifica y se controla para que no llegue al cliente (o se trata si ya llegó): corrección, concesión, rechazo… Si se repite o es grave, va con acción correctiva.</p>' +
+    (l.length ? l.map((x)=> { const s = x.resumen, c = x.estado === 'CERRADO' ? 'ok' : 'pronto';
+      return item(x, esc(s.producto) + (s.cliente ? ' · ' + esc(s.cliente) : ''), [esc(UI.corta(s.fecha)) + ' · ' + esc(s.detectadoEn || '') + (s.cantidad ? ' · ' + esc(s.cantidad) : '') + (s.costo ? ' · $' + Number(s.costo).toLocaleString('es-CO') : ''), esc(s.descripcion), s.tratamiento ? 'Tratamiento: ' + esc(s.tratamiento) : ''], x.estado === 'CERRADO' ? 'Cerrado' : 'Abierto', c); }).join('') : '<div class="empty">Sin producto no conforme registrado.</div>');
+  const alistar = (v)=> { const ef = Valida.pasada(v.fecha); if (ef) return 'Fecha: ' + ef + '.'; if (v.costo !== '' && Number(v.costo) < 0) return 'El costo no puede ser negativo.'; v.fechaCierre = v.estado === 'CERRADO' ? (v.fechaCierre || UI.hoy()) : ''; };
+  const despues = async (v, d)=> { if (v.requiereAC === 'Sí' && !d.accionId) await accionDe('pnc', d.id, { hallazgo: 'Producto no conforme: ' + v.producto + ' — ' + v.descripcion, accion: 'Analizar la causa raíz y eliminarla', tipoAccion: 'Correctiva', responsable: v.responsable, prioridad: 'Alta' }); };
+  abrirCon(panel, 'pnc', 'Producto o servicio no conforme', C_PNC, alistar, despues);
+  $('nPncB').addEventListener('click', ()=> editar('pnc', 'Producto o servicio no conforme', C_PNC, { id: SGSST.nuevoId('PNC'), nuevo: true, fecha: UI.hoy(), detectadoEn: 'Proceso', tratamiento: 'Corrección / reproceso', requiereAC: 'No', estado: 'ABIERTO' }, alistar, despues));
+  $('pPnc').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-PNC', 'REGISTRO DE PRODUCTO O SERVICIO NO CONFORME (ISO 9001, 8.7)', 'Corte ' + UI.corta(UI.hoy())) +
+    '<table><tr><th>Fecha</th><th>Producto / servicio</th><th>Cliente</th><th>Detectado en</th><th>Descripción</th><th>Cantidad</th><th>Tratamiento</th><th>Costo</th><th>Responsable</th><th>Acción</th><th>Estado</th></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(UI.corta(s.fecha)) + '</td><td>' + esc(s.producto) + '</td><td>' + esc(s.cliente || '') + '</td><td>' + esc(s.detectadoEn || '') + '</td><td>' + esc(s.descripcion) + '</td><td>' + esc(s.cantidad || '') + '</td><td>' + esc(s.tratamiento || '') + '</td><td>' + (s.costo ? '$' + Number(s.costo).toLocaleString('es-CO') : '') + '</td><td>' + esc(s.responsable || '') + '</td><td>' + esc(s.accionId || (s.requiereAC === 'Sí' ? 'Sí' : '')) + '</td><td>' + esc(x.estado) + '</td></tr>'; }).join('') + '</table>'], true));
+}
+/* ── PQRS (8.2.1 y 9.1.2) ── */
+const alistarPqr = (v)=> { const ef = Valida.pasada(v.fecha); if (ef) return 'Fecha de recibo: ' + ef + '.';
+  if (v.fechaLimite && v.fechaLimite < v.fecha) return '«Responder a más tardar» no puede ser antes de la fecha de recibo.';
+  if (v.fechaRespuesta && (v.fechaRespuesta < v.fecha || v.fechaRespuesta > UI.hoy())) return 'La fecha de la respuesta debe estar entre la fecha de recibo y hoy.';
+  const auto = Festivos.sumarHabiles(v.fecha || UI.hoy(), DIAS_PQRS); if (!v.fechaLimite || v.fechaLimite === v.limiteAuto) v.fechaLimite = auto; v.limiteAuto = auto; /* si cambia la fecha, el plazo calculado se mueve con ella */ if (v.respuesta && v.estado === 'ABIERTA') { v.estado = 'RESPONDIDA'; v.fechaRespuesta = v.fechaRespuesta || UI.hoy(); } if (v.estado !== 'ABIERTA' && !v.respuesta && /Queja|Reclamo|Petición/.test(v.tipoPQRS)) return 'Escribe la respuesta dada al cliente antes de marcarla como respondida.'; };
+const despuesPqr = async (v, d)=> { if (/Queja|Reclamo/.test(v.tipoPQRS) && v.procede === 'Sí' && !d.accionId) await accionDe('pqrs', d.id, { hallazgo: v.tipoPQRS + ' de ' + v.cliente + ': ' + v.descripcion, accion: 'Analizar la causa y evitar que se repita', tipoAccion: 'Correctiva', responsable: v.responsable }); };
+let pqrsFiltro = '';
+window.filtrarKpi = ((antes)=> (f)=> { if (/^pqrs(Abiertas|Vencidas)$/.test(f)) { pqrsFiltro = f; pintar(); } else if (antes) antes(f); })(window.filtrarKpi);
+function pintarPqr(panel){
+  const h = UI.hoy(), l = de('pqrs').sort((a, b)=> (a.estado !== 'ABIERTA') - (b.estado !== 'ABIERTA') || String(a.resumen.fechaLimite).localeCompare(String(b.resumen.fechaLimite)));
+  const tiempo = l.filter((x)=> x.resumen.fechaRespuesta), aTiempo = tiempo.filter((x)=> !x.resumen.fechaLimite || x.resumen.fechaRespuesta <= x.resumen.fechaLimite).length;
+  // v109: la cifra «PQRS abiertas» (aquí o en Reportes) deja la lista filtrada.
+  const lv = pqrsFiltro ? l.filter((x)=> x.estado === 'ABIERTA' && (pqrsFiltro !== 'pqrsVencidas' || (x.resumen.fechaLimite && x.resumen.fechaLimite < h))) : l;
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nPqrB">+ Registrar PQRS</button><button type="button" class="btn ghost" id="pPqr">Informe de PQRS (PDF)</button></div>' +
+    '<p class="ayuda">Peticiones, quejas, reclamos, sugerencias y felicitaciones de clientes y partes interesadas (también llegan sin usuario desde «Reportar un evento» → PQRS, en Reportes). Plazo interno de respuesta: ' + DIAS_PQRS + ' días hábiles (se cambia en empresa.js → calidad.diasPQRS). ' + (tiempo.length ? 'Respondidas a tiempo: <b>' + Math.round(aTiempo * 100 / tiempo.length) + '%</b> (' + aTiempo + ' de ' + tiempo.length + ').' : '') + '</p>' +
+    (pqrsFiltro ? '<div class="aviso info" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">Mostrando: ' + (pqrsFiltro === 'pqrsVencidas' ? 'PQRS vencidas' : 'PQRS abiertas') + ' (' + lv.length + ')<button type="button" class="btn-mini" id="pqQuitarF" style="min-height:44px;">Quitar filtro ✕</button></div>' : '') +
+    (lv.length ? lv.map((x)=> { const s = x.resumen, venc = x.estado === 'ABIERTA' && s.fechaLimite && s.fechaLimite < h, c = x.estado !== 'ABIERTA' ? 'ok' : venc ? 'mal' : 'pronto';
+      return item(x, esc(s.tipoPQRS) + ' · ' + esc(s.cliente), [esc(UI.corta(s.fecha)) + ' · ' + esc(s.canal || '') + (s.presenta ? ' · ' + esc(s.presenta) : '') + (s.area ? ' · ' + esc(s.area) : '') + (s.responsable ? ' · ' + esc(s.responsable) : '') + (x.estado === 'ABIERTA' && s.fechaLimite ? ' · ' + (venc ? 'venció ' : 'responder antes del ') + esc(UI.corta(s.fechaLimite)) : ''), esc(s.descripcion)], venc ? 'Vencida' : esc(x.estado === 'ABIERTA' ? 'Abierta' : x.estado === 'RESPONDIDA' ? 'Respondida' : 'Cerrada'), c); }).join('') : '<div class="empty">Sin PQRS registradas.</div>');
+  const alistar = alistarPqr, despues = despuesPqr;
+  abrirCon(panel, 'pqrs', 'PQRS', C_PQR, alistar, despues);
+  if ($('pqQuitarF')) $('pqQuitarF').addEventListener('click', ()=> { pqrsFiltro = ''; pintar(); });
+  $('nPqrB').addEventListener('click', ()=> editar('pqrs', 'PQRS', C_PQR, { id: SGSST.nuevoId('PQR'), nuevo: true, fecha: UI.hoy(), tipoPQRS: 'Queja', canal: 'Correo', procede: 'Por analizar', estado: 'ABIERTA' }, alistar, despues));
+  $('pPqr').addEventListener('click', ()=> { const porTipo = {}; l.forEach((x)=> { porTipo[x.resumen.tipoPQRS] = (porTipo[x.resumen.tipoPQRS] || 0) + 1; });
+    UI.imprimir([UI.cabecera('SG-PQRS', 'INFORME DE PQRS DE CLIENTES', 'Corte ' + UI.corta(UI.hoy()) + ' · ' + l.length + ' registro(s) · a tiempo ' + (tiempo.length ? Math.round(aTiempo * 100 / tiempo.length) + '%' : '—')) +
+      UI.seccion('RESUMEN', UI.tablaDatos(Object.keys(porTipo).map((k)=> [k, String(porTipo[k])]))) +
+      '<table><tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Canal</th><th>Descripción</th><th>Responsable</th><th>Límite</th><th>Respuesta</th><th>Respondida</th><th>¿Procede?</th><th>Estado</th></tr>' +
+      l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(UI.corta(s.fecha)) + '</td><td>' + esc(s.tipoPQRS) + '</td><td>' + esc(s.cliente) + '</td><td>' + esc(s.canal || '') + '</td><td>' + esc(s.descripcion) + '</td><td>' + esc(s.responsable || '') + '</td><td>' + esc(UI.corta(s.fechaLimite)) + '</td><td>' + esc(s.respuesta || '') + '</td><td' + (s.fechaRespuesta && s.fechaLimite && s.fechaRespuesta > s.fechaLimite ? ' style="background:var(--rojo-100);"' : '') + '>' + esc(UI.corta(s.fechaRespuesta)) + '</td><td>' + esc(s.procede || '') + '</td><td>' + esc(x.estado) + '</td></tr>'; }).join('') + '</table>'], true); });
+}
+/* ── Satisfacción del cliente (9.1.2) ──
+   Dos fuentes que entran al MISMO cálculo (satisfaccion()): la encuesta registrada a mano
+   (tipo encuesta, p. ej. la de papel) y la que el cliente responde por enlace (tipo encresp,
+   desde encuesta-cliente.html, sin usuario). Las encuestas enviadas por enlace (encuestacli)
+   llevan su estado: enviada, vencida, respondida o cerrada. */
+const CAMPOS_ENC = [{ k: 'cliente', l: 'Cliente', req: true, medio: true }, { k: 'fecha', l: 'Fecha', t: 'date', req: true, medio: true }, { k: 'encuestado', l: 'Quién respondió (nombre y cargo)', medio: true }, { k: 'periodo', l: 'Periodo evaluado', medio: true, ph: 'Ej: primer semestre 2026' }]
+  .concat(CRITERIOS.map(([k, n])=> ({ k, l: n, t: 'select', op: ESCALA5, medio: true }))).concat([{ k: 'nps', l: '¿Nos recomendaría? (0 a 10)', t: 'select', op: ['10', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'], medio: true }, { k: 'comentario', l: 'Comentarios del cliente', t: 'textarea' }]);
+const alistarEnc = (v)=> { const ef = Valida.pasada(v.fecha); if (ef) return 'Fecha: ' + ef + '.'; if (Valida.texto(v.cliente, 2)) return 'Cliente: ' + Valida.texto(v.cliente, 2) + '.';
+  const n = CRITERIOS.map(([k])=> Number(v[k])).filter((x)=> x > 0); v.promedio = n.length ? Math.round(n.reduce((a, b)=> a + b, 0) / n.length * 100) / 100 : ''; CRITERIOS.forEach(([k])=> { v[k] = Number(v[k]) || ''; }); v.nps = v.nps === '' ? '' : Number(v.nps); };
+const despuesEnc = async (v, d)=> { if (v.promedio && v.promedio < 3.5 && d.nuevo && await Dialogo.confirmar('La satisfacción de este cliente es baja. ¿Registrar una acción?')) await accionDe('encuesta', d.id, { hallazgo: 'Satisfacción baja de ' + v.cliente + ' (' + Math.round(v.promedio * 20) + '%)' + (v.comentario ? ': ' + v.comentario : ''), accion: 'Analizar con el cliente y definir mejoras', tipoAccion: 'Mejora' }); };
+const pctDe = (r)=> Number(r.promedio) > 0 ? Math.round(Number(r.promedio) * 20) : null;
+const hayNps = (n)=> n !== '' && n != null && !isNaN(Number(n));
+const npsTxt = (n)=> !hayNps(n) ? '—' : n + (Number(n) >= 9 ? ' (promotor)' : Number(n) >= 7 ? ' (neutro)' : ' (detractor)');
+const ESC_TXT = { 1: 'Muy malo', 2: 'Malo', 3: 'Aceptable', 4: 'Bueno', 5: 'Excelente' };
+const valorTxt = (q)=> q.valor === '' || q.valor == null ? '— (sin respuesta)' : q.tipo === 'escala' ? q.valor + ' · ' + (ESC_TXT[q.valor] || '') : q.tipo === 'nps' ? npsTxt(q.valor) : String(q.valor);
+const dato = (k, v)=> v === '' || v == null ? '' : '<div class="dato"><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>';
+/** Estado de una encuesta enviada (fila de la lista o documento). */
+function estadoEnv(x){
+  const s = x.resumen || x, e = x.estado || s.estado;
+  if (e === 'RESPONDIDA' || s.respuestaId) return { t: 'Respondida', c: 'ok', o: 2 };
+  if (e === 'CERRADA') return { t: 'Cerrada', c: 'gris', o: 3 };
+  if (s.fechaLimite && String(s.fechaLimite) < UI.hoy()) return { t: 'Vencida', c: 'mal', o: 0 };
+  return { t: 'Enviada', c: 'pronto', o: 1 };
+}
+/* Preguntas de la encuesta por enlace: por defecto, las mismas del módulo (4 criterios + NPS). */
+const TIPOS_P = [['escala', 'Calificación de 1 a 5'], ['nps', 'Recomendación de 0 a 10 (NPS)'], ['sino', 'Sí o No'], ['texto', 'Respuesta escrita']];
+const PREG_BASE = ()=> CRITERIOS.map(([id, texto])=> ({ id, texto, tipo: 'escala', obligatoria: true }))
+  .concat([{ id: 'nps', texto: '¿Qué tan probable es que nos recomiende con otra empresa?', tipo: 'nps', obligatoria: true }, { id: 'comentario', texto: '¿Qué podemos mejorar? Cuéntenos lo que quiera.', tipo: 'texto', obligatoria: false }]);
+const periodoSugerido = ()=> { const h = UI.hoy(); return (Number(h.slice(5, 7)) <= 6 ? 'Primer' : 'Segundo') + ' semestre ' + h.slice(0, 4); };
+/** Clave del enlace: 32 letras y números al azar (el servidor exige de 24 a 64). */
+function claveNueva(){ const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', b = new Uint8Array(32); crypto.getRandomValues(b); return [...b].map((x)=> A[x % 62]).join(''); }
+/** Enlace público: la clave va en el # (no viaja al servidor de la página). En un sitio con varias
+ *  empresas lleva ?e=<código> para que el celular del cliente abra la empresa correcta. */
+function enlaceCliente(id, clave){
+  const base = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+  const q = (typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo && EMPRESA.codigo) ? '?e=' + encodeURIComponent(EMPRESA.codigo) : '';
+  return base + 'encuesta-cliente.html' + q + '#r=' + id + '.' + clave;
+}
+const waNum = (t)=> { const d = String(t || '').replace(/\D/g, ''); return d.length === 10 && d[0] === '3' ? '57' + d : d.length >= 11 ? d : ''; };
+async function copiarTexto(t){
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {
+    try { const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(a); a.select(); const ok = document.execCommand('copy'); a.remove(); return ok; } catch (e2) { return false; } }
+}
+
+function pintarSat(panel){
+  const h = UI.hoy(), l = respuestasSat().sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha))), s = satisfaccion();
+  const l12 = respuestasSat().filter((x)=> String(x.resumen.fecha) >= hace12()), enl12 = l12.filter((x)=> x.tipo === 'encresp'), sEnl = enl12.length ? satisfaccion(enl12) : null;
+  const env = de('encuestacli').sort((a, b)=> estadoEnv(a).o - estadoEnv(b).o || String(b.resumen.fechaEnvio).localeCompare(String(a.resumen.fechaEnvio)));
+  const env12 = env.filter((x)=> String(x.resumen.fechaEnvio) >= hace12()), resp12 = env12.filter((x)=> estadoEnv(x).t === 'Respondida').length, sinResp = env.filter((x)=> ['Enviada', 'Vencida'].indexOf(estadoEnv(x).t) !== -1).length;
+  const porCliente = {}; l12.forEach((x)=> { (porCliente[x.resumen.cliente] = porCliente[x.resumen.cliente] || []).push(x); });
+  const clientes = Object.keys(porCliente).sort().map((c)=> Object.assign({ cliente: c }, satisfaccion(porCliente[c])));
+  const fmt = (v)=> v == null ? '—' : v;
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="envB">Enviar encuesta a un cliente</button><button type="button" class="btn ghost" id="nEncB">+ Registrar encuesta en papel</button>' +
+      '<button type="button" class="btn ghost" id="pEnc">Informe de satisfacción (PDF)</button><button type="button" class="btn ghost" id="pForm">Encuesta en blanco (PDF)</button></div>' +
+    '<p class="ayuda">Cada encuesta califica de 1 a 5 la calidad, el cumplimiento, la atención y el precio; la satisfacción es el promedio llevado a %. El NPS (¿nos recomendaría? de 0 a 10) es el % de promotores (9-10) menos el % de detractores (0-6). ' +
+      'Con «Enviar encuesta» el cliente la responde desde su celular (enlace o QR, sin usuario) y su respuesta entra a este mismo cálculo.</p>' +
+    (s ? '<div class="card"><h2>Últimos 12 meses · ' + s.n + ' encuesta(s)</h2>' + CRITERIOS.map(([k, n])=> '<div class="criterio"><span>' + esc(n) + '</span><b>' + (s.crit[k] == null ? '—' : s.crit[k].toFixed(1).replace('.', ',') + ' / 5') + '</b></div>').join('') +
+      '<div class="criterio"><span>Satisfacción global</span><b>' + (s.pct == null ? '—' : s.pct + '%') + '</b></div><div class="criterio"><span>NPS</span><b>' + (s.nps == null ? '—' : s.nps) + '</b></div>' +
+      '<div class="criterio"><span>Respondidas por enlace</span><b>' + enl12.length + (sEnl ? ' · ' + fmt(sEnl.pct) + (sEnl.pct == null ? '' : '%') + ' · NPS ' + fmt(sEnl.nps) : '') + '</b></div>' +
+      '<div class="criterio"><span>Registradas a mano</span><b>' + (l12.length - enl12.length) + '</b></div>' +
+      (env12.length ? '<div class="criterio"><span>Tasa de respuesta del enlace</span><b>' + Math.round(resp12 * 100 / env12.length) + '% (' + resp12 + ' de ' + env12.length + ')</b></div>' : '') +
+      (clientes.length > 1 ? '<div class="tabla-scroll u-mt10"><table class="tabla-m"><tr><th>Cliente</th><th>Encuestas</th><th>Satisfacción</th><th>NPS</th></tr>' + clientes.map((c)=> '<tr><td>' + esc(c.cliente) + '</td><td>' + c.n + '</td><td>' + (c.pct == null ? '—' : c.pct + '%') + '</td><td>' + fmt(c.nps) + '</td></tr>').join('') + '</table></div>' : '') +
+      '</div>' : '') +
+    '<div class="sub-t">Encuestas enviadas por enlace <small>' + (sinResp ? sinResp + ' sin responder' : env.length ? 'todas atendidas' : '') + '</small></div>' +
+    (env.length ? env.map((x)=> { const r = x.resumen, e = estadoEnv(x), p = pctDe(r);
+      return item(x, esc(r.cliente), [esc([r.contacto, r.periodo].filter(Boolean).join(' · ')),
+        'Enviada el ' + esc(UI.corta(r.fechaEnvio)) + (e.t === 'Respondida' ? ' · respondida el ' + esc(UI.corta(r.fechaRespuesta)) + (p != null ? ' · ' + p + '%' : '') + (hayNps(r.nps) ? ' · NPS ' + esc(r.nps) : '') : r.fechaLimite ? (e.t === 'Vencida' ? ' · venció el ' : ' · plazo hasta el ') + esc(UI.corta(r.fechaLimite)) : '')], e.t, e.c); }).join('') :
+      '<div class="empty">Aún no has enviado encuestas por enlace. Toca «Enviar encuesta a un cliente».</div>') +
+    '<div class="sub-t">Respuestas <small>' + l.length + '</small></div>' +
+    (l.length ? l.map((x)=> { const r = x.resumen, pct = pctDe(r), c = pct == null ? 'gris' : pct >= 85 ? 'ok' : pct >= 70 ? 'pronto' : 'mal';
+      return item(x, esc(r.cliente), [esc(UI.corta(r.fecha)) + (r.periodo ? ' · ' + esc(r.periodo) : '') + (r.encuestado ? ' · ' + esc(r.encuestado) : '') + ' · ' + (x.tipo === 'encresp' ? 'por enlace' : 'registrada a mano') + (hayNps(r.nps) ? ' · NPS ' + esc(r.nps) : ''), r.comentario ? '«' + esc(r.comentario) + '»' : ''], pct == null ? 'Sin calificar' : pct + '%', c); }).join('') : '<div class="empty">Sin encuestas respondidas.</div>');
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> {
+    const x = rows.find((y)=> y.id === b.dataset.id); if (!x) return;
+    if (x.tipo === 'encuestacli') return verEnvio(x.id);
+    if (x.tipo === 'encresp') return verRespuesta(x.id);
+    const d = await Registros.abrir(x.id); if (d) editar('encuesta', 'Encuesta de satisfacción', CAMPOS_ENC, d, alistarEnc, despuesEnc); }));
+  $('envB').addEventListener('click', nuevaEncuestaCli);
+  $('nEncB').addEventListener('click', ()=> editar('encuesta', 'Encuesta de satisfacción', CAMPOS_ENC, { id: SGSST.nuevoId('ENC'), nuevo: true, fecha: UI.hoy(), calidad: '5', oportunidad: '5', atencion: '5', precio: '4', nps: '9' }, alistarEnc, despuesEnc));
+  $('pEnc').addEventListener('click', ()=> { if (!l.length && !env.length) { UI.toast('Sin encuestas.'); return; }
+    const ultimas = env12.length ? env12 : env;
+    UI.imprimir([UI.cabecera('SG-SATISFACCION', 'INFORME DE SATISFACCIÓN DEL CLIENTE', 'Últimos 12 meses · corte ' + UI.corta(h)) +
+      (s ? UI.seccion('RESULTADOS', UI.tablaDatos(CRITERIOS.map(([k, n])=> [n, s.crit[k] == null ? '—' : s.crit[k].toFixed(1).replace('.', ',') + ' / 5']).concat([['Satisfacción global', s.pct == null ? '—' : s.pct + '%'], ['NPS', s.nps == null ? '—' : String(s.nps)],
+        ['Encuestas', s.n + ' (' + enl12.length + ' por enlace · ' + (l12.length - enl12.length) + ' registradas a mano)'], ['Solo las respondidas por enlace', sEnl ? fmt(sEnl.pct) + (sEnl.pct == null ? '' : '%') + ' · NPS ' + fmt(sEnl.nps) : '—']]))) : '') +
+      (clientes.length ? UI.seccion('POR CLIENTE', '<table><tr><th>Cliente</th><th>Encuestas</th><th>Satisfacción</th><th>NPS</th></tr>' + clientes.map((c)=> '<tr><td>' + esc(c.cliente) + '</td><td class="a">' + c.n + '</td><td class="a">' + (c.pct == null ? '—' : c.pct + '%') + '</td><td class="a">' + fmt(c.nps) + '</td></tr>').join('') + '</table>') : '') +
+      (ultimas.length ? UI.seccion('ENCUESTAS ENVIADAS POR ENLACE', UI.tablaDatos([['Enviadas (12 meses)', String(env12.length)], ['Respondidas', resp12 + (env12.length ? ' (' + Math.round(resp12 * 100 / env12.length) + '%)' : '')], ['Sin responder hoy', String(sinResp)]]) +
+        '<table><tr><th>Enviada</th><th>Cliente</th><th>Contacto</th><th>Periodo</th><th>Plazo</th><th>Estado</th><th>Respondida</th><th>Satisfacción</th><th>NPS</th></tr>' +
+        ultimas.map((x)=> { const r = x.resumen, p = pctDe(r); return '<tr><td>' + esc(UI.corta(r.fechaEnvio)) + '</td><td>' + esc(r.cliente) + '</td><td>' + esc(r.contacto || '') + '</td><td>' + esc(r.periodo || '') + '</td><td>' + esc(UI.corta(r.fechaLimite)) + '</td><td>' + esc(estadoEnv(x).t) + '</td><td>' + esc(UI.corta(r.fechaRespuesta)) + '</td><td class="a">' + (p == null ? '' : p + '%') + '</td><td class="a">' + esc(r.nps) + '</td></tr>'; }).join('') + '</table>') : '') +
+      UI.seccion('RESPUESTAS', '<table><tr><th>Fecha</th><th>Cliente</th><th>Respondió</th><th>Canal</th>' + CRITERIOS.map(([, n])=> '<th>' + esc(n) + '</th>').join('') + '<th>NPS</th><th>Promedio</th><th>Comentario</th></tr>' +
+      l.map((x)=> { const r = x.resumen; return '<tr><td>' + esc(UI.corta(r.fecha)) + '</td><td>' + esc(r.cliente) + '</td><td>' + esc(r.encuestado || '') + '</td><td>' + (x.tipo === 'encresp' ? 'Enlace' : 'Manual') + '</td>' + CRITERIOS.map(([k])=> '<td class="a">' + esc(r[k]) + '</td>').join('') + '<td class="a">' + esc(r.nps) + '</td><td class="a">' + esc(r.promedio) + '</td><td>' + esc(r.comentario || '') + '</td></tr>'; }).join('') + '</table>')], true); });
+  $('pForm').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-SATISFACCION', 'ENCUESTA DE SATISFACCIÓN DEL CLIENTE', EMPRESA.nombre || '') +
+    UI.seccion('DATOS', UI.tablaDatos([['Cliente', ''], ['Fecha', ''], ['Quién responde', ''], ['Periodo evaluado', '']])) +
+    UI.seccion('CALIFICACIÓN (marque con una X)', '<table><tr><th>Aspecto</th><th>5 Excelente</th><th>4 Bueno</th><th>3 Aceptable</th><th>2 Malo</th><th>1 Muy malo</th></tr>' + CRITERIOS.map(([, n])=> '<tr><td style="height:22px;">' + esc(n) + '</td><td></td><td></td><td></td><td></td><td></td></tr>').join('') + '</table>' +
+      '<table><tr><td style="height:24px;">¿Qué tan probable es que nos recomiende? &nbsp; 0 &nbsp; 1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5 &nbsp; 6 &nbsp; 7 &nbsp; 8 &nbsp; 9 &nbsp; 10</td></tr></table>') +
+    UI.seccion('COMENTARIOS Y SUGERENCIAS', '<table><tr><td style="height:90px;"></td></tr></table>') + '<table><tr><td class="l" style="width:25%;">Firma</td><td style="height:40px;"></td></tr></table>']));
+}
+
+/* ── Enviar una encuesta a un cliente (crea encuestacli con su clave y muestra el enlace) ── */
+function nuevaEncuestaCli(){
+  const h = UI.hoy(), clientes = [...new Set(rows.filter((x)=> ['encuesta', 'encresp', 'encuestacli', 'pqrs', 'pnc'].indexOf(x.tipo) !== -1).map((x)=> String(x.resumen.cliente || '').trim()).filter(Boolean))].sort();
+  let preg = PREG_BASE();
+  const m = UI.modal('<h3>Enviar encuesta a un cliente</h3><p class="ayuda">Se crea un enlace solo para este cliente (sirve para una respuesta). Lo envía por WhatsApp, por correo o con el QR; el cliente responde desde el celular, sin usuario, y la respuesta llega aquí.</p>' +
+    '<div class="field"><label>Cliente *</label><input type="text" id="ecCli" maxlength="120" list="ecCliL" placeholder="Empresa cliente" autocomplete="off"><datalist id="ecCliL">' + clientes.map((c)=> '<option value="' + esc(c) + '">').join('') + '</datalist></div>' +
+    '<div class="grid2"><div class="field"><label>Contacto (quién responde) *</label><input type="text" id="ecCon" maxlength="120" placeholder="Nombre"></div><div class="field"><label>Cargo</label><input type="text" id="ecCar" maxlength="80" placeholder="Ej.: Jefe de mantenimiento"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Celular (WhatsApp)</label><input type="tel" id="ecTel" maxlength="20" placeholder="3001234567"></div><div class="field"><label>Correo</label><input type="email" id="ecCor" maxlength="120" placeholder="nombre@cliente.com"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Periodo evaluado *</label><input type="text" id="ecPer" maxlength="80" value="' + esc(periodoSugerido()) + '"></div><div class="field"><label>Responder a más tardar *</label><input type="date" id="ecLim" min="' + h + '" value="' + Festivos.sumarDias(h, 15) + '"></div></div>' +
+    '<div class="field"><label>Mensaje de presentación (opcional)</label><textarea id="ecIntro" maxlength="600" placeholder="Si lo dejas vacío, el cliente ve un saludo con su nombre y el periodo"></textarea></div>' +
+    '<div class="sub-t" style="margin-top:4px;">Preguntas <small id="ecN"></small></div><p class="ayuda u-mtn4">Vienen las del módulo (calidad, cumplimiento, atención, precio y recomendación). Puede cambiar el texto y el tipo, quitar o agregar (máximo 20).</p><div id="ecPreg"></div>' +
+    '<button type="button" class="btn ghost" id="ecAdd">+ Agregar pregunta</button>' +
+    '<div class="status-msg" id="ecMsg"></div><button type="button" class="btn amber" id="ecOk">Crear el enlace</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  const el = (s)=> m.el.querySelector(s), cont = el('#ecPreg');
+  const leerPreg = ()=> { cont.querySelectorAll('.pe').forEach((c)=> { const q = preg[+c.dataset.i]; q.tipo = c.querySelector('select').value; q.texto = c.querySelector('textarea').value.replace(/\s+/g, ' ').trim(); q.obligatoria = c.querySelector('input[type=checkbox]').checked; }); };
+  const pintarPreg = ()=> {
+    cont.innerHTML = preg.map((q, i)=> '<div class="pe" data-i="' + i + '"><div class="pe-top"><span class="pe-n">' + (i + 1) + '</span><select aria-label="Tipo de respuesta de la pregunta ' + (i + 1) + '">' + TIPOS_P.map(([v, t])=> '<option value="' + v + '"' + (q.tipo === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
+      '<button type="button" class="pe-x" data-quitar="' + i + '" aria-label="Quitar la pregunta ' + (i + 1) + '">×</button></div><textarea maxlength="300" aria-label="Texto de la pregunta ' + (i + 1) + '" placeholder="Escribe la pregunta">' + esc(q.texto) + '</textarea>' +
+      '<label class="check"><input type="checkbox"' + (q.obligatoria !== false ? ' checked' : '') + '> Obligatoria</label></div>').join('');
+    el('#ecN').textContent = preg.length + ' de 20'; el('#ecAdd').disabled = preg.length >= 20;
+  };
+  pintarPreg();
+  cont.addEventListener('click', (e)=> { const b = e.target.closest('[data-quitar]'); if (!b) return; leerPreg(); if (preg.length <= 1) { UI.toast('La encuesta necesita por lo menos una pregunta.', 'mal'); return; } preg.splice(+b.dataset.quitar, 1); pintarPreg(); });
+  el('#ecAdd').addEventListener('click', ()=> { leerPreg(); if (preg.length >= 20) return; let n = 1; while (preg.some((q)=> q.id === 'p' + n)) n++;
+    preg.push({ id: 'p' + n, texto: '', tipo: 'escala', obligatoria: true }); pintarPreg(); const t = cont.querySelectorAll('.pe textarea'); t[t.length - 1].focus(); });
+  el('#ecOk').addEventListener('click', async ()=> {
+    leerPreg();
+    const v = { cliente: el('#ecCli').value.replace(/\s+/g, ' ').trim(), contacto: el('#ecCon').value.replace(/\s+/g, ' ').trim(), cargo: el('#ecCar').value.trim(), telefono: el('#ecTel').value.trim(),
+      correo: el('#ecCor').value.trim(), periodo: el('#ecPer').value.trim(), fechaLimite: el('#ecLim').value, intro: el('#ecIntro').value.trim() };
+    const nTel = v.telefono.replace(/\D/g, '').length, malCorreo = v.correo && Valida.correoMal(v.correo);
+    const reglas = [{ el: el('#ecCli'), etiqueta: 'Cliente', error: Valida.texto(v.cliente, 2) },
+      { el: el('#ecCon'), etiqueta: 'Contacto', error: Valida.nombre(v.contacto, { completo: false }) },
+      { el: el('#ecTel'), etiqueta: 'Celular', error: v.telefono && (nTel < 7 || nTel > 13) ? 'escribe de 7 a 10 dígitos' : '' },
+      { el: el('#ecCor'), etiqueta: 'Correo', error: malCorreo ? 'no es un correo válido (' + malCorreo + ')' : '' },
+      { el: el('#ecPer'), etiqueta: 'Periodo evaluado', error: Valida.texto(v.periodo, 3) },
+      { el: el('#ecLim'), etiqueta: 'Responder a más tardar', error: Valida.fecha(v.fechaLimite) || (v.fechaLimite < h ? 'no puede ser antes de hoy' : '') }];
+    const cajas = cont.querySelectorAll('.pe');
+    preg.forEach((q, i)=> { reglas.push({ el: cajas[i].querySelector('textarea'), etiqueta: 'Pregunta ' + (i + 1), error: !q.texto ? 'escribe el texto' : q.texto.length < 5 ? 'es muy corta' : '' }); });
+    const nNps = preg.filter((q)=> q.tipo === 'nps').length;
+    if (nNps > 1) preg.forEach((q, i)=> { if (q.tipo === 'nps') reglas.push({ el: cajas[i].querySelector('select'), etiqueta: 'Pregunta ' + (i + 1), error: 'solo puede haber una pregunta de recomendación (0 a 10)' }); });
+    if (!preg.some((q)=> q.obligatoria !== false)) reglas.push({ el: cajas[0].querySelector('input[type=checkbox]'), etiqueta: 'Preguntas', error: 'marque por lo menos una como obligatoria' });
+    if (Valida.revisar(m.el, reglas, el('#ecMsg')).length) return;
+    const id = SGSST.nuevoId('ENV'), clave = claveNueva();
+    const doc = Object.assign(v, { fechaEnvio: h, preguntas: preg.map((q)=> ({ id: q.id, texto: q.texto, tipo: q.tipo, obligatoria: q.obligatoria !== false })), nPreguntas: preg.length,
+      estado: 'ABIERTA', clave, enviadaPor: (typeof Sesion !== 'undefined' && Sesion.nombre && Sesion.nombre()) || '' });
+    const b = el('#ecOk'); b.disabled = true; b.textContent = 'Creando el enlace…';
+    const r = await SGSST.enviar({ action: 'guardar', tipo: 'encuestacli', id, doc, versionBase: 0 }, null, { sinCola: true });
+    b.disabled = false; b.textContent = 'Crear el enlace';
+    if (!r.ok) { el('#ecMsg').innerHTML = '<div class="v-resumen">No se creó la encuesta: ' + esc(r.error || 'intenta de nuevo') + '</div>'; return; }
+    m.cerrar(); await cargar();
+    compartir(Object.assign({ id }, doc));
+  });
+}
+/** Enlace, QR y botones para enviar (WhatsApp, correo, copiar, QR impreso). */
+function compartir(d){
+  const u = enlaceCliente(d.id, d.clave), emp = (EMPRESA.nombreCorto || EMPRESA.nombre || 'nuestra empresa');
+  const texto = 'Hola' + (d.contacto ? ' ' + d.contacto : '') + '. En ' + emp + ' queremos saber cómo le fue con nuestro servicio' + (d.periodo ? ' (' + d.periodo + ')' : '') +
+    '. La encuesta toma unos 2 minutos' + (d.fechaLimite ? ' y está abierta hasta el ' + UI.corta(d.fechaLimite) : '') + ': ' + u;
+  const tel = waNum(d.telefono);
+  const m = UI.modal('<h3>Enviar la encuesta a ' + esc(d.cliente) + '</h3><p class="ayuda">Este enlace es solo para ' + esc(d.contacto || d.cliente) + ' y sirve para UNA respuesta. Cuando responda, la encuesta queda «Respondida» y el resultado entra a la satisfacción del cliente.</p>' +
+    '<div class="qr-caja"><canvas id="eqCv" aria-label="Código QR de la encuesta"></canvas></div><div class="enlace-txt" id="eqUrl">' + esc(u) + '</div>' +
+    '<div class="acciones-top"><button type="button" class="btn amber" id="eqWa">WhatsApp' + (tel ? '' : ' (elegir chat)') + '</button><button type="button" class="btn ghost" id="eqMail">Correo' + (d.correo ? '' : ' (sin destinatario)') + '</button>' +
+    '<button type="button" class="btn ghost" id="eqCopiar">Copiar el enlace</button><button type="button" class="btn ghost" id="eqPdf">QR para imprimir (PDF)</button></div>' +
+    '<button type="button" class="btn ghost" data-cerrar>Listo</button>');
+  try { QR.dibujar(m.el.querySelector('#eqCv'), u, { px: 440, margen: 2 }); } catch (e) { m.el.querySelector('.qr-caja').hidden = true; }
+  m.el.querySelector('#eqWa').addEventListener('click', ()=> window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank'));
+  m.el.querySelector('#eqMail').addEventListener('click', ()=> { location.href = 'mailto:' + (d.correo ? encodeURIComponent(d.correo).replace(/%40/g, '@') : '') + '?subject=' + encodeURIComponent('Encuesta de satisfacción · ' + emp) + '&body=' + encodeURIComponent(texto); });
+  m.el.querySelector('#eqCopiar').addEventListener('click', async ()=> UI.toast(await copiarTexto(u) ? '✓ Enlace copiado.' : 'Mantenga presionado el enlace para copiarlo.'));
+  m.el.querySelector('#eqPdf').addEventListener('click', ()=> { let img = ''; try { img = QR.comoImagen(u, { px: 600, margen: 4 }); } catch (e) {}
+    UI.imprimir([UI.cabecera('SG-SATISFACCION', 'ENCUESTA DE SATISFACCIÓN DEL CLIENTE', d.cliente + (d.periodo ? ' · ' + d.periodo : '')) +
+      UI.seccion('ESCANEE EL CÓDIGO CON LA CÁMARA DEL CELULAR', '<table><tr><td style="text-align:center;padding:14px;">' + (img ? '<img src="' + img + '" alt="QR" style="width:62mm;height:62mm;">' : '') +
+        '<div style="font-size:10px;word-break:break-all;margin-top:8px;">' + esc(u) + '</div></td></tr></table>') +
+      UI.seccion('DATOS', UI.tablaDatos([['Cliente', d.cliente], ['Contacto', [d.contacto, d.cargo].filter(Boolean).join(' · ')], ['Periodo evaluado', d.periodo || ''], ['Responder a más tardar', UI.corta(d.fechaLimite)], ['Preguntas', String((d.preguntas || []).length)]]))]); });
+}
+/** Detalle de una encuesta enviada: estado, preguntas y lo que se puede hacer con ella. */
+async function verEnvio(id){
+  const d = await Registros.abrir(id); if (!d) return;
+  const h = UI.hoy(), e = estadoEnv({ estado: d.estado, resumen: d }), p = pctDe(d);
+  const puedeReabrir = e.t === 'Vencida' || e.t === 'Cerrada';
+  const m = UI.modal('<h3>Encuesta · ' + esc(d.cliente) + '</h3>' +
+    '<div class="dato"><span>Estado</span><b><span class="chip ' + e.c + '">' + e.t + '</span></b></div>' +
+    dato('Contacto', [d.contacto, d.cargo].filter(Boolean).join(' · ')) + dato('Celular', d.telefono) + dato('Correo', d.correo) + dato('Periodo evaluado', d.periodo) +
+    dato('Enviada', UI.corta(d.fechaEnvio) + (d.enviadaPor ? ' · ' + d.enviadaPor : '')) + dato('Responder a más tardar', UI.corta(d.fechaLimite)) +
+    (e.t === 'Respondida' ? dato('Respondida', UI.corta(d.fechaRespuesta)) + dato('Satisfacción', p == null ? '—' : p + '%') + dato('NPS', npsTxt(d.nps)) : '') +
+    '<div class="sub-t">Preguntas <small>' + (d.preguntas || []).length + '</small></div><ol style="margin:0 0 8px;padding-left:20px;font-size:var(--fs-base);line-height:1.5;">' +
+      (d.preguntas || []).map((q)=> '<li>' + esc(q.texto) + ' <span style="color:var(--muted);">(' + esc(((TIPOS_P.find((t)=> t[0] === q.tipo) || [])[1] || q.tipo).toLowerCase()) + (q.obligatoria === false ? ', opcional' : '') + ')</span></li>').join('') + '</ol>' +
+    (puedeReabrir ? '<div class="field"><label>Nuevo plazo para responder *</label><input type="date" id="evPl" min="' + h + '" value="' + Festivos.sumarDias(h, 15) + '"></div>' : '') +
+    '<div class="acciones-top">' +
+      (e.t === 'Enviada' ? '<button type="button" class="btn amber" id="evComp">Enviar o compartir el enlace</button><button type="button" class="btn ghost" id="evCerrar">Cerrar la encuesta</button>' : '') +
+      (puedeReabrir ? '<button type="button" class="btn amber" id="evReabrir">' + (e.t === 'Vencida' ? 'Ampliar el plazo' : 'Reabrir la encuesta') + '</button>' + (e.t === 'Vencida' ? '<button type="button" class="btn ghost" id="evCerrar">Cerrar la encuesta</button>' : '') : '') +
+      (e.t === 'Respondida' ? '<button type="button" class="btn amber" id="evResp">Ver la respuesta</button>' : '<button type="button" class="btn ghost u-mal" id="evBorrar">Borrar</button>') +
+    '</div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>');
+  m.el.querySelector('[data-cerrar]').insertAdjacentElement('beforebegin', UI.botonHistorial(d.id, 'Encuesta a ' + d.cliente));
+  const parche = async (campos, okTxt)=> { const r = await SGSST.enviar({ action: 'parche', tipo: 'encuestacli', id: d.id, campos }, null, { sinCola: true });
+    if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return false; } UI.toast(okTxt); m.cerrar(); await cargar(); return true; };
+  const on = (s, f)=> { const b = m.el.querySelector(s); if (b) b.addEventListener('click', f); };
+  on('#evComp', ()=> { m.cerrar(); compartir(d); });
+  on('#evCerrar', async ()=> { if (await Dialogo.confirmar('¿Cerrar la encuesta? El cliente ya no podrá responder con ese enlace.')) parche({ estado: 'CERRADA' }, '✓ Encuesta cerrada.'); });
+  on('#evReabrir', async ()=> { const f = m.el.querySelector('#evPl'), err = Valida.fecha(f.value) || (f.value < h ? 'no puede ser antes de hoy' : '');
+    if (err) { Valida.revisar(m.el, [{ el: f, etiqueta: 'Nuevo plazo', error: err }], null); return; }
+    if (await parche({ estado: 'ABIERTA', fechaLimite: f.value }, '✓ La encuesta recibe respuestas hasta el ' + UI.corta(f.value) + '.')) compartir(Object.assign({}, d, { fechaLimite: f.value })); });
+  on('#evResp', ()=> { m.cerrar(); verRespuesta(d.respuestaId); });
+  on('#evBorrar', async ()=> { if (!await Dialogo.confirmar('¿Borrar esta encuesta? El enlace deja de funcionar.')) return; if (await Registros.borrar(d.id, 'Encuesta sin responder borrada desde Calidad')) { m.cerrar(); cargar(); } });
+}
+/** Lo que respondió el cliente por el enlace; desde aquí sale la acción de mejora o la PQRS. */
+async function verRespuesta(id){
+  const r = await Registros.abrir(id); if (!r) return;
+  const p = pctDe(r), bajo = (p != null && p < 70) || (hayNps(r.nps) && Number(r.nps) <= 6);
+  const escrito = [r.comentario].concat((r.respuestas || []).filter((q)=> q.tipo === 'texto' && q.valor).map((q)=> q.valor)).filter((t, i, a)=> t && a.indexOf(t) === i).join('\n');
+  const m = UI.modal('<h3>Respuesta de ' + esc(r.cliente) + '</h3>' +
+    dato('Respondió', [r.encuestado, r.cargo].filter(Boolean).join(' · ')) + dato('Fecha', UI.corta(r.fecha)) + dato('Periodo evaluado', r.periodo) + dato('Canal', 'Enlace (la respondió el cliente)') +
+    dato('Satisfacción', p == null ? '—' : p + '%') + dato('NPS', npsTxt(r.nps)) +
+    '<div class="sub-t">Respuestas</div>' + (r.respuestas || []).map((q, i)=> '<div class="resp-q"><div>' + (i + 1) + '. ' + esc(q.texto) + '</div><div class="v">' + esc(valorTxt(q)) + '</div></div>').join('') +
+    (r.comentario && !(r.respuestas || []).some((q)=> q.valor === r.comentario) ? '<div class="sub-t">Comentario</div><div class="texto-largo">' + esc(r.comentario) + '</div>' : '') +
+    (bajo && !r.accionId ? '<div class="aviso amar u-mt10">La calificación es baja: conviene acordar una acción de mejora con este cliente.</div>' : '') +
+    (r.accionId ? '<div class="aviso ok u-mt10">Acción en el plan de acción: ' + esc(r.accionId) + '</div>' : '') + (r.pqrsId ? '<div class="aviso info">Registrada como PQRS: ' + esc(r.pqrsId) + '</div>' : '') +
+    '<div class="acciones-top u-mt10">' + (!r.accionId ? '<button type="button" class="btn ' + (bajo ? 'amber' : 'ghost') + '" id="rvAcc">Crear acción en el plan</button>' : '') +
+      (!r.pqrsId && escrito ? '<button type="button" class="btn ghost" id="rvPqr">Registrar el comentario como PQRS</button>' : '') + '<button type="button" class="btn ghost" id="rvPdf">Respuesta (PDF)</button></div>' +
+    '<button type="button" class="btn ghost" data-cerrar>Cerrar</button>');
+  const on = (s, f)=> { const b = m.el.querySelector(s); if (b) b.addEventListener('click', f); };
+  on('#rvAcc', ()=> { m.cerrar(); UI.nuevaAccion({ origen: 'Calidad', origenRef: id, tipoAccion: 'De mejora', prioridad: bajo ? 'Alta' : 'Media',
+      hallazgo: 'Encuesta de satisfacción de ' + r.cliente + ': ' + (p == null ? '' : p + '%') + (hayNps(r.nps) ? ' · NPS ' + r.nps : '') + (escrito ? ' — ' + escrito.replace(/\n/g, ' / ') : ''), accion: 'Analizar con el cliente lo que calificó bajo y acordar mejoras' },
+    async (a)=> { await SGSST.enviar({ action: 'parche', tipo: 'encresp', id, campos: { accionId: a.id } }); cargar(); }); });
+  on('#rvPqr', ()=> { m.cerrar(); editar('pqrs', 'PQRS', C_PQR, { id: SGSST.nuevoId('PQR'), nuevo: true, fecha: r.fecha || UI.hoy(), cliente: r.cliente, canal: 'Encuesta', tipoPQRS: bajo ? 'Queja' : 'Sugerencia', descripcion: escrito, procede: 'Por analizar', estado: 'ABIERTA' },
+    alistarPqr, async (v, d)=> { await despuesPqr(v, d); await SGSST.enviar({ action: 'parche', tipo: 'encresp', id, campos: { pqrsId: d.id } }); }); });
+  on('#rvPdf', ()=> UI.imprimir([UI.cabecera('SG-SATISFACCION', 'ENCUESTA DE SATISFACCIÓN DEL CLIENTE', 'Respondida por enlace el ' + UI.corta(r.fecha)) +
+    UI.seccion('DATOS', UI.tablaDatos([['Cliente', r.cliente], ['Respondió', [r.encuestado, r.cargo].filter(Boolean).join(' · ')], ['Periodo evaluado', r.periodo || ''], ['Fecha', UI.corta(r.fecha)]])) +
+    UI.seccion('RESPUESTAS', '<table><tr><th>N.º</th><th>Pregunta</th><th>Respuesta</th></tr>' + (r.respuestas || []).map((q, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(q.texto) + '</td><td>' + esc(valorTxt(q)) + '</td></tr>').join('') + '</table>') +
+    (r.comentario ? UI.seccion('COMENTARIO', UI.textoLargo(r.comentario)) : '') +
+    UI.seccion('RESULTADO', UI.tablaDatos([['Satisfacción', p == null ? '—' : p + '%'], ['Recomendación (NPS)', npsTxt(r.nps)], ['Acción en el plan', r.accionId || '—'], ['PQRS', r.pqrsId || '—']]))]));
+}
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar().then(async ()=> { const id = decodeURIComponent(location.hash.slice(1) || ''); const pre = { PNC: 'pnc', PQR: 'pqrs', PQRS: 'pqrs', RIC: 'riesgos', OBC: 'objetivos', ENC: 'satisfaccion', ENV: 'satisfaccion', RSP: 'satisfaccion' }[id.split('-')[0]];
+  if (pre) document.querySelector('#tabs [data-tab="' + pre + '"]').click();
+  // Desde el plan de acción, los pendientes o el historial: abre la encuesta enviada o la respuesta.
+  // v109: desde Reportes → PQRS se abre esa PQRS para responderla.
+  if (/^PQR-/.test(id) && rows.some((x)=> x.id === id)) { const b = $('panel').querySelector('[data-id="' + CSS.escape(id) + '"]'); if (b) b.click(); }
+  if (/^ENV-/.test(id) && rows.some((x)=> x.id === id)) verEnvio(id); else if (/^RSP-ENV-/.test(id) && rows.some((x)=> x.id === id)) verRespuesta(id); });
+</script>
+</body>
+</html>

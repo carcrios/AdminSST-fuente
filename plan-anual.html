@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LbODCn8n8/rOik7WF5g2HLcmhe+2Azrp/XzIthmLOEA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Plan anual de trabajo · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Plan anual de trabajo · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.meses{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;margin-top:8px;}
+@media (max-width:480px){.meses{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;}}
+.meses button{border:1px solid var(--line);background:#fff;border-radius:var(--r-xs);font-size:var(--fs-etiqueta);font-weight:700;padding:5px 0;cursor:pointer;font-family:inherit;color:var(--n-400);min-height:40px;}
+.meses button.p{color:var(--ink);border-color:var(--n-400);}
+.meses button.p.hecho{background:var(--ok);border-color:var(--ok);color:#fff;}
+.meses button.p.auto{background:#2f6fbf;border-color:#2f6fbf;color:#fff;}
+.meses button.p.atraso{background:var(--rojo-50);border-color:var(--rojo-200);color:var(--mal);}
+.act{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:9px;}
+.act .t{font-weight:700;font-size:var(--fs-base);line-height:1.3;overflow-wrap:anywhere;}
+.act .m{font-size:var(--fs-menor);color:var(--muted);margin-top:2px;overflow-wrap:anywhere;}
+.act .fila{display:flex;gap:8px;align-items:flex-start;}
+.act .fila > div:first-child{flex:1;min-width:0;}
+.av-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;font-size:var(--fs-menor);color:var(--muted);}
+.av-act .bm{flex:1 1 90px;min-width:70px;height:8px;border-radius:var(--r-xs);background:var(--bg);overflow:hidden;}
+.av-act .bm > div{height:100%;background:var(--ok);}
+.av-act b{color:var(--ink);}
+.ciclo-h{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-etiqueta);font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;}
+.ciclo-h span:last-child{text-transform:none;letter-spacing:0;font-weight:700;}
+.leyenda{display:flex;gap:10px;flex-wrap:wrap;font-size:var(--fs-etiqueta);color:var(--muted);margin-bottom:10px;}
+.leyenda span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:var(--r-xs);margin-right:4px;vertical-align:-1px;background:var(--c);}
+/* Botones del módulo arriba */
+.acciones-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;margin:4px 0 12px;}
+.acciones-top .btn{margin:0;min-height:44px;width:100%;font-size:var(--fs-base);padding:10px 12px;}
+/* Avance del plan */
+.avance{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:12px 13px;margin-bottom:12px;}
+.av-top{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;justify-content:space-between;}
+.av-v{font-family:var(--font-display);font-size:var(--fs-h1);font-weight:700;line-height:1;}
+.av-v.ok{color:var(--ok);} .av-v.mal{color:var(--mal);} .av-v.pronto{color:var(--ambar-700);}
+.av-n{font-size:var(--fs-menor);font-weight:700;margin-top:3px;}
+.av-f{font-size:var(--fs-etiqueta);color:var(--muted);}
+.av-der{text-align:right;font-size:var(--fs-menor);color:var(--muted);}
+@media (max-width:480px){.av-der{text-align:left;width:100%;border-top:1px solid var(--line);padding-top:8px;}}
+.av-der b{font-size:var(--fs-display);color:var(--ink);font-family:var(--font-display);}
+.barra{height:12px;border-radius:var(--r-s);background:var(--bg);overflow:hidden;margin:8px 0 4px;}
+.barra > div{height:100%;background:var(--ok);}
+.barra.mal > div{background:var(--mal);} .barra.pronto > div{background:var(--amber);}
+.av-sub{font-size:var(--fs-etiqueta);font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 5px;}
+.av-phva{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+@media (max-width:480px){.av-phva{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.av-phva > div{border:1px solid var(--line-soft);border-radius:var(--r-s);padding:6px 8px;font-size:var(--fs-menor);}
+.av-phva b{display:block;font-size:var(--fs-menor);}
+.av-phva .bm{height:6px;border-radius:var(--r-xs);background:var(--bg);overflow:hidden;margin-top:4px;}
+.av-phva .bm > div{height:100%;background:var(--ok);}
+.av-meses{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;}
+@media (max-width:480px){.av-meses{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;}}
+.av-meses button{border:1px solid var(--line);background:#fff;border-radius:var(--r-s);padding:4px 0 3px;font:700 10.5px/1.15 inherit;font-family:inherit;color:var(--ink);cursor:pointer;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.av-meses button i{display:block;width:70%;height:5px;border-radius:var(--r-xs);background:var(--bg);overflow:hidden;}
+.av-meses button i::after{content:'';display:block;height:100%;width:var(--p);background:var(--c,var(--ok));}
+.av-meses button small{font-size:9.5px;color:var(--muted);font-weight:600;}
+.av-meses button.on{outline:2px solid var(--ink);}
+.av-meses button.vacio{opacity:.45;}
+.av-cap{font-size:var(--fs-menor);margin-top:10px;line-height:1.45;}
+.filtro{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--azul-50);color:var(--azul-700);border-radius:var(--r-s);padding:7px 10px;font-size:var(--fs-menor);margin-bottom:9px;}
+/* Ventanas: fases PHVA y forma de cumplimiento */
+.op-phva{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.op-phva button,.op-modo button{position:relative;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);padding:9px 10px;cursor:pointer;font-family:inherit;color:var(--ink);min-height:64px;}
+.op-phva button b,.op-modo button b{display:block;font-size:var(--fs-base);}
+.op-phva button span,.op-modo button span{display:block;font-size:var(--fs-menor);color:var(--muted);line-height:1.3;margin-top:2px;}
+.op-phva button.on,.op-modo button.on{border-color:var(--ink);background:var(--ink);color:#fff;}
+.op-phva button.on span,.op-modo button.on span{color:var(--line);}
+.op-phva button em{position:absolute;top:6px;right:7px;font-style:normal;font-size:9.5px;font-weight:800;background:var(--azul-50);color:var(--azul-700);border-radius:var(--r-m);padding:1px 6px;}
+.op-modo{display:grid;gap:7px;}
+.ej-phva{font-size:var(--fs-menor);color:var(--azul-700);background:var(--azul-50);border-radius:var(--r-s);padding:6px 9px;margin-top:6px;line-height:1.35;}
+.rapidos{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.rapidos button{border:0;background:var(--bg);border-radius:var(--r-l);padding:7px 11px;font:700 12px/1 inherit;font-family:inherit;cursor:pointer;min-height:34px;color:var(--ink);}
+.estado-ej{border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);line-height:1.45;margin-bottom:10px;background:var(--n-50);}
+.estado-ej.ok{background:var(--verde-50);} .estado-ej.auto{background:var(--azul-50);} .estado-ej.mal{background:var(--rojo-50);}
+.cob{font-size:var(--fs-base);font-weight:700;margin:-2px 0 10px;}
+.faltan-lista{margin:6px 0 0 18px;padding:0;font-size:var(--fs-menor);}
+.etq-req{color:var(--mal);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
+    <h1>Plan anual de trabajo</h1>
+    <p>Actividades, responsables, recursos y cronograma · plan de capacitación</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="field"><select id="anio" aria-label="Año del plan"></select></div>
+  <div id="contenido"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="plan-sugerido.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const CICLOS = ['Planear', 'Hacer', 'Verificar', 'Actuar'];
+const PS = PLAN_SUGERIDO, TIPOS = PS.TIPOS, AUTO = PS.AUTO;
+const nombreAuto = (k)=> (AUTO.find((x)=> x[0] === k) || [])[1] || '';
+const todos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const PLANTILLA = [
+  ['Planear', 'Actualizar la matriz de peligros con participación de los trabajadores', 'Peligros', [1], 'revmatriz'],
+  ['Planear', 'Revisar la política y los objetivos del SG-SST', 'Documental', [1], ''],
+  ['Planear', 'Actualizar la matriz legal', 'Documental', [1, 7], ''],
+  ['Planear', 'Autoevaluación de estándares mínimos (Res. 0312)', 'Auditoría', [1], ''],
+  ['Hacer', 'Inducción y reinducción en SST', 'Capacitación', [2], 'induccion'],
+  ['Hacer', 'Capacitaciones por peligros prioritarios (charlas)', 'Capacitación', todos, 'charlas'],
+  ['Hacer', 'Reunión mensual del COPASST', 'Comité', todos, 'copasst'],
+  ['Hacer', 'Reunión mensual del Comité de Convivencia', 'Comité', todos, 'convivencia'],
+  ['Hacer', 'Inspecciones planeadas', 'Inspección', todos, 'inspecciones'],
+  ['Hacer', 'Exámenes médicos ocupacionales periódicos', 'Salud', [3], 'examenes'],
+  ['Hacer', 'Actividades de estilos de vida y entornos saludables', 'Salud', [4, 9], ''],
+  ['Hacer', 'Intervención del riesgo psicosocial', 'Salud', [6], ''],
+  ['Hacer', 'Capacitación de la brigada de emergencias', 'Emergencias', [3, 8], ''],
+  ['Hacer', 'Simulacro de evacuación', 'Emergencias', [10], 'simulacro'],
+  ['Hacer', 'Entrega y reposición de EPP', 'EPP', [6, 12], ''],
+  ['Verificar', 'Medición de indicadores del SG-SST', 'Indicadores', todos, 'indicadores'],
+  ['Verificar', 'Auditoría interna del SG-SST (con el COPASST)', 'Auditoría', [11], 'auditoria'],
+  ['Verificar', 'Revisión por la alta dirección', 'Documental', [12], 'revision'],
+  ['Verificar', 'Rendición de cuentas', 'Documental', [12], ''],
+  ['Actuar', 'Seguimiento al plan de acción', 'Mejora', [3, 6, 9, 12], '']
+];
+
+let plan = null, fila = null, datosAuto = {}, anioSel = UI.hoy().slice(0, 4), tab = 'plan', filtroMes = 0;
+const idDe = (a)=> 'PAT-' + a;
+const tipoTxt = (t)=> (!t || t === 'Otra' ? 'Otro' : t);
+const fmtFecha = (f)=> (f ? UI.corta(f) : '');
+
+/* Asistencia a charlas (otro servidor): por mes, cuántas charlas y hasta cuántas personas por semana. */
+async function charlasPorMes(anio){
+  const B = (typeof PORTAL_CONFIG !== 'undefined' && PORTAL_CONFIG.BACKENDS && PORTAL_CONFIG.BACKENDS.asistencia) || {};
+  if (!B.url || !navigator.onLine) return null;
+  try {
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, t = setTimeout(()=> ctl && ctl.abort(), 8000);
+    const res = await fetch(B.url + '?list=1&limite=200&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN || ''), ctl ? { signal: ctl.signal } : {});
+    clearTimeout(t);
+    const d = await res.json(); if (!d || !d.ok) return null;
+    const out = {};
+    (d.rows || []).forEach((w)=> { const f = String(w.semanaDel || ''); if (f.slice(0, 4) !== String(anio) || !(Number(w.charlas) > 0)) return;
+      const m = Number(f.slice(5, 7)), x = out[m] = out[m] || { n: 0, personas: 0, fecha: f, semanas: 0 };
+      x.n += Number(w.charlas) || 0; x.semanas++; x.personas = Math.max(x.personas, Number(w.asistentes) || 0); if (f < x.fecha) x.fecha = f; });
+    Object.keys(out).forEach((m)=> { const x = out[m]; x.det = x.n + ' charla(s) en ' + x.semanas + ' semana(s); hasta ' + x.personas + ' persona(s) distintas en una semana'; });
+    return out;
+  } catch (e) { return null; }
+}
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('contenido').innerHTML = ''; return; }
+  const [r, ch] = await Promise.all([SGSST.listar('plananual,inspeccion,reunion,simulacro,auditoria,revision,revmatriz,examen,mes,induccion,entrega,dotacion,pvecaso'), charlasPorMes(anioSel)]);
+  UI.avisoCopia($('avisoCopia'), r);
+  const anios = new Set(r.rows.filter((x)=> x.tipo === 'plananual').map((x)=> String(x.resumen.anio)));
+  const a0 = Number(UI.hoy().slice(0, 4)); anios.add(String(a0)); anios.add(String(a0 + 1));
+  $('anio').innerHTML = [...anios].filter((a)=> /^\d{4}$/.test(a)).sort().reverse().map((a)=> '<option value="' + esc(a) + '"' + (a === anioSel ? ' selected' : '') + '>Plan ' + esc(a) + '</option>').join('');
+  // Lo que el portal registró por mes (para las actividades que se cumplen con un registro)
+  datosAuto = {};
+  const marcar = (k, fecha, personas)=> { if (!fecha || String(fecha).slice(0, 4) !== anioSel) return; const m = Number(String(fecha).slice(5, 7));
+    const x = ((datosAuto[k] = datosAuto[k] || {})[m] = datosAuto[k][m] || { n: 0, fecha: String(fecha).slice(0, 10) }); x.n++; if (personas != null) x.personas = (x.personas || 0) + personas; if (String(fecha) < x.fecha) x.fecha = String(fecha).slice(0, 10); };
+  r.rows.forEach((x)=> { const s = x.resumen || {};
+    if (x.tipo === 'inspeccion') marcar('inspecciones', s.fecha);
+    if (x.tipo === 'reunion' && s.tipo === 'Ordinaria') marcar(s.comite, s.fecha);
+    if (x.tipo === 'simulacro') marcar('simulacro', s.fecha);
+    if (x.tipo === 'auditoria' && x.estado === 'CERRADA') marcar('auditoria', s.fechaEjecucion);
+    if (x.tipo === 'revision') marcar('revision', s.fecha);
+    if (x.tipo === 'revmatriz') marcar('revmatriz', s.fecha);
+    if (x.tipo === 'examen') marcar('examenes', s.fecha);
+    if (x.tipo === 'induccion') marcar('induccion', s.fecha || x.fecha, 1);
+    if (x.tipo === 'mes' && s.trabajadores) marcar('indicadores', s.mes + '-01');
+    if (x.tipo === 'entrega') marcar('entregaepp', s.fecha || x.fecha, 1);
+    if (x.tipo === 'dotacion') marcar('dotacion', s.fecha || x.fecha, 1);
+    if (x.tipo === 'pvecaso' && s.ultimoSeguimiento) marcar('pve', s.ultimoSeguimiento, 1);
+    if (x.tipo === 'inspeccion' && /extintor|botiqu|camilla/i.test(String(s.plantilla || '') + ' ' + String(s.categoria || ''))) marcar('inspeccionesemerg', s.fecha);
+  });
+  Object.keys(datosAuto.induccion || {}).forEach((m)=> { const x = datosAuto.induccion[m]; x.det = x.n + ' persona(s) con inducción o reinducción registrada'; });
+  if (ch) datosAuto.charlas = ch;
+  fila = r.rows.find((x)=> x.id === idDe(anioSel)) || null;
+  plan = fila ? await SGSST.doc(fila.id) : null;
+  if (fila && !plan) { $('contenido').innerHTML = '<div class="aviso">No se pudo abrir el plan (¿sin señal?).</div>'; return; }
+  if (plan) plan.anio = plan.anio || anioSel;
+  pintar();
+  if (!plan || !navigator.onLine || plan._pendiente) return;
+  // Charlas e inducciones vienen de otros registros: lo que el portal encontró queda anotado en el plan
+  // (así lo ven los pendientes del inicio y el cierre del mes, que no consultan esos registros).
+  const ejec = {};
+  (plan.actividades || []).forEach((a)=> { if (a.auto !== 'charlas' && a.auto !== 'induccion') return;
+    (a.meses || []).forEach((m)=> { const d = (datosAuto[a.auto] || {})[m], e = ((plan.ejec || {})[a.uid] || {})[m];
+      if (!d || (e && e.hecho)) return;
+      (ejec[a.uid] = ejec[a.uid] || {})[m] = { hecho: true, origen: a.auto, fecha: d.fecha, asistentes: d.personas == null ? '' : d.personas, esperados: a.metaPersonas === '' || a.metaPersonas == null ? '' : Number(a.metaPersonas), evidencia: nombreAuto(a.auto) + ': ' + (d.det || d.n + ' registro(s)') }; }); });
+  // v159 · El plan se cumple solo también en las actividades «a mano»: si en ese mes hay un registro del portal
+  // cuyo título o datos nombran lo mismo que la actividad (2 palabras clave en común), queda hecha con esa evidencia.
+  const STOP = new Set(['segur', 'salud', 'traba', 'sistem', 'gestio', 'empres', 'actividad', 'activi', 'progra', 'person', 'genera', 'seguim', 'realiz', 'regist', 'mensua', 'anual', 'semana']);
+  const pals = (t)=> [...new Set(String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9ñ]+/).filter((w)=> w.length >= 5).map((w)=> w.slice(0, 6)).filter((w)=> !STOP.has(w)))];
+  const regMes = {};
+  r.rows.forEach((x)=> { if (x.tipo === 'plananual' || x.tipo === 'mes') return; const s = x.resumen || {}, f = String(s.fecha || x.fecha || '').slice(0, 10); if (f.slice(0, 4) !== anioSel || f > UI.hoy()) return;
+    const m = Number(f.slice(5, 7)); (regMes[m] = regMes[m] || []).push({ f, id: x.id, t: x.titulo || '', p: pals([x.titulo].concat(Object.keys(s).map((k)=> typeof s[k] === 'string' ? s[k] : '')).join(' ')) }); });
+  (plan.actividades || []).forEach((a)=> { if (a.auto) return; const aw = pals(a.actividad); if (aw.length < 2) return;
+    (a.meses || []).forEach((m)=> { const e = ((plan.ejec || {})[a.uid] || {})[m]; if (e) return;   // lo que alguien marcó o desmarcó a mano manda
+      const hit = (regMes[m] || []).find((g)=> aw.filter((w)=> g.p.indexOf(w) !== -1).length >= 2); if (!hit) return;
+      (ejec[a.uid] = ejec[a.uid] || {})[m] = { hecho: true, origen: 'texto', fecha: hit.f, asistentes: '', esperados: '', evidencia: 'Registro del portal: ' + hit.id + (hit.t ? ' · ' + hit.t : '') }; }); });
+  if (Object.keys(ejec).length) Object.keys(ejec).forEach((u)=> { plan.ejec = plan.ejec || {}; plan.ejec[u] = Object.assign({}, plan.ejec[u] || {}, ejec[u]); });
+  // Lo que ven los indicadores y la revisión por la dirección se mantiene al día (lo que el portal
+  // detectó solo y el paso del tiempo cambian el cumplimiento sin que nadie guarde el plan).
+  const nuevo = resumenPlan(plan), viejo = fila.resumen || {};
+  if (Object.keys(ejec).length || ['cumplimiento', 'avance', 'programadas', 'ejecutadas', 'capProgramadas', 'capEjecutadas', 'cobertura', 'firmado'].some((k)=> String(nuevo[k]) !== String(viejo[k]))) {
+    const campos = Object.assign(Object.keys(ejec).length ? { ejec } : {}, nuevo);
+    const rr = await SGSST.enviar({ action: 'parche', tipo: 'plananual', id: plan.id, campos }); if (rr.ok && rr.version) plan.version = rr.version; if (rr.enCola) plan._pendiente = true;
+  }
+}
+const estadoMes = (a, m)=> PS.estadoMes(plan, a, m, datosAuto, UI.hoy());
+const calcular = ()=> PS.calcular(plan, datosAuto, UI.hoy());
+const claseP = (p)=> (p >= 90 ? 'ok' : p < 70 ? 'mal' : 'pronto');
+
+function pintar(){
+  const c = $('contenido');
+  if (!plan) {
+    c.innerHTML = '<div class="empty">No hay plan de trabajo para ' + esc(anioSel) + '.</div>' +
+      '<button type="button" class="btn amber" id="crearSugerido">Armar el plan ' + esc(anioSel) + ' según la empresa</button>' +
+      '<p class="ayuda u-mtn4">Con los estándares que le aplican, el número de trabajadores, los peligros de la matriz, los químicos, los vehículos y los contratistas que ya están en el portal. Antes de crearlo ves cada actividad y por qué se propone.</p>' +
+      '<button type="button" class="btn ghost" id="crearPlantilla">Crear el plan ' + esc(anioSel) + ' con las actividades típicas</button>' +
+      '<button type="button" class="btn ghost" id="crearCopia">Copiar las actividades del plan ' + (Number(anioSel) - 1) + '</button>' +
+      '<p class="ayuda">El plan anual de trabajo identifica metas, responsabilidades, recursos y cronograma, y lo firman el empleador y el responsable del SG-SST (Dec. 1072, art. 2.2.4.6.8; estándar 2.4.1).</p>';
+    $('crearSugerido').addEventListener('click', ()=> sugerencias(true));
+    $('crearPlantilla').addEventListener('click', ()=> crear(PLANTILLA.map((p)=> ({ uid: SGSST.nuevoOpId(), ciclo: p[0], actividad: p[1], tipo: p[2], meses: p[3].slice(), auto: p[4], responsable: '', recursos: '', metaPersonas: '' }))));
+    $('crearCopia').addEventListener('click', async ()=> { const ant = await SGSST.doc(idDe(Number(anioSel) - 1)); if (!ant) { UI.toast('No hay plan del año anterior.', 'mal'); return; } crear((ant.actividades || []).map((a)=> Object.assign({}, a, { uid: SGSST.nuevoOpId() }))); });
+    return;
+  }
+  const k = calcular();
+  c.innerHTML = '<div class="acciones-top">' +
+      '<button type="button" class="btn amber" id="btnAct">' + (tab === 'cap' ? '+ Agregar capacitación' : '+ Agregar actividad') + '</button>' +
+      '<button type="button" class="btn ghost" id="btnSug">Sugerencias según la empresa</button>' +
+      '<button type="button" class="btn ghost" id="btnPdf">PDF del plan anual</button>' +
+      '<button type="button" class="btn ghost" id="btnPdfC">PDF del plan de capacitación</button></div>' +
+    avanceHTML(k) +
+    (plan.firmaEmpleador && plan.firmaResponsable ? '' : '<div class="aviso amar">Al plan le faltan firmas (' + [plan.firmaEmpleador ? '' : 'empleador', plan.firmaResponsable ? '' : 'responsable del SG-SST'].filter(Boolean).join(' y ') + '). Fírmalo en «Datos y firmas».</div>') +
+    '<div class="tabs" id="tabs"><button type="button" data-tab="plan" class="' + (tab === 'plan' ? 'on' : '') + '">Cronograma</button><button type="button" data-tab="cap" class="' + (tab === 'cap' ? 'on' : '') + '">Capacitación</button><button type="button" data-tab="datos" class="' + (tab === 'datos' ? 'on' : '') + '">Datos y firmas</button></div>' +
+    '<div id="panel"></div>';
+  $('tabs').addEventListener('click', (e)=> { const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; pintar(); });
+  $('btnAct').addEventListener('click', ()=> editarActividad(null, tab === 'cap' ? 'Capacitación' : null));
+  $('btnSug').addEventListener('click', ()=> sugerencias(false));
+  $('btnPdf').addEventListener('click', ()=> pdfPlan());
+  $('btnPdfC').addEventListener('click', ()=> pdfPlan('Capacitación'));
+  c.querySelectorAll('[data-fm]').forEach((b)=> b.addEventListener('click', ()=> { const m = +b.dataset.fm; filtroMes = filtroMes === m ? 0 : m; if (tab === 'datos') tab = 'plan'; pintar(); }));
+  ({ plan: pintarCrono, cap: pintarCap, datos: pintarDatos })[tab]($('panel'));
+}
+/* Avance general: a hoy, del año, por fase del PHVA, por mes y de capacitación. */
+function avanceHTML(k){
+  const mh = k.mesHoy;
+  return '<div class="avance" id="avance"><div class="av-top"><div><div class="av-v ' + (k.progHasta ? claseP(k.cumplimiento) : '') + '">' + (k.progHasta ? k.cumplimiento + ' %' : '—') + '</div>' +
+      '<div class="av-n">Cumplimiento a hoy</div><div class="av-f">' + (k.progHasta ? k.hechasHasta + ' de ' + k.progHasta + ' actividades que ya tocaban están realizadas' : 'Aún no ha vencido ninguna actividad') + '</div></div>' +
+      '<div class="av-der"><b>' + k.avance + ' %</b><br>avance del año<br>' + k.hechas + ' de ' + k.prog + ' programadas</div></div>' +
+    '<div class="barra ' + (k.progHasta ? claseP(k.cumplimiento) : '') + '" title="Cumplimiento a hoy"><div style="width:' + Math.min(100, k.cumplimiento) + '%"></div></div>' +
+    '<div class="av-sub">Por fase del ciclo PHVA</div><div class="av-phva">' + CICLOS.map((c)=> { const x = k.porCiclo[c] || { prog: 0, hechas: 0, pct: 0 };
+      return '<div><b>' + c + '</b>' + x.hechas + ' de ' + x.prog + ' · ' + x.pct + ' %<div class="bm"><div style="width:' + x.pct + '%"></div></div></div>'; }).join('') + '</div>' +
+    '<div class="av-sub">Por mes <span style="text-transform:none;letter-spacing:0;font-weight:600;">· toca un mes para ver solo sus actividades</span></div><div class="av-meses">' + MESES.map((n, j)=> { const m = j + 1, x = k.porMes[m], p = x.prog ? Math.round(x.hechas * 100 / x.prog) : 0;
+      const col = !x.prog ? '#c9d1d8' : m < mh ? (p >= 90 ? 'var(--ok)' : p < 70 ? 'var(--mal)' : 'var(--amber)') : 'var(--ok)';
+      return '<button type="button" data-fm="' + m + '" class="' + (filtroMes === m ? 'on' : '') + (x.prog ? '' : ' vacio') + '" aria-label="' + MESES_L[j] + ': ' + x.hechas + ' de ' + x.prog + '">' + n + '<i style="--p:' + p + '%;--c:' + col + '"></i><small>' + x.hechas + '/' + x.prog + '</small></button>'; }).join('') + '</div>' +
+    '<div class="av-cap"><b>Capacitación:</b> ' + (k.capP ? k.capH + ' de ' + k.capP + ' sesiones que ya tocaban (' + k.ejecCap + ' %)' : 'sin sesiones vencidas aún') +
+      ' · <b>cobertura:</b> ' + (k.cobertura == null ? '— (anota personas esperadas y asistentes al marcarlas)' : k.cobertura + ' % (' + k.capAsis + ' asistentes de ' + k.capEsp + ' esperados)') + '</div></div>';
+}
+/* ── Plan armado según la empresa (plan-sugerido.js) ──
+   nuevo: crea el plan con lo marcado; si ya hay plan, agrega lo que le falta. */
+async function sugerencias(nuevo){
+  const m = UI.modal('<h3>Plan según la empresa</h3><div id="sgCuerpo"><div class="empty">Revisando la empresa…</div></div>', true);
+  const r = await SGSST.listar('empresa,peligro,sustancia,vehiculo,conductor,contratista,comite');
+  const de2 = (t)=> r.rows.filter((x)=> x.tipo === t);
+  const pf = await SGSST.doc('EMPRESA-PERFIL') || UI.perfilInstalacion() || {};
+  const ctx = { grupo: Number(pf.grupo0312) || 60, trabajadores: Number(pf.trabajadores) || 0, responsable: pf.responsableSST || '',
+    peligros: de2('peligro').map((x)=> x.resumen), sustancias: de2('sustancia').filter((x)=> x.estado !== 'Fuera de uso' && x.resumen.estado !== 'Fuera de uso').length,
+    vehiculos: de2('vehiculo').filter((x)=> x.estado !== 'INACTIVO').length, conductores: de2('conductor').length, contratistas: de2('contratista').filter((x)=> x.estado !== 'INACTIVO').length,
+    copasst: de2('comite').some((x)=> x.resumen.comite === 'copasst') };
+  let lista = PS.proponer(ctx);
+  if (!nuevo) lista = PS.faltantes(lista, plan.actividades);
+  const cuerpo = m.el.querySelector('#sgCuerpo');
+  const base = (pf.trabajadores ? '<b>' + esc(pf.trabajadores) + '</b> trabajadores, ' + esc(UI.textoGrupo(ctx.grupo)) : '<b>Sin perfil de la empresa</b>: se toman 60 estándares. Defínelo en el Tablero de la gerencia') + '. ' +
+    ctx.peligros.length + ' peligro(s) en la matriz, ' + ctx.sustancias + ' sustancia(s), ' + ctx.vehiculos + ' vehículo(s), ' + ctx.contratistas + ' contratista(s).';
+  if (!lista.length) { cuerpo.innerHTML = '<p class="ayuda">' + base + '</p><div class="aviso info">El plan ya tiene todo lo que se sugiere para esta empresa.</div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>'; return; }
+  cuerpo.innerHTML = '<p class="ayuda">' + base + (ctx.responsable ? ' Responsable por defecto: <b>' + esc(ctx.responsable) + '</b>.' : '') + ' Desmarca lo que no aplique; después ajustas meses y responsables.</p>' +
+    CICLOS.map((c)=> { const l = lista.map((a, i)=> [a, i]).filter(([a])=> a.ciclo === c); return l.length ? '<div class="ciclo-h"><span>' + c + ' · ' + esc(PS.CICLOS_INFO[c].que.toLowerCase()) + '</span></div>' + l.map(([a, i])=>
+      '<label class="act" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;"><input type="checkbox" data-i="' + i + '" checked style="width:22px;height:22px;margin-top:2px;flex:0 0 auto;"><span><span class="t">' + esc(a.actividad) + '</span>' +
+      '<span class="m" style="display:block;">' + esc(a.meses.length === 12 ? 'Todos los meses' : a.meses.map((x)=> MESES[x - 1]).join(', ')) + (a.auto ? ' · se cumple con: ' + esc(nombreAuto(a.auto).toLowerCase()) : '') + '</span>' +
+      '<span class="m" style="display:block;color:var(--azul-600);">' + esc(a.por) + '</span></span></label>').join('') : ''; }).join('') +
+    '<button type="button" class="btn amber" id="sgOk"></button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="sgMsg"></div>';
+  const marcadas = ()=> [...cuerpo.querySelectorAll('[data-i]')].filter((x)=> x.checked).map((x)=> lista[+x.dataset.i]);
+  const txt = ()=> { const n = marcadas().length; cuerpo.querySelector('#sgOk').textContent = nuevo ? 'Crear el plan con ' + n + ' actividades' : 'Agregar ' + n + ' actividad(es) al plan'; };
+  cuerpo.addEventListener('change', txt); txt();
+  cuerpo.querySelector('#sgOk').addEventListener('click', async ()=> {
+    const l = marcadas().map((a)=> ({ uid: SGSST.nuevoOpId(), clave: a.clave, ciclo: a.ciclo, actividad: a.actividad, tipo: a.tipo, meses: a.meses.slice(), auto: a.auto, responsable: a.responsable, recursos: '', metaPersonas: a.metaPersonas || '' }));
+    if (!l.length) { cuerpo.querySelector('#sgMsg').textContent = 'Marca al menos una actividad.'; return; }
+    if (nuevo) { m.cerrar(); crear(l); return; }
+    const acts = (plan.actividades || []).concat(l), nuevoDoc = Object.assign({}, plan, { actividades: acts });
+    const rr = await SGSST.enviar({ action: 'parche', tipo: 'plananual', id: plan.id, campos: Object.assign({ actividades: acts }, resumenPlan(nuevoDoc)) });
+    if (!rr.ok) { cuerpo.querySelector('#sgMsg').textContent = Errores.texto('guardó', rr); return; }
+    m.cerrar(); UI.toast('✓ ' + l.length + ' actividad(es) agregada(s). Revisa responsables y meses.'); cargar();
+  });
+}
+async function crear(actividades){
+  const doc = { anio: anioSel, actividades, ejec: {}, responsable: '', presupuesto: '', recursos: '', estado: 'EN EJECUCIÓN' };
+  Object.assign(doc, resumenPlan(doc));
+  const r = await Registros.guardar('plananual', idDe(anioSel), doc, 0);
+  if (typeof r === 'string') { UI.toast(r, 'mal'); return; }
+  UI.toast('✓ Plan ' + anioSel + ' creado. Asigna responsables y ajusta los meses.'); cargar();
+}
+function resumenPlan(p){ const k = PS.calcular(Object.assign({ anio: anioSel }, p), datosAuto, UI.hoy());
+  return { programadas: k.prog, ejecutadas: k.hechas, cumplimiento: k.cumplimiento, avance: k.avance, capProgramadas: k.capP, capEjecutadas: k.capH, cobertura: k.cobertura == null ? '' : k.cobertura,
+    firmado: !!(p.firmaEmpleador && p.firmaResponsable) }; }
+function leyenda(){ return '<div class="leyenda"><span style="--c:#fff;outline:1px solid var(--n-400)">Pendiente</span><span style="--c:var(--ok)">Realizada</span><span style="--c:#2f6fbf">Cumplida con registro del portal</span><span style="--c:#fbe4e0;outline:1px solid var(--rojo-200)">Atrasada</span></div>' +
+  '<p class="ayuda" style="margin:-4px 0 10px;">Toca un mes de la actividad para marcarla como realizada o ver qué encontró el portal.</p>'; }
+function actHTML(a, i, k){
+  const x = k.porAct[a.uid] || { prog: 0, hechas: 0, pct: 0, cobertura: null }, cap = a.tipo === 'Capacitación';
+  return '<div class="act" data-uid="' + esc(a.uid) + '"><div class="fila"><div><div class="t">' + esc(a.actividad) + '</div><div class="m">' + esc(tipoTxt(a.tipo)) + (a.responsable ? ' · ' + esc(a.responsable) : ' · <b class="u-mal">sin responsable</b>') +
+      (cap && a.metaPersonas ? ' · ' + esc(a.metaPersonas) + ' persona(s) esperadas' : '') + '</div>' +
+      '<div class="m">' + (a.auto ? 'Se cumple con: ' + esc(nombreAuto(a.auto).toLowerCase()) : 'Se marca a mano cuando se hace') + '</div></div>' +
+    '<button type="button" class="btn mini ghost" data-ed="' + i + '" aria-label="Editar la actividad">Editar</button></div>' +
+    '<div class="av-act"><span class="bm"><div style="width:' + x.pct + '%"></div></span><span><b>' + x.hechas + ' de ' + x.prog + '</b> · ' + x.pct + ' %</span>' +
+      (cap ? '<span>Cobertura: <b>' + (x.cobertura == null ? '—' : x.cobertura + ' %') + '</b>' + (x.esp ? ' (' + x.asis + ' de ' + x.esp + ')' : '') + '</span>' : '') + '</div>' +
+    '<div class="meses">' + MESES.map((n, j)=> { const m = j + 1, s = estadoMes(a, m); return '<button type="button" data-a="' + i + '" data-m="' + m + '" class="' + (s ? 'p ' + s : '') + '"' + (s ? '' : ' disabled') + ' aria-label="' + MESES_L[j] + (s ? ': ' + ({ hecho: 'realizada', auto: 'cumplida con registro', atraso: 'atrasada', pend: 'pendiente' })[s] : '') + '">' + n + '</button>'; }).join('') + '</div></div>';
+}
+function filtroHTML(){ return filtroMes ? '<div class="filtro">Solo lo programado en <b>' + MESES_L[filtroMes - 1] + '</b> <button type="button" class="btn-mini" id="quitaFiltro">Ver todo</button></div>' : ''; }
+function pintarCrono(panel){
+  const acts = plan.actividades || [], k = calcular();
+  const vis = (a)=> !filtroMes || (a.meses || []).indexOf(filtroMes) !== -1;
+  panel.innerHTML = leyenda() + filtroHTML() + CICLOS.map((c)=> { const l = acts.map((a, i)=> [a, i]).filter(([a])=> a.ciclo === c && vis(a)); const x = k.porCiclo[c];
+    return l.length ? '<div class="ciclo-h"><span>' + c + ' · ' + esc(PS.CICLOS_INFO[c].que.toLowerCase()) + '</span><span>' + (x ? x.hechas + ' de ' + x.prog + ' · ' + x.pct + ' %' : '') + '</span></div>' + l.map(([a, i])=> actHTML(a, i, k)).join('') : ''; }).join('') +
+    (acts.some(vis) ? '' : '<div class="empty">' + (filtroMes ? 'Nada programado en ' + MESES_L[filtroMes - 1] + '.' : 'El plan no tiene actividades. Usa «+ Agregar actividad».') + '</div>');
+  enlazar(panel);
+}
+function pintarCap(panel){
+  const k = calcular(), acts = (plan.actividades || []).map((a, i)=> [a, i]).filter(([a])=> a.tipo === 'Capacitación' && (!filtroMes || (a.meses || []).indexOf(filtroMes) !== -1));
+  panel.innerHTML = '<p class="ayuda">Plan de capacitación (estándar 1.2.1). Al marcar una sesión anota cuántas personas se esperaban y cuántas asistieron: así se calcula la cobertura. Las charlas con firma quedan en «Asistencia a charlas»; si la capacitación se cumple con ellas, aquí ves los asistentes que encontró el portal.</p>' + leyenda() + filtroHTML() +
+    (acts.length ? acts.map(([a, i])=> actHTML(a, i, k)).join('') : '<div class="empty">Sin actividades de capacitación' + (filtroMes ? ' en ' + MESES_L[filtroMes - 1] : '') + '.</div>');
+  enlazar(panel);
+}
+function enlazar(panel){
+  panel.querySelectorAll('[data-ed]').forEach((b)=> b.addEventListener('click', ()=> editarActividad(+b.dataset.ed)));
+  panel.querySelectorAll('.meses button[data-m]').forEach((b)=> b.addEventListener('click', ()=> marcar(+b.dataset.a, +b.dataset.m)));
+  const q = panel.querySelector('#quitaFiltro'); if (q) q.addEventListener('click', ()=> { filtroMes = 0; pintar(); });
+}
+/* Marca los campos que faltan, los nombra y lleva al primero. faltas: [[elemento, nombre], …] */
+function senalar(raiz, msgEl, faltas, pre){
+  raiz.querySelectorAll('.field-invalid').forEach((x)=> x.classList.remove('field-invalid'));
+  if (!faltas.length) { msgEl.textContent = ''; return false; }
+  faltas.forEach(([el])=> { if (!el) return; el.classList.add('field-invalid'); const f = el.closest('.field'); if (f) f.classList.add('field-invalid'); });
+  msgEl.innerHTML = esc(pre || 'Falta') + ': ' + faltas.map((f)=> '<b>' + esc(f[1]) + '</b>').join(', ') + '.';
+  const el0 = faltas[0][0]; if (el0 && el0.scrollIntoView) { el0.scrollIntoView({ block: 'center', behavior: 'smooth' }); if (el0.focus && /INPUT|SELECT|TEXTAREA/.test(el0.tagName)) el0.focus({ preventScroll: true }); }
+  return true;
+}
+/* ── Marcar una ejecución (mes) ── */
+function marcar(i, m){
+  const a = plan.actividades[i], e = ((plan.ejec || {})[a.uid] || {})[m] || {}, st = estadoMes(a, m), cap = a.tipo === 'Capacitación';
+  const d = a.auto && datosAuto[a.auto] && datosAuto[a.auto][m], ses = PS.sesion(plan, a, m, datosAuto);
+  const titulo = '<h3>' + esc(a.actividad) + '</h3><p class="ayuda u-mtn4">' + MESES_L[m - 1] + ' de ' + esc(anioSel) + ' · ' + esc(tipoTxt(a.tipo)) + (a.responsable ? ' · ' + esc(a.responsable) : '') + '</p>';
+  const cobTxt = (esp, asi)=> (esp && asi != null ? asi + ' de ' + esp + ' personas · cobertura ' + Math.round(asi * 100 / esp) + ' %' : asi != null && asi !== '' ? asi + ' asistente(s)' : '');
+  if (st === 'auto') {
+    UI.modal(titulo + '<div class="estado-ej auto"><b>Cumplida con registro del portal.</b><br>' + esc(nombreAuto(a.auto)) + ': ' + esc(d ? (d.det || d.n + ' registro(s) en ' + MESES_L[m - 1]) : (e.evidencia || 'registro encontrado')) +
+      (d && d.fecha ? '<br>Primer registro: ' + esc(fmtFecha(d.fecha)) : e.fecha ? '<br>Fecha: ' + esc(fmtFecha(e.fecha)) : '') + '</div>' +
+      (cap ? '<div class="cob">' + (ses.asistentes != null ? 'Asistentes encontrados: ' + esc(cobTxt(ses.esperados, ses.asistentes)) : 'El registro no trae el número de asistentes.') + (ses.esperados ? '' : ' Anota las personas esperadas en la actividad para ver la cobertura.') + '</div>' : '') +
+      '<button type="button" class="btn ghost" data-cerrar>Cerrar</button>');
+    return;
+  }
+  const hecho = !!e.hecho;
+  const md = UI.modal(titulo + '<div id="mjCuerpo"></div>', true), cuerpo = md.el.querySelector('#mjCuerpo');
+  const resumen = ()=> {
+    cuerpo.innerHTML = '<div class="estado-ej ok"><b>Realizada el ' + esc(fmtFecha(e.fecha) || '—') + '</b>' + (cap ? '<br>' + esc(cobTxt(num(e.esperados), num(e.asistentes)) || 'Sin datos de asistencia') : '') + (e.evidencia ? '<br>Evidencia: ' + esc(e.evidencia) : '') + '</div>' +
+      '<button type="button" class="btn ghost" id="mjEditar">Corregir los datos</button><button type="button" class="btn ghost u-mal" id="mjDeshacer">Deshacer: volver a pendiente</button><button type="button" class="btn ghost" data-cerrar>Cerrar</button><div class="status-msg" id="mjMsg"></div>';
+    cuerpo.querySelector('#mjEditar').addEventListener('click', formulario);
+    cuerpo.querySelector('#mjDeshacer').addEventListener('click', async ()=> { const b = cuerpo.querySelector('#mjDeshacer'); b.disabled = true;
+      const r = await guardarEjec(a, m, { hecho: false, fecha: '', asistentes: '', esperados: '', evidencia: '' }); b.disabled = false;
+      if (r !== true) { cuerpo.querySelector('#mjMsg').textContent = r; return; } md.cerrar(); UI.toast('La actividad de ' + MESES_L[m - 1] + ' volvió a pendiente.'); });
+  };
+  const formulario = ()=> {
+    const fechaDef = e.fecha || (m === Number(UI.hoy().slice(5, 7)) && anioSel === UI.hoy().slice(0, 4) ? UI.hoy() : '');
+    cuerpo.innerHTML = (st === 'atraso' ? '<div class="estado-ej mal">Está atrasada: tocaba en ' + MESES_L[m - 1] + '. Si ya se hizo, anótalo.</div>' : '') +
+      (a.auto && !hecho ? '<div class="estado-ej">Esta actividad se cumple sola con: <b>' + esc(nombreAuto(a.auto).toLowerCase()) + '</b>, y el portal aún no encuentra registro en ' + MESES_L[m - 1] + '. Si se hizo por fuera del portal, márcala aquí.</div>' : '') +
+      '<div class="field"><label>¿Cuándo se hizo? <span class="etq-req">*</span></label><input type="date" id="mjFecha" max="' + esc(UI.hoy()) + '" value="' + esc(fechaDef) + '"></div>' +
+      (cap ? '<div class="grid2"><div class="field"><label>Personas esperadas <span class="etq-req">*</span></label><input type="number" id="mjEsp" min="0" step="1" inputmode="numeric" value="' + esc(e.esperados !== '' && e.esperados != null ? e.esperados : (a.metaPersonas || '')) + '"></div>' +
+        '<div class="field"><label>Asistieron <span class="etq-req">*</span></label><input type="number" id="mjAsis" min="0" step="1" inputmode="numeric" value="' + esc(e.asistentes != null ? e.asistentes : '') + '"></div></div><div class="cob" id="mjCob"></div>' : '') +
+      '<div class="field"><label>Evidencia (opcional)</label><input type="text" id="mjEvid" value="' + esc(e.evidencia || '') + '" placeholder="Ej.: lista de asistencia, acta n.º 12, informe, fotos"></div>' +
+      '<button type="button" class="btn verde" id="mjOk">' + (hecho ? 'Guardar los cambios' : 'Marcar como realizada') + '</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="mjMsg"></div>';
+    const q = (s)=> cuerpo.querySelector(s);
+    const verCob = ()=> { if (!cap) return; const es = num(q('#mjEsp').value), as = num(q('#mjAsis').value); q('#mjCob').textContent = es && as != null ? 'Cobertura de esta sesión: ' + Math.round(as * 100 / es) + ' % (' + as + ' de ' + es + ')' + (as > es ? ' · asistieron más de los esperados' : '') : ''; };
+    if (cap) { q('#mjEsp').addEventListener('input', verCob); q('#mjAsis').addEventListener('input', verCob); verCob(); }
+    q('#mjOk').addEventListener('click', async ()=> {
+      const f = q('#mjFecha').value, faltas = [];
+      if (!f) faltas.push([q('#mjFecha'), 'la fecha en que se hizo']); else if (f > UI.hoy()) faltas.push([q('#mjFecha'), 'una fecha que no sea futura']);
+      let es = '', as = '';
+      if (cap) { es = q('#mjEsp').value; as = q('#mjAsis').value;
+        if (es === '' || !/^\d+$/.test(es) || Number(es) < 1) faltas.push([q('#mjEsp'), 'las personas esperadas (número entero mayor que 0)']);
+        if (as === '' || !/^\d+$/.test(as)) faltas.push([q('#mjAsis'), 'cuántas asistieron (número entero, 0 o más)']); }
+      if (senalar(cuerpo, q('#mjMsg'), faltas)) return;
+      const b = q('#mjOk'); b.disabled = true; q('#mjMsg').textContent = 'Guardando…';
+      const r = await guardarEjec(a, m, { hecho: true, fecha: f, esperados: cap ? Number(es) : '', asistentes: cap ? Number(as) : '', evidencia: q('#mjEvid').value.trim() });
+      b.disabled = false; if (r !== true) { q('#mjMsg').textContent = r; return; }
+      md.cerrar(); UI.toast('✓ Realizada en ' + MESES_L[m - 1] + (cap ? ' · cobertura ' + Math.round(Number(as) * 100 / Number(es)) + ' %' : '') + '.');
+    });
+  };
+  if (hecho) resumen(); else formulario();
+}
+const num = (v)=> (v === '' || v == null || isNaN(Number(v)) ? null : Number(v));
+async function guardarEjec(a, m, datos){
+  const ejec = {}; ejec[a.uid] = {}; ejec[a.uid][m] = Object.assign({ origen: '' }, datos);
+  const antes = JSON.stringify(plan.ejec || {});
+  plan.ejec = plan.ejec || {}; plan.ejec[a.uid] = Object.assign({}, plan.ejec[a.uid] || {}, ejec[a.uid]);
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'plananual', id: plan.id, campos: Object.assign({ ejec }, resumenPlan(plan)) });
+  if (!r.ok) { plan.ejec = JSON.parse(antes); return Errores.texto('guardó', r); }
+  if (r.enCola) plan._pendiente = true;   // hasta que se envíe, no se edita el plan completo
+  if (r.version) plan.version = r.version;
+  pintar(); return true;
+}
+/* ── Agregar / editar una actividad ── */
+function editarActividad(i, tipoDef){
+  const a = i == null ? { uid: SGSST.nuevoOpId(), ciclo: '', tipo: tipoDef || '', meses: [], auto: '', responsable: '', recursos: '', metaPersonas: '' } : plan.actividades[i];
+  const tipoConocido = TIPOS.indexOf(a.tipo) !== -1, esOtro = !!a.tipo && !tipoConocido;
+  const st = { ciclo: a.ciclo || '', cicloManual: !!a.ciclo, tipoManual: !!a.tipo, modo: a.auto ? 'auto' : (i == null ? '' : 'mano'), meses: (a.meses || []).slice() };
+  const md = UI.modal('<h3>' + (i == null ? 'Nueva actividad' : 'Editar actividad') + '</h3>' +
+    '<p class="ayuda u-mtn4">Los campos con <span class="etq-req">*</span> son obligatorios. La fase del PHVA se sugiere sola según lo que escribas.</p>' +
+    '<div class="field"><label for="eaAct">¿Qué se va a hacer? <span class="etq-req">*</span></label><input type="text" id="eaAct" value="' + esc(a.actividad || '') + '" placeholder="Ej.: Capacitación en trabajo en alturas"></div>' +
+    '<div class="field"><label for="eaTipo">Tipo <span class="etq-req">*</span></label><select id="eaTipo"><option value="">— Elige —</option>' + TIPOS.map((t)=> '<option' + (t === a.tipo ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '<option value="__otro"' + (esOtro ? ' selected' : '') + '>Otro (escribirlo)</option></select></div>' +
+    '<div class="field" id="eaOtroF"' + (esOtro ? '' : ' hidden') + '><label for="eaOtro">¿Cuál tipo? <span class="etq-req">*</span></label><input type="text" id="eaOtro" maxlength="40" value="' + esc(esOtro && a.tipo !== 'Otra' ? a.tipo : '') + '" placeholder="Ej.: Seguridad vial, Ambiental, Contratistas"></div>' +
+    '<div class="field" id="eaCicloF"><label>Fase del ciclo PHVA <span class="etq-req">*</span></label><div class="op-phva" id="eaCiclo">' + CICLOS.map((c)=> '<button type="button" data-c="' + c + '"><b>' + c + '</b><span>' + esc(PS.CICLOS_INFO[c].que) + '</span></button>').join('') + '</div><div class="ej-phva" id="eaCicloEj"></div></div>' +
+    '<div class="field" id="eaMesesF"><label>¿En qué meses? <span class="etq-req">*</span></label><div class="chips" id="eaMeses">' + MESES.map((n, j)=> '<button type="button" data-m="' + (j + 1) + '">' + n + '</button>').join('') + '</div>' +
+      '<div class="rapidos"><button type="button" data-r="todos">Todos</button><button type="button" data-r="trim">Cada trimestre</button><button type="button" data-r="sem">Cada semestre</button><button type="button" data-r="ninguno">Quitar todos</button></div></div>' +
+    '<div class="field"><label for="eaResp">Responsable <span class="etq-req">*</span></label><input type="text" id="eaResp" value="' + esc(a.responsable || '') + '" placeholder="Nombre o cargo"></div>' +
+    '<div class="field"><label for="eaRec">Recursos (humanos, técnicos, financieros)</label><input type="text" id="eaRec" value="' + esc(a.recursos || '') + '" placeholder="Ej.: instructor de la ARL, sala, $500.000"></div>' +
+    '<div class="field" id="eaModoF"><label>¿Cómo se da por cumplida? <span class="etq-req">*</span></label><div class="op-modo" id="eaModo">' +
+      '<button type="button" data-modo="mano"><b>Lo marco yo cuando se haga</b><span>Tocas el mes en el cronograma y pones «Marcar como realizada».</span></button>' +
+      '<button type="button" data-modo="auto"><b>Automático: con el registro en el portal</b><span>Se da por cumplida sola cuando en ese mes hay el registro que elijas.</span></button></div>' +
+      '<select id="eaAuto" style="margin-top:7px;" hidden aria-label="Registro que la cumple"><option value="">— ¿Con qué registro? —</option>' + AUTO.map((x)=> '<option value="' + x[0] + '"' + (x[0] === a.auto ? ' selected' : '') + '>' + esc(x[1]) + '</option>').join('') + '</select></div>' +
+    '<div class="field" id="eaMetaF" hidden><label for="eaMeta">Personas que se espera capacitar por sesión <span class="etq-req">*</span></label><input type="number" id="eaMeta" min="1" step="1" inputmode="numeric" value="' + esc(a.metaPersonas || '') + '"><div class="ayuda">Con esto y los asistentes de cada sesión se calcula la cobertura.</div></div>' +
+    '<button type="button" class="btn amber" id="eaOk">Guardar</button>' + (i == null ? '' : '<button type="button" class="btn ghost u-mal" id="eaBorrar">Borrar la actividad</button>') +
+    '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="eaMsg"></div>', true);
+  const q = (s)=> md.el.querySelector(s);
+  UI.autocompletar(q('#eaResp'), (p)=> { q('#eaResp').value = p.nombre; });
+  const tipoActual = ()=> { const v = q('#eaTipo').value; return v === '__otro' ? q('#eaOtro').value.trim() : v; };
+  const pintarCiclo = ()=> {
+    const s = PS.sugerirCiclo(q('#eaAct').value, tipoActual(), st.modo === 'auto' ? q('#eaAuto').value : '');
+    if (!st.cicloManual) st.ciclo = s.ciclo;
+    q('#eaCiclo').querySelectorAll('[data-c]').forEach((b)=> { b.classList.toggle('on', b.dataset.c === st.ciclo); const em = b.querySelector('em'); if (em) em.remove(); if (b.dataset.c === s.ciclo) b.insertAdjacentHTML('beforeend', '<em>Sugerida</em>'); });
+    q('#eaCicloEj').innerHTML = st.ciclo ? '<b>' + esc(st.ciclo) + ':</b> ' + esc(PS.CICLOS_INFO[st.ciclo].ej) + (st.ciclo !== s.ciclo ? '<br>Sugerimos «' + esc(s.ciclo) + '» ' + esc(s.por) + '.' : '<br>Sugerida ' + esc(s.por) + '; puedes cambiarla.') : '';
+  };
+  const pintarTipo = ()=> { const otro = q('#eaTipo').value === '__otro'; q('#eaOtroF').hidden = !otro; q('#eaMetaF').hidden = tipoActual() !== 'Capacitación'; };
+  const pintarMeses = ()=> q('#eaMeses').querySelectorAll('[data-m]').forEach((b)=> b.classList.toggle('on', st.meses.indexOf(+b.dataset.m) !== -1));
+  const pintarModo = ()=> { q('#eaModo').querySelectorAll('[data-modo]').forEach((b)=> b.classList.toggle('on', b.dataset.modo === st.modo)); q('#eaAuto').hidden = st.modo !== 'auto'; };
+  q('#eaAct').addEventListener('input', ()=> { if (!st.tipoManual) { const t = PS.sugerirTipo(q('#eaAct').value); if (t) { q('#eaTipo').value = t; pintarTipo(); } } pintarCiclo(); });
+  // v157: si la actividad se cumple con un registro que ya queda en el portal, se propone que avance sola.
+  const AUTO_TXT = [[/copasst/i, 'copasst'], [/convivencia/i, 'convivencia'], [/simulacro/i, 'simulacro'], [/inducci/i, 'induccion'], [/charla|capacitaci|formaci|entrenamiento/i, 'charlas'],
+    [/extintor|botiqu|camilla|equipos de emergencia/i, 'inspeccionesemerg'], [/inspecci/i, 'inspecciones'], [/examen|evaluaci[oó]n m[eé]dica/i, 'examenes'], [/entrega.*(epp|elementos de protecci)|epp/i, 'entregaepp'],
+    [/dotaci/i, 'dotacion'], [/vigilancia|pve|sve|audiometr|osteomuscular/i, 'pve'], [/auditor/i, 'auditoria'], [/revisi[oó]n por la direcci/i, 'revision'], [/matriz de peligros/i, 'revmatriz'], [/indicador/i, 'indicadores']];
+  q('#eaAct').addEventListener('change', ()=> { if (st.modo === 'auto' && q('#eaAuto').value) return; const t = q('#eaAct').value, h = AUTO_TXT.find((x)=> x[0].test(t)); if (!h) return;
+    st.modo = 'auto'; q('#eaAuto').value = h[1]; pintarModo(); pintarCiclo(); UI.toast('Esta actividad avanza sola con: ' + nombreAuto(h[1]).toLowerCase() + '. Puedes cambiarlo.'); });
+  q('#eaTipo').addEventListener('change', ()=> { st.tipoManual = true; pintarTipo(); pintarCiclo(); if (q('#eaTipo').value === '__otro') q('#eaOtro').focus(); });
+  q('#eaOtro').addEventListener('input', pintarCiclo);
+  q('#eaCiclo').addEventListener('click', (e)=> { const b = e.target.closest('[data-c]'); if (!b) return; st.ciclo = b.dataset.c; st.cicloManual = true; pintarCiclo(); });
+  q('#eaMeses').addEventListener('click', (e)=> { const b = e.target.closest('[data-m]'); if (!b) return; const m = +b.dataset.m, j = st.meses.indexOf(m); if (j === -1) st.meses.push(m); else st.meses.splice(j, 1); pintarMeses(); });
+  md.el.querySelector('.rapidos').addEventListener('click', (e)=> { const b = e.target.closest('[data-r]'); if (!b) return; st.meses = ({ todos: todos.slice(), trim: [3, 6, 9, 12], sem: [6, 12], ninguno: [] })[b.dataset.r]; pintarMeses(); });
+  q('#eaModo').addEventListener('click', (e)=> { const b = e.target.closest('[data-modo]'); if (!b) return; st.modo = b.dataset.modo; pintarModo(); pintarCiclo(); });
+  q('#eaAuto').addEventListener('change', pintarCiclo);
+  pintarTipo(); pintarMeses(); pintarModo(); pintarCiclo();
+  if (i != null) q('#eaBorrar').addEventListener('click', async ()=> {
+    if (!await Dialogo.confirmar('¿Borrar «' + a.actividad + '» del plan? Se pierden sus marcas de cumplimiento.')) return;
+    const j = plan.actividades.findIndex((x)=> x.uid === a.uid); if (j === -1) { UI.toast('Esa actividad ya no está.', 'mal'); md.cerrar(); return; }
+    plan.actividades.splice(j, 1); if (await guardarPlan()) { md.cerrar(); UI.toast('Actividad borrada.'); }
+  });
+  q('#eaOk').addEventListener('click', async ()=> {
+    const tipo = tipoActual(), meta = q('#eaMeta').value, faltas = [];
+    if (!q('#eaAct').value.trim()) faltas.push([q('#eaAct'), 'qué se va a hacer']);
+    else if (typeof Valida !== 'undefined' && Valida.texto(q('#eaAct').value, 4)) faltas.push([q('#eaAct'), 'qué se va a hacer (' + Valida.texto(q('#eaAct').value, 4) + ')']);
+    if (!q('#eaTipo').value) faltas.push([q('#eaTipo'), 'el tipo']); else if (q('#eaTipo').value === '__otro' && !tipo) faltas.push([q('#eaOtro'), 'escribir el tipo']);
+    if (!st.ciclo) faltas.push([q('#eaCicloF'), 'la fase del PHVA']);
+    if (!st.meses.length) faltas.push([q('#eaMesesF'), 'al menos un mes']);
+    if (!q('#eaResp').value.trim()) faltas.push([q('#eaResp'), 'el responsable']);
+    if (!st.modo) faltas.push([q('#eaModoF'), 'cómo se da por cumplida']); else if (st.modo === 'auto' && !q('#eaAuto').value) faltas.push([q('#eaAuto'), 'el registro que la cumple']);
+    if (tipo === 'Capacitación' && (meta === '' || !/^\d+$/.test(meta) || Number(meta) < 1)) faltas.push([q('#eaMeta'), 'las personas esperadas por sesión (número entero mayor que 0)']);
+    if (senalar(md.el, q('#eaMsg'), faltas)) return;
+    if (plan._pendiente) { q('#eaMsg').textContent = 'Hay avances del plan sin enviar desde este equipo. Espera a que se envíen y vuelve a intentarlo.'; return; }
+    const nuevo = Object.assign({}, a, { actividad: q('#eaAct').value.trim(), tipo, ciclo: st.ciclo, meses: st.meses.slice().sort((p, r)=> p - r), responsable: q('#eaResp').value.trim(),
+      recursos: q('#eaRec').value.trim(), auto: st.modo === 'auto' ? q('#eaAuto').value : '', metaPersonas: tipo === 'Capacitación' ? Number(meta) : (a.metaPersonas || '') });
+    const b = q('#eaOk'); b.disabled = true; q('#eaMsg').textContent = 'Guardando…';
+    const j = plan.actividades.findIndex((x)=> x.uid === a.uid), copia = plan.actividades.slice();
+    if (j === -1) plan.actividades.push(nuevo); else plan.actividades[j] = nuevo;
+    const ok = await guardarPlan(); b.disabled = false;
+    if (ok) { md.cerrar(); UI.toast(i == null ? '✓ Actividad agregada al plan.' : '✓ Actividad actualizada.'); } else { plan.actividades = copia; q('#eaMsg').textContent = 'No se guardó. Revisa la señal e inténtalo de nuevo.'; }
+  });
+}
+async function guardarPlan(){
+  if (plan._pendiente) { UI.toast('Hay avances del plan sin enviar desde este equipo. Espera a que se envíen y vuelve a intentarlo.', 'mal'); return false; }
+  Object.assign(plan, resumenPlan(plan));
+  const r = await Registros.guardar('plananual', plan.id, plan, plan.version);
+  if (typeof r === 'string') { UI.toast(r, 'mal'); return false; }
+  await cargar(); return true;
+}
+/* ── Datos y firmas, con lo que le falta al plan para quedar completo ── */
+function faltasPlan(p){
+  const f = [];
+  if (!(p.actividades || []).length) f.push('actividades');
+  const sinResp = (p.actividades || []).filter((a)=> !a.responsable).length; if (sinResp) f.push(sinResp + ' actividad(es) sin responsable');
+  if (!p.metas) f.push('metas del año'); if (!p.recursos) f.push('recursos'); if (!p.presupuesto && p.presupuesto !== 0) f.push('presupuesto');
+  if (!p.responsable) f.push('responsable del SG-SST'); if (!p.empleador) f.push('representante legal / empleador');
+  if (!p.firmaEmpleador) f.push('firma del empleador'); if (!p.firmaResponsable) f.push('firma del responsable del SG-SST');
+  if ((p.firmaEmpleador || p.firmaResponsable) && !p.fechaFirma) f.push('fecha de firma');
+  return f;
+}
+function pintarDatos(panel){
+  const C = [{ k: 'responsable', l: 'Responsable del SG-SST', t: 'persona' }, { k: 'presupuesto', l: 'Presupuesto asignado (COP)', t: 'number', medio: true }, { k: 'fechaFirma', l: 'Fecha de firma', t: 'date', medio: true },
+    { k: 'metas', l: 'Metas del año', t: 'textarea', ph: 'Ej: cumplimiento del plan ≥ 90 %; frecuencia de accidentalidad < 2; cobertura de capacitación ≥ 95 %' }, { k: 'recursos', l: 'Recursos (humanos, técnicos, financieros)', t: 'textarea' },
+    { k: 'empleador', l: 'Representante legal / empleador', t: 'persona' }];
+  const fl = faltasPlan(plan);
+  panel.innerHTML = (fl.length ? '<div class="aviso amar" id="pdFaltan"><b>Para que el plan quede completo (Dec. 1072, art. 2.2.4.6.8; estándar 2.4.1) falta:</b><ul class="faltan-lista">' + fl.map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '<div class="aviso ok" id="pdFaltan">El plan tiene metas, recursos, responsables y las dos firmas.</div>') +
+    '<div class="card">' + Registros.form(C, plan, 'pd_') + '<div class="field"><label>Firma del empleador</label>' + UI.padHTML('fEmp') + '</div><div class="field"><label>Firma del responsable del SG-SST</label>' + UI.padHTML('fResp') + '</div>' +
+    '<button type="button" class="btn amber" id="pdOk">Guardar</button><div class="status-msg" id="pdMsg"></div></div>';
+  Registros.activar(panel); UI.activarPad('fEmp', plan.firmaEmpleador); UI.activarPad('fResp', plan.firmaResponsable);
+  if (panel.querySelector('#pd_fechaFirma')) panel.querySelector('#pd_fechaFirma').max = UI.hoy();
+  $('pdOk').addEventListener('click', async ()=> {
+    const v = Registros.leer(C, panel, 'pd_'), msg = $('pdMsg'), faltas = [];
+    if (v.presupuesto !== '' && Number(v.presupuesto) < 0) faltas.push([panel.querySelector('#pd_presupuesto'), 'un presupuesto de 0 o más']);
+    if (v.fechaFirma && v.fechaFirma > UI.hoy()) faltas.push([panel.querySelector('#pd_fechaFirma'), 'una fecha de firma que no sea futura']);
+    if (senalar(panel, msg, faltas, 'Revisa')) return;
+    Object.assign(plan, v, { firmaEmpleador: UI.firma('fEmp') || plan.firmaEmpleador || '', firmaResponsable: UI.firma('fResp') || plan.firmaResponsable || '' });
+    if ((plan.firmaEmpleador || plan.firmaResponsable) && !plan.fechaFirma) plan.fechaFirma = UI.hoy();
+    if (await guardarPlan()) { const f = faltasPlan(plan); UI.toast(f.length ? '✓ Guardado. Aún falta: ' + f.join(', ') + '.' : '✓ Guardado. El plan quedó completo.'); }
+  });
+}
+function pdfPlan(soloTipo){
+  const acts = (plan.actividades || []).filter((a)=> !soloTipo || a.tipo === soloTipo), k = calcular();
+  if (!acts.length) { UI.toast(soloTipo ? 'El plan no tiene actividades de capacitación.' : 'El plan no tiene actividades.', 'mal'); return; }
+  const cap = soloTipo === 'Capacitación';
+  const t = '<table style="font-size:7pt;"><tr><th style="width:3%">N°</th><th style="width:6%">Ciclo</th><th>Actividad</th><th style="width:10%">Responsable</th>' + MESES.map((m)=> '<th style="width:3.2%">' + m + '</th>').join('') + (cap ? '<th style="width:5%">Esper.</th><th style="width:5%">Asist.</th><th style="width:5%">Cober.</th>' : '') + '<th style="width:5%">%</th></tr>' +
+    acts.map((a, i)=> { const x = k.porAct[a.uid] || { pct: 0 };
+      return '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(a.ciclo) + '</td><td>' + esc(a.actividad) + '<br><span class="nota">' + esc(tipoTxt(a.tipo)) + (a.auto ? ' · se cumple con: ' + esc(nombreAuto(a.auto).toLowerCase()) : '') + (a.recursos ? ' · ' + esc(a.recursos) : '') + '</span></td><td>' + esc(a.responsable || '') + '</td>' +
+        MESES.map((n, j)=> { const s = estadoMes(a, j + 1); return '<td class="a" style="' + (s === 'hecho' || s === 'auto' ? 'background:var(--verde-100);' : s === 'atraso' ? 'background:var(--rojo-100);' : '') + '">' + (s ? (s === 'hecho' || s === 'auto' ? '✓' : s === 'atraso' ? '✗' : 'P') : '') + '</td>'; }).join('') +
+        (cap ? '<td class="a">' + (x.esp || '') + '</td><td class="a">' + (x.esp ? x.asis : '') + '</td><td class="a">' + (x.cobertura == null ? '' : x.cobertura + '%') + '</td>' : '') +
+        '<td class="a">' + x.pct + '%</td></tr>'; }).join('') + '</table>';
+  const phva = UI.tablaDatos(CICLOS.map((c)=> { const x = k.porCiclo[c] || { prog: 0, hechas: 0, pct: 0 }; return [c + ' (' + PS.CICLOS_INFO[c].que.toLowerCase() + ')', x.hechas + ' de ' + x.prog + ' · ' + x.pct + ' %']; }));
+  UI.imprimir([UI.cabecera(soloTipo ? 'SG-PLAN-CAPACITACION' : 'SG-PLAN-ANUAL', soloTipo ? 'PLAN DE CAPACITACIÓN ' + anioSel : 'PLAN ANUAL DE TRABAJO DEL SG-SST ' + anioSel,
+      (cap ? 'Ejecución ' + k.ejecCap + ' % · cobertura ' + (k.cobertura == null ? '—' : k.cobertura + ' %') : 'Cumplimiento a la fecha ' + k.cumplimiento + ' % · avance del año ' + k.avance + ' %') + ' · P programada, ✓ realizada, ✗ atrasada') +
+    (soloTipo ? '' : UI.seccion('METAS Y RECURSOS', UI.tablaDatos([['Responsable', plan.responsable || ''], ['Presupuesto', plan.presupuesto ? '$ ' + Number(plan.presupuesto).toLocaleString('es-CO') : '—'], ['Metas', plan.metas || '—'], ['Recursos', plan.recursos || '—']])) + UI.seccion('AVANCE POR FASE DEL PHVA', phva)) + t +
+    UI.seccion('FIRMAS', '<table><tr><td style="width:50%;height:56px;vertical-align:bottom;">' + UI.firmaHoja(plan.firmaEmpleador) + '<br><b>' + esc(plan.empleador || '') + '</b><br>Empleador</td><td class="u-abajo">' + UI.firmaHoja(plan.firmaResponsable) + '<br><b>' + esc(plan.responsable || '') + '</b><br>Responsable del SG-SST</td></tr></table>')], true);
+}
+$('anio').addEventListener('change', ()=> { anioSel = $('anio').value; filtroMes = 0; cargar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

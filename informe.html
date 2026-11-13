@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oXtjj2LEvqe02eVoLYRnkmZsCdY48UM1PyYX0/ybhi8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Informe del SG-SST · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Informe del SG-SST · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.barra-inf{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:12px;}
+.seg-p{display:flex;gap:6px;margin-bottom:8px;}
+.seg-p button{flex:1;min-height:44px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);font:600 14px inherit;font-family:inherit;cursor:pointer;color:var(--ink);}
+.seg-p button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+.barra-inf select{width:100%;min-height:44px;border:1.5px solid var(--line);border-radius:var(--r-m);padding:0 10px;font-size:var(--fs-campo);background:#fff;font-family:inherit;margin-bottom:8px;}
+.barra-inf .fila-btn .btn{margin:0;min-height:44px;}
+.res-t{font-size:var(--fs-base);line-height:1.5;margin:0 0 10px;}
+.res-t li{margin-bottom:3px;}
+.cuenta-sug{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px;}
+.cuenta-sug span{font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-s);padding:5px 10px;}
+.pri{display:inline-block;font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-xs);padding:2px 8px;white-space:nowrap;}
+.pri.alta{background:var(--rojo-50);color:var(--rojo-800);} .pri.media{background:var(--ambar-100);color:var(--ambar-700);} .pri.baja{background:var(--bg);color:var(--n-600);}
+.filtros{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;}
+.filtros button{font:inherit;font-size:var(--fs-base);font-weight:600;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-l);padding:0 12px;min-height:38px;cursor:pointer;color:var(--ink);}
+.filtros button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+.sug{border:1px solid var(--line);border-left:5px solid var(--n-300);border-radius:var(--r-m);padding:11px 12px;margin-bottom:9px;background:#fff;}
+.sug.alta{border-left-color:var(--rojo-700);} .sug.media{border-left-color:var(--ambar-500);} .sug.baja{border-left-color:var(--n-400);}
+.sug-cab{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px;}
+.sug-cab .area{font-size:var(--fs-menor);color:var(--muted);font-weight:600;}
+.sug-t{font-weight:700;font-size:var(--fs-titulo);line-height:1.35;}
+.sug-p,.sug-n{font-size:var(--fs-base);line-height:1.45;margin-top:4px;color:#334;overflow-wrap:anywhere;}
+.sug-n{color:var(--muted);font-size:var(--fs-menor);}
+.sug-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.btn-s{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:var(--r-m);font:700 13.5px inherit;font-family:inherit;border:1.5px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;text-decoration:none;}
+.btn-s.ghost{background:#fff;color:var(--ink);border-color:var(--line);}
+.btn-s.hecha{background:var(--verde-50);color:var(--verde-700);border-color:var(--verde-100);}
+.grafs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:12px;}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:12px 12px 8px;min-width:0;}
+.gcard h3{font-size:var(--fs-base);margin:0 0 2px;font-family:var(--font-display);}
+.gcard .gs{font-size:var(--fs-menor);color:var(--muted);margin-bottom:6px;line-height:1.35;}
+.leyenda{display:flex;gap:12px;flex-wrap:wrap;font-size:var(--fs-menor);color:var(--n-700);margin-top:4px;}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:var(--r-xs);margin-right:4px;vertical-align:-1px;}
+.sec-t{font-family:var(--font-display);font-size:var(--fs-menor);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 2px 8px;}
+.tabla-scroll{overflow-x:auto;}
+table.cif{width:100%;border-collapse:collapse;font-size:var(--fs-menor);}
+table.cif td{border-bottom:1px solid var(--bg);padding:6px 4px;vertical-align:top;}
+table.cif td:first-child{color:var(--muted);width:28%;}
+table.cif td:last-child{text-align:right;font-weight:700;white-space:nowrap;}
+#tipGraf{position:fixed;z-index:60;background:var(--ink);color:#fff;font-size:var(--fs-menor);padding:6px 9px;border-radius:var(--r-s);pointer-events:none;max-width:240px;line-height:1.35;display:none;}
+.graf [data-tip]{cursor:pointer;}
+.bien li{font-size:var(--fs-base);line-height:1.45;margin-bottom:4px;}
+@media print{ #tipGraf{display:none!important;} }
+.kpis-g{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));}
+.u-oculto{display:none;}
+</style>
+</head>
+<body data-i18n>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Paso 5 · Revisar y mejorar</div>
+    <h1>Informe del SG-SST</h1>
+    <p>Todo lo registrado en el portal, con gráficas y sugerencias de mejora priorizadas</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="barra-inf">
+    <div class="seg-p" role="group" aria-label="Periodo del informe" id="segP">
+      <button type="button" data-p="mes" aria-pressed="true">Mes</button><button type="button" data-p="trimestre" aria-pressed="false">Trimestre</button><button type="button" data-p="anio" aria-pressed="false">Año</button>
+    </div>
+    <label for="selP" class="ayuda" style="display:block;margin:0 0 4px;">Periodo</label>
+    <select id="selP"></select>
+    <div class="fila-btn"><button type="button" class="btn amber" id="btnPdf" disabled>Sacar el PDF con firma</button><button type="button" class="btn ghost" id="btnAct">Actualizar datos</button></div>
+  </div>
+  <div id="contenido"><div class="empty">Revisando todo el SG-SST…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<div id="tipGraf" role="status" aria-live="polite"></div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="i18n-en.js"></script>
+<script src="i18n.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="evidencias-reglas.js"></script>
+<script src="inspecciones-plantillas.js"></script>
+<script src="informe-reglas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* ── Informe del SG-SST con sugerencias (v107) ──
+   Junta lo de todos los módulos para un periodo, lo muestra con gráficas y saca
+   sugerencias de mejora con reglas explicables (informe-reglas.js). Cada sugerencia
+   dice por qué sale, la norma y deja crear la acción en el plan de acción.
+   Los datos de salud individual solo los ve Administrador o SST. */
+const $ = UI.$;
+const G = INFORME.graf, C = G.COLOR, fmt = INFORME.fmt;
+const ORIGEN = 'Informe del SG-SST';
+const esSst = ()=> !Sesion.modo() || !Sesion.yo() || ['admin', 'sst'].indexOf(Sesion.rol()) !== -1;
+const TIPOS_BASE = 'empresa,mes,reporte,accion,plananual,inspeccion,equipo,proginsp,comite,reunion,queja,auditoria,revision,politica,peligro,revmatriz,medicion,emergencia,simulacro,sustancia,gestquim,aspecto,residuo,' +
+  'contratista,proveedor,entrega,eppcargo,trabajador,induccion,programa,pesv,vehiculo,legal,documento,cambio,rendicion,cargo,cierremes,reporteanual,pqrs,riesgocal';
+const TIPOS_SALUD = ',examen,perfil,sve,ausencia';
+let rows = [], perfilDoc = {}, planes = {}, evid = null, charlas = null, tipoP = 'mes', valorP = '', K = null, sug = [], filtroS = 'todas', cargado = false;
+
+/* Periodo: el de la dirección (?p=trimestre&v=2026-T3) o el mes que se está cerrando. */
+(function () {
+  let q = {}; try { const u = new URLSearchParams(location.search); q = { p: u.get('p'), v: u.get('v') }; } catch (e) {}
+  tipoP = ['mes', 'trimestre', 'anio'].indexOf(q.p) !== -1 ? q.p : 'mes';
+  const ops = INFORME.opciones(tipoP, UI.hoy()).map((o)=> o.v);
+  valorP = ops.indexOf(q.v) !== -1 ? q.v : tipoP === 'mes' ? INFORME.porDefecto(UI.hoy()) : ops[0];
+})();
+function pintarSelector(){
+  $('segP').querySelectorAll('button').forEach((b)=> b.setAttribute('aria-pressed', String(b.dataset.p === tipoP)));
+  $('selP').innerHTML = INFORME.opciones(tipoP, UI.hoy()).map((o)=> '<option value="' + esc(o.v) + '"' + (o.v === valorP ? ' selected' : '') + '>' + esc(o.t) + '</option>').join('');
+}
+$('segP').addEventListener('click', (e)=> { const b = e.target.closest('[data-p]'); if (!b || b.dataset.p === tipoP) return; tipoP = b.dataset.p;
+  valorP = tipoP === 'mes' ? INFORME.porDefecto(UI.hoy()) : INFORME.opciones(tipoP, UI.hoy())[0].v; pintarSelector(); recalcular(); });
+$('selP').addEventListener('change', ()=> { valorP = $('selP').value; recalcular(); });
+$('btnAct').addEventListener('click', ()=> { planes = {}; cargar(); });
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('contenido').innerHTML = ''; return; }
+  $('btnAct').disabled = true;
+  const r = await SGSST.listar(TIPOS_BASE + (esSst() ? TIPOS_SALUD : ''));
+  $('btnAct').disabled = false;
+  UI.avisoCopia($('avisoCopia'), r);
+  if (r.sinSesion) { $('contenido').innerHTML = ''; return; }
+  rows = r.rows;
+  try { await Habilitacion.cargar(); } catch (e) {}
+  const pf = rows.find((x)=> x.id === 'EMPRESA-PERFIL');
+  perfilDoc = pf ? (await SGSST.doc('EMPRESA-PERFIL')) || Object.assign({}, pf.resumen) : (UI.perfilInstalacion() || {});
+  cargado = true;
+  await recalcular();
+  // Evidencias por estándar (Res. 0312) y charlas de asistencia: sin frenar la primera vista.
+  evaluarEvidencias().then(()=> recalcular());
+  traerCharlas().then(()=> recalcular());
+}
+async function evaluarEvidencias(){
+  try {
+    const g = Number(perfilDoc.grupo0312) || 60, P = PLANTILLAS_AUDITORIA[g === 60 ? 'RES0312' : 'RES0312_' + g];
+    evid = await EVIDENCIAS.evaluar(P.items, { rows, perfil: perfilDoc, hoy: UI.hoy(), esSst: esSst(), docDe: (id)=> SGSST.doc(id) });
+  } catch (e) { evid = null; }
+}
+async function traerCharlas(){
+  const B = PORTAL_CONFIG.BACKENDS || {};
+  if (!(B.asistencia && B.asistencia.url) || !navigator.onLine) return;
+  try { const x = await fetchWithRetry(B.asistencia.url + '?list=1&limite=600&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN)); const j = await x.json(); if (j && j.ok) charlas = j.rows || []; } catch (e) {}
+}
+async function planDe(anio){
+  if (planes[anio] !== undefined) return planes[anio];
+  const f = rows.find((x)=> x.tipo === 'plananual' && String(x.resumen.anio) === anio);
+  planes[anio] = f ? (await SGSST.doc(f.id)) || null : null;
+  return planes[anio];
+}
+async function recalcular(){
+  if (!cargado) return;
+  pintarSelector();
+  try { history.replaceState(null, '', location.pathname + '?p=' + tipoP + '&v=' + encodeURIComponent(valorP)); } catch (e) {}
+  const P = INFORME.periodo(tipoP, valorP), plan = await planDe(P.meses[P.meses.length - 1].slice(0, 4));
+  const nombres = {}; (typeof PLANTILLAS_INSPECCION !== 'undefined' ? PLANTILLAS_INSPECCION : []).forEach((p)=> { nombres[p.id] = p.nombre; });
+  K = INFORME.calcular({ rows, hoy: UI.hoy(), periodo: P, esSst: esSst(), plan, evid, perfil: perfilDoc, charlas,
+    habilitado: (x)=> Habilitacion.revisar(x.resumen.cedula, []).estado !== 'mal', sumarHabiles: (f, n)=> Festivos.sumarHabiles(f, n), nombresCategoria: nombres,
+    calidad: !(EMPRESA.modulos && EMPRESA.modulos.calidad === false) });
+  sug = INFORME.sugerencias(K);
+  pintar();
+}
+
+/* ── Pantalla ── */
+const cuenta = (p)=> sug.filter((x)=> x.prioridad === p).length;
+/** Una acción abierta que ya salió de esta sugerencia (en cualquier informe). */
+const accionDe = (s)=> K.acciones.informe.find((a)=> a.estado !== 'CERRADA' && String(a.resumen.origenRef || '').split(' · ').pop() === s.id);
+/* v154 · Tablero gerencial: los indicadores clave con semáforo (verde, amarillo, rojo), en pantalla y en el PDF. */
+function tablero(){
+  const A = K.acc, sem = (v, bien, mal, alReves)=> v === null || v === undefined || isNaN(v) ? 'gris' : alReves ? (v <= bien ? 'ok' : v >= mal ? 'mal' : 'amar') : (v >= bien ? 'ok' : v <= mal ? 'mal' : 'amar');
+  const pc = (a, b)=> b ? Math.round(a * 100 / b) : null;
+  const ip = K.insp.prog ? pc(K.insp.progHechas, K.insp.prog) : null, hab = pc(K.personas.habilitados, K.personas.activos), cap = K.plan.capP ? pc(K.plan.capH, K.plan.capP) : null;
+  return [
+    { n: 'Accidentes de trabajo', v: String(A.at), f: 'anterior: ' + A.atAnt + ' · días perdidos: ' + A.dias, c: A.at > A.atAnt ? 'mal' : A.at ? 'amar' : 'ok' },
+    { n: 'Frecuencia de accidentalidad', v: fmt(A.frec, 2), f: 'AT × 100 trabajadores · anterior ' + fmt(A.frecAnt, 2), c: A.frec > A.frecAnt ? 'mal' : A.frec ? 'amar' : 'ok' },
+    { n: 'Severidad', v: fmt(A.sev, 1), f: 'días perdidos × 100 trabajadores', c: A.sev > A.sevAnt ? 'mal' : A.sev ? 'amar' : 'ok' },
+    { n: 'Ausentismo por causa médica', v: A.aus === null ? '—' : fmt(A.aus, 2) + ' %', f: 'días de ausencia ÷ días programados', c: sem(A.aus, 2, 4, true) },
+    { n: 'Plan anual a la fecha', v: K.plan.existe ? fmt(K.plan.cumplimiento, 0) + ' %' : '—', f: K.plan.existe ? 'avance del año ' + fmt(K.plan.avance, 0) + ' %' : 'sin plan ' + K.anio, c: K.plan.existe ? sem(K.plan.cumplimiento, 90, 70) : 'mal' },
+    { n: 'Capacitación (cobertura)', v: cap === null ? '—' : cap + ' %', f: K.plan.capP ? K.plan.capH + ' de ' + K.plan.capP + ' programadas' : 'sin programar', c: sem(cap, 90, 70) },
+    { n: 'Inspecciones del cronograma', v: ip === null ? '—' : ip + ' %', f: K.insp.prog ? K.insp.progHechas + ' de ' + K.insp.prog + ' · ' + K.insp.nc + ' no conformes' : K.insp.periodo + ' hechas en el periodo', c: sem(ip, 90, 70) },
+    { n: 'Plan de acción', v: String(K.acciones.vencidas), f: 'vencidas de ' + K.acciones.abiertas + ' abiertas · ' + K.acciones.cerradasP + ' cerradas en el periodo', c: K.acciones.vencidas ? (K.acciones.vencidas > 3 ? 'mal' : 'amar') : 'ok' },
+    { n: 'Personal habilitado', v: hab === null ? '—' : hab + ' %', f: K.personas.habilitados + ' de ' + K.personas.activos + ' activos', c: sem(hab, 95, 80) },
+    { n: 'Estándares con evidencia', v: K.evid ? fmt(K.evid.pct, 1) + ' %' : K.auto ? fmt(K.auto.puntaje, 1) + ' %' : '—', f: K.evid ? K.evid.falta + ' sin evidencia (Res. 0312)' : 'autoevaluación', c: K.evid ? sem(K.evid.pct, 85, 60) : 'gris' }];
+}
+const COLOR_SEM = { ok: '#15803d', amar: '#b45309', mal: '#b42318', gris: '#64748b' };
+function tableroPdf(){
+  const t = tablero(), filas = [];
+  for (let i = 0; i < t.length; i += 5) filas.push('<tr>' + t.slice(i, i + 5).map((x)=> '<td style="width:20%;vertical-align:top;border-left:4pt solid ' + COLOR_SEM[x.c] + ';padding:4pt 6pt;"><div style="font-size:7pt;font-weight:bold;text-transform:uppercase;color:#4a5568;">' + esc(x.n) + '</div><div style="font-size:17pt;font-weight:bold;color:' + COLOR_SEM[x.c] + ';line-height:1.15;">' + esc(x.v) + '</div><div style="font-size:6.8pt;color:#4a5568;">' + esc(x.f) + '</div></td>').join('') + '</tr>');
+  return '<table style="table-layout:fixed;width:100%;">' + filas.join('') + '</table><p style="font-size:6.8pt;margin:2pt 0 0;">Semáforo: <b style="color:#15803d;">verde</b> en meta · <b style="color:#b45309;">amarillo</b> en seguimiento · <b style="color:#b42318;">rojo</b> requiere decisión de la gerencia.</p>';
+}
+function kpi(v, n, f, cl){ return '<div class="kpi ' + (cl || '') + '"><div class="v">' + esc(v) + '</div><div class="n">' + esc(n) + '</div>' + (f ? '<div class="f">' + esc(f) + '</div>' : '') + '</div>'; }
+function pintar(){
+  const c = $('contenido'), res = INFORME.resumen(K, sug), bien = INFORME.fortalezas(K);
+  $('btnPdf').disabled = false;
+  const vis = sug.filter((s)=> filtroS === 'todas' || s.prioridad === filtroS);
+  c.innerHTML = (K.futuro ? '<div class="aviso amar">Ese periodo todavía no empieza: las cifras salen en cero.</div>' : '') +
+    (perfilDoc.trabajadores ? '' : '<div class="aviso amar">Falta el perfil de la empresa (trabajadores y clase de riesgo). <a href="gerencia.html">Definirlo en el tablero de la gerencia</a>.</div>') +
+    '<div class="card"><h2>Resumen ejecutivo · ' + esc(K.P.nombre) + '</h2><ul class="res-t">' + res.map((t)=> '<li>' + esc(t) + '</li>').join('') + '</ul>' +
+      '</div>' +
+    '<div class="card"><h2>Tablero gerencial</h2><p class="ayuda u-mt0">Los indicadores clave del periodo con semáforo: verde en meta, amarillo en seguimiento, rojo requiere decisión.</p><div class="kpis kpis-g">' + tablero().map((x)=> kpi(x.v, x.n, x.f, x.c === 'amar' ? '' : x.c === 'gris' ? '' : x.c)).join('') + '</div></div>' +
+    '<div class="card u-oculto"><div class="kpis">' +
+        kpi(String(K.acc.at), 'accidentes de trabajo', K.acc.atAnt + ' en el periodo anterior', K.acc.at > K.acc.atAnt ? 'mal' : K.acc.at ? '' : 'ok') +
+        kpi(K.plan.existe ? fmt(K.plan.cumplimiento, 0) + '%' : '—', 'plan anual a la fecha', K.plan.existe ? 'avance del año ' + fmt(K.plan.avance, 0) + ' %' : 'sin plan ' + K.anio, !K.plan.existe || K.plan.cumplimiento < 70 ? 'mal' : K.plan.cumplimiento >= 90 ? 'ok' : '') +
+        kpi(String(K.acciones.vencidas), 'acciones vencidas', K.acciones.abiertas + ' abiertas', K.acciones.vencidas ? 'mal' : 'ok') +
+        kpi(K.evid ? fmt(K.evid.pct, 1) + '%' : K.auto ? fmt(K.auto.puntaje, 1) + '%' : '…', K.evid ? 'estándares con evidencia' : 'autoevaluación', K.evid ? K.evid.falta + ' sin evidencia' : K.auto ? K.auto.fecha : 'revisando…', K.evid ? (K.evid.pct >= 85 ? 'ok' : K.evid.pct < 60 ? 'mal' : '') : '') +
+      '</div></div>' +
+    '<div class="card" id="cardSug"><h2>Sugerencias de mejora</h2>' +
+      '<p class="ayuda u-mt0">Salen de reglas fijas con los datos del portal: cada una dice por qué, la norma y dónde se arregla. Con «Crear acción» queda en el plan de acción con responsable y fecha.</p>' +
+      '<div class="filtros" role="group" aria-label="Filtrar sugerencias">' + [['todas', 'Todas (' + sug.length + ')'], ['alta', 'Alta (' + cuenta('alta') + ')'], ['media', 'Media (' + cuenta('media') + ')'], ['baja', 'Baja (' + cuenta('baja') + ')']]
+        .map(([k, t])=> '<button type="button" data-fs="' + k + '" aria-pressed="' + (filtroS === k) + '">' + t + '</button>').join('') + '</div>' +
+      (vis.length ? vis.map(sugHtml).join('') : '<div class="empty">' + (sug.length ? 'Ninguna en este filtro.' : 'Todo lo que el portal revisa está al día. 👍') + '</div>') + '</div>' +
+    '<div class="sec-t">Gráficas</div><div class="grafs">' + graficas().map((g)=> '<div class="gcard"><h3>' + esc(g.t) + '</h3><div class="gs">' + esc(g.sub) + '</div>' + g.svg + (g.ley || '') + '</div>').join('') + '</div>' +
+    (bien.length ? '<div class="card bien"><h2>Lo que va bien</h2><ul style="margin:0;padding-left:18px;">' + bien.map((t)=> '<li>' + esc(t) + '</li>').join('') + '</ul></div>' : '') +
+    '<details class="card"><summary style="cursor:pointer;font-family:var(--font-display);font-weight:700;font-size:var(--fs-titulo);min-height:32px;">Cifras del periodo (tabla)</summary><div class="tabla-scroll u-mt8"><table class="cif">' +
+      cifras().map((f)=> '<tr><td>' + esc(f[0]) + '</td><td>' + esc(f[1]) + '</td><td>' + esc(f[2]) + '</td></tr>').join('') + '</table></div></details>';
+  c.querySelectorAll('[data-fs]').forEach((b)=> b.addEventListener('click', ()=> { filtroS = b.dataset.fs; pintar(); const s = $('cardSug'); if (s) s.scrollIntoView({ block: 'start' }); }));
+  c.querySelectorAll('[data-acc]').forEach((b)=> b.addEventListener('click', ()=> crearAccion(sug.find((s)=> s.id === b.dataset.acc))));
+}
+function sugHtml(s){
+  const ya = accionDe(s);
+  return '<div class="sug ' + s.prioridad + '" id="s-' + esc(s.id) + '"><div class="sug-cab"><span class="pri ' + s.prioridad + '">' + ({ alta: 'Prioridad alta', media: 'Prioridad media', baja: 'Prioridad baja' }[s.prioridad]) + '</span><span class="area">' + esc(s.area) + '</span></div>' +
+    '<div class="sug-t">' + esc(s.titulo) + '</div><div class="sug-p"><b>Por qué:</b> ' + esc(s.porque) + '</div><div class="sug-p"><b>Qué hacer:</b> ' + esc(s.accion.accion) + '</div><div class="sug-n">Norma: ' + esc(s.norma) + '</div>' +
+    '<div class="sug-b">' + (ya ? '<a class="btn-s hecha" href="plan-accion.html#' + esc(ya.id) + '">Ya tiene acción abierta · ' + esc(ya.resumen.responsable || ya.id) + '</a>' : '<button type="button" class="btn-s" data-acc="' + esc(s.id) + '">Crear acción</button>') +
+    (s.href ? '<a class="btn-s ghost" href="' + esc(s.href) + '">Abrir el módulo</a>' : '') + '</div></div>';
+}
+function crearAccion(s){
+  if (!s) return;
+  const resp = perfilDoc.responsableSST || K.plan.responsable || '';
+  UI.nuevaAccion({ origen: ORIGEN, origenRef: 'INF-' + K.P.valor + ' · ' + s.id, hallazgo: s.accion.hallazgo + ' (' + s.norma + ')', accion: s.accion.accion, tipoAccion: s.accion.tipoAccion, prioridad: s.accion.prioridad,
+    responsable: resp, fechaCompromiso: Festivos.sumarDias(UI.hoy(), s.prioridad === 'alta' ? 15 : s.prioridad === 'media' ? 30 : 60) }, (r)=> {
+    // Se agrega a la lista local para que el botón cambie sin volver a cargar todo.
+    rows.push({ id: r.id, tipo: 'accion', estado: 'ABIERTA', fecha: UI.hoy(), resumen: { origen: ORIGEN, origenRef: 'INF-' + K.P.valor + ' · ' + s.id, accion: s.accion.accion, responsable: '', fechaCompromiso: '' } });
+    recalcular();
+  });
+}
+
+/* ── Gráficas ── */
+function graficas(){
+  const T = K.tendencia, et = (m)=> INFORME.etiquetaMes(m), out = [];
+  const nota = 'Últimos 12 meses; en color, el periodo del informe.';
+  out.push({ t: 'Accidentes de trabajo por mes', sub: nota, svg: G.barras(T.map((x)=> ({ et: et(x.m), v: x.at, sel: x.enP, tip: INFORME.nombreMes(x.m) + ': ' + x.at + ' AT, ' + x.dias + ' días perdidos' })), { titulo: 'Accidentes de trabajo por mes', dec: 0 }) });
+  out.push({ t: 'Frecuencia de accidentalidad', sub: 'AT por cada 100 trabajadores (Res. 0312, art. 30). Sin datos del mes no hay punto.', svg: G.linea(T.map((x)=> ({ et: et(x.m), v: x.frecuencia, sel: x.enP })), { titulo: 'Frecuencia de accidentalidad' }) });
+  out.push({ t: 'Severidad de accidentalidad', sub: 'Días perdidos por cada 100 trabajadores.', svg: G.linea(T.map((x)=> ({ et: et(x.m), v: x.severidad, sel: x.enP })), { titulo: 'Severidad de accidentalidad', color: C.serie2 }) });
+  out.push({ t: 'Ausentismo por causa médica', sub: 'Días de ausencia ÷ días programados.', svg: G.linea(T.map((x)=> ({ et: et(x.m), v: x.ausentismo, sel: x.enP })), { titulo: 'Ausentismo por causa médica', unidad: ' %', color: C.neutro }) });
+  if (K.plan.anioMeses.length) out.push({ t: 'Plan anual ' + K.anio + ': programado y hecho', sub: 'Actividades por mes (las que el portal detecta solas también cuentan).',
+    svg: G.barrasPar(K.plan.anioMeses.map((x)=> ({ et: et(x.m), a: x.prog, b: x.hechas, atraso: x.m < UI.hoy().slice(0, 7) && x.hechas < x.prog })), { titulo: 'Plan anual: programado y hecho' }),
+    ley: '<div class="leyenda"><span><i style="background:' + C.ref + '"></i>Programadas</span><span><i style="background:' + C.serie + '"></i>Hechas</span><span><i style="background:' + C.serie2 + '"></i>Hechas (mes con atraso)</span></div>' });
+  out.push({ t: 'Estado del plan de acción', sub: 'Todas las acciones, a hoy.', svg: G.anillo([{ n: 'Cerradas', v: K.acciones.cerradas, color: C.ok }, { n: 'Abiertas al día', v: K.acciones.alDia, color: C.serie }, { n: 'Vencidas', v: K.acciones.vencidas, color: C.mal }], { titulo: 'Estado del plan de acción', sub: 'acciones' }) });
+  const pc = K.acc.porClase, cl = Object.keys(pc).sort((a, b)=> pc[b] - pc[a]);
+  out.push({ t: 'Reportes del periodo por clase', sub: cl.length ? 'Actos, condiciones, incidentes y accidentes reportados.' : 'Sin reportes en el periodo: anima a reportar actos y condiciones.', svg: cl.length ? G.barrasH(cl.map((k)=> ({ n: k, v: pc[k], color: k === 'Accidente de trabajo' ? C.mal : C.serie })), { titulo: 'Reportes por clase' }) : '' });
+  if (K.evid) out.push({ t: 'Evidencia de los estándares mínimos', sub: 'Lo que el portal encuentra por estándar (no es la calificación oficial).', svg: G.anillo([{ n: 'Al día', v: K.evid.ok, color: C.ok }, { n: 'Incompletos', v: K.evid.parcial, color: C.alerta }, { n: 'Sin evidencia', v: K.evid.falta, color: C.mal }, { n: 'Revisar a mano', v: K.evid.manual, color: C.neutro }], { titulo: 'Evidencia por estándar', centro: fmt(K.evid.pct, 0) + '%', sub: 'ponderado' }) });
+  // v157 · Por departamento / área (los nombres salen de «Departamentos y áreas»)
+  { const P = K.P, enP = (f)=> { const d = String(f || '').slice(0, 10); return d >= P.ini && d <= P.fin; }, ced = (c)=> String(c || '').replace(/\D/g, '');
+    const trab = {}; rows.filter((x)=> x.tipo === 'trabajador').forEach((x)=> { trab[ced(x.resumen.cedula)] = x.resumen; });
+    const eqA = {}; rows.filter((x)=> x.tipo === 'equipo').forEach((x)=> { eqA[x.id] = x.resumen.area || ''; });
+    const cuenta = (l)=> { const m = {}; l.forEach((a)=> { const k = String(a || '').trim() || 'Sin área'; m[k] = (m[k] || 0) + 1; }); return Object.keys(m).sort((a, b)=> m[b] - m[a]).slice(0, 10).map((n)=> ({ n, v: m[n] })); };
+    const rep = rows.filter((x)=> x.tipo === 'reporte' && enP(x.resumen.fecha) && /Accidente|Incidente/.test(x.resumen.clase || ''));
+    const repA = cuenta(rep.map((x)=> (trab[ced(x.resumen.lesionadoCc)] || {}).area || x.resumen.area || x.resumen.centro || x.resumen.lugar));
+    const ncA = cuenta(rows.filter((x)=> x.tipo === 'inspeccion' && enP(x.resumen.fecha) && x.resumen.resultado === 'NO CONFORME').map((x)=> eqA[x.resumen.equipoId] || x.resumen.lugar));
+    const perA = cuenta(Object.values(trab).filter((t)=> t.activo !== false).map((t)=> t.area));
+    if (repA.length) out.push({ t: 'Accidentes e incidentes por área', sub: 'En el periodo (área del lesionado o del lugar).', svg: G.barrasH(repA, { titulo: 'Accidentes e incidentes por área' }) });
+    if (ncA.length) out.push({ t: 'Inspecciones no conformes por área', sub: 'En el periodo (área del equipo inspeccionado).', svg: G.barrasH(ncA, { titulo: 'Inspecciones no conformes por área' }) });
+    if (perA.length > 1 || (perA[0] && perA[0].n !== 'Sin área')) out.push({ t: 'Personal activo por área', sub: 'Personal habilitado activo.', svg: G.barrasH(perA, { titulo: 'Personal por área' }) }); }
+  const areas = {}; sug.forEach((s)=> { areas[s.area] = (areas[s.area] || 0) + 1; }); const ar = Object.keys(areas).sort((a, b)=> areas[b] - areas[a]);
+  if (ar.length) out.push({ t: 'Sugerencias por área', sub: 'Dónde está el trabajo pendiente.', svg: G.barrasH(ar.map((k)=> ({ n: k, v: areas[k] })), { titulo: 'Sugerencias por área' }) });
+  return out;
+}
+/* Tooltip de las gráficas: al pasar o tocar una barra o un punto. */
+(function () {
+  const tip = $('tipGraf');
+  const ver = (el, x, y)=> { tip.textContent = el.getAttribute('data-tip'); tip.style.display = 'block'; const w = tip.offsetWidth; tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w / 2)) + 'px'; tip.style.top = Math.max(8, y - tip.offsetHeight - 12) + 'px'; };
+  document.addEventListener('pointerover', (e)=> { const el = e.target.closest && e.target.closest('.graf [data-tip]'); if (el && e.pointerType === 'mouse') ver(el, e.clientX, e.clientY); });
+  document.addEventListener('pointermove', (e)=> { const el = e.target.closest && e.target.closest('.graf [data-tip]'); if (el && e.pointerType === 'mouse') ver(el, e.clientX, e.clientY); else if (e.pointerType === 'mouse') tip.style.display = 'none'; });
+  document.addEventListener('click', (e)=> { const el = e.target.closest && e.target.closest('.graf [data-tip]'); if (el) ver(el, e.clientX, e.clientY); else tip.style.display = 'none'; });
+  window.addEventListener('scroll', ()=> { tip.style.display = 'none'; }, { passive: true });
+})();
+
+/* ── Cifras (tabla de la pantalla y del PDF) ── */
+function cifras(){
+  const A = K.acc, ac = K.acciones, f = [], pct = (a, b)=> b ? Math.round(a * 100 / b) + ' %' : '—', fe = (x)=> x ? UI.corta(x) : 'nunca';
+  f.push(['Accidentalidad', 'Accidentes de trabajo (anterior)', A.at + ' (' + A.atAnt + ')'], ['Accidentalidad', 'Días perdidos', String(A.dias)], ['Accidentalidad', 'Incidentes / actos y condiciones', A.incidentes + ' / ' + A.actos],
+    ['Accidentalidad', 'Frecuencia promedio (anterior)', fmt(A.frec, 2) + ' (' + fmt(A.frecAnt, 2) + ')'], ['Accidentalidad', 'Severidad promedio (anterior)', fmt(A.sev, 1) + ' (' + fmt(A.sevAnt, 1) + ')'],
+    ['Accidentalidad', 'Ausentismo por causa médica', A.aus === null ? '—' : fmt(A.aus, 2) + ' %'], ['Accidentalidad', 'AT mortales en ' + K.anio, String(A.anual.mort)],
+    ['Accidentalidad', 'FURAT sin radicar / sin investigar', A.sinFurat.length + ' / ' + A.sinInv.length]);
+  f.push(['Plan anual', 'Cumplimiento a la fecha / avance del año', K.plan.existe ? K.plan.cumplimiento + ' % / ' + K.plan.avance + ' %' : 'Sin plan'], ['Plan anual', 'Capacitaciones hechas / programadas', K.plan.capP ? K.plan.capH + ' / ' + K.plan.capP : '—']);
+  f.push(['Plan de acción', 'Abiertas / vencidas / más de 30 días', ac.abiertas + ' / ' + ac.vencidas + ' / ' + ac.vencidas30.length], ['Plan de acción', 'Nuevas / cerradas en el periodo', ac.nuevasP + ' / ' + ac.cerradasP], ['Plan de acción', 'Cerradas eficaces / no eficaces', ac.eficaces + ' / ' + ac.noEficaces], ['Plan de acción', 'Tareas del asesor abiertas / vencidas', ac.asesorAbiertas + ' / ' + ac.asesorVencidas]);
+  f.push(['Inspecciones', 'Hechas en el periodo / no conformes', K.insp.periodo + ' / ' + K.insp.nc], ['Inspecciones', 'Cronograma (hechas / programadas)', K.insp.prog ? K.insp.progHechas + ' / ' + K.insp.prog : '—'], ['Inspecciones', 'Equipos con fechas vencidas', String(K.insp.equiposVencidos)]);
+  f.push(['Comités', 'COPASST: última reunión ordinaria', K.comites.copasst.existe ? fe(K.comites.copasst.ultima) : 'Sin conformar'], ['Comités', 'Convivencia: última reunión', K.comites.convivencia.existe ? fe(K.comites.convivencia.ultima) : 'Sin conformar'], ['Comités', 'Quejas de convivencia abiertas (solo el número)', String(K.comites.quejasAbiertas)]);
+  if (K.salud) f.push(['Salud (solo SST)', 'Exámenes periódicos vencidos', K.salud.vencidos + ' de ' + K.salud.examenes], ['Salud (solo SST)', 'Restricciones sin comunicar', String(K.salud.restriccionesSinComunicar)]);
+  f.push(['Revisar y mejorar', 'Autoevaluación de estándares', K.auto ? fmt(K.auto.puntaje, 1) + ' % · ' + UI.corta(K.auto.fecha) : 'Sin hacer'], ['Revisar y mejorar', 'Estándares con evidencia', K.evid ? K.evid.ok + ' de ' + K.evid.total + ' (' + fmt(K.evid.pct, 1) + ' %)' : '—'],
+    ['Revisar y mejorar', 'Auditorías en el último año / última revisión por la dirección', K.auditorias12 + ' / ' + fe(K.revision)]);
+  f.push(['Peligros', 'Peligros en la matriz / riesgos I y II con controles pendientes', K.peligros.total + ' / ' + K.peligros.criticosPend], ['Peligros', 'Última revisión de la matriz', fe(K.peligros.revision)]);
+  f.push(['Emergencias', 'Planes vigentes / último simulacro', K.emergencias.vigentes + ' de ' + K.emergencias.planes + ' / ' + fe(K.emergencias.simulacro)], ['Emergencias', 'Brigadistas capacitados', K.emergencias.brigadistas ? K.emergencias.capacitados + ' de ' + K.emergencias.brigadistas : '—']);
+  f.push(['Químicos', 'Sustancias / fichas vencidas / sin etiqueta SGA', K.quimicos.sustancias + ' / ' + K.quimicos.fdsVencidas + ' / ' + K.quimicos.sinEtiqueta], ['Ambiental', 'Aspectos significativos / RESPEL sin certificado', K.ambiental.significativos + ' / ' + K.ambiental.respelSinCert]);
+  if (K.calidad) f.push(['Calidad', 'PQRS en el periodo / vencidas', K.calidad.pqrsP + ' / ' + K.calidad.pqrsVencidas]);
+  f.push(['Contratistas', 'Con documentos faltantes o vencidos', K.contratistas.problemas + ' de ' + K.contratistas.total], ['EPP', 'Elementos con reposición vencida / entregas en el periodo', K.epp.vencidos + ' / ' + K.epp.entregasP]);
+  f.push(['Personas', 'Personal habilitado (hoy)', K.personas.habilitados + ' de ' + K.personas.activos + ' (' + pct(K.personas.habilitados, K.personas.activos) + ')'], ['Personas', 'Inducción vigente / inducciones en el periodo', pct(K.personas.induccion, K.personas.activos) + ' / ' + K.personas.induccionesP]);
+  if (K.capacitacion.charlasOk) f.push(['Capacitación', 'Charlas / asistencias en el periodo', K.capacitacion.charlasP + ' / ' + K.capacitacion.asistentesP]);
+  f.push(['Sistema', 'Meses sin datos de indicadores / sin cerrar', (K.datos.sinMes.length ? K.datos.sinMes.join(', ') : 'ninguno') + ' / ' + (K.datos.sinCierre.length ? K.datos.sinCierre.join(', ') : 'ninguno')]);
+  return f;
+}
+
+/* ── PDF con la firma del responsable del SG-SST ── */
+$('btnPdf').addEventListener('click', ()=> {
+  if (!K) return;
+  const resp = perfilDoc.responsableSST || K.plan.responsable || Sesion.nombre() || '';
+  const m = UI.modal('<h3>PDF del informe</h3><p class="ayuda">Sale con el resumen, las gráficas, las sugerencias y la firma de quien responde por el SG-SST.</p>' +
+    '<div class="field"><label for="fiNom">Responsable del SG-SST *</label><input type="text" id="fiNom" value="' + esc(resp) + '"></div>' +
+    '<div class="grid2"><div class="field"><label for="fiCargo">Cargo</label><input type="text" id="fiCargo" value="' + esc(perfilDoc.responsableCargo || 'Responsable del SG-SST') + '"></div><div class="field"><label for="fiLic">Licencia en SST</label><input type="text" id="fiLic" value="' + esc(perfilDoc.responsableLicencia || '') + '"></div></div>' +
+    '<div class="field"><label for="fiConc">Análisis y conclusiones</label><textarea id="fiConc" rows="4" placeholder="Qué pasó en el periodo, qué se decide y qué se le pide a la gerencia"></textarea></div>' +
+    '<label class="check"><input type="checkbox" id="fiBaja" checked> Incluir las sugerencias de prioridad baja</label>' +
+    '<div class="field"><label>Firma (opcional: si no firma aquí, queda la línea para firmar a mano)</label>' + UI.padHTML('fiFirma') + '</div>' +
+    '<button type="button" class="btn amber" id="fiOk">Sacar el PDF</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="fiMsg"></div>', true);
+  UI.activarPad('fiFirma');
+  m.el.querySelector('#fiOk').addEventListener('click', ()=> {
+    const v = (id)=> m.el.querySelector(id).value.trim();
+    if (!v('#fiNom')) { const i = m.el.querySelector('#fiNom'); i.classList.add('error'); i.focus(); m.el.querySelector('#fiMsg').textContent = 'Falta el nombre del responsable del SG-SST.'; return; }
+    const firma = UI.firma('fiFirma');
+    pdf({ nombre: v('#fiNom'), cargo: v('#fiCargo'), licencia: v('#fiLic'), conclusiones: v('#fiConc'), baja: m.el.querySelector('#fiBaja').checked, firma });
+    m.cerrar();
+  });
+});
+function pdf(o){
+  const res = INFORME.resumen(K, sug), bien = INFORME.fortalezas(K), lista = sug.filter((s)=> o.baja || s.prioridad !== 'baja'), g = graficas();
+  const celdas = []; for (let i = 0; i < g.length; i += 2) celdas.push('<tr style="break-inside:avoid;page-break-inside:avoid;">' + [g[i], g[i + 1]].map((x)=> '<td style="width:50%;vertical-align:top;">' + (x ? '<b>' + esc(x.t) + '</b><div style="font-size:7pt;color:var(--n-650);">' + esc(x.sub) + '</div>' + x.svg + (x.ley || '').replace(/class="leyenda"/, 'style="font-size:7pt;display:flex;gap:10px;"') : '') + '</td>').join('') + '</tr>');
+  UI.imprimir([UI.cabecera('SG-INFORME-SGSST', 'INFORME DEL SG-SST CON SUGERENCIAS DE MEJORA', K.P.nombre.replace(/^./, (x)=> x.toUpperCase()) + ' · ' + (EMPRESA.nombre || '')) +
+    UI.seccion('RESUMEN EJECUTIVO', '<table><tr><td>' + res.map(esc).join('<br>') + '</td></tr></table>' + UI.tablaDatos([['Accidentes de trabajo', K.acc.at + ' (anterior: ' + K.acc.atAnt + ')'], ['Plan anual a la fecha', K.plan.existe ? K.plan.cumplimiento + ' %' : 'Sin plan'],
+      ['Acciones abiertas / vencidas', K.acciones.abiertas + ' / ' + K.acciones.vencidas], ['Estándares con evidencia', K.evid ? fmt(K.evid.pct, 1) + ' %' : '—'], ['Sugerencias', sug.length + ' (' + cuenta('alta') + ' alta, ' + cuenta('media') + ' media, ' + cuenta('baja') + ' baja)'], ['Corte', UI.corta(K.corte)]])) +
+    UI.seccion('TABLERO GERENCIAL', tableroPdf()) +
+    UI.seccion('GRÁFICAS', '<table style="table-layout:fixed;width:100%;">' + celdas.join('') + '</table>') +
+    UI.seccion('SUGERENCIAS DE MEJORA (PRIORIZADAS)', lista.length ? '<table><tr><td class="l" style="width:4%;">#</td><td class="l" style="width:9%;">Prioridad</td><td class="l">Hallazgo, por qué y qué hacer</td><td class="l" style="width:24%;">Norma</td><td class="l" style="width:12%;">Acción</td></tr>' +
+      lista.map((s, i)=> { const ya = accionDe(s); return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.prioridad.replace(/^./, (x)=> x.toUpperCase())) + '</td><td><b>' + esc(s.titulo) + '</b><br>' + esc(s.porque) + '<br><i>' + esc(s.accion.accion) + '</i></td><td>' + esc(s.norma) + '</td><td>' + esc(ya ? ya.id + ' (' + (ya.resumen.responsable || 'abierta') + ')' : 'Por definir') + '</td></tr>'; }).join('') + '</table>'
+      : '<table><tr><td>Sin sugerencias: todo lo que el portal revisa está al día.</td></tr></table>') +
+    (bien.length ? UI.seccion('LO QUE VA BIEN', '<table><tr><td>' + bien.map(esc).join('<br>') + '</td></tr></table>') : '') +
+    UI.seccion('CIFRAS DEL PERIODO', '<table>' + cifras().map((f)=> '<tr><td class="l" style="width:22%;">' + esc(f[0]) + '</td><td>' + esc(f[1]) + '</td><td style="width:22%;">' + esc(f[2]) + '</td></tr>').join('') + '</table>') +
+    UI.seccion('ANÁLISIS Y CONCLUSIONES', UI.textoLargo(o.conclusiones || ' ')) +
+    UI.seccion('FIRMAS', '<table><tr><td style="width:50%;height:62px;vertical-align:bottom;">' + (o.firma ? UI.firmaHoja(o.firma) + '<br>' : '') + '_______________________________<br><b>Elaboró:</b> ' + esc(o.nombre) + '<br>' + esc([o.cargo, o.licencia ? 'Licencia en SST ' + o.licencia : ''].filter(Boolean).join(' · ')) + '</td>' +
+      '<td class="u-abajo">_______________________________<br><b>Recibió:</b> Representante legal / gerencia<br>Fecha:</td></tr></table>') +
+    '<p style="font-size:7.5pt;">Las sugerencias salen de reglas fijas con los datos registrados en el portal al ' + esc(UI.corta(UI.hoy())) + '. No reemplazan la autoevaluación de estándares mínimos ni la revisión por la dirección.' + (K.salud ? '' : ' Este informe no incluye datos de salud individual (solo los ve el área SST).') + '</p>']);
+}
+window.addEventListener('outbox-enviado', ()=> cargar());
+pintarSelector();
+cargar();
+</script>
+</body>
+</html>

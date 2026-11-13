@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-fwSUzjymFII3YLwRz9p7IMgHQsjiB/5nDXF5Bxpul3s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1424">
+<meta name="robots" content="noindex, nofollow">
+<title>Consola del administrador · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Consola del administrador · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<link rel="stylesheet" href="consola.css">
+<style>
+/* v115: la consola se ve distinta del portal de los clientes (el fondo está en consola.css). */
+.consola .wrap{max-width:980px;}
+.c-hdr{display:flex;align-items:flex-start;gap:14px;padding:22px 2px 14px;}
+.c-hdr .logo{width:48px;height:48px;border-radius:var(--r-l);background:linear-gradient(135deg,var(--azul),var(--violeta));display:grid;place-items:center;flex:0 0 48px;box-shadow:0 10px 24px rgba(47,107,255,.35);}
+.c-hdr .logo svg{width:26px;height:26px;color:#fff;}
+.c-hdr .eyebrow{font-size:var(--fs-menor);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fb0ff;}
+.c-hdr h1{margin:2px 0 4px;font-size:var(--fs-h1);font-weight:800;letter-spacing:-.02em;color:#fff;}
+.c-hdr p{margin:0;color:var(--pizarra-300);font-size:var(--fs-base);line-height:1.45;}
+.c-hdr .yo{margin-left:auto;text-align:right;font-size:var(--fs-base);color:var(--pizarra-300);white-space:nowrap;}
+.c-hdr .yo b{display:block;color:#fff;font-size:var(--fs-base);}
+.c-hdr .yo button{margin-top:6px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:var(--r-pill);padding:6px 12px;font:700 12.5px inherit;font-family:inherit;cursor:pointer;min-height:36px;}
+@media(max-width:640px){.c-hdr{flex-wrap:wrap;padding-top:14px;}.c-hdr .yo{order:-1;width:100%;margin:0;display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap;}.c-hdr .yo span{display:none;}.c-hdr .yo b{display:inline;margin-right:auto;font-size:var(--fs-base);}.c-hdr .yo button{margin-top:0;}.c-hdr h1{font-size:var(--fs-subtitulo);}.c-hdr > div:nth-child(2){flex:1;min-width:0;}}
+.c-sello{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:rgba(143,176,255,.14);border:1px solid rgba(143,176,255,.3);color:var(--azul-100);border-radius:var(--r-pill);padding:4px 10px;font-size:var(--fs-menor);font-weight:700;}
+.c-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 14px;}
+@media(max-width:700px){.c-kpis{grid-template-columns:repeat(2,1fr);}}
+.c-kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-l);padding:14px;}
+.c-kpi .v{font-size:var(--fs-h1);font-weight:800;color:#fff;line-height:1;}
+.c-kpi .n{font-size:var(--fs-menor);color:var(--pizarra-300);margin-top:6px;line-height:1.35;}
+.c-kpi.mal .v{color:#ff8a7a;} .c-kpi.pronto .v{color:#ffd166;} .c-kpi.ok .v{color:#6ee7a8;}
+.c-acc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.c-acc{grid-template-columns:1fr;}}
+.c-acc a,.c-acc button{display:flex;gap:12px;align-items:center;text-align:left;background:#fff;color:var(--tinta);border:0;border-radius:var(--r-l);padding:14px;font:inherit;cursor:pointer;text-decoration:none;min-height:64px;}
+.c-acc a b,.c-acc button b{display:block;font-size:var(--fs-titulo);}
+.c-acc a small,.c-acc button small{display:block;color:var(--pizarra-500);font-size:var(--fs-menor);line-height:1.35;margin-top:2px;}
+.c-acc .ic{width:38px;height:38px;flex:0 0 38px;border-radius:var(--r-m);display:grid;place-items:center;background:var(--azul-50);color:var(--azul);font-size:var(--fs-display);}
+.c-acc .prim{background:linear-gradient(135deg,var(--azul),var(--violeta));color:#fff;}
+.c-acc .prim small{color:var(--azul-100);} .c-acc .prim .ic{background:rgba(255,255,255,.18);color:#fff;}
+.c-sec{display:flex;align-items:center;gap:10px;margin:18px 2px 8px;}
+.c-sec h2{margin:0;font-size:var(--fs-base);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8fb0ff;}
+.c-sec input{margin-left:auto;max-width:260px;border-radius:var(--r-m);border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;padding:10px 12px;font:inherit;}
+.c-sec input::placeholder{color:#93a3bd;}
+.cli2{background:#fff;color:var(--tinta);border-radius:var(--r-l);padding:14px;margin-bottom:10px;border-left:6px solid var(--n-300);}
+.cli2.ok{border-left-color:var(--verde-400);} .cli2.pronto{border-left-color:var(--ambar-400);} .cli2.mal{border-left-color:var(--rojo-500);} .cli2.gris{opacity:.7;}
+.cli2 .t{font-weight:800;font-size:var(--fs-campo);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.cli2 .m{font-size:var(--fs-base);color:var(--pizarra-500);margin-top:4px;line-height:1.45;}
+.cli2 .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.tag{font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-pill);padding:3px 9px;background:var(--bg);color:var(--azul-800);}
+.tag.ok{background:var(--verde-50);color:var(--verde-600);} .tag.pronto{background:var(--ambar-100);color:var(--ambar-700);} .tag.mal{background:var(--rojo-50);color:var(--rojo-700);}
+.seg{display:inline-block;font-weight:800;font-size:var(--fs-etiqueta);border-radius:var(--r-xs);padding:2px 7px;background:var(--ink);color:#fff;}
+.seg.s3{background:#0a8f7a;} .seg.s7{background:var(--ok);} .seg.s21{background:#b07a00;} .seg.s60{background:var(--rojo-800);}
+.cli2 .bts{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px;}
+@media(max-width:700px){.cli2 .bts{grid-template-columns:1fr 1fr;}.cli2 .bts .p{grid-column:span 2;}}
+.cli2 .bts a,.cli2 .bts button{display:flex;align-items:center;justify-content:center;text-align:center;min-height:44px;border-radius:var(--r-m);border:1.5px solid var(--line);background:#fff;color:var(--tinta);font:700 13px inherit;font-family:inherit;cursor:pointer;text-decoration:none;padding:6px 8px;}
+.cli2 .bts .p{background:var(--tinta);color:#fff;border-color:var(--tinta);}
+.cli2 .bts button:disabled{background:var(--n-50);color:var(--n-400);border-color:var(--bg);cursor:default;}
+.c-card{background:#fff;color:var(--tinta);border-radius:var(--r-xl);padding:18px;margin-bottom:12px;}
+.c-card h2{margin:0 0 6px;font-size:var(--fs-display);}
+.c-card p,.c-card li{font-size:var(--fs-base);line-height:1.5;color:var(--azul-800);}
+.c-card label{display:block;font-size:var(--fs-menor);font-weight:700;margin:10px 0 5px;color:var(--pizarra-500);text-transform:uppercase;letter-spacing:.05em;}
+.c-card input{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:var(--r-l);padding:13px 14px;font:600 16px inherit;font-family:inherit;}
+.c-card .btn{margin-top:12px;}
+.c-card code{background:var(--bg);border-radius:var(--r-xs);padding:1px 5px;font-size:var(--fs-menor);}
+.c-card .msg{min-height:18px;font-size:var(--fs-base);color:var(--rojo-500);font-weight:600;margin-top:8px;}
+details.c-card summary{cursor:pointer;font-weight:800;font-size:var(--fs-campo);}
+.c-pie{color:#7f8fa8;font-size:var(--fs-menor);text-align:center;margin:18px 0 40px;}
+.c-pie a{color:var(--pizarra-300);}
+.consola .empty{background:rgba(255,255,255,.06);color:var(--n-300);border-radius:var(--r-l);padding:18px;text-align:center;}
+.cli2 .uso{font-size:var(--fs-menor);margin:6px 0 0;color:var(--ink-muted,var(--tenue));}
+.cli2 .uso.sug{color:var(--tinta);background:var(--n-50,#f5f7fa);border-radius:var(--r-m);padding:6px 8px;}
+.gs-l{margin:8px 0 10px;padding-left:20px;line-height:1.5;}
+.gs-l small{color:var(--muted);}
+</style>
+</head>
+<body class="consola">
+<div class="wrap">
+  <div class="c-hdr">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="9" rx="1.2"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.2"/><rect x="13.5" y="11" width="7.5" height="10" rx="1.2"/><rect x="3" y="15" width="7.5" height="6" rx="1.2"/></svg></div>
+    <div>
+      <div class="eyebrow">Consola del administrador</div>
+      <h1 id="cProd">Portal SSTA</h1>
+      <p>Tus clientes, sus servidores, sus módulos y las instalaciones nuevas. Los clientes no ven esta página.</p>
+      <span class="c-sello">🔒 Solo administrador general</span>
+    </div>
+    <div class="yo" id="yo" hidden></div>
+  </div>
+
+  <div id="puerta"><div class="empty">Cargando…</div></div>
+
+  <div id="consola" hidden>
+    <div class="c-kpis" id="kpis"></div>
+    <div class="c-acc">
+      <a class="prim" href="instalar.html?para=cliente"><span class="ic">＋</span><span><b>Instalar empresa nueva</b><small>Paso a paso: su servidor, sus datos, 0312, módulos y su enlace/QR</small></span></a>
+      <button type="button" id="btnRevisar"><span class="ic">↻</span><span><b>Revisar todos los servidores</b><small>Si responden y en qué versión están</small></span></button>
+      <a href="asesor.html"><span class="ic">✓</span><span><b>Panel del asesor y tareas</b><small>Tareas, visitas y avance de cada cliente</small></span></a>
+    </div>
+    <div id="guiaSin"></div>
+    <div class="c-sec"><h2>Clientes</h2><input type="search" id="buscar" placeholder="Buscar cliente"></div>
+    <div id="lista"></div>
+
+    <details class="c-card" id="ayuda">
+      <summary>Cómo funciona la consola</summary>
+      <ul>
+        <li><b>Dos interfaces.</b> Los clientes usan el portal (<code>index.html</code>): preoperacionales y reportes sin clave, y su sistema de gestión con su usuario. Tú usas esta consola (<code>admin.html</code>), con tu usuario de <b>tu</b> servidor. Ningún menú de los clientes trae aquí.</li>
+        <li><b>Instalar empresa nueva</b> (un solo flujo): instala su servidor en su cuenta de Google (guía <code>INSTALAR-NUEVA-EMPRESA.md</code>), toca «Instalar empresa nueva», llena datos, Res. 0312, módulos y logo, pega lo que da su <code>verConfiguracion</code> y toca <b>«Guardar en tu consola y publicar»</b>. Queda aquí con su enlace y su QR. No hay que subir archivos a GitHub.</li>
+        <li><b>Módulos por cliente:</b> «Módulos» → prende o apaga → «Guardar y publicar». Sus celulares lo toman al abrir el portal y <b>su servidor deja de aceptar</b> registros de lo apagado (mensaje firmado con la llave de su <code>verConfiguracion</code>). «Editar todo» abre su configuración completa.</li>
+        <li><b>Servidores:</b> con <code>sgsst__instalarVigilancia</code> (una vez, en tu Apps Script) tu servidor los prueba cada mañana, te avisa por correo lo que falle y les reenvía los módulos si no los tienen. «Revisar todos» lo hace en el momento.</li>
+        <li><b>Tareas.</b> Asignar una tarea: en la tarjeta de la empresa (panel del asesor) toca «Asignar tarea» → qué debe hacer, responsable (la lista trae los usuarios de su portal), fecha límite y prioridad. Queda en SU plan de acción con origen «Asesor SST», en sus pendientes del inicio y en el correo del lunes de esa persona. «Ver sus tareas» muestra abiertas, vencidas y cerradas; cuando la cierren, «Verificar» o «Reabrir». «Tareas de sus estándares» crea las de los estándares que no cumplió en su autoevaluación.</li>
+        <li><b>Detalles técnicos:</b> en el equipo donde entraste a la consola, el portal muestra el botón «Clave» y el estado técnico de los servidores; en los celulares de los clientes no.</li>
+      </ul>
+    </details>
+    <details class="c-card">
+      <summary>Actualizar los servidores de los clientes</summary>
+      <p>La revisión diaria te dice cuáles están desactualizados. Para ponerlos al día desde tu computador (una vez: Node 18+, <code>npm install -g @google/clasp</code>, <code>clasp login</code>):</p>
+      <ol><li>Descarga la lista con el ID de cada proyecto.</li><li>Corre <code>node herramientas/actualizar-servidores.js clientes.json</code>.</li></ol>
+      <button type="button" class="btn ghost" id="btnClientesJson">⬇️ Descargar clientes.json</button>
+      <p class="ayuda">El ID de cada proyecto (scriptId) sale en su <code>verConfiguracion</code>; pégalo con «Editar todo» o en «Datos del cliente».</p>
+    </details>
+    <details class="c-card">
+      <summary>Tu marca y la empresa principal del sitio</summary>
+      <p>Nombre del producto, logo, color, tu servidor y la <b>empresa principal</b> (la que abre sin preguntar el código).</p>
+      <a class="btn ghost" href="configurar-empresa.html?tipo=proveedor">Abrir «Tu sitio multiempresa (tu marca)»</a>
+    </details>
+  </div>
+  <div class="c-pie">Consola · <a href="index.html">Ver el portal como cliente</a> · versión <span id="cVer"></span></div>
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="preop-formularios.js"></script>
+<script src="preop-base.js"></script>
+<script src="inspecciones-plantillas.js"></script>
+<script src="ayuda-guias.js"></script>
+<script src="menus-empresa.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* ============================================================
+   CONSOLA DEL ADMINISTRADOR GENERAL (v115)
+   Vive en el servidor del sitio (el tuyo): la lista de clientes es la del
+   panel del asesor (registros «cliente»). Entra solo un usuario con rol
+   Administrador de ESE servidor; la sesión se guarda aparte de la de los
+   clientes (ssta-admin-…), así un mismo equipo puede tener las dos.
+   ============================================================ */
+const $ = (id)=> document.getElementById(id);
+const PROD = (typeof Empresa !== 'undefined' && Empresa.producto) || 'Portal SSTA';
+$('cProd').textContent = PROD;
+$('cVer').textContent = (typeof VERSION_PORTAL_WEB !== 'undefined' && VERSION_PORTAL_WEB) || '';
+const ME = typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo;
+const RAIZ = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+const segHtml = (g)=> '<span class="seg s' + g + '">' + g + ' est.</span>';
+let rows = [], vivo = {}, mods = {};
+
+function puerta(html){ $('puerta').innerHTML = html; $('puerta').hidden = false; $('consola').hidden = true; }
+
+/* ── Entrar ── */
+function tarjetaCodigo(abierta){
+  return '<' + (abierta ? 'div' : 'details') + ' class="c-card">' + (abierta ? '<h2>Crea tu usuario de administrador</h2><p>La consola se abre solo con usuario y contraseña de <b>tu</b> servidor. Se hace una vez:</p>' : '<summary>¿Olvidaste tu contraseña?</summary>') +
+    '<ol><li>En Google Apps Script, abre <b>tu</b> servidor y ejecuta <code>sgsst__codigoAdministrador</code> (▶ Ejecutar). Sale un código como <code>ABCDE-12345</code> (vale 2 horas, un solo uso).</li><li>Escríbelo aquí con tus datos.</li></ol>' +
+    '<label for="caCodigo">Código</label><input type="text" id="caCodigo" autocapitalize="characters" placeholder="ABCDE-12345">' +
+    '<label for="caUsuario">Usuario</label><input type="text" id="caUsuario" autocapitalize="none" placeholder="ej: admin">' +
+    '<label for="caNombre">Nombre completo</label><input type="text" id="caNombre">' +
+    '<label for="caClave">Contraseña (8 o más, letras y números)</label><input type="password" id="caClave" autocomplete="new-password">' +
+    '<label for="caClave2">Repite la contraseña</label><input type="password" id="caClave2" autocomplete="new-password">' +
+    '<button type="button" class="btn amber" id="btnCodigo">' + (abierta ? 'Crear mi usuario y entrar' : 'Recuperar el acceso') + '</button><div class="msg" id="msgCodigo"></div>' +
+    '</' + (abierta ? 'div' : 'details') + '>';
+}
+function activarCodigo(){
+  const b = $('btnCodigo'); if (!b) return;
+  b.addEventListener('click', async ()=> {
+    const v = (id)=> $(id).value.trim(), msg = $('msgCodigo');
+    if (!v('caCodigo') || !v('caUsuario') || !v('caNombre')) { msg.textContent = 'Faltan el código, el usuario o el nombre.'; return; }
+    if (Sesion.claveDebil($('caClave').value)) { msg.textContent = 'La contraseña necesita mínimo 8 caracteres, con letras y números.'; return; }
+    if ($('caClave').value !== $('caClave2').value) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
+    b.disabled = true; msg.textContent = 'Creando…';
+    try {
+      const r = await Sesion._post(Object.assign({ action: 'primerAdmin', codigo: v('caCodigo'), usuario: v('caUsuario'), nombre: v('caNombre'), cargo: 'Administrador general', correo: '' }, await Sesion.datosClave($('caClave').value)));
+      if (!r.ok) { msg.textContent = r.error || 'No se pudo.'; b.disabled = false; return; }
+      Sesion._guardar(r); location.reload();
+    } catch (e) { msg.textContent = 'Sin conexión con tu servidor.'; b.disabled = false; }
+  });
+}
+function pintarEntrar(){
+  puerta('<div class="c-card"><h2>Entrar a la consola</h2><p>Con tu usuario y contraseña de administrador.</p>' +
+    '<label for="aUsr">Usuario</label><input type="text" id="aUsr" autocomplete="username" autocapitalize="none" spellcheck="false">' +
+    '<label for="aClave">Contraseña</label><input type="password" id="aClave" autocomplete="current-password">' +
+    '<button type="button" class="btn amber" id="aEntrar">Entrar</button><div class="msg" id="aMsg"></div></div>' + tarjetaCodigo(false));
+  try { $('aUsr').value = localStorage.getItem(Consola.clave('ssta-ultimo-usuario')) || ''; } catch (e) {}
+  const ir = async ()=> {
+    const u = $('aUsr').value.trim(), c = $('aClave').value, msg = $('aMsg');
+    if (!u || !c) { msg.textContent = 'Escribe el usuario y la contraseña.'; return; }
+    $('aEntrar').disabled = true; msg.style.color = '#5f7390'; msg.textContent = 'Comprobando…';
+    try {
+      const r = await Sesion.entrar(u, c, false);
+      if (!r.ok) { msg.style.color = ''; msg.textContent = r.error || 'No se pudo entrar.'; $('aEntrar').disabled = false; return; }
+      try { localStorage.setItem(Consola.clave('ssta-ultimo-usuario'), u.toLowerCase()); } catch (e) {}
+      if (r.yo && r.yo.debeCambiar) { Sesion.cambiarClave(true); return; }
+      location.reload();
+    } catch (e) { msg.style.color = ''; msg.textContent = 'Sin conexión con tu servidor.'; $('aEntrar').disabled = false; }
+  };
+  $('aEntrar').addEventListener('click', ir);
+  $('aClave').addEventListener('keydown', (e)=> { if (e.key === 'Enter') ir(); });
+  activarCodigo();
+  (u => u ? $('aClave') : $('aUsr'))($('aUsr').value).focus();
+}
+
+async function iniciar(){
+  if (!SGSST.url()) {
+    puerta('<div class="c-card"><h2>Conecta tu servidor</h2><p>La consola guarda tus clientes en <b>tu</b> servidor (el del sitio). Instálalo como el de cualquier empresa (guía <code>INSTALAR-NUEVA-EMPRESA.md</code>, paso 1) y luego, en «Tu sitio multiempresa (tu marca)», pega lo que da <code>verConfiguracion</code> y sube el <code>empresa.js</code> nuevo.</p>' +
+      '<a class="btn amber" href="configurar-empresa.html?tipo=proveedor">Configurar tu marca y tu servidor</a></div>');
+    return;
+  }
+  if (!navigator.onLine) { puerta('<div class="c-card"><h2>Sin conexión</h2><p>La consola necesita internet.</p></div>'); return; }
+  let ping;
+  try { ping = await SGSST._json(await fetch(SGSST.url() + '?action=ping&token=' + encodeURIComponent(SGSST.token()) + SGSST._ses())); }
+  catch (e) { puerta('<div class="c-card"><h2>Tu servidor no respondió</h2><p>' + esc(e.message || '') + '</p><button type="button" class="btn amber" data-recargar>Reintentar</button></div>'); return; }
+  if (!ping.ok && ClavePortal.esErrorDeClave(ping)) {
+    puerta('<div class="c-card"><h2>Clave de tu servidor</h2><p>Tu servidor exige la clave del portal. Escríbela una vez en este equipo.</p><button type="button" class="btn amber" id="bClave">Escribir la clave</button></div>');
+    $('bClave').addEventListener('click', ()=> ClavePortal.pedir()); return;
+  }
+  if (!ping.ok && ping.codigoError !== 'SESION') { puerta('<div class="c-card"><h2>Tu servidor respondió con un error</h2><p>' + esc(ping.error || '') + '</p></div>'); return; }
+  if (ping.ok && !ping.usuarios) { puerta(tarjetaCodigo(true)); activarCodigo(); return; }
+  Sesion.marcar(ping.ok ? ping : { ok: true, usuarios: true });
+  const yo = Sesion.yo();
+  if (!yo) { pintarEntrar(); return; }
+  if (yo.rol !== 'admin') {
+    puerta('<div class="c-card"><h2>Solo para el administrador general</h2><p>Entraste como <b>' + esc(yo.nombre) + '</b>, que no es administrador de este servidor.</p><button type="button" class="btn ghost" id="bOtro">Entrar con otro usuario</button></div>');
+    $('bOtro').addEventListener('click', ()=> { Sesion.salir(); location.reload(); }); return;
+  }
+  $('yo').innerHTML = '<span>Administrador</span><b>' + esc(yo.nombre || yo.usuario) + '</b><button type="button" id="bClaveMia">Mi contraseña</button> <button type="button" id="bSalir">Salir</button>';
+  $('yo').hidden = false;
+  $('bSalir').addEventListener('click', ()=> { Sesion.salirSeguro(); });
+  $('bClaveMia').addEventListener('click', ()=> Sesion.cambiarClave(false));
+  $('puerta').hidden = true; $('consola').hidden = false;
+  if (location.hash === '#ayuda') $('ayuda').open = true;
+  await cargar();
+}
+
+/* ── Clientes ── */
+async function cargar(){
+  const r = await SGSST.listar('cliente');
+  rows = (r.rows || []).filter((x)=> x.tipo === 'cliente');
+  avisos();
+  pintar();
+  rows.forEach((x)=> { if (codigo(x) && !Number(x.resumen.modulosTotal)) traerModulos(x); });
+}
+const codigo = (x)=> /^[a-z0-9][a-z0-9-]{1,39}$/.test(String(x.resumen.codigo || '')) ? x.resumen.codigo : '';
+const sitio = (x)=> /^https?:\/\//.test(x.resumen.sitio || '') ? x.resumen.sitio : codigo(x) ? RAIZ + '?e=' + encodeURIComponent(codigo(x)) : '';
+/* La URL, la clave y la llave de cada cliente no viajan en la lista (solo en su ficha): se leen al usarlas. */
+const docs = {};
+async function ficha(x, fresca){ if (fresca || !docs[x.id]) { const d = await SGSST.doc(x.id); if (d) docs[x.id] = d; } return docs[x.id] || null; }
+function urlSrv(d){ const b = String((d && d.servidor) || '').trim().replace(/\/+$/, ''); return !b ? '' : d.modo === 'sgsst' ? b : b + '/sgsst'; }
+
+/* Avisos de arriba: empresa.js viejo y vigilancia sin instalar. */
+function avisos(){
+  const a = [];
+  if (typeof MOTOR_EMPRESA === 'undefined') a.push('Tu <code>empresa.js</code> es de una versión anterior (trae el motor adentro) y no recibe los arreglos nuevos. Ábrelo en «Tu marca» y vuelve a descargarlo: queda solo con tus datos.');
+  const hace2 = Date.now() - 2 * 86400000;
+  if (rows.length && !rows.some((x)=> x.resumen.revisadoServidor && new Date(x.resumen.revisadoServidor).getTime() > hace2))
+    a.push('La revisión diaria de los servidores no está corriendo. En el Apps Script de <b>tu</b> servidor ejecuta una vez <code>sgsst__instalarVigilancia</code>: cada mañana prueba a todos y te avisa por correo. Mientras tanto, «Revisar todos».');
+  let el = $('cAvisos'); if (!el) { el = document.createElement('div'); el.id = 'cAvisos'; $('kpis').insertAdjacentElement('beforebegin', el); }
+  el.innerHTML = a.map((t)=> '<div class="c-card" style="border-left:6px solid var(--ambar-400);padding:12px 16px;"><p class="u-m0">' + t + '</p></div>').join('');
+}
+
+/** Cliente de antes (con empresas/<código>.json en GitHub): se lee el archivo para mostrar y migrar. */
+async function traerModulos(x){
+  const c = codigo(x);
+  try {
+    const res = await fetch('empresas/' + encodeURIComponent(c) + '.json', { cache: 'no-store' });
+    if (!res.ok) { mods[x.id] = { falta: true }; pintar(); return; }
+    const j = await res.json(), m = (j.empresa && j.empresa.modulos) || {};
+    const ks = Object.keys(m);
+    mods[x.id] = { json: j, on: ks.filter((k)=> m[k] !== false).length, total: ks.length };
+  } catch (e) { mods[x.id] = { error: true }; }
+  pintar();
+}
+/** Su configuración: la publicada en tu servidor o, si aún no, la del archivo de GitHub. */
+async function configDe(x){
+  const d = await ficha(x, true);
+  if (d && d.config) return { d, config: JSON.parse(JSON.stringify(d.config)), deServidor: true };
+  if (!mods[x.id]) await traerModulos(x);
+  const m = mods[x.id];
+  return { d, config: m && m.json ? JSON.parse(JSON.stringify(m.json.empresa || {})) : null, deServidor: false };
+}
+
+/** Prueba su servidor desde este equipo (solo lectura). */
+async function revisar(x){
+  vivo[x.id] = { estado: 'prob', txt: 'Probando…' }; pintar();
+  const d = await ficha(x) || {}, u = urlSrv(d);
+  if (!u) { vivo[x.id] = { estado: 'mal', txt: 'sin servidor registrado (ponlo en «Editar todo» o en «Datos del cliente»)' }; pintar(); return; }
+  const t0 = performance.now();
+  try {
+    const res = await Promise.race([fetch(u + '?action=ping&token=' + encodeURIComponent(d.clave || '')), new Promise((_, no)=> setTimeout(()=> no(new Error('tardó más de 25 s')), 25000))]);
+    const txt = await res.text(); let j = null; try { j = JSON.parse(txt); } catch (e) {}
+    const s = ((performance.now() - t0) / 1000).toFixed(1) + ' s';
+    if (!j) vivo[x.id] = { estado: 'mal', txt: 'Responde una página, no datos (¿implementación pública?)' };
+    else if (j.ok) vivo[x.id] = { estado: j.version && j.version !== VERSION_PORTAL_WEB ? 'pronto' : 'ok', txt: (j.version ? 'servidor ' + j.version + (j.version !== VERSION_PORTAL_WEB ? ' · por actualizar' : ' · al día') : 'responde (versión anterior a v99)') + ' · ' + s, version: j.version };
+    else if (j.codigoError === 'SESION') vivo[x.id] = { estado: 'ok', txt: 'responde · pide usuario · ' + s };
+    else if (ClavePortal.esErrorDeClave(j)) vivo[x.id] = { estado: 'mal', txt: 'no acepta la clave guardada para este cliente' };
+    else vivo[x.id] = { estado: 'mal', txt: j.error || 'error del servidor' };
+  } catch (e) { vivo[x.id] = { estado: 'mal', txt: 'no responde · ' + (e.message || '') }; }
+  pintar();
+}
+/** «Revisar todos»: lo hace TU servidor (sin límites del navegador), anota el estado y reenvía módulos si hace falta. */
+async function revisarTodos(){
+  const b = $('btnRevisar'); b.disabled = true; b.querySelector('b').textContent = 'Revisando…';
+  try {
+    const r = await SGSST.enviar({ action: 'vigilarAhora' }, null, { sinCola: true });
+    if (r && r.ok && Array.isArray(r.resultados)) { vivo = {}; await cargar(); UI.toast('✓ ' + r.revisados + ' servidor(es) revisados' + (r.problemas ? ' · ' + r.problemas + ' por revisar' : '')); }
+    else { const act = rows.filter((x)=> x.estado !== 'INACTIVO'); for (let i = 0; i < act.length; i += 4) await Promise.all(act.slice(i, i + 4).map(revisar)); }
+  } catch (e) { UI.toast('Tu servidor no respondió: ' + e.message, 'mal'); }
+  b.disabled = false; b.querySelector('b').textContent = 'Revisar todos los servidores';
+}
+$('btnRevisar').addEventListener('click', revisarTodos);
+$('buscar').addEventListener('input', pintar);
+
+/* ── Menús de un cliente (v124): módulos, preoperacionales e inspecciones que ve.
+      Se prenden o apagan aquí y se publican en tu servidor. ── */
+async function abrirModulos(x){
+  const tit = '<h3>Menús de ' + esc(x.titulo) + '</h3>';
+  const m = UI.modal(tit + '<div class="empty">Cargando…</div>');
+  const cfg = await configDe(x);
+  if (!cfg.config) { m.el.innerHTML = tit + '<div class="aviso">Todavía no tiene configuración. Usa «Editar todo» para hacerla.</div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>'; return; }
+  m.el.innerHTML = tit +
+    (cfg.deServidor ? '' : '<div class="aviso info">Hoy toma su configuración de <code>empresas/' + esc(codigo(x)) + '.json</code>. Al guardar pasa a tu servidor y ya no hay que subir archivos.</div>') +
+    '<p class="ayuda">Marca lo que esta empresa ve y ponle a sus formatos el nombre y el código que usa. Al tocar <b>Guardar y publicar</b> queda guardado en tu servidor: no hay que descargar ni subir nada. Sus celulares lo ven la próxima vez que abran el portal. Lo apagado no se borra: sus registros viejos se siguen viendo.</p>' +
+    '<div id="mMenus" style="max-height:58vh;overflow:auto;margin:8px 0;">' + MenusEmpresa.html(cfg.config) + '</div>' +
+    '<button type="button" class="btn amber" id="mGuardar">Guardar y publicar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="mMsg"></div>';
+  MenusEmpresa.activar(m.el.querySelector('#mMenus'));
+  m.el.querySelector('#mGuardar').addEventListener('click', async ()=> {
+    const msg = m.el.querySelector('#mMsg'), bt = m.el.querySelector('#mGuardar'); bt.disabled = true; msg.textContent = 'Guardando…';
+    const l = MenusEmpresa.leer(m.el.querySelector('#mMenus'), cfg.config.modulos);
+    cfg.config.modulos = l.modulos; cfg.config.ocultos = l.ocultos; cfg.config.bautizos = l.bautizos;
+    const r = await guardarConfig(x, cfg.d, cfg.config);
+    if (!r.ok) { msg.textContent = r.error; bt.disabled = false; return; }
+    m.cerrar(); UI.toast(r.aviso || '✓ Menús publicados'); cargar();
+  });
+}
+/** Guarda la configuración del cliente en su registro y la publica (celulares + su servidor). */
+async function guardarConfig(x, d, config){
+  d = d || {}; const version = d.version || 0; const doc = Object.assign({}, d); delete doc.version;
+  const ks = Object.keys(config.modulos || {});
+  Object.assign(doc, { config, publicado: new Date().toISOString(), modulosOn: ks.filter((k)=> config.modulos[k] !== false).length, modulosTotal: ks.length, plan: (typeof planDeModulos === 'function' && planDeModulos(config.modulos)) || 'personalizado' });
+  if (!doc.servidor && config.servidor) doc.servidor = config.servidor;
+  const g = await SGSST.enviar({ action: 'guardar', tipo: 'cliente', id: x.id, doc, versionBase: version }, null, { sinCola: true });
+  if (!g || !g.ok) return { ok: false, error: (g && g.error) || 'No se pudo guardar.' };
+  delete docs[x.id];
+  const p = await SGSST.enviar({ action: 'publicarCliente', id: x.id }, null, { sinCola: true });
+  const mm = p && p.modulos;
+  return { ok: true, aviso: mm && !mm.ok ? '✓ Guardado. ⚠ Su servidor no recibió los módulos: ' + mm.error : '✓ Guardado y publicado' };
+}
+/** «Editar todo»: el configurador con su configuración (logo, formatos, 0312, módulos, servidor). */
+async function editarTodo(x){
+  const cfg = await configDe(x);
+  if (!cfg.config) { location.href = 'configurar-empresa.html?nueva=1&tipo=cliente'; return; }
+  try { sessionStorage.setItem('ssta-admin-editar', JSON.stringify({ id: x.id, codigo: codigo(x), empresa: cfg.config })); } catch (e) {}
+  location.href = 'configurar-empresa.html?editar=' + encodeURIComponent(codigo(x));
+}
+/** clientes.json para herramientas/actualizar-servidores.js (con el scriptId de cada uno). */
+async function descargarClientes(){
+  const b = $('btnClientesJson'); b.disabled = true;
+  const out = [], faltan = [];
+  for (const x of rows.filter((y)=> y.estado !== 'INACTIVO')) {
+    const d = await ficha(x) || {};
+    if (d.scriptId && d.servidor) out.push({ codigo: codigo(x) || x.id, nombre: x.titulo, scriptId: d.scriptId, servidor: d.servidor });
+    else faltan.push(x.titulo);
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' })); a.download = 'clientes.json'; document.body.appendChild(a); a.click(); setTimeout(()=> a.remove(), 500);
+  UI.toast(out.length + ' cliente(s) en clientes.json' + (faltan.length ? ' · sin scriptId: ' + faltan.join(', ') : ''), faltan.length ? 'mal' : '');
+  b.disabled = false;
+}
+
+function pintar(){
+  const act = rows.filter((x)=> x.estado !== 'INACTIVO');
+  const venc = act.reduce((a, x)=> a + (Number(x.resumen.tareasVencidas) || 0), 0);
+  const ver = (x)=> (vivo[x.id] && vivo[x.id].version) || x.resumen.versionServidor || '';
+  const est = (x)=> vivo[x.id] && vivo[x.id].estado !== 'prob' ? vivo[x.id].estado : x.resumen.estadoServidor || '';
+  const desact = act.filter((x)=> ver(x) && ver(x) !== VERSION_PORTAL_WEB).length;
+  const caidos = act.filter((x)=> est(x) === 'mal').length;
+  const revisados = act.filter((x)=> est(x)).length;
+  const ultima = act.map((x)=> x.resumen.revisadoServidor || '').sort().pop();
+  $('kpis').innerHTML =
+    '<div class="c-kpi"><div class="v">' + act.length + '</div><div class="n">clientes activos</div></div>' +
+    '<div class="c-kpi ' + (caidos ? 'mal' : revisados ? 'ok' : '') + '"><div class="v">' + (revisados ? caidos : '—') + '</div><div class="n">' + (revisados ? 'servidores con problemas' + (ultima ? ' · revisión ' + esc(new Date(ultima).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') : 'toca «Revisar todos» para probarlos') + '</div></div>' +
+    '<div class="c-kpi ' + (desact ? 'pronto' : 'ok') + '"><div class="v">' + desact + '</div><div class="n">servidores por actualizar (portal ' + esc(VERSION_PORTAL_WEB) + ')</div></div>' +
+    '<div class="c-kpi ' + (venc ? 'mal' : 'ok') + '"><div class="v">' + venc + '</div><div class="n">tareas vencidas en los clientes</div></div>';
+  guiaSinRespuesta(act);
+  const q = UI.norm($('buscar').value).trim();
+  const l = rows.filter((x)=> !q || UI.norm(x.titulo + ' ' + (x.resumen.nit || '') + ' ' + (x.resumen.codigo || '') + ' ' + (x.resumen.ciudad || '')).includes(q))
+    .sort((a, b)=> (a.estado === 'INACTIVO') - (b.estado === 'INACTIVO') || (est(b) === 'mal') - (est(a) === 'mal') || String(a.titulo).localeCompare(String(b.titulo)));
+  if (!rows.length) { $('lista').innerHTML = '<div class="empty">Todavía no tienes clientes. Toca «Instalar empresa nueva».</div>'; return; }
+  $('lista').innerHTML = l.map((x)=> {
+    const s = x.resumen, v = vivo[x.id], m = mods[x.id], g = Number(s.grupo0312) || 60;
+    const ve = Number(s.tareasVencidas) || 0, ab = Number(s.tareasAbiertas) || 0;
+    const cls = x.estado === 'INACTIVO' ? 'gris' : est(x) === 'mal' ? 'mal' : ve || (ver(x) && ver(x) !== VERSION_PORTAL_WEB) ? 'pronto' : 'ok';
+    const tSrv = v ? '<span class="tag ' + (v.estado === 'prob' ? '' : v.estado) + '">' + esc(v.txt) + '</span>'
+      : s.estadoServidor ? '<span class="tag ' + (s.estadoServidor === 'ok' ? (ver(x) && ver(x) !== VERSION_PORTAL_WEB ? 'pronto' : 'ok') : s.estadoServidor === 'mal' ? 'mal' : '') + '" title="Revisado ' + esc(s.revisadoServidor || '') + '">' + esc(s.detalleServidor || s.estadoServidor) + '</span>'
+      : ver(x) ? '<span class="tag ' + (ver(x) === VERSION_PORTAL_WEB ? 'ok' : 'pronto') + '">servidor ' + esc(ver(x)) + (ver(x) === VERSION_PORTAL_WEB ? '' : ' · por actualizar') + '</span>' : '<span class="tag">servidor sin revisar</span>';
+    const nomPlan = s.plan && typeof PLANES_PORTAL !== 'undefined' && PLANES_PORTAL[s.plan] ? 'Plan ' + PLANES_PORTAL[s.plan].nombre : s.plan === 'personalizado' ? 'Plan personalizado' : '';   // v165
+    const tMod = Number(s.modulosTotal) ? '<span class="tag ok" title="Publicado ' + esc(s.publicado || '') + '">' + (nomPlan ? esc(nomPlan) + ' · ' : '') + s.modulosOn + ' de ' + s.modulosTotal + ' módulos · en tu servidor</span>'
+      : !codigo(x) ? (s.sitio ? '<span class="tag">sitio propio</span>' : '<span class="tag pronto">sin código en tu sitio</span>')
+      : !m ? '<span class="tag">módulos…</span>' : m.falta ? '<span class="tag mal">sin configuración publicada</span>' : m.error ? '<span class="tag">módulos: no se pudo leer</span>' : '<span class="tag pronto">' + m.on + ' de ' + m.total + ' módulos · archivo de GitHub</span>';
+    return '<div class="cli2 ' + cls + '"><div class="t">' + segHtml(g) + esc(x.titulo) + (x.estado === 'INACTIVO' ? ' <span class="tag">inactivo</span>' : '') + '</div>' +
+      '<div class="m">' + esc([s.nit ? 'NIT ' + s.nit : '', s.trabajadores ? s.trabajadores + ' trabajadores' : '', s.claseRiesgo ? 'riesgo ' + s.claseRiesgo : '', codigo(x) ? 'código ' + codigo(x) : '', s.ciudad].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="tags">' + tSrv + tMod + '<span class="tag ' + (ve ? 'mal' : '') + '">' + ab + ' tarea' + (ab === 1 ? '' : 's') + ' abierta' + (ab === 1 ? '' : 's') + (ve ? ' · ' + ve + ' vencida' + (ve === 1 ? '' : 's') : '') + '</span></div>' +
+      usoHtml(s) +
+      '<div class="bts">' + (sitio(x) ? '<a href="' + esc(sitio(x)) + '" target="_blank" rel="noopener">Abrir su portal ↗</a>' : '<button type="button" disabled>Sin portal</button>') +
+      '<button type="button" data-mod="' + esc(x.id) + '"' + (codigo(x) && ME ? '' : ' disabled title="Solo para empresas dentro de tu sitio multiempresa"') + '>Menús</button>' +
+      '<button type="button" data-edit="' + esc(x.id) + '"' + (codigo(x) && ME ? '' : ' disabled') + '>Editar todo</button>' +
+      '<a class="p" href="asesor.html#cli=' + encodeURIComponent(x.id) + '">Tareas</a>' +
+      '<button type="button" data-rev="' + esc(x.id) + '">Revisar</button></div></div>';
+  }).join('') || '<div class="empty">Ningún cliente coincide con la búsqueda.</div>';
+  const de = (id)=> rows.find((x)=> x.id === id);
+  $('lista').querySelectorAll('[data-rev]').forEach((b)=> b.addEventListener('click', ()=> revisar(de(b.dataset.rev))));
+  $('lista').querySelectorAll('[data-mod]').forEach((b)=> b.addEventListener('click', ()=> abrirModulos(de(b.dataset.mod))));
+  $('lista').querySelectorAll('[data-edit]').forEach((b)=> b.addEventListener('click', ()=> editarTodo(de(b.dataset.edit))));
+}
+/* v173 · Lo que la guía no supo responder en los portales de tus clientes (la vigilancia lo trae cada mañana).
+   Solo el texto de la pregunta: sin nombre de quien preguntó. Cópialo y pide que se agreguen esas respuestas. */
+function guiaSinRespuesta(act){
+  const t = {};
+  act.forEach((x)=> { let l = []; try { l = JSON.parse(x.resumen.guiaServidor || '[]') || []; } catch (e) { l = []; }
+    l.forEach((p)=> { const k = UI.norm(p.t).trim(); if (!k) return; const o = t[k] = t[k] || { t: p.t, n: 0, u: '', c: [] };
+      o.n += Number(p.n) || 1; if (String(p.u || '') > o.u) o.u = String(p.u || ''); if (o.c.indexOf(x.titulo) === -1) o.c.push(x.titulo); }); });
+  const l = Object.values(t).sort((a, b)=> b.n - a.n || (b.u > a.u ? 1 : -1));
+  if (!l.length) { $('guiaSin').innerHTML = ''; return; }
+  $('guiaSin').innerHTML = '<details class="c-card"><summary><b>La guía no supo responder ' + l.length + ' pregunta' + (l.length === 1 ? '' : 's') + '</b>' +
+    '<small> · agrega esas respuestas y la guía mejora para todos</small></summary><ol class="gs-l">' +
+    l.slice(0, 40).map((p)=> '<li>' + esc(p.t) + ' <small>· ' + p.n + ' vez' + (p.n === 1 ? '' : 'es') + ' · ' + esc(p.c.slice(0, 3).join(', ')) + (p.u ? ' · ' + esc(UI.corta(p.u)) : '') + '</small></li>').join('') +
+    '</ol><button type="button" class="btn ghost" id="gsCopiar">📋 Copiar la lista</button></details>';
+  $('gsCopiar').addEventListener('click', async ()=> {
+    const txt = 'Preguntas que la guía del portal no supo responder:\n' + l.map((p, i)=> (i + 1) + '. ' + p.t + ' (' + p.n + ')').join('\n');
+    try { await navigator.clipboard.writeText(txt); $('gsCopiar').textContent = '✓ Copiada'; } catch (e) { Dialogo.avisar(txt); }
+  });
+}
+/* v169 · Uso por módulo: lo que guarda cada cliente en cada módulo (lo cuenta su servidor; la vigilancia lo trae cada
+   mañana). Dice qué usa, qué no, y si el plan le queda grande o pequeño. Solo números: ningún dato de personas. */
+const NOM_MOD = (k)=> { const c = typeof CATALOGO_MODULOS !== 'undefined' ? CATALOGO_MODULOS.find((x)=> x[0] === k) : null; return c ? String(c[1]).replace(/^[^\p{L}]+/u, '') : k; };
+function usoHtml(s){
+  let u = null; try { u = s.usoServidor ? JSON.parse(s.usoServidor) : null; } catch (e) { u = null; }
+  if (!u || !Object.keys(u).length) return '';
+  const meses = Object.keys(u).sort(), ult = u[meses[meses.length - 1]] || {}, suma = (o)=> Object.values(o || {}).reduce((a, n)=> a + (Number(n) || 0), 0);
+  const tres = {}; meses.forEach((m)=> Object.keys(u[m]).forEach((k)=> { tres[k] = (tres[k] || 0) + (Number(u[m][k]) || 0); }));
+  const top = Object.keys(ult).sort((a, b)=> ult[b] - ult[a]).slice(0, 4).map((k)=> esc(NOM_MOD(k)) + ' ' + ult[k]).join(' · ');
+  const plan = typeof PLANES_PORTAL !== 'undefined' && PLANES_PORTAL[s.plan] ? PLANES_PORTAL[s.plan] : null, todos = typeof CATALOGO_MODULOS !== 'undefined' ? CATALOGO_MODULOS.map((x)=> x[0]) : [];
+  const contratados = plan ? (plan.mods || todos) : [], usados = (l)=> l.reduce((a, k)=> a + (tres[k] || 0), 0), sug = [];
+  const obra = typeof COMPLEMENTOS_PORTAL !== 'undefined' ? COMPLEMENTOS_PORTAL.obra.mods : [];
+  if (!suma(tres)) sug.push('Sin registros en ' + meses.length + ' mes(es): llámalo antes de que deje el servicio.');
+  else {
+    if ((s.plan === 'sgsstObra' || s.plan === 'integral') && !usados(obra)) sug.push('No ha usado Obra (permisos, ATS, preoperacionales): capacítalo o pásalo a SG-SST Esencial.');
+    if (s.plan === 'integral' && !usados(['ambiental', 'calidad', 'pesv'])) sug.push('No usa ambiental, calidad ni PESV: SG-SST + Obra le sirve igual.');
+    const quietos = contratados.filter((k)=> ['reportes', 'usuarios', 'evidencias', 'tablero', 'gerencia', 'cierre', 'asesor'].indexOf(k) === -1 && !tres[k]);
+    if (quietos.length && quietos.length < contratados.length) sug.push('Sin uso: ' + quietos.slice(0, 5).map(NOM_MOD).join(', ') + (quietos.length > 5 ? ' y ' + (quietos.length - 5) + ' más' : '') + '.');
+  }
+  const ant = meses.length > 1 ? suma(u[meses[meses.length - 2]]) : null, act = suma(ult);
+  return '<div class="uso"><b>Uso este mes:</b> ' + act + ' registro(s)' + (ant !== null ? ' (mes anterior ' + ant + ')' : '') + (top ? ' · ' + top : '') + '</div>' +
+    (sug.length ? '<div class="uso sug">' + sug.map(esc).join('<br>') + '</div>' : '');
+}
+$('btnClientesJson').addEventListener('click', descargarClientes);
+
+iniciar();
+</script>
+</body>
+</html>

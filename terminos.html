@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-S01iR6+fM9Vbsxs3qHMX/bwd/j57Jw0QA5PpevfpV5Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Condiciones de uso · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Condiciones de uso · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.aviso-priv h2{font-size:var(--fs-display);margin:18px 0 6px;}
+.aviso-priv p,.aviso-priv li{font-size:var(--fs-titulo);line-height:1.55;}
+.aviso-priv ul{padding-left:20px;}
+.aviso-priv .quien{background:var(--n-50);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-base);line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Reglas para usar el portal</div>
+    <h1>Condiciones de uso</h1>
+    <p>Lo que acepta quien usa el portal, y lo que el portal es y no es</p></div></div>
+  </div>
+  <div class="card aviso-priv" id="terminos"></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+/* v134 · Condiciones de uso. Plantilla: la empresa (y quien presta el portal) la revisa con su asesor legal. */
+(function () {
+  const E = EMPRESA, P = (typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo && MultiEmpresa.proveedor) || null;
+  const emp = esc(E.nombre || 'la empresa');
+  const prov = P && P.nombre && P.nombre !== E.nombre ? esc(P.nombre) : '';
+  document.getElementById('terminos').innerHTML =
+    '<div class="quien"><b>Quién ofrece el portal:</b> ' + emp + (prov ? ', con la plataforma que presta ' + prov : '') + '.<br>Al usar el portal aceptas estas condiciones. Si no estás de acuerdo, no lo uses y avisa al área SST.</div>' +
+    '<h2>Para qué es</h2><p>Para registrar y consultar la gestión de seguridad y salud en el trabajo de ' + emp + ': preoperacionales, reportes, inspecciones, permisos, ATS, entregas de EPP, capacitaciones y demás registros del SG-SST.</p>' +
+    '<h2>Lo que te comprometes a hacer</h2><ul>' +
+      '<li>Escribir información verdadera y completa. Un registro falso puede poner en riesgo a otras personas.</li>' +
+      '<li>Firmar solo por ti. Tu firma en el portal vale como tu firma en papel.</li>' +
+      '<li>Cuidar tu usuario y tu clave: no los prestes. Lo que se haga con ellos queda a tu nombre.</li>' +
+      '<li>Usar el portal solo para el trabajo, sin subir contenido ofensivo, ajeno al SG-SST ni datos de otras personas que no hagan falta.</li>' +
+      '<li>No intentar entrar a lo que tu usuario no tiene permitido ni enviar registros en masa o automáticos.</li></ul>' +
+    '<h2>Lo que el portal no reemplaza</h2><p>El portal es una herramienta de apoyo. No reemplaza la evaluación del riesgo en sitio, la autorización de quien debe darla, la atención de una emergencia (en una emergencia llama primero a la línea de emergencias y a tu jefe) ni el criterio del responsable del SG-SST. Las responsabilidades legales de la empresa y de cada trabajador siguen siendo las mismas (Decreto 1072 de 2015).</p>' +
+    '<h2>Disponibilidad</h2><p>El portal funciona con internet y guarda en el celular lo que espera señal. Puede haber interrupciones por mantenimiento o por fallas de los servicios de Google. Si algo urgente no se puede registrar, hazlo por el medio alterno de la empresa y regístralo después.</p>' +
+    '<h2>Tus datos</h2><p>El tratamiento de tus datos personales se rige por el <a href="privacidad.html">aviso de privacidad</a> (Ley 1581 de 2012).</p>' +
+    '<h2>Propiedad</h2><p>Los registros son de ' + emp + '. El software del portal' + (prov ? ' es de ' + prov + ' y' : '') + ' se entrega para el uso descrito aquí; no se permite copiarlo, revenderlo ni modificarlo sin autorización.</p>' +
+    '<h2>Cambios</h2><p>Estas condiciones se pueden actualizar; la versión vigente es la de esta página.</p>';
+})();
+</script>
+</body>
+</html>

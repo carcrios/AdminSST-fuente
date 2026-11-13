@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-spcg4mqvkPxquRi4TfwNATciAjOqqVMnc5w93aNmMEU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sin conexión · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sin conexión · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+  body{
+    margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:var(--bg);font-family:var(--font-family, -apple-system, sans-serif);
+    padding:24px;box-sizing:border-box;text-align:center;color:var(--n-800);
+  }
+  .card{
+    max-width:420px;background:#fff;border-radius:var(--radius-lg,14px);
+    box-shadow:var(--shadow-card,0 3px 10px rgba(0,0,0,.07));padding:32px 26px;
+  }
+  .icon{font-size:var(--fs-hero);margin-bottom:6px;}
+  h1{font-size:var(--fs-display);margin:6px 0 8px;color:var(--azul-700);font-family:var(--font-display,inherit);}
+  p{font-size:var(--fs-base);color:var(--ink-soft);line-height:1.5;margin:0 0 18px;}
+  .list{text-align:left;font-size:var(--fs-menor);color:var(--ink-soft);background:var(--n-50);border-radius:var(--r-s);padding:12px 16px;margin-bottom:20px;}
+  .list li{margin-bottom:6px;}
+  button{
+    width:100%;padding:11px;border:none;border-radius:var(--radius-sm,7px);
+    background:var(--azul-700);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;
+  }
+  button:hover{background:var(--tinta);}
+  .sub{margin-top:14px;font-size:var(--fs-menor);color:var(--n-400);}
+</style>
+</head>
+<body>
+  <div class="card" role="main">
+    <div class="icon"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"/></svg></div>
+    <h1>No hay conexión a internet</h1>
+    <p>Esta página aún no estaba guardada en tu dispositivo, así que no se puede mostrar sin señal.</p>
+    <ul class="list">
+      <li>Si ya habías abierto el portal antes, vuelve al inicio: esa página sí funciona sin conexión.</li>
+      <li>Si estabas llenando un permiso, tranquilo: lo que ya escribiste queda guardado como borrador en tu celular y no se pierde.</li>
+      <li>En cuanto vuelva la señal, se puede guardar normalmente.</li>
+    </ul>
+    <button type="button" id="irInicio">Ir al inicio del portal</button>
+    <div class="sub">Reintentando conexión automáticamente…</div>
+  </div>
+<script>
+  // Reintenta solo, sin que el usuario tenga que recargar a mano.
+  document.getElementById('irInicio').addEventListener('click', () => { location.href = './index.html'; });
+  window.addEventListener('online', () => location.reload());
+  setInterval(() => { if (navigator.onLine) location.reload(); }, 5000);
+</script>
+</body>
+</html>

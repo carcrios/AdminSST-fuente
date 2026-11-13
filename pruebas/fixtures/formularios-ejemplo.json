@@ -1,0 +1,24 @@
+{
+ "exportado": "2026-10-06T17:00:00Z",
+ "nota": "FORMULARIO DE PRUEBA para las pruebas automáticas (no es un formulario real de ninguna empresa).",
+ "formularios": [
+  { "id": "1EJEMPLOabc", "titulo": "INSPECCIÓN GENERAL DE EQUIPO DE PRUEBA", "descripcion": "SSTA-F-999\nFormulario de ejemplo para las pruebas.", "publicado": "https://docs.google.com/forms/d/e/EJEMPLO123/viewform", "corto": "https://forms.gle/EJEMPLO",
+   "preguntas": [
+    { "id": 1, "tipo": "LIST", "titulo": "Responsable De La Inspección:", "ayuda": "", "obligatoria": true, "opciones": ["ANA PRUEBA UNO - 1000000001", "BETO PRUEBA DOS - 1000000002", "CARLA PRUEBA TRES - 1000000003", "DARIO PRUEBA CUATRO - 1000000004", "ELSA PRUEBA CINCO - 1000000005"] },
+    { "id": 2, "tipo": "DATE", "titulo": "Fecha De La Inspección:", "ayuda": "", "obligatoria": true, "conAnio": true },
+    { "id": 3, "tipo": "LIST", "titulo": "Cargo:", "ayuda": "", "obligatoria": true, "opciones": ["Armador", "Ayudante", "Soldador"] },
+    { "id": 4, "tipo": "TEXT", "titulo": "Código Del Equipo:", "ayuda": "", "obligatoria": true },
+    { "id": 5, "tipo": "LIST", "titulo": "Centro De Trabajo:", "ayuda": "", "obligatoria": true, "opciones": ["Planta", "Cliente A"] },
+    { "id": 6, "tipo": "SECTION_HEADER", "titulo": "Revisión EPP", "ayuda": "" },
+    { "id": 7, "tipo": "MULTIPLE_CHOICE", "titulo": "¿Calificación De Tus Gafas?", "ayuda": "", "obligatoria": true, "opciones": ["Bueno", "Malo"], "otra": false },
+    { "id": 8, "tipo": "PAGE_BREAK", "titulo": "Revisión del equipo", "ayuda": "Revisa antes de conectar.", "alTerminar": "CONTINUE" },
+    { "id": 9, "tipo": "GRID", "titulo": "Estado de las partes", "ayuda": "", "obligatoria": true, "filas": ["Cable", "Clavija", "Guarda"], "columnas": ["Bueno", "Malo", "N/A"] },
+    { "id": 10, "tipo": "MULTIPLE_CHOICE", "titulo": "¿El equipo queda apto para usar?", "ayuda": "", "obligatoria": true, "opciones": ["Sí", "No"], "otra": false, "saltos": ["SUBMIT", "pagina:11"] },
+    { "id": 11, "tipo": "PAGE_BREAK", "titulo": "Equipo no apto", "ayuda": "", "alTerminar": "" },
+    { "id": 12, "tipo": "PARAGRAPH_TEXT", "titulo": "¿Por qué no queda apto?", "ayuda": "", "obligatoria": true },
+    { "id": 13, "tipo": "CHECKBOX", "titulo": "A quién se informó", "ayuda": "", "obligatoria": false, "opciones": ["Jefe inmediato", "SST"], "otra": true },
+    { "id": 14, "tipo": "IMAGE", "titulo": "Diagrama", "ayuda": "", "imagen": true }
+   ] },
+  { "id": "1NOSUYO", "titulo": "Otro formulario", "error": "No se pudo abrir (¿no eres editor?): sin permiso" }
+ ]
+}

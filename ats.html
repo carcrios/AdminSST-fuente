@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Trabajo Seguro (ATS) · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ATS · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+  :root{ --brand-ats:#0f5e63; --brand-ats-soft:#e3f0f0; }
+  body{margin:0;font-family:var(--font-family);background:var(--bg);color:var(--ink);padding:0 0 110px;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 14px;}
+
+  .hdr{background:var(--ink);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .hdr h1{font-family:var(--font-display);font-size:var(--fs-campo);margin:0;font-weight:700;}
+  .hdr .cod{font-size:var(--fs-etiqueta);opacity:.7;display:block;font-weight:400;margin-top:2px;}
+  /* El círculo decorativo del encabezado (common.css) quedaba encima del
+     botón de la esquina y se comía el toque. */
+  .hdr::before{pointer-events:none;}
+  .hdr > *{position:relative;z-index:1;}
+  .hdr a{color:var(--ambar-300);font-size:var(--fs-menor);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;min-height:var(--touch);padding:0 4px;}
+
+  .banner{display:none;margin-top:14px;background:var(--azul-50);border:1px solid var(--azul-200);color:var(--azul-700);border-radius:var(--r-m);padding:10px 14px;font-size:var(--fs-menor);line-height:1.5;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .banner.show{display:flex;}
+  .banner button{min-height:38px;border:1.5px solid var(--azul-200);background:#fff;border-radius:var(--r-s);font-weight:700;font-family:inherit;font-size:var(--fs-menor);padding:0 12px;color:var(--azul-700);cursor:pointer;}
+
+  .section{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);margin-top:16px;overflow:hidden;}
+  .section-title{background:var(--brand-ats);color:#fff;font-size:var(--fs-menor);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .section-title .cuenta{font-weight:600;opacity:.85;letter-spacing:0;text-transform:none;}
+  .section-body{padding:16px;}
+  .ayuda{font-size:var(--fs-menor);color:var(--ink-soft);line-height:1.5;margin:0 0 12px;}
+
+  .field{margin-bottom:13px;}
+  .field:last-child{margin-bottom:0;}
+  .field > label, .etq{display:block;font-size:var(--fs-etiqueta);font-weight:700;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+  .field input[type=text],.field input[type=date],.field input[type=time],.field textarea,.inp{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;font-size:var(--fs-campo);font-family:inherit;background:#fff;color:var(--ink);}
+  .field textarea,.inp.area{min-height:64px;resize:vertical;line-height:1.4;}
+  input:focus,textarea:focus{outline:none;border-color:var(--brand-ats);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .rango{display:flex;align-items:center;gap:8px;}
+  .rango span{font-size:var(--fs-menor);color:var(--ink-muted);}
+  @media(max-width:560px){ .grid2{grid-template-columns:1fr;} }
+
+  /* ── Fichas seleccionables ── */
+  .fichas{display:flex;flex-wrap:wrap;gap:7px;}
+  .ficha{
+    min-height:40px;padding:6px 13px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-xl);
+    font-size:var(--fs-base);font-weight:600;color:var(--ink);font-family:inherit;cursor:pointer;text-align:left;line-height:1.25;
+  }
+  .ficha.on{background:var(--brand-ats);border-color:var(--brand-ats);color:#fff;}
+  .ficha.sug{border-style:dashed;border-color:var(--brand-ats);color:var(--brand-ats);background:var(--brand-ats-soft);}
+  .ficha.sug::before{content:"+ ";font-weight:800;}
+  .ficha .pista{display:block;font-size:var(--fs-etiqueta);font-weight:500;opacity:.8;}
+  .ficha.permiso-marcado{box-shadow:0 0 0 2px var(--ambar-400) inset;}
+  .grupo-fichas{margin-top:12px;}
+  .grupo-fichas:first-child{margin-top:0;}
+  .grupo-fichas > .etq{margin-bottom:6px;}
+  .libre{margin-top:9px;}
+  .sugeridos{margin:10px 0 0;padding:10px 12px;border:1px dashed var(--brand-ats);border-radius:var(--r-m);background:var(--brand-ats-soft);}
+  .sugeridos .etq{color:var(--brand-ats);}
+  .btn-mini{min-height:36px;padding:0 12px;border-radius:var(--r-s);border:1.5px solid var(--brand-ats);background:#fff;color:var(--brand-ats);font-weight:700;font-size:var(--fs-menor);font-family:inherit;cursor:pointer;margin-top:8px;}
+
+  .sino{display:flex;gap:8px;}
+  .sino .ficha{min-width:70px;text-align:center;}
+  .alerta{margin-top:10px;padding:10px 12px;border-radius:var(--r-m);background:var(--ambar-100);border:1px solid #e8c56a;color:var(--ambar-900);font-size:var(--fs-menor);line-height:1.45;}
+  .alerta button{margin-left:6px;}
+
+  /* ── Tareas ── */
+  .tarea-card{border:1.5px solid var(--line);border-radius:var(--r-m);padding:12px 14px;margin-bottom:10px;background:#fff;}
+  .tarea-card .t-cab{display:flex;gap:10px;align-items:flex-start;}
+  .t-num{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand-ats);color:#fff;font-weight:800;font-size:var(--fs-base);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);}
+  .t-titulo{flex:1;min-width:0;font-weight:700;font-size:var(--fs-base);line-height:1.35;text-transform:uppercase;}
+  .t-resumen{font-size:var(--fs-menor);color:var(--ink-muted);margin-top:4px;font-weight:500;text-transform:none;}
+  .t-clases{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+  .t-clases span{font-size:var(--fs-etiqueta);font-weight:700;padding:2px 7px;border-radius:var(--r-m);background:var(--bg);color:var(--ink-soft);}
+  .t-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .t-acciones button{min-height:38px;padding:0 11px;border-radius:var(--r-s);border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:var(--fs-menor);font-family:inherit;cursor:pointer;color:var(--ink);}
+  .t-acciones .editar{border-color:var(--brand-ats);color:var(--brand-ats);}
+  .t-acciones .quitar{color:var(--rojo-800);}
+  .vacio{border:1.5px dashed var(--line);border-radius:var(--r-m);padding:18px;text-align:center;font-size:var(--fs-base);color:var(--ink-soft);line-height:1.5;}
+  .acciones-tareas{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .btn{min-height:var(--touch);padding:0 16px;border-radius:var(--r-m);border:1.5px solid var(--brand-ats);background:var(--brand-ats);color:#fff;font-weight:700;font-size:var(--fs-base);font-family:inherit;cursor:pointer;}
+  .btn.sec{background:#fff;color:var(--brand-ats);}
+  .btn.peligro{background:#fff;color:var(--rojo-800);border-color:var(--rojo-200);}
+  .que-sigue{margin-top:12px;padding:12px;border-radius:var(--r-m);background:var(--brand-ats-soft);}
+  .que-sigue .etq{color:var(--brand-ats);}
+
+  /* ── Editor de tarea ── */
+  .editor{border:2px solid var(--brand-ats);border-radius:var(--r-l);padding:14px;margin-bottom:12px;background:#fff;}
+  .editor h3{margin:0 0 12px;font-size:var(--fs-base);font-family:var(--font-display);color:var(--brand-ats);}
+  .paso-ed{border-top:1px solid var(--line-soft);padding-top:12px;margin-top:12px;}
+  .paso-ed:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+  .paso-ed > .etq b{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--brand-ats);color:#fff;text-align:center;line-height:20px;margin-right:6px;font-size:var(--fs-etiqueta);}
+  .plantillas-sug{margin-top:8px;}
+
+  .pel-card{border:1.5px solid var(--line);border-radius:var(--r-m);margin-top:8px;overflow:hidden;}
+  .pel-cab{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;cursor:pointer;background:var(--n-50);}
+  .pel-cab .pel-txt{flex:1;min-width:0;}
+  .pel-clase{display:block;font-size:var(--fs-etiqueta);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--brand-ats);}
+  .pel-desc{display:block;font-size:var(--fs-base);line-height:1.35;margin-top:2px;}
+  .pel-conteo{display:block;font-size:var(--fs-menor);color:var(--ink-muted);margin-top:3px;}
+  .pel-conteo.cero{color:var(--rojo-800);font-weight:700;}
+  .pel-quitar{flex:0 0 36px;height:36px;border:none;background:none;color:var(--rojo-800);font-size:var(--fs-campo);cursor:pointer;border-radius:var(--r-s);}
+  .pel-cuerpo{display:none;padding:10px;border-top:1px solid var(--line-soft);}
+  .pel-card.abierto .pel-cuerpo{display:block;}
+  .pel-cuerpo textarea{min-height:48px;font-size:var(--fs-base);}
+  .j-grupo{margin-top:10px;}
+  .j-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r-m);margin-bottom:4px;}
+  .j-E{background:var(--verde-50);color:var(--verde-600);} .j-S{background:var(--azul-50);color:var(--azul-600);} .j-I{background:var(--azul-50);color:#3e4aa0;}
+  .j-A{background:var(--ambar-100);color:var(--ambar-700);} .j-P{background:var(--azul-50);color:#7b3b86;}
+  .ctrl{display:flex;gap:10px;align-items:flex-start;min-height:40px;padding:6px 2px;font-size:var(--fs-base);line-height:1.35;cursor:pointer;}
+  .ctrl input{flex:0 0 22px;width:22px;height:22px;margin:0;accent-color:var(--brand-ats);}
+  .ctrl-propio{display:flex;gap:6px;margin-top:8px;}
+  .ctrl.opcional span{color:var(--ink-soft);}
+  .ctrl.propio span::after{content:" (escrito en este ATS)";font-size:var(--fs-etiqueta);color:var(--ink-muted);}
+  .j-otro{display:flex;gap:6px;margin:4px 0 2px 32px;}
+  .j-otro input{flex:1;min-height:38px;padding:6px 10px;font-size:var(--fs-base);}
+  .j-otro button{flex:0 0 auto;margin:0;}
+  .j-vacio{font-size:var(--fs-menor);color:var(--ink-muted);margin:0 0 2px 32px;}
+  /* Herramientas por grupo, plegables (son muchas en el celular). */
+  .herr-grupo{border:1px solid var(--line);border-radius:var(--r-m);margin-top:8px;background:#fff;}
+  .herr-grupo summary{padding:11px 12px;font-weight:700;font-size:var(--fs-base);cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;}
+  .herr-grupo summary::-webkit-details-marker{display:none;}
+  .herr-grupo summary::after{content:"▾";color:var(--ink-muted);}
+  .herr-grupo[open] summary::after{content:"▴";}
+  .herr-grupo summary small{font-weight:600;color:var(--brand-ats);}
+  .herr-grupo .cuerpo{padding:0 12px 12px;}
+  .herr-grupo .inp{margin-top:8px;}
+  /* Dónde va la tarea nueva (para la que se olvidó). */
+  .pos-tarea{margin-top:10px;padding:10px 12px;border-radius:var(--r-m);background:var(--brand-ats-soft);}
+  .pos-tarea select{width:100%;min-height:42px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:6px 10px;font:inherit;font-size:var(--fs-base);background:#fff;}
+  .t-despues{display:inline-block;margin-top:4px;font-size:var(--fs-etiqueta);font-weight:700;color:var(--ambar-700);background:var(--ambar-100);border-radius:var(--r-s);padding:2px 8px;}
+  .todas-tareas{margin-top:10px;}
+  .todas-tareas summary{font-weight:700;font-size:var(--fs-base);color:var(--brand-ats);cursor:pointer;padding:6px 0;}
+  .sug-vivo{margin-top:6px;border:1.5px solid var(--brand-ats);border-radius:var(--r-m);overflow:hidden;background:#fff;}
+  .sug-vivo button{display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--line-soft);background:#fff;padding:10px 12px;font:inherit;font-size:var(--fs-base);font-weight:700;color:var(--ink);cursor:pointer;}
+  .sug-vivo button:last-child{border-bottom:none;}
+  .sug-vivo button small{display:block;font-weight:500;font-size:var(--fs-menor);color:var(--ink-muted);margin-top:2px;}
+  .sug-vivo button:active{background:var(--brand-ats-soft);}
+  .sug-vivo .rot{display:block;padding:7px 12px;font-size:var(--fs-menor);font-weight:800;color:var(--brand-ats);background:var(--brand-ats-soft);text-transform:uppercase;letter-spacing:.04em;}
+  .ctrl-propio input{flex:1;}
+  .ctrl-propio button{flex:0 0 auto;}
+  .gtc-clase{border:1px solid var(--line);border-radius:var(--r-m);margin-top:6px;}
+  .gtc-clase summary{padding:10px 12px;font-weight:700;font-size:var(--fs-base);cursor:pointer;min-height:24px;}
+  .gtc-clase summary small{font-weight:500;color:var(--ink-muted);}
+  .gtc-clase .fichas{padding:0 10px 10px;}
+  .gtc-clase p{margin:0 12px 8px;font-size:var(--fs-menor);color:var(--ink-muted);line-height:1.4;}
+  .ed-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;position:sticky;bottom:8px;background:#fff;padding-top:8px;}
+
+  /* ── Participantes y firmas ── */
+  .part{border:1.5px solid var(--line);border-radius:var(--r-m);padding:12px;margin-bottom:10px;position:relative;}
+  .part-num{font-size:var(--fs-etiqueta);font-weight:800;color:var(--brand-ats);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .part-num button{border:none;background:none;color:var(--rojo-800);font-weight:700;font-size:var(--fs-menor);cursor:pointer;min-height:36px;font-family:inherit;}
+  .part .grid2{gap:8px;}
+  .part .inp{margin-bottom:8px;}
+  canvas.mini-pad,canvas.pad{display:block;width:100%;height:130px;border:1.5px dashed var(--n-300);border-radius:var(--r-m);background:var(--n-0);}
+  canvas.pad{height:160px;}
+  .sig-actions{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;}
+  .sig-actions button{min-height:36px;padding:0 10px;border-radius:var(--r-s);border:1.5px solid var(--line);background:#fff;font-size:var(--fs-menor);font-weight:700;font-family:inherit;cursor:pointer;}
+  .sig-status{font-size:var(--fs-menor);color:var(--ink-muted);font-weight:600;}
+  .sig-status.signed{color:var(--ok);}
+  .firmas-fin{display:grid;grid-template-columns:1fr;gap:14px;}
+  .part.tardio{border-color:#e8c56a;background:var(--n-0);}
+  .tag-tardio{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:var(--r-m);background:var(--ambar-100);color:var(--ambar-700);font-size:var(--fs-etiqueta);letter-spacing:0;text-transform:none;}
+  .ctrl.socializado{margin-top:8px;padding:8px 10px;border-radius:var(--r-s);background:var(--ambar-100);}
+  .aviso-dup{margin:0 0 8px;font-size:var(--fs-menor);color:var(--rojo-900);font-weight:600;}
+  /* ── Modo "Agregar personal" ── */
+  #secAgregar{display:none;}
+  body.modo-agregar #secAgregar{display:block;}
+  body.modo-agregar #atsApp .wrap > .section:not(#secAgregar), body.modo-agregar #bannerBorrador{display:none !important;}
+  body.modo-agregar #btnPlantillas, body.modo-agregar #btnGuardarServidor, body.modo-agregar #btnVistaPrevia{display:none;}
+  #btnGuardarPersonal, #btnSalirAgregar{display:none;}
+  body.modo-agregar #btnGuardarPersonal, body.modo-agregar #btnSalirAgregar{display:inline-block;}
+  .ref-ats{background:var(--brand-ats-soft);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-base);line-height:1.5;margin-bottom:12px;}
+  .ref-ats b.cod{font-family:var(--font-display);font-size:var(--fs-titulo);color:var(--brand-ats);}
+  .qr-ats{text-align:center;} .qr-ats img{width:220px;height:220px;image-rendering:pixelated;}
+  @media(min-width:760px){ .firmas-fin{grid-template-columns:1fr 1fr 1fr;} }
+
+  /* ── Menú inicial (como el de los permisos) ── */
+  #menuAts{display:none;}
+  body.en-menu #menuAts{display:block;}
+  body.en-menu #atsApp, body.en-menu .footer-actions{display:none !important;}
+  body.en-menu{padding-bottom:30px;}
+  .menu-in{max-width:860px;margin:0 auto;padding:22px 14px 0;}
+  .menu-in h2{font-family:var(--font-display);font-size:var(--fs-display);margin:0 0 6px;}
+  .menu-in > p{font-size:var(--fs-base);color:var(--ink-soft);margin:0 0 18px;line-height:1.5;}
+  .opciones{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:760px){ .opciones{grid-template-columns:1fr 1fr 1fr;} }
+  .opcion{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:18px 16px;display:flex;flex-direction:column;gap:8px;}
+  .opcion .ico{font-size:var(--fs-h1);line-height:1;}
+  .opcion h3{margin:0;font-size:var(--fs-titulo);font-family:var(--font-display);color:var(--brand-ats);}
+  .opcion > p{margin:0;font-size:var(--fs-menor);color:var(--ink-soft);line-height:1.45;}
+  .opcion .btn{width:100%;}
+  .opcion .inp{margin:0;}
+  .opcion .en-curso{font-size:var(--fs-menor);background:var(--brand-ats-soft);border-radius:var(--r-s);padding:8px 10px;line-height:1.4;}
+  .lista-menu{font-size:var(--fs-menor);}
+  .lista-menu .pl-item:last-child{border-bottom:none;}
+  .sin-srv{font-size:var(--fs-menor);color:var(--ambar-700);background:var(--ambar-100);border-radius:var(--r-s);padding:8px 10px;line-height:1.4;}
+  .etiqueta-estado{display:inline-block;font-size:var(--fs-etiqueta);font-weight:800;letter-spacing:.04em;padding:1px 8px;border-radius:var(--r-m);margin-left:4px;vertical-align:middle;}
+  .etiqueta-estado.abierto{background:var(--verde-50);color:var(--verde-600);}
+  .etiqueta-estado.cerrado{background:var(--n-150);color:var(--n-600);}
+  .hdr button.menu{background:none;border:none;color:var(--ambar-300);font-size:var(--fs-menor);font-weight:600;font-family:inherit;cursor:pointer;min-height:var(--touch);padding:0 4px;}
+
+  /* ── Modo "Cerrar ATS" ── */
+  #secCerrar{display:none;}
+  body.modo-cerrar #secCerrar{display:block;}
+  body.modo-cerrar #atsApp .wrap > .section:not(#secCerrar), body.modo-cerrar #bannerBorrador, body.modo-cerrar #bannerCerrado{display:none !important;}
+  body.modo-cerrar #btnPlantillas, body.modo-cerrar #btnGuardarServidor, body.modo-cerrar #btnVistaPrevia{display:none;}
+  #btnConfirmarCierre, #btnSalirCerrar{display:none;}
+  /* El estado de la barra es del ATS en curso del celular, no del que se está cerrando o completando. */
+  body.modo-cerrar #estadoGuardado, body.modo-agregar #estadoGuardado{display:none;}
+  body.modo-cerrar #btnSalirCerrar{display:inline-block;}
+  body.modo-cerrar:not(.ref-cerrado) #btnConfirmarCierre{display:inline-block;}
+  body.ref-cerrado #formCierre{display:none;}
+  .pend-cierre{margin:0 0 12px;padding:10px 12px;border-radius:var(--r-m);background:var(--ambar-100);border:1px solid #e8c56a;color:var(--ambar-900);font-size:var(--fs-menor);line-height:1.45;}
+  .pend-cierre ul{margin:6px 0 0;padding-left:18px;}
+  .pend-cierre.ok{background:var(--verde-50);border-color:#9fd1b3;color:var(--verde-700);}
+  .field select{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;font-size:var(--fs-campo);font-family:inherit;background:#fff;color:var(--ink);min-height:var(--touch);}
+  .cerrado-info{background:var(--n-150);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-base);line-height:1.5;margin-bottom:12px;color:var(--n-800);}
+  /* ATS cerrado abierto en el editor: solo consulta e impresión. */
+  #bannerCerrado{display:none;margin-top:14px;}
+  body.ats-cerrado #bannerCerrado{display:block;}
+  body.ats-cerrado #btnGuardarServidor, body.ats-cerrado #btnModoAgregar, body.ats-cerrado #btnCerrarEste{display:none !important;}
+  body.modo-agregar #bannerCerrado{display:none !important;}
+  body.modo-agregar.ref-cerrado #listaNuevos, body.modo-agregar.ref-cerrado #btnOtroNuevo,
+  body.modo-agregar.ref-cerrado #btnGuardarPersonal, body.modo-agregar.ref-cerrado #btnCompartirAgregar,
+  body.modo-agregar.ref-cerrado #secAgregar .ayuda{display:none !important;}
+
+  /* ── Barra inferior ── */
+  .footer-actions{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:var(--shadow-float);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:60;}
+  .footer-actions .in{max-width:860px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .footer-actions .estado{flex:1 1 100%;font-size:var(--fs-menor);color:var(--ink-muted);}
+  .footer-actions .estado.sucio{color:var(--ambar-700);font-weight:600;}
+  .footer-actions .estado.subido{color:var(--ok);font-weight:600;}
+  .verif{padding:12px 14px;border-radius:var(--r-m);font-size:var(--fs-base);line-height:1.5;margin-bottom:12px;}
+  .verif.bien{background:var(--verde-50);border:1px solid #9fd1b3;color:var(--verde-700);}
+  .verif.mal{background:var(--rojo-50);border:1px solid var(--rojo-300);color:var(--rojo-900);}
+  .verif.cola{background:var(--ambar-100);border:1px solid #e8c56a;color:var(--ambar-900);}
+  .footer-actions .btn{flex:1;}
+  @media(min-width:640px){ .footer-actions .estado{flex:1 1 auto;} .footer-actions .btn{flex:0 0 auto;} }
+
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:var(--r-m);font-size:var(--fs-base);z-index:70;max-width:90vw;box-shadow:var(--shadow-lift);opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+
+  #avisoPersonal{bottom:calc(84px + env(safe-area-inset-bottom));}
+  .panel{position:fixed;inset:0;background:rgba(15,25,35,.45);z-index:80;display:none;align-items:flex-end;justify-content:center;}
+  .panel.show{display:flex;}
+  /* El aviso flotante de la base de personal no debe tapar el panel ni el formato. */
+  body.con-panel #avisoPersonal, body.previa #avisoPersonal{display:none !important;}
+  .panel .caja{background:#fff;border-radius:16px 16px 0 0;max-width:620px;width:100%;max-height:85vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));}
+  @media(min-width:640px){ .panel{align-items:center;} .panel .caja{border-radius:var(--r-l);} }
+  .panel h3{margin:0 0 10px;font-size:var(--fs-titulo);font-family:var(--font-display);}
+  .panel ul{margin:8px 0 14px;padding-left:18px;font-size:var(--fs-base);line-height:1.5;}
+  .pl-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:var(--fs-base);}
+  .pl-item b{display:block;}
+  .pl-item small{color:var(--ink-muted);}
+  /* Tocar la tarjeta de un ATS abre su formato para revisarlo. */
+  .pl-item[data-revisar]{cursor:pointer;border-radius:var(--r-s);transition:background .15s;}
+  .pl-item[data-revisar]:active,.pl-item[data-revisar]:hover{background:var(--line-soft);}
+  .pl-item .toca{display:block;margin-top:3px;font-size:var(--fs-menor);font-weight:700;color:var(--brand-ats);}
+  body.previa #menuAts{display:none !important;}
+  .rev-acc{display:none;}
+  body.revision .rev-acc{display:inline-block;}
+  body.revision.rev-cerrado .rev-acc{display:none;}
+  .rev-copiar{display:none;}
+  body.revision .rev-copiar{display:inline-block;}
+  .abrir-permisos{margin-top:12px;padding:12px;border-radius:var(--r-m);background:var(--brand-ats-soft);}
+  .abrir-permisos .ya-asociados{margin-top:8px;font-size:var(--fs-base);line-height:1.6;}
+  .abrir-permisos .ya-asociados a{color:var(--brand-ats);font-weight:700;}
+  .etiqueta-estado.vencido{background:var(--rojo-50);color:var(--rojo-800);margin-left:4px;}
+  /* Al revisar: acciones en dos columnas y más bajas (antes eran seis botones
+     uno debajo de otro, media pantalla del celular). */
+  body.revision .previa-barra{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  body.revision .previa-barra .btn{width:100%;min-height:42px;font-size:var(--fs-base);padding:0 8px;line-height:1.2;}
+  @media (min-width:700px){ body.revision .previa-barra{grid-template-columns:repeat(3, 1fr);} }
+  .copia-op{display:block;width:100%;text-align:left;margin-top:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-m);background:#fff;font:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;color:var(--ink);}
+  .copia-op small{display:block;font-weight:500;font-size:var(--fs-menor);color:var(--ink-muted);margin-top:3px;}
+  .copia-op:active{background:var(--brand-ats-soft);}
+
+  /* ── Hoja (formato SSTA-F-007) ── */
+  #vistaPrevia{display:none;}
+  body.previa #atsApp, body.previa .footer-actions{display:none;}
+  body.previa #vistaPrevia{display:block;padding:14px;}
+  .previa-barra{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .hoja-scroll{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px;}
+  .hoja{min-width:900px;font-family:Arial, Helvetica, sans-serif;font-size:9.5px;color:#000;}
+  .hoja table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .hoja td,.hoja th{border:1px solid #000;padding:4px 5px;vertical-align:top;white-space:pre-line;word-wrap:break-word;}
+  .hoja th,.hoja .r{background:var(--line);font-weight:700;text-transform:uppercase;text-align:left;}
+  .hoja .c{text-align:center;vertical-align:middle;}
+  .hoja .titulo{font-size:var(--fs-base);font-weight:700;text-align:center;vertical-align:middle;}
+  .hoja .logo img{max-width:100%;max-height:60px;display:block;margin:0 auto;}
+  .hoja .cod td{font-size:9px;}
+  .hoja .sub{background:var(--n-300);text-align:center;font-weight:700;text-transform:uppercase;}
+  .hoja .firma img{max-height:38px;max-width:100%;display:block;}
+  /* ~28 mm impreso: más pequeño, la cámara del celular no lo lee bien en papel. */
+  /* La columna del QR es más ancha que la imagen (antes 12% ≈ 98 px útiles
+     para una imagen de 115 px: se salía por la derecha y quedaba descentrado). */
+  .hoja .qr-hoja{padding:4px 2px;text-align:center;vertical-align:middle;}
+  .hoja .qr-hoja img{width:115px;height:115px;max-width:100%;object-fit:contain;display:block;margin:0 auto;image-rendering:pixelated;}
+  .hoja .qr-hoja div{font-size:7px;line-height:1.2;margin-top:2px;text-align:center;}
+  .otro-libre{margin-top:12px;}
+  .hoja .firma-fin img{max-height:55px;}
+  .hoja .paso b{text-transform:uppercase;}
+  .hoja tbody tr{break-inside:avoid;}
+
+  @media print{
+    @page{size:letter landscape;margin:8mm;}
+    body{padding:0;background:#fff;}
+    #atsApp,#menuAts,.footer-actions,.previa-barra,#offlineBanner,#updateBanner,#scrollProgress,.toast,.panel,#avisoPersonal{display:none !important;}
+    #vistaPrevia{display:block !important;padding:0 !important;}
+    .hoja-scroll{border:none;padding:0;overflow:visible;}
+    .hoja{min-width:0;font-size:8.5px;}
+    .hoja thead{display:table-header-group;}
+  }
+</style>
+</head>
+<body class="en-menu">
+<!-- MENÚ INICIAL: como en los permisos — abrir, cerrar o agregar personal. -->
+<div id="menuAts">
+  <div class="hdr">
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><h1>Análisis de Trabajo Seguro</h1><span class="cod" id="codFormatoMenu"></span></div></div>
+    <a href="index.html">← Atrás</a>
+  </div>
+  <div class="menu-in">
+    <h2>¿Qué deseas hacer?</h2>
+    <p>El ATS se guarda en una hoja de cálculo compartida: se abre desde un dispositivo, se le agrega personal desde otro y se cierra al terminar el trabajo, buscándolo por su código.</p>
+    <div class="opciones">
+      <div class="opcion" id="opAbrir">
+        <div class="ico" data-senal="ats" aria-hidden="true"></div>
+        <h3>Abrir nuevo ATS</h3>
+        <p>Diligenciar datos del trabajo, tareas con sus peligros y controles, EPP, participantes y firmas.</p>
+        <div class="en-curso" id="menuEnCurso" hidden></div>
+        <button type="button" class="btn" id="menuContinuar" hidden>Continuar el ATS en curso</button>
+        <button type="button" class="btn" id="menuNuevo">Empezar ATS nuevo</button>
+        <button type="button" class="btn sec" id="menuRepetir" hidden>Repetir el último ATS</button>
+        <button type="button" class="btn sec" id="menuAbrirGuardado">Abrir uno guardado o una plantilla</button>
+      </div>
+      <div class="opcion" id="opCerrar">
+        <div class="ico" data-senal="cerrar" aria-hidden="true"></div>
+        <h3>Cerrar un ATS</h3>
+        <p>Cuando el trabajo termina o se suspende: registra fecha, hora, motivo y firma. Después ya no se puede modificar.</p>
+        <input type="text" class="inp" id="menuCodCerrar" aria-label="Código del ATS a cerrar" placeholder="Ej. ATS-20260928-482173" autocomplete="off" autocapitalize="characters">
+        <button type="button" class="btn" id="menuBuscarCerrar">Buscar ATS</button>
+        <button type="button" class="btn sec" id="menuAbiertosCerrar" aria-label="Ver ATS abiertos para cerrar uno">Ver ATS abiertos</button>
+        <button type="button" class="btn sec" id="menuHistorial">Ver historial (cerrados)</button>
+        <div id="menuListaCerrar" class="lista-menu"></div>
+      </div>
+      <div class="opcion" id="opAgregar">
+        <div class="ico" data-senal="agregar" aria-hidden="true"></div>
+        <h3>Agregar personal</h3>
+        <p>Para un ATS abierto: suma a la gente que va llegando a la obra, con su firma y la constancia de que se le socializó.</p>
+        <input type="text" class="inp" id="menuCodAgregar" aria-label="Código del ATS al que se agrega personal" placeholder="Ej. ATS-20260928-482173" autocomplete="off" autocapitalize="characters">
+        <button type="button" class="btn" id="menuBuscarAgregar">Cargar ATS y agregar personal</button>
+        <button type="button" class="btn sec" id="menuAbiertosAgregar" aria-label="Ver ATS abiertos para agregar personal">Ver ATS abiertos</button>
+        <div id="menuListaAgregar" class="lista-menu"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="atsApp">
+  <div class="hdr">
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><h1>Análisis de Trabajo Seguro</h1><span class="cod" id="codFormato"></span></div></div>
+    <button type="button" class="menu" id="btnIrMenu">☰ Menú</button>
+  </div>
+  <div class="wrap">
+    <div class="cerrado-info" id="bannerCerrado"></div>
+    <div class="section" id="secCerrar">
+      <div class="section-title">Cerrar ATS</div>
+      <div class="section-body">
+        <div class="ref-ats" id="refCerrar"></div>
+        <div class="acciones-tareas" style="margin:0 0 12px;">
+          <button type="button" class="btn sec" id="btnVerAtsCerrar">📄 Ver el ATS completo</button>
+        </div>
+        <div id="infoCerrado"></div>
+        <div id="formCierre">
+          <div id="pendCierre"></div>
+          <div class="grid2">
+            <div class="field"><label>Fecha de cierre</label><input type="date" id="cFecha"></div>
+            <div class="field"><label>Hora de cierre</label><input type="time" id="cHora"></div>
+          </div>
+          <div class="field"><label>Motivo del cierre</label>
+            <select id="cMotivo"><option value="">Elige…</option><option>Actividad finalizada</option><option>Actividad cancelada</option><option>Evento no deseado</option><option>Lluvia / tormenta</option><option>Condiciones y/o actos inseguros</option></select></div>
+          <div class="field"><label>Observaciones</label><textarea id="cObs" placeholder="Ej: Trabajo terminado, área entregada limpia y en orden."></textarea></div>
+          <div class="field"><label>Quién cierra</label>
+            <input type="text" class="inp mb-8" id="cNombre" placeholder="Nombre (escribe para buscar)" autocomplete="off">
+            <div class="grid2"><input type="text" class="inp" id="cCedula" placeholder="Cédula" inputmode="numeric"><input type="text" class="inp" id="cCargo" placeholder="Cargo"></div>
+            <div id="cFirmaWrap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section" id="secAgregar">
+      <div class="section-title">Agregar personal al ATS</div>
+      <div class="section-body">
+        <div class="ref-ats" id="refAts"></div>
+        <div class="acciones-tareas" style="margin:0 0 12px;">
+          <button type="button" class="btn sec" id="btnVerAtsRef">📄 Ver el ATS completo</button>
+          <button type="button" class="btn sec" id="btnCompartirAgregar">📲 Enlace / QR</button>
+        </div>
+        <p class="ayuda">Quien llega después no estuvo en la charla inicial: <b>antes de que firme, explícale las tareas, peligros y controles de este ATS</b> (botón de arriba) y marca la casilla. Aquí solo se agrega gente: el resto del ATS no se toca, así que no choca con quien lo esté editando en otro equipo.</p>
+        <div id="listaNuevos"></div>
+        <button type="button" class="btn sec" id="btnOtroNuevo">+ Agregar otra persona</button>
+      </div>
+    </div>
+    <div class="banner" id="bannerBorrador"><span id="bannerTexto"></span><button type="button" id="btnNuevoDesdeBanner">Empezar uno nuevo</button></div>
+
+    <!-- 1. Datos generales -->
+    <div class="section">
+      <div class="section-title">Datos del trabajo</div>
+      <div class="section-body">
+        <div class="field"><label>Centro de costos</label><div class="fichas" id="fCentro"></div>
+          <input type="text" class="inp libre" id="centroOtro" placeholder="Otro centro de costos…"></div>
+        <div class="grid2">
+          <div class="field"><label>Fecha</label><div class="rango"><input type="date" id="fDesde"><span>al</span><input type="date" id="fHasta"></div></div>
+          <div class="field"><label>Horario de trabajo</label><div class="rango"><input type="time" id="hDesde"><span>hasta</span><input type="time" id="hHasta"></div></div>
+        </div>
+        <div class="field"><label>Área</label><input type="text" id="fArea" placeholder="Ej: PTAI, calderas, bodega de producción"></div>
+        <div class="field"><label>Trabajo a realizar</label><textarea id="fTrabajo" placeholder="Ej: Modificación de tubería en acero inoxidable en la zona de despacho"></textarea></div>
+      </div>
+    </div>
+
+    <!-- 2. Permisos -->
+    <div class="section">
+      <div class="section-title">¿Requiere permiso de trabajo?</div>
+      <div class="section-body">
+        <div class="sino" id="fRequiere"></div>
+        <div class="grupo-fichas mt-12" id="bloquePermisos"><span class="etq">¿Cuál?</span><div class="fichas" id="fPermisos"></div></div>
+        <input type="text" class="inp libre" id="permisoOtro" placeholder="✏️ ¿Cuál otro permiso? Escríbelo aquí…" hidden>
+        <div id="alertaPermisos"></div>
+        <div id="abrirPermisos"></div>
+      </div>
+    </div>
+
+    <!-- 3. Tareas -->
+    <div class="section" id="secTareas">
+      <div class="section-title">Identificación y control de peligros <span class="cuenta" id="cuentaTareas"></span></div>
+      <div class="section-body">
+        <p class="ayuda">Agrega las tareas <b>una por una, en el orden en que se hacen</b>. Al escribir qué se va a hacer, el ATS sugiere los peligros (clasificados según la GTC 45) y los controles que ya usamos en nuestros ATS. Todo se puede marcar, quitar o completar.</p>
+        <div id="listaTareas"></div>
+        <div id="editorTarea"></div>
+        <div id="queSigue"></div>
+        <div class="acciones-tareas" id="accionesTareas"></div>
+      </div>
+    </div>
+
+    <!-- 4. EPP -->
+    <div class="section">
+      <div class="section-title">Elementos de protección requeridos <span class="cuenta" id="cuentaEpp"></span></div>
+      <div class="section-body">
+        <div class="fichas" id="fEpp"></div>
+        <div id="sugEpp"></div>
+        <input type="text" class="inp libre" id="eppOtro" placeholder="Otro EPP…">
+      </div>
+    </div>
+
+    <!-- 5. Herramientas -->
+    <div class="section">
+      <div class="section-title">Herramientas y equipos a utilizar <span class="cuenta" id="cuentaHerr"></span></div>
+      <div class="section-body">
+        <div id="sugHerr"></div>
+        <p class="ayuda" style="margin:10px 0 0;">Toca cada tipo para ver sus herramientas; en cada uno puedes escribir otra.</p>
+        <div id="fHerr"></div>
+        <div class="grupo-fichas otro-libre"><span class="etq">✏️ Otras herramientas o equipos (escríbelas)</span></div>
+        <textarea class="inp area" id="herrOtro" placeholder="Ej: Taladro percutor, tecle de cadena 1 t, andamio certificado…"></textarea>
+      </div>
+    </div>
+
+    <!-- 6. Participantes -->
+    <div class="section">
+      <div class="section-title">Participantes en el análisis <span class="cuenta" id="cuentaPart"></span></div>
+      <div class="section-body">
+        <p class="ayuda">Escribe el nombre para buscarlo en la base de personal: se llenan solos la cédula y el cargo.</p>
+        <div id="listaPart"></div>
+        <div class="acciones-tareas u-mt0">
+          <button type="button" class="btn sec" id="btnAgregarPart">+ Agregar participante</button>
+          <button type="button" class="btn" id="btnModoAgregar" hidden>👷 Llegó más gente: agregar personal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Emergencia y ambiental -->
+    <div class="section">
+      <div class="section-title">Equipos requeridos para la atención de emergencias</div>
+      <div class="section-body">
+        <div class="fichas" id="fEmerg"></div>
+        <div id="sugEmerg"></div>
+        <input type="text" class="inp libre" id="emergOtro" placeholder="Otro equipo de emergencia…">
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Controles para minimizar el riesgo de contaminación ambiental</div>
+      <div class="section-body">
+        <div class="fichas" id="fAmb"></div>
+        <input type="text" class="inp libre" id="ambOtro" placeholder="Otro control ambiental…">
+      </div>
+    </div>
+
+    <!-- 8. Firmas -->
+    <div class="section">
+      <div class="section-title">Firmas</div>
+      <div class="section-body"><div class="firmas-fin" id="firmasFin"></div>
+        <div class="acciones-tareas"><button type="button" class="btn sec" id="btnCerrarEste" hidden>✅ Terminó el trabajo: cerrar este ATS</button></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="vistaPrevia">
+  <div class="previa-barra">
+    <button type="button" class="btn sec" id="btnVolverEditar">← Volver a editar</button>
+    <button type="button" class="btn" id="btnImprimirPrevia">🖨️ Imprimir / guardar PDF</button>
+    <button type="button" class="btn sec rev-acc" id="btnRevTarea">✏️ Agregar tarea olvidada</button>
+    <button type="button" class="btn sec rev-acc" id="btnRevPersonal">👷 Agregar personal</button>
+    <button type="button" class="btn sec rev-copiar" id="btnRevCopiar">📋 Copiar como ATS nuevo</button>
+    <button type="button" class="btn sec rev-acc" id="btnRevCerrar">✅ Cerrar este ATS</button>
+  </div>
+  <div class="hoja-scroll"><div class="hoja" id="hoja"></div></div>
+</div>
+
+<div class="footer-actions">
+  <div class="in">
+    <span class="estado" id="estadoGuardado">Borrador guardado en este dispositivo.</span>
+    <button type="button" class="btn sec" id="btnPlantillas">📁 Abrir</button>
+    <button type="button" class="btn sec" id="btnGuardarServidor">☁️ Guardar</button>
+    <button type="button" class="btn" id="btnVistaPrevia">Ver formato e imprimir</button>
+    <button type="button" class="btn sec" id="btnSalirAgregar">Salir</button>
+    <button type="button" class="btn" id="btnGuardarPersonal">☁️ Guardar personal</button>
+    <button type="button" class="btn sec" id="btnSalirCerrar">Salir</button>
+    <button type="button" class="btn" id="btnConfirmarCierre">✅ Cerrar ATS</button>
+  </div>
+</div>
+
+<div class="panel" id="panel"><div class="caja" id="panelCaja"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="qr.js"></script>
+<script src="ats-catalogo.js"></script>
+<script src="ats.app.js"></script>
+</body>
+</html>

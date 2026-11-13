@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-YW+LyV2RXBU3V1RBUWDLsKsUArE1Kpc56L/+LgBINOw=' 'sha256-V6fg8WcmZdPDVK74qLDGWNP0gKI0DkPccJTdRpjBMcU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Aviso de privacidad · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Aviso de privacidad · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.aviso-priv h2{font-size:var(--fs-display);margin:18px 0 6px;}
+.aviso-priv p,.aviso-priv li{font-size:var(--fs-titulo);line-height:1.55;}
+.aviso-priv ul{padding-left:20px;}
+.aviso-priv .quien{background:var(--n-50);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-base);line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Ley 1581 de 2012</div>
+    <h1>Aviso de privacidad</h1>
+    <p>Qué datos personales trata este portal, para qué y cómo ejercer tus derechos</p></div></div>
+  </div>
+  <div class="card aviso-priv" id="aviso"></div>
+  <!-- v162 · Ejercer los derechos desde el portal (Ley 1581 de 2012, arts. 8, 14 y 15) -->
+  <div class="card" id="habeas">
+    <h2>Ejercer tus derechos</h2>
+    <p class="ayuda">Pide ver tus datos, corregirlos, revocar tu autorización o suprimirlos. Te respondemos en <b>10 días hábiles</b> si es una consulta y en <b>15</b> si es un reclamo. Antes de entregarte o cambiar datos confirmamos que eres tú.</p>
+    <div class="field"><label for="hbDer">¿Qué quieres?</label><select id="hbDer"><option>Ver qué datos míos tienen (consulta)</option><option>Saber para qué se han usado mis datos (consulta)</option><option>Prueba de la autorización que di (consulta)</option><option>Actualizar o corregir mis datos (reclamo)</option><option>Revocar mi autorización (reclamo)</option><option>Suprimir mis datos (reclamo)</option></select></div>
+    <div class="field"><label for="hbNom">Nombre completo</label><input type="text" id="hbNom" maxlength="120" autocomplete="name" data-no-ac></div>
+    <div class="field"><label for="hbCed">Cédula</label><input type="text" id="hbCed" inputmode="numeric" maxlength="15" data-no-ac></div>
+    <div class="field"><label for="hbCon">Correo o celular para responderte</label><input type="text" id="hbCon" maxlength="120" autocomplete="email" data-no-ac></div>
+    <div class="field"><label for="hbDet">Detalle (qué dato y qué debe decir)</label><textarea id="hbDet" rows="3" maxlength="1500"></textarea></div>
+    <button type="button" class="btn" id="hbEnviar">Enviar solicitud</button>
+    <div class="status-msg" id="hbMsg" role="status"></div>
+  </div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script>
+/* v162 · Solicitud de derechos del titular: se crea sin usuario; el servidor le pone radicado y plazo legal. */
+(function () {
+  const $ = (id)=> document.getElementById(id), t0 = Date.now();
+  $('hbEnviar').addEventListener('click', async ()=> {
+    const nom = $('hbNom').value.trim(), ced = $('hbCed').value.replace(/\D/g, ''), con = $('hbCon').value.trim(), msg = $('hbMsg');
+    const mc = Valida.cedula(ced); if (nom.length < 5) { msg.textContent = 'Escribe tu nombre completo.'; return; } if (mc) { msg.textContent = 'Cédula: ' + mc + '.'; return; } if (con.length < 6) { msg.textContent = 'Escribe un correo o celular para responderte.'; return; }
+    if (typeof SGSST === 'undefined' || !SGSST.url()) { msg.textContent = 'Este portal aún no tiene servidor: pide el formato al área SST.'; return; }
+    const id = 'HAB-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    $('hbEnviar').disabled = true; msg.textContent = 'Enviando…';
+    let r; try { r = await SGSST.enviar({ action: 'guardar', tipo: 'habeas', id, doc: { derecho: $('hbDer').value, nombre: nom, cedula: ced, contacto: con, detalle: $('hbDet').value.trim() }, _ms: Date.now() - t0 }, null, { sinCola: true }); } catch (e) { r = { ok: false, error: 'Sin señal: inténtalo de nuevo con internet.' }; }
+    $('hbEnviar').disabled = false;
+    if (!r.ok) { msg.textContent = r.error || 'No se pudo enviar.'; return; }
+    msg.innerHTML = '✓ Recibida. Tu número de radicado es <b>' + id + '</b>. Guárdalo: con él puedes preguntar por tu solicitud.';
+    ['hbNom', 'hbCed', 'hbCon', 'hbDet'].forEach((k)=> { $(k).value = ''; });
+  });
+})();
+</script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+/* ============================================================
+   AVISO DE PRIVACIDAD (v116) — Ley 1581 de 2012 y Decreto 1074 de 2015
+   (art. 2.2.2.25.3.3: contenido mínimo). Se arma con los datos de la empresa
+   (responsable) y, en un sitio multiempresa, de quien presta el portal
+   (encargado). Es una plantilla: la empresa la revisa con su asesor legal.
+   ============================================================ */
+(function () {
+  const E = EMPRESA, P = (typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo && MultiEmpresa.proveedor) || null;
+  const pv = E.privacidad || {};
+  const resp = esc(E.nombre || 'La empresa') + (E.nit ? ' (NIT ' + esc(E.nit) + ')' : '');
+  const contacto = pv.correo ? '<a href="mailto:' + esc(pv.correo) + '">' + esc(pv.correo) + '</a>' : 'el área de Seguridad y Salud en el Trabajo de la empresa';
+  const enc = P && P.nombre && P.nombre !== E.nombre ? esc(P.nombre) + (P.nit ? ' (NIT ' + esc(P.nit) + ')' : '') : '';
+  document.getElementById('aviso').innerHTML =
+    '<div class="quien"><b>Responsable del tratamiento:</b> ' + resp + '.<br><b>Consultas y reclamos:</b> ' + contacto + '.' +
+      '<br><b>Encargado del tratamiento:</b> ' + (enc || 'quien presta y mantiene la plataforma del portal (asesor o proveedor contratado por la empresa)') + ', que trata los datos solo por cuenta e instrucciones de la empresa, con contrato de transmisión.' + '</div>' +
+    '<h2>Qué datos se tratan</h2><ul>' +
+      '<li>Identificación y contacto: nombre, cédula, cargo, área, empresa y firma.</li>' +
+      '<li>Registros de seguridad y salud en el trabajo: permisos, ATS, inspecciones, preoperacionales, reportes de actos, condiciones, incidentes y accidentes, inducciones, asistencia y entregas de EPP.</li>' +
+      '<li><b>Datos sensibles</b> (solo los registra y los ve el área SST): conceptos médicos de aptitud y restricciones, exámenes, ausentismo, vigilancia de la salud y condiciones de salud que tú declares. Nunca el diagnóstico.</li>' +
+      '<li><b>Datos para emergencias</b>: tipo de sangre (RH), EPS, ARL y un contacto de emergencia. Los ven SST, administración y supervisores, solo para atender una emergencia médica.</li>' +
+      '<li><b>Firma</b> manuscrita digital (dato biométrico). Con cada firma se guarda la hora, el tipo de celular o navegador y, <b>si lo permites</b> cuando el celular lo pregunta, la ubicación aproximada (GPS), para probar dónde y cuándo se firmó. Negar la ubicación no impide firmar.</li>' +
+      '<li>Fotografías que se adjunten como evidencia (pueden mostrar personas o lesiones en un accidente).</li>' +
+      '<li>Quejas al comité de convivencia (van cifradas: solo las lee el comité) y lo que se deje en el buzón.</li>' +
+      '<li>Datos de contratistas, proveedores y de quien responda encuestas.</li></ul>' +
+    '<h2>Para qué</h2><p>Para cumplir las obligaciones del Sistema de Gestión de la Seguridad y Salud en el Trabajo (Decreto 1072 de 2015 y Resolución 0312 de 2019): controlar los trabajos de alto riesgo, reportar e investigar eventos, verificar que el personal esté habilitado, hacer seguimiento a la salud en el trabajo, conservar los registros que exige la ley y rendir cuentas a las autoridades y a la ARL.</p>' +
+    '<h2>Tus derechos</h2><ul><li>Conocer, actualizar y rectificar tus datos.</li><li>Pedir prueba de la autorización que diste.</li><li>Saber qué uso se les ha dado.</li><li>Presentar quejas ante la Superintendencia de Industria y Comercio.</li><li>Revocar la autorización o pedir que se supriman cuando no haya un deber legal o contractual de conservarlos (hay registros de SST que se conservan 20 años: Decreto 1072 de 2015, art. 2.2.4.6.13).</li><li>Acceder gratis a tus datos.</li></ul>' +
+    '<p>Responder las preguntas sobre datos sensibles es <b>voluntario</b>: no estás obligado a darlos (Ley 1581, art. 6), salvo lo que la ley laboral exige para tu seguridad.</p>' +
+    '<h2>Dónde quedan</h2><p>En las hojas de cálculo de la cuenta de Google de la empresa (Google LLC). Los servidores de Google pueden estar <b>fuera de Colombia</b> (por ejemplo en Estados Unidos): es una <b>transmisión internacional</b> a un encargado que presta el servicio de nube, con las garantías de seguridad de Google y del contrato de la empresa con su proveedor del portal. Solo los ven las personas con usuario y rol autorizado. Cada semana se envía una <b>copia de respaldo</b> a un correo designado por la empresa (o a su asesor, como encargado), para no perder la información.</p>' +
+    '<p><b>En este celular</b> quedan, mientras tengas la sesión abierta, copias de las listas que consultas, los formularios que dejaste a medias (hasta 7 días) y lo que espera señal para enviarse. Al <b>cerrar sesión</b> se borra todo, menos lo que todavía no se ha enviado. En un celular compartido, cierra sesión al terminar.</p>' +
+    '<h2>Cuánto tiempo</h2><p>Los registros del Sistema de Gestión se conservan 20 años (Decreto 1072 de 2015, art. 2.2.4.6.13). Lo demás, mientras dure la relación con la empresa y lo exija la ley.</p>' +
+    '<h2>Política de tratamiento</h2><p>' + (pv.politica ? 'Consulta la política completa de la empresa en <a href="' + esc(pv.politica) + '" target="_blank" rel="noopener">este enlace</a>.' : 'Pide la política de tratamiento de datos de la empresa a ' + contacto + '.') + '</p>' +
+    '<p>Mira también las <a href="terminos.html">condiciones de uso</a>.</p>' +
+    '<p class="ayuda">Al usar el portal y en la inducción se pide tu autorización. Este aviso se puede actualizar; la versión vigente es la de esta página.</p>';
+})();
+</script>
+</body>
+</html>

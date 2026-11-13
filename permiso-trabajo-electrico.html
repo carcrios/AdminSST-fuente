@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-y9bbL+5xGjlcshWllmGCpYcUs0f7mBroFMdcgVFokEU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSTA-F-180 · Permiso de Trabajo Eléctrico</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSTA-F-180 · Permiso de Trabajo Eléctrico">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{
+  --ember:#b8860b;--ember-dark:#8a6408;--steel:#1f2a33;--steel-mid:#3a4753;
+  --paper:#f6f3ec;--paper-panel:#ffffff;--line:#d8d2c4;--ok:#2f6b45;--warn:#b8860b;
+  --ink:#20242a;--muted:#6b6459;font-family:var(--font-family, 'Segoe UI', system-ui, sans-serif);
+}
+
+body{margin:0;background:repeating-linear-gradient(135deg, rgba(200,70,26,0.035) 0 2px, transparent 2px 14px),var(--paper);color:var(--ink);padding:24px 16px 80px;}
+
+/* Modo "agregar personal": solo se ve la sección de ejecutantes y un pie propio con Guardar. */
+
+/* Dos columnas: seis opciones en una sola columna hacían la sección
+   innecesariamente larga en celular. Cada opción es tocable completa (toda la
+   etiqueta, no solo la casilla) y con alto mínimo para usarse con guantes. */
+.tension-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.tension-grid label{
+  display:flex;align-items:center;gap:9px;
+  min-height:var(--touch,44px);
+  border:1.5px solid var(--line);border-radius:var(--r-s);
+  padding:8px 11px;background:var(--n-0);
+  font-size:var(--fs-menor,12.5px);font-weight:600;text-transform:none;
+  color:var(--ink,var(--ink));margin:0;cursor:pointer;transition:.12s;
+}
+.tension-grid label:has(input:checked){border-color:var(--ink);background:#fff;box-shadow:inset 0 0 0 1px var(--ink);}
+.tension-grid input[type=checkbox]{width:20px;height:20px;flex-shrink:0;margin:0;}
+.tension-sub{
+  font-size:var(--fs-etiqueta,11px);font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-muted,var(--ink-soft));margin:2px 0 6px;
+}
+@media(max-width:420px){ .tension-grid{grid-template-columns:1fr;} }
+
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+@media(max-width:600px){
+  body{padding:20px 14px 100px;}
+  .hdr{padding:20px 18px;flex-direction:column;align-items:flex-start;gap:10px;}
+  .hdr .meta{text-align:left;}
+  .hdr h1{font-size:var(--fs-display);line-height:1.35;}
+  .section{margin-top:20px;}
+  .section-body{padding:20px 16px;}
+  .section-title{padding:12px 16px;font-size:var(--fs-menor);}
+  .check-item{flex-direction:column;align-items:stretch;gap:10px;padding:14px 4px;}
+  .toggle{align-self:flex-start;}
+  .close-q{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 0;}
+  .grid2, .grid3{gap:16px;}
+  .field{margin-bottom:2px;}
+  .footer-actions{padding:10px 14px;}
+  .footer-actions .status{font-size:10px;}
+
+  /* Tabla de ejecutantes: de tabla ancha a tarjetas apiladas */
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+
+  /* Evita que iOS Safari haga zoom automático al enfocar un campo (ocurre cuando
+     el font-size es menor a 16px) y se quede la página "zoomeada" cortando el contenido */
+  input,select,textarea{font-size:var(--fs-campo) !important;}
+}
+
+/* La tabla de ejecutantes también debe apilarse en tarjetas al girar el celular
+   a horizontal — de lo contrario, el ancho de pantalla supera los 600px y la
+   tabla vuelve a columnas angostas justo cuando se buscaba más espacio para
+   firmar. Se repiten aquí solo las reglas de la tabla (no todo el bloque móvil,
+   para no apilar innecesariamente el resto de secciones que sí caben side-by-side
+   en horizontal). */
+@media (orientation:landscape) and (max-width:960px){
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+  canvas.mini-pad{height:170px !important;}
+}
+.field label{display:block;font-size:var(--fs-menor);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;}
+
+.field input[type=date],.field input[type=time]{overflow:hidden;-webkit-appearance:none;appearance:none;min-height:40px;line-height:1.3;}
+.field input[type=date]::-webkit-calendar-picker-indicator,.field input[type=time]::-webkit-calendar-picker-indicator{border-radius:var(--r-xs);padding:2px;cursor:pointer;}
+.field input[type=date]::-webkit-datetime-edit,.field input[type=time]::-webkit-datetime-edit{border-radius:var(--r-xs);}
+.field textarea{min-height:110px;resize:vertical;line-height:1.5;}
+
+.radio-row label{display:flex;align-items:center;gap:8px;font-size:var(--fs-titulo);font-weight:500;padding:4px 0;}
+
+.toggle button{border:1.5px solid var(--line);background:transparent;padding:6px 12px;font-size:var(--fs-menor);font-weight:600;border-radius:var(--radius-sm, 7px);cursor:pointer;color:var(--n-400);min-width:44px;transition:.14s;}
+.toggle button.active-c{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(29,122,76,.3);}
+.toggle button.active-na{background:var(--warn);border-color:var(--warn);color:#fff;font-weight:700;}
+
+.sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.sig-actions button{background:none;border:none;color:var(--ember-dark);font-size:var(--fs-menor);font-weight:700;cursor:pointer;text-decoration:underline;}
+
+.sig-status{font-size:var(--fs-etiqueta);color:var(--muted);}
+
+.footer-actions{margin-top:24px;max-width:980px;margin-left:auto;margin-right:auto;background:var(--steel);border-radius:var(--radius-lg, 14px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-card);}
+
+.btn-secondary{background:transparent;color:var(--n-300);border:1px solid var(--n-600);padding:9px 16px;border-radius:var(--radius-sm, 7px);font-size:var(--fs-menor);font-weight:600;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--n-300);color:#fff;}
+/* LANDING */
+
+.landing-choices{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:560px){.landing-choices{grid-template-columns:1fr;}}
+.choice-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:24px 18px;cursor:pointer;transition:.15s;}
+.choice-card:hover{border-color:var(--ember);box-shadow:0 4px 14px rgba(200,70,26,.15);}
+.choice-card .icon{font-size:var(--fs-h1);margin-bottom:10px;}
+.choice-card h3{margin:0 0 6px;font-size:var(--fs-titulo);color:var(--steel);}
+.choice-card p{margin:0;font-size:var(--fs-menor);color:var(--muted);}
+.file-input-wrap{margin-top:10px;}
+.file-input-wrap input{font-size:var(--fs-menor);}
+
+.validation-banner{display:none;background:var(--rojo-50);border:1px solid var(--rojo-300);color:var(--rojo-900);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;}
+.validation-banner.show{display:block;}
+.validation-banner strong{display:block;margin-bottom:4px;font-size:var(--fs-menor);}
+.validation-banner ul{margin:0;padding-left:18px;}
+.draft-banner{display:none;background:var(--azul-50);border:1px solid var(--azul-200);color:var(--azul-700);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.draft-banner.show{display:flex;}
+
+@media print{
+  .footer-actions,.add-row-btn,.sig-actions,#landing,.validation-banner,.draft-banner{display:none !important;}
+  body{background:#fff;padding:0;}
+  .wrap{max-width:100%;}
+  .hdr{background:#fff !important;color:var(--ink) !important;border:2px solid var(--steel);box-shadow:none;}
+  .hdr::before{display:none;}
+  .hdr .brand{color:var(--ember);}
+  .hdr .meta{color:var(--n-650);}
+  .hdr-logo{background:var(--ember) !important;color:#fff !important;}
+  .section{box-shadow:none;border:1px solid var(--n-450);break-inside:avoid;}
+  .section-title{background:var(--bg) !important;color:var(--ink) !important;}
+  .toggle button.on{background:var(--ember) !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  canvas.pad,canvas.mini-pad{border:1px solid var(--n-450) !important;}
+  @page{margin:14mm 10mm;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LANDING -->
+  <div id="landing">
+    <div class="hdr mb-26">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Permiso de Trabajo Eléctrico</h1></div></div>
+      <div class="meta">Código: <b>SSTA-F-180</b></div>
+    </div>
+    <h2>¿Qué deseas hacer?</h2>
+    <p>Este permiso se guarda en una Google Sheet compartida: se abre desde un dispositivo y se cierra desde otro, buscando el permiso por su código.</p>
+
+    <div class="landing-choices">
+      <div class="choice-card" id="cardNew">
+        <div class="icon" data-senal="electrico" aria-hidden="true"></div>
+        <h3>Abrir nuevo permiso</h3>
+        <p>Diligenciar descripción, tensión de trabajo, checklist de preparación, EPP, controles del área y firmas de apertura.</p>
+      </div>
+      <div class="choice-card" id="cardClose">
+        <div class="icon" data-senal="cerrar" aria-hidden="true"></div>
+        <h3>Cerrar un permiso existente</h3>
+        <p>Escribe el código del permiso (o elígelo de la lista de abiertos) para revisar los datos y diligenciar el cierre.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="codeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadCodeBtn" type="button">Buscar permiso</button>
+          <button class="btn-secondary btn-menu" id="listOpenBtn" type="button">Ver permisos abiertos</button>
+          <button class="btn-secondary btn-menu" id="listClosedBtn" type="button">Ver historial (cerrados)</button>
+          <div class="lista-permisos" id="openList"></div>
+          <div id="historyPanel" style="display:none;margin-top:10px;text-align:left;">
+            <input class="entrada-buscar" type="text" id="historySearch" placeholder="Buscar por código o responsable...">
+            <div class="lista-historial" id="closedList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="choice-card" id="cardAddPeople">
+        <div class="icon" data-senal="agregar" aria-hidden="true"></div>
+        <h3>Agregar personal</h3>
+        <p>Para un permiso ya abierto en ejecución: suma más ejecutantes que se van uniendo al trabajo, sin cerrar el permiso.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="addPeopleCodeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadAddPeopleBtn" type="button">Cargar permiso y agregar personal</button>
+          <button class="btn-secondary btn-menu" id="listOpenForAddBtn" type="button">Ver permisos abiertos</button>
+          <div class="lista-permisos" id="openListForAdd"></div>
+        </div>
+      </div>
+    </div>
+    <a href="index.html" style="display:block;margin-top:18px;font-size:var(--fs-menor);color:var(--n-450);text-decoration:none;">← Atrás SSTA</a>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <div class="hdr">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Formato de Permiso de Trabajo Eléctrico</h1></div></div>
+      <div class="meta" data-meta="largo">Código: <b>SSTA-F-180</b></div>
+    </div>
+    <div class="status-banner open" id="statusBanner">
+      <span id="statusBannerText">Permiso nuevo — aún no guardado</span>
+      <span>Código: <code id="permitCodeDisplay">—</code></span>
+    </div>
+
+    <!-- QR del permiso: se llena al guardar y sale en la impresión. -->
+    <div class="qr-permiso" id="qrPermiso"></div>
+
+    <div class="draft-banner" id="draftBanner">
+      <span id="draftBannerText"></span>
+      <span style="display:flex;gap:8px;">
+        <button type="button" id="draftRestoreBtn">Continuar borrador</button>
+        <button type="button" id="draftDiscardBtn">Descartar</button>
+      </span>
+    </div>
+    <div class="validation-banner" id="validationBanner"></div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec1">A. Generalidades</div>
+      <div class="section-body">
+        <div class="field"><label>Descripción específica del trabajo a realizar</label><textarea id="descripcion" placeholder="Describe el trabajo a realizar"></textarea></div>
+        <div class="grid3 mt-6">
+          <div class="field"><label>Duración — Desde (fecha)</label><input type="date" id="desdeFecha"></div>
+          <div class="field"><label>Hasta (fecha)</label><input type="date" id="hastaFecha"></div>
+          <div class="field"><label>Sitio exacto del trabajo</label><input type="text" id="sitio"></div>
+        </div>
+        <div class="grid2 mt-6">
+          <div class="field"><label>Responsable del trabajo</label><input type="text" id="responsable"></div>
+          <div class="field"><label>Herramientas y/o equipos a utilizar</label><div id="herramientasSel"></div><input type="hidden" id="herramientas"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSecB">B. Documentos adjuntos a este permiso</div>
+      <div class="section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);"><input type="checkbox" id="docATS"> ATS</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);"><input type="checkbox" id="docCaliente"> Permiso para trabajo en caliente</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);"><input type="checkbox" id="docAltura"> Permiso para trabajo en altura</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);"><input type="checkbox" id="docConfinado"> Permiso para espacio confinado</label>
+        </div>
+        <div class="field mt-8"><label>Otros</label><input type="text" id="docOtros"></div>
+
+        <div class="grid2 mt-16">
+          <!-- Antes las seis opciones de cada bloque iban en una sola columna y,
+               en baja tensión, la corriente continua quedaba mezclada con la
+               alterna. Ahora van en dos columnas y separadas por tipo de
+               corriente, que es como se decide en campo. -->
+          <div class="field">
+            <label>El trabajo es de baja tensión (marque todas las que apliquen)</label>
+            <div id="bajaTensionGrid">
+              <div class="tension-sub">Corriente continua (D.C.)</div>
+              <div class="tension-grid">
+                <label><input type="checkbox" value="< 50 Voltios D.C."> &lt; 50 V D.C.</label>
+                <label><input type="checkbox" value="120 Voltios D.C."> 120 V D.C.</label>
+              </div>
+              <div class="tension-sub">Corriente alterna (A.C.)</div>
+              <div class="tension-grid">
+                <label><input type="checkbox" value="< 50 Voltios A.C."> &lt; 50 V A.C.</label>
+                <label><input type="checkbox" value="110 Voltios A.C."> 110 V A.C.</label>
+                <label><input type="checkbox" value="220 Voltios A.C."> 220 V A.C.</label>
+                <label><input type="checkbox" value="480 Voltios A.C."> 480 V A.C.</label>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>El trabajo es de media tensión (marque todas las que apliquen)</label>
+            <div id="mediaTensionGrid">
+              <div class="tension-sub">Corriente alterna (A.C.) — de menor a mayor</div>
+              <div class="tension-grid">
+                <label><input type="checkbox" value="2.400 Voltios A.C."> 2.400 V</label>
+                <label><input type="checkbox" value="4.160 Voltios A.C."> 4.160 V</label>
+                <label><input type="checkbox" value="6.300 Voltios A.C."> 6.300 V</label>
+                <label><input type="checkbox" value="6.600 Voltios A.C."> 6.600 V</label>
+                <label><input type="checkbox" value="13.800 Voltios"> 13.800 V</label>
+                <label><input type="checkbox" value="34.500 Voltios"> 34.500 V</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec3">C. Preparación para el trabajo <span class="progress-pill ml-auto" id="checklistProgress">0/0</span></div>
+      <div class="section-body" id="checklistContainer"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec4">D. Equipos y elementos de protección personal requeridos <span class="progress-pill ml-auto" id="equiposProgress">0/0</span></div>
+      <div class="section-body"><div id="equiposContainer"></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSecE">E. Controles del área <span class="progress-pill ml-auto" id="controlesProgress">0/0</span></div>
+      <div class="section-body"><div id="controlesContainer"></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec5">Observaciones y recomendaciones</div>
+      <div class="section-body"><div class="field"><textarea id="observaciones"></textarea></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec6">F. Término de responsabilidades y autorización (apertura)</div>
+      <div class="section-body">
+        <p class="nota-suave">Declaro que me encuentro en buen estado de salud (físico y mental), libre de efectos de alcohol, medicamentos o SPA, consciente de mi responsabilidad, y me comprometo a cumplir las recomendaciones acordadas en este permiso.</p>
+        <div id="responsablesSigs" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+    </div>
+
+    <div class="section" id="execSection">
+      <div class="section-title" id="titleSecExec">Ejecutantes de la actividad</div>
+      <div class="section-body">
+        <div class="exec-cards" id="execBody"></div>
+        <button class="add-row-btn" id="addRowBtn" type="button">+ Agregar ejecutante</button>
+      </div>
+    </div>
+
+    <!-- SECTION 7: CLOSE -->
+    <div class="section">
+      <div class="section-title locked" id="titleSec7">7. Cierre del permiso</div>
+      <div class="section-body" id="closeSectionBody">
+        <p class="texto-suave" id="closeLockedMsg">Esta sección se habilita al importar el permiso desde el archivo generado en la apertura.</p>
+        <div id="closeFields" class="hidden">
+          <div class="grid3">
+            <div class="field"><label>Fecha real del cierre</label><input type="date" id="cierreFecha"></div>
+            <div class="field"><label>Hora de cierre</label><input type="time" id="cierreHora"></div>
+            <div class="field"><label>Motivo del cierre</label>
+              <select id="motivoCierre"><option value="">Elige…</option><option>Actividad Finalizada</option><option>Actividad Cancelada</option><option>Evento no deseado</option><option>Lluvia / Tormenta</option><option>Condiciones y/o actos inseguros</option></select>
+            </div>
+          </div>
+          <div class="mt-14">
+            <div class="close-q"><p>¿Se aplicaron las tres primeras "S" en el área antes de entregar el equipo?</p><div class="radio-row"><label><input type="radio" name="q1" value="Si"> Sí</label><label><input type="radio" name="q1" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿El personal que se encontraba interviniendo el equipo fue retirado?</p><div class="radio-row"><label><input type="radio" name="q2" value="Si"> Sí</label><label><input type="radio" name="q2" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han inspeccionado y almacenado correctamente los EPP utilizados?</p><div class="radio-row"><label><input type="radio" name="q3" value="Si"> Sí</label><label><input type="radio" name="q3" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han recogido y almacenado correctamente las herramientas usadas?</p><div class="radio-row"><label><input type="radio" name="q4" value="Si"> Sí</label><label><input type="radio" name="q4" value="No"> No</label></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px;">
+            <div class="sig-block">
+              <h5>Trabajador autorizado responsable del trabajo</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre1nombre"><input type="text" placeholder="Cédula" id="cierre1cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre1cargo"></div>
+              <canvas class="pad" id="padCierre1"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre1">Borrar firma</button><button type="button" data-undo="padCierre1">Deshacer trazo</button><span class="sig-status" id="statusCierre1">Sin firmar</span></div>
+            </div>
+            <div class="sig-block">
+              <h5>Supervisor SSTA</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre2nombre"><input type="text" placeholder="Cédula" id="cierre2cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre2cargo"></div>
+              <canvas class="pad" id="padCierre2"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre2">Borrar firma</button><button type="button" data-undo="padCierre2">Deshacer trazo</button><span class="sig-status" id="statusCierre2">Sin firmar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<div class="footer-actions" style="display:none" id="footerActions">
+  <span class="status" id="footerStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="printBtn" type="button">Imprimir / PDF</button>
+    <button class="btn-secondary no-print" id="historyBtn" type="button">Ver historial</button>
+    <div class="historial-permiso" id="historialPermiso"></div>
+    <button class="btn-secondary" id="backToStartBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="mainActionBtn" type="button">Guardar y exportar apertura</button>
+  </div>
+</div>
+
+<div id="footerAddPeople">
+  <span class="status" id="addPeopleStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="backFromAddPeopleBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="saveAddPeopleBtn" type="button">Guardar personal agregado</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="qr.js"></script>
+<script src="permiso-core.js"></script>
+<script>
+/* ================= DATA DEFINITIONS ================= */
+const checklistData = [
+  {cat:"C. Preparación para el trabajo", items:[
+    "El equipo a intervenir requiere estar desenergizado.",
+    "Se requiere que el área adyacente esté acordonada.",
+    "Se requiere la instalación de las puestas a tierra / aterrizamiento de circuitos.",
+    "Se requiere la presencia del guardia/vigía de seguridad eléctrico.",
+    "Se requiere utilizar el detector de proximidad para verificar ausencia de tensión.",
+    "Se requiere informar de los riesgos a los ejecutores del trabajo.",
+    "Líneas vivas adyacentes (energizadas).",
+    "Gases tóxicos de equipo eléctrico."
+  ]}
+];
+const equiposData = [
+  {cat:"D. EPP requeridos", items:[
+    "Respirador vapores orgánicos.","Respirador para polvos o humos.","Equipo de rescate.","Equipo de primeros auxilios.",
+    "Extintor.","Casco dieléctrico.","Careta especial.","Sensor de tensión por proximidad.",
+    "Respirador vapores ácidos.","Equipo de aire respirable certificado.","Equipo protección contra caídas.",
+    "Botiquín.","Manta dieléctrica.","Botas dieléctricas.","Guantes.","Otros."
+  ]}
+];
+const controlesData = [
+  {cat:"E. Controles del área", items:[
+    "Se identificaron, valoraron y controlaron los riesgos.",
+    "Se revisaron interferencias con otros trabajos adyacentes.",
+    "Se informó de los riesgos a los ejecutores del trabajo.",
+    "El equipo se encuentra sin tensión.",
+    "Se verificó que el área sobre la que está el equipo a intervenir esté seca.",
+    "Se aplicó el procedimiento de control de energías peligrosas.",
+    "Se utilizó el detector de proximidad para verificar ausencia de tensión.",
+    "Se instalaron puestas a tierra / aterrizamiento de circuitos.",
+    "Se acordonó el área."
+  ]}
+];
+
+/* ================= CONFIGURACIÓN DE ESTE TIPO DE PERMISO ================= */
+const cfg = {
+  key: 'electrico',
+  codePrefix: 'PTE',
+  draftSlug: 'electrico',
+  themeColor: '#b8860b',
+  // Mismo par de valores C/NA que los otros tipos, pero acá el texto de los
+  // botones es "SÍ"/"NO" en vez de "C"/"NA" (así está en el formulario original).
+  toggleStates: [
+    { val:'C',  label:'SÍ', cls:'active-c' },
+    { val:'NA', label:'NO', cls:'active-na' }
+  ],
+
+  // v148: RETIE art. 18 (5 reglas de oro), NFPA 70E 120 — bloqueo trazable y reenergización segura.
+  criticosApertura: [
+    { id:'tensionNominal', label:'Tensión nominal del equipo o circuito', req:true, ph:'Ej: 440 V · 13,2 kV' },
+    { id:'puntoAislamiento', label:'Punto(s) de corte o aislamiento', req:true, ph:'Ej: interruptor Q3 del tablero TGD-2' },
+    { id:'lotoTabla', label:'Bloqueo y etiquetado: trabajador — candado — tarjeta (una línea por persona)', tipo:'textarea', req:true, ph:'Ana Ruiz — candado 07 — tarjeta 07' },
+    { id:'verificoAusencia', label:'Quién verificó la ausencia de tensión y con qué equipo', req:true, ph:'Ej: Luis Gómez · detector Fluke T6, verificado antes y después' },
+    { id:'distanciaAprox', label:'Distancia de aproximación segura', ph:'Ej: 1,0 m (límite restringido)' },
+    { id:'categoriaArco', label:'Categoría de EPP para arco eléctrico', tipo:'select', op:['No aplica (sin riesgo de arco)','Categoría 1 (4 cal/cm²)','Categoría 2 (8 cal/cm²)','Categoría 3 (25 cal/cm²)','Categoría 4 (40 cal/cm²)'] }
+  ],
+  criticosCierre: [
+    { id:'tierrasRetiradas', label:'Puestas a tierra temporales retiradas', tipo:'select', op:['Sí','No'], req:true },
+    { id:'candadosRetirados', label:'Todos los candados y tarjetas retirados por su dueño', tipo:'select', op:['Sí','No'], req:true },
+    { id:'areaDespejada', label:'Personal y herramientas fuera antes de reenergizar', tipo:'select', op:['Sí','No'], req:true }
+  ],
+  validarCriticos(v, missing, fase){
+    if (fase === 'cierre') ['tierrasRetiradas','candadosRetirados','areaDespejada'].forEach(k => { if (v[k] === 'No') missing.push({ msg:'No se reenergiza: ' + document.querySelector('label[for="' + k + '"]').textContent.replace(' *',''), el: document.getElementById(k) }); });
+  },
+  checklistGroups: [
+    { data: checklistData, statePrefix:'chk', stateKey:'checklist', containerId:'checklistContainer',
+      progressId:'checklistProgress', label:'Preparación para el trabajo', sectionLabel:'sección C' },
+    { data: equiposData, statePrefix:'eq', stateKey:'equipos', containerId:'equiposContainer',
+      progressId:'equiposProgress', label:'EPP requeridos', sectionLabel:'sección D' },
+    { data: controlesData, statePrefix:'ctl', stateKey:'controles', containerId:'controlesContainer',
+      progressId:'controlesProgress', label:'Controles del área', sectionLabel:'sección E' }
+  ],
+
+  responsables: ["Encargado del área turno 1","Encargado del área turno 2","Supervisor SSTA","Supervisor de obra"],
+  responsablesOpcionales: ["Encargado del área turno 1","Encargado del área turno 2"],
+  responsableDashboardIndex: 2,
+  responsablesSectionLabel: 'sección 6',
+
+  // Sin 'titleSec2': acá la sección B se llama 'titleSecB' y la E 'titleSecE' —
+  // el array anterior (copiado a mano de caliente.html) incluía 'titleSec2', que
+  // no existe en este archivo, y hacía que lockOpenSections() lanzara una
+  // excepción no capturada a mitad de camino, dejando el modo de cierre roto en
+  // silencio (el banner de estado, los campos de cierre y el botón nunca se
+  // actualizaban). Con la lista explícita y correcta por tipo, este bug ya no
+  // puede repetirse.
+  lockSectionIds: ['titleSec1','titleSecB','titleSec3','titleSec4','titleSecE','titleSec5','titleSec6','titleSecExec'],
+  closeSectionTitleId: 'titleSec7',
+
+  requiredOpenFields: [
+    { id:'descripcion', label:'Descripción del trabajo (sección A)' },
+    { id:'sitio',        label:'Sitio exacto del trabajo (sección A)' },
+    { id:'responsable',  label:'Responsable del trabajo (sección A)' }
+  ],
+  // No hay campos de hora en este tipo (solo fecha) — omitir desdeHora/hastaHora
+  // hace que el núcleo compare solo fechas, igual que el formulario original.
+  dateRange: { desdeFecha:'desdeFecha', hastaFecha:'hastaFecha', sectionLabel:'sección A' },
+
+  // Fila de ejecutante con un campo extra propio de este tipo (tarjeta profesional).
+  execExtraField: { id:'execTarjeta', field:'tarjeta', placeholder:'N.° tarjeta profesional (opcional)' },
+
+  extraSetFieldValues(vals){
+    initSel_herramientas();
+    if (sel_herramientas) {
+      sel_herramientas.set(vals.herramientas || '');
+      document.getElementById('herramientas').value = sel_herramientas.get();
+    }
+    document.getElementById('herramientas').value = vals.herramientas || '';
+    document.getElementById('docATS').checked = !!vals.docATS;
+    document.getElementById('docCaliente').checked = !!vals.docCaliente;
+    document.getElementById('docAltura').checked = !!vals.docAltura;
+    document.getElementById('docConfinado').checked = !!vals.docConfinado;
+    document.getElementById('docOtros').value = vals.docOtros || '';
+    const baja = vals.bajaTension || [], media = vals.mediaTension || [];
+    document.querySelectorAll('#bajaTensionGrid input').forEach(i=>{ i.checked = baja.includes(i.value); });
+    document.querySelectorAll('#mediaTensionGrid input').forEach(i=>{ i.checked = media.includes(i.value); });
+  },
+  extraOnInitRender(){
+    initSel_herramientas();
+  },
+
+  extraCollectOpenData(){
+    return {
+      herramientas: document.getElementById('herramientas').value,
+      docATS: document.getElementById('docATS').checked,
+      docCaliente: document.getElementById('docCaliente').checked,
+      docAltura: document.getElementById('docAltura').checked,
+      docConfinado: document.getElementById('docConfinado').checked,
+      docOtros: document.getElementById('docOtros').value,
+      bajaTension: [...document.querySelectorAll('#bajaTensionGrid input:checked')].map(i=>i.value),
+      mediaTension: [...document.querySelectorAll('#mediaTensionGrid input:checked')].map(i=>i.value)
+    };
+  }
+};
+
+PermisoCore.init(cfg);
+
+/* ── Herramientas y/o equipos a utilizar: fichas + campo libre ──
+   Se conserva #herramientas oculto con el texto combinado, para que lo que ya está
+   guardado en la hoja se siga leyendo igual y el resto del código no cambie. */
+let sel_herramientas = null;
+function initSel_herramientas(){
+  const cont = document.getElementById('herramientasSel');
+  if(!cont || sel_herramientas) return;
+  const oculto = document.getElementById('herramientas');
+  sel_herramientas = SeleccionMultiple.crear(cont, {
+    opciones: ['Multímetro', 'Pinza amperimétrica', 'Detector de tensión', 'Puesta a tierra temporal', 'Candados de bloqueo (LOTO)', 'Tarjetas de bloqueo', 'Guantes dieléctricos', 'Pértiga aislada', 'Herramienta aislada', 'Extensión eléctrica', 'Megóhmetro', 'Escalera dieléctrica'],
+    placeholderLibre: 'Otras herramientas o equipos…',
+    onChange: ()=>{ oculto.value = sel_herramientas.get(); }
+  });
+}
+</script>
+</body>
+</html>

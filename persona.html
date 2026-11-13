@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Tzfuif6jifuuw8uK68Rq6CWVE4EVGWGqkiT35sxAivk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Ficha del trabajador · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ficha del trabajador · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.fx-sem{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0;}
+.fx-s{border-left:4px solid var(--n-300);background:var(--paper);border-radius:var(--r-m);padding:8px 10px;box-shadow:var(--sombra-1,0 1px 3px rgba(0,0,0,.08));}
+.fx-s .n{font-size:var(--fs-menor);font-weight:700;}.fx-s .v{font-weight:800;}.fx-s .f{font-size:.78rem;color:var(--n-600);}
+.fx-s.ok{border-color:var(--ok);}.fx-s.ok .v{color:var(--ok);}.fx-s.mal{border-color:var(--mal);}.fx-s.mal .v{color:var(--mal);}.fx-s.pronto{border-color:var(--ambar-500);}.fx-s.pronto .v{color:var(--ambar-500);}
+.fx-l{margin:0;padding:0;list-style:none;}.fx-l li{border-bottom:1px solid var(--n-150);padding:7px 0;font-size:var(--fs-menor);}.fx-l li:last-child{border-bottom:0;}
+.fx-l b{font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Todo de una persona en un solo lugar</div>
+    <h1 id="fxNom">Ficha del trabajador</h1>
+    <p id="fxSub">Busca a la persona por nombre o cédula</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="card"><div class="field"><label for="fxBus">Trabajador</label><input type="search" id="fxBus" placeholder="Escribe el nombre o la cédula"></div></div>
+  <div id="fx"></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v157 · Ficha del trabajador: habilitación (con su semáforo por tipo de trabajo), EPP entregado e inspeccionado,
+   reposiciones pendientes, dotación, inducción, reportes donde fue el lesionado y, solo para SST, exámenes,
+   restricciones y programas de vigilancia. Sin diagnósticos. */
+let rows = [], esSst = false;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const cedK = (c)=> String(c || '').replace(/\D/g, '');
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  const rol = Sesion.rol(); esSst = !rol || rol === 'admin' || rol === 'sst';
+  const r = await SGSST.listar('trabajador,entrega,dotacion,induccion,reporte,solrepo' + (esSst ? ',examen,pvecaso' : ''));
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || [];
+  try { await Habilitacion.cargar(); } catch (e) {}
+  UI.autocompletar($('fxBus'), (p)=> ver(p.cedula));
+  // v162: también por cédula directa (personas que solo están en un permiso o un ATS)
+  $('fxBus').addEventListener('keydown', (e)=> { if (e.key === 'Enter') { const d = cedK($('fxBus').value); if (d.length >= 5) ver(d); } });
+  const q = new URLSearchParams(location.search), c = q.get('ced'), pid = q.get('p');
+  if (c) ver(c);
+  else if (pid) SGSST.consultar({ action: 'persona', personaId: pid }).then((r)=> { if (r && r.ok) ver(r.persona.cedula); else UI.toast('Esa persona no está en el maestro.', 'mal'); }).catch(()=> {});   // v164: por su personaId
+}
+const fila = (t, m, c)=> '<li><b>' + t + '</b>' + (m ? '<br>' + m : '') + (c ? ' <span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>' : '') + '</li>';
+const bloque = (titulo, items, vacio, extra)=> '<div class="card"><h2>' + titulo + '</h2>' + (items.length ? '<ul class="fx-l">' + items.join('') + '</ul>' : '<div class="empty">' + vacio + '</div>') + (extra || '') + '</div>';
+/* v162 · Ficha 360: además de lo de arriba, todo lo que tiene que ver con la persona en los demás módulos —permisos
+   de trabajo, ATS, charlas— y en el SG-SST (acciones a su cargo, comités, ausencias…), con el rol que tuvo. */
+const NOM_TIPO = { accion: 'Acción del plan', reunion: 'Reunión / acta', comite: 'Comité', induccion: 'Inducción', entrega: 'Entrega de EPP', dotacion: 'Dotación', examen: 'Examen médico', ausencia: 'Ausencia', reporte: 'Reporte', inspeccion: 'Inspección', solrepo: 'Reposición de EPP', pvecaso: 'Vigilancia (PVE)', trabajador: 'Personal habilitado', preop: 'Preoperacional', simulacro: 'Simulacro', capacitacion: 'Capacitación' };
+async function moduloPorCedula(clave, k){
+  const B = PORTAL_CONFIG.BACKENDS[clave]; if (!B || !B.url) return [];
+  try { const j = await (await fetchWithRetry(B.url + (B.url.indexOf('?') === -1 ? '?' : '&') + 'action=porCedula&cedula=' + encodeURIComponent(k) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN) + (SGSST._ses ? SGSST._ses() : ''))).json();
+    return j && j.ok ? (j.rows || []).map((r)=> Object.assign({ modulo: clave }, r)) : []; } catch (e) { return []; }
+}
+async function vinculos360(k, nombre){
+  const permisos = ['caliente', 'alturas', 'confinados', 'izajes', 'electrico'], mods = permisos.concat(['ats', 'asistencia']);
+  // v164: primero el maestro dice TODAS las cédulas de la persona (la de hoy, las corregidas y las de fichas unificadas);
+  // los permisos, ATS y charlas guardan la cédula del día, así que se busca con cada una.
+  const sg = await SGSST.consultar({ action: 'vinculos', cedula: k, nombre: nombre || '' }).catch(()=> ({ rows: [] }));
+  const ceds = (sg && sg.persona && sg.persona.cedulas && sg.persona.cedulas.length ? sg.persona.cedulas : [k]).slice(0, 6);
+  const res = await Promise.all(mods.map((c)=> Promise.all(ceds.map((ce)=> moduloPorCedula(c, ce))).then((l)=> { const v = {}; return [].concat(...l).filter((x)=> { const id = x.modulo + ':' + (x.code || x.id || x.del || JSON.stringify(x)); if (v[id]) return false; v[id] = 1; return true; }); })));
+  return { sg: (sg && sg.rows) || [], persona: (sg && sg.persona) || null, permisos: [].concat(...res.slice(0, 5)), ats: res[5] || [], charlas: res[6] || [] };
+}
+function pintar360(v){
+  const box = $('fx360'); if (!box) return;
+  const fe = (x)=> esc(UI.corta(String(x || '').slice(0, 10)));
+  const otros = v.sg.filter((x)=> ['trabajador', 'entrega', 'dotacion', 'induccion', 'reporte', 'solrepo', 'examen', 'pvecaso'].indexOf(x.tipo) === -1);
+  const linea = [].concat(v.permisos.map((x)=> ({ f: String(x.abierto || '').slice(0, 10), t: '🧷 Permiso ' + x.code + ' (' + (PORTAL_CONFIG.BACKENDS[x.modulo] || {}).nombre + ')', m: [x.sitio, x.status].filter(Boolean).join(' · ') })),
+    v.ats.map((x)=> ({ f: String(x.desde || '').slice(0, 10), t: '📝 ATS ' + x.code, m: [x.trabajo, x.estado].filter(Boolean).join(' · ') })),
+    v.charlas.map((x)=> ({ f: String(x.del || '').slice(0, 10), t: '🗣️ Charlas de la semana del ' + UI.corta(String(x.del).slice(0, 10)), m: [x.lugar, x.temas].filter(Boolean).join(' · ') })),
+    v.sg.map((x)=> ({ f: x.fecha, t: (NOM_TIPO[x.tipo] || x.tipo) + ' · ' + x.titulo, m: 'Como ' + x.rol + (x.estado ? ' · ' + x.estado : '') }))).filter((x)=> x.f).sort((a, b)=> b.f.localeCompare(a.f));
+  box.innerHTML = bloque('Permisos de trabajo', v.permisos.slice(0, 12).map((x)=> fila(esc(x.code) + ' · ' + esc((PORTAL_CONFIG.BACKENDS[x.modulo] || {}).nombre || ''), fe(x.abierto) + (x.sitio ? ' · ' + esc(x.sitio) : ''), x.status === 'ABIERTO' ? ['pronto', 'Abierto'] : ['ok', x.status || 'Cerrado'])), 'No aparece en permisos de trabajo.') +
+    bloque('ATS', v.ats.slice(0, 12).map((x)=> fila(esc(x.code) + ' · ' + fe(x.desde), esc(x.trabajo || ''))), 'No aparece en ATS.') +
+    bloque('Charlas de seguridad', v.charlas.slice(0, 12).map((x)=> fila('Semana del ' + fe(x.del), esc([x.lugar, x.temas].filter(Boolean).join(' · ')))), 'Sin asistencias registradas a charlas.') +
+    bloque('Otros registros donde aparece', otros.slice(0, 20).map((x)=> fila(esc(NOM_TIPO[x.tipo] || x.tipo) + ' · ' + esc(x.titulo), 'Como <b>' + esc(x.rol) + '</b>' + (x.fecha ? ' · ' + fe(x.fecha) : '') + (x.estado ? ' · ' + esc(x.estado) : ''))), 'Sin otros registros (acciones, comités, ausencias…).') +
+    '<details class="card"><summary><b>Línea de tiempo</b> (' + linea.length + ')</summary><ul class="fx-l">' + linea.slice(0, 80).map((x)=> fila(fe(x.f) + ' · ' + esc(x.t), esc(x.m))).join('') + '</ul></details>' +
+    '<p class="ayuda">Cada registro guarda el nombre y el cargo que tenía la persona ese día (la evidencia no cambia aunque hoy tenga otro cargo).</p>';
+}
+async function ver(ced){
+  const k = cedK(ced), todos = de('trabajador'), porCed = (x)=> cedK(x.resumen.cedula) === k || (x.resumen.cedulasAnteriores || []).some((c)=> cedK(c) === k);
+  // v164: también por una cédula anterior; si la ficha se unificó con otra, se abre la que quedó.
+  let t = todos.filter(porCed).sort((a, b)=> (a.resumen.fusionadoCon ? 1 : 0) - (b.resumen.fusionadoCon ? 1 : 0))[0];
+  for (let n = 0; t && t.resumen.fusionadoCon && n < 5; n++) t = todos.find((x)=> x.id === t.resumen.fusionadoCon) || null;
+  if (!t) {
+    // v162: sin registro en Personal habilitado igual hay ficha con lo que se sepa de ella en los demás módulos.
+    $('fxNom').textContent = 'CC ' + k; $('fxSub').textContent = 'No está en Personal habilitado';
+    $('fx').innerHTML = '<div class="aviso amar">No está en Personal habilitado: no se puede saber si está habilitada. <a href="habilitacion.html">Agregarla →</a></div><div id="fx360"><div class="empty">Buscando en permisos, ATS, charlas y el SG-SST…</div></div>';
+    const v = await vinculos360(k, ''); pintar360(v);
+    if (!v.permisos.length && !v.ats.length && !v.charlas.length && !v.sg.length) $('fx360').innerHTML = '<div class="empty">Esta cédula no aparece en ningún registro.</div>';
+    return;
+  }
+  try { history.replaceState(history.state, '', location.pathname + '?ced=' + encodeURIComponent(cedK(t.resumen.cedula) || k)); } catch (e) {}
+  const s = t.resumen, susCed = new Set([s.cedula].concat(s.cedulasAnteriores || []).map(cedK)), mismo = (x)=> susCed.has(cedK(x.resumen.cedula)), h = UI.hoy();
+  $('fxNom').textContent = s.nombre; $('fxSub').textContent = 'CC ' + (s.cedula || '') + ((s.cedulasAnteriores || []).length ? ' (antes ' + s.cedulasAnteriores.join(', ') + ')' : '') + (s.personaId ? ' · ' + s.personaId : '') + (s.cargo ? ' · ' + s.cargo : '') + (s.area ? ' · ' + s.area : '') + (s.empresa ? ' · ' + s.empresa : '') + (s.activo === false ? ' · INACTIVO' : '');
+  // Semáforo por tipo de trabajo
+  const CTX = [['general', 'Trabajo general'], ['alturas', 'Alturas'], ['confinados', 'Espacios confinados'], ['caliente', 'Trabajo en caliente'], ['electrico', 'Riesgo eléctrico'], ['izajes', 'Izaje de cargas']];
+  const sem = CTX.map(([c, n])=> { const r = Habilitacion.revisar(s.cedula, c); const cl = r.estado === 'ok' ? 'ok' : r.estado === 'pronto' ? 'pronto' : 'mal';
+    return '<div class="fx-s ' + cl + '"><div class="n">' + n + '</div><div class="v">' + (cl === 'ok' ? 'Habilitado' : cl === 'pronto' ? 'Por vencer' : 'No habilitado') + '</div><div class="f">' + esc((r.problemas.concat(r.avisos)).slice(0, 2).join(' · ') || 'Todo al día') + '</div></div>'; }).join('');
+  const req = Object.keys(s.req || {}).map((q)=> { const r = s.req[q], d = (Habilitacion.config().requisitos[q] || {}); const v = r.vence || '';
+    return fila(esc(d.nombre || q), (r.fecha ? 'Fecha ' + esc(UI.corta(r.fecha)) : '') + (v ? ' · vence ' + esc(UI.corta(v)) : '') + (r.apto ? ' · ' + esc(r.apto) : ''), v && v < h ? ['mal', 'Vencido'] : null); });
+  // EPP
+  const ent = de('entrega').filter(mismo).sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  const sr = de('solrepo').filter(mismo).filter((x)=> x.resumen.estado !== 'ENTREGADA');
+  let inspEpp = [];
+  try { const B = PORTAL_CONFIG.BACKENDS.epp; if (B && B.url) { const j = await (await fetchWithRetry(B.url + '?cedula=' + encodeURIComponent(s.cedula) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN) + (SGSST._ses ? SGSST._ses() : ''))).json(); inspEpp = (j && j.rows) || []; } } catch (e) {}
+  const dot = de('dotacion').filter(mismo).sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  const ind = de('induccion').filter(mismo).sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  const rep = de('reporte').filter((x)=> cedK(x.resumen.lesionadoCc) === k).sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  let salud = '';
+  if (esSst) {
+    const ex = de('examen').filter(mismo).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+    const pv = de('pvecaso').filter(mismo);
+    salud = bloque('🔒 Salud (solo SST)', ex.slice(0, 6).map((x)=> fila(esc(x.resumen.tipoExamen || 'Examen') + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(x.resumen.concepto || '') + (x.resumen.tieneRestricciones === 'Sí' || x.resumen.restringePara ? ' · con restricciones' + (x.resumen.venceRestriccion ? ' hasta ' + esc(UI.corta(x.resumen.venceRestriccion)) : '') : '') + (x.resumen.proxima ? ' · próximo ' + esc(UI.corta(x.resumen.proxima)) : ''), x.resumen.proxima && x.resumen.proxima < h ? ['mal', 'Examen vencido'] : null))
+      .concat(pv.map((x)=> fila('PVE: ' + esc(x.resumen.programa), esc(String(x.resumen.clasificacion || '').replace(/ \(.*/, '')) + ' · ' + esc(x.resumen.estado || '') + (x.resumen.proximaEvaluacion ? ' · próxima evaluación ' + esc(UI.corta(x.resumen.proximaEvaluacion)) : ''), x.resumen.proximaEvaluacion && x.resumen.proximaEvaluacion < h && x.resumen.estado !== 'Egresado' ? ['mal', 'Seguimiento vencido'] : null))),
+      'Sin exámenes ni programas de vigilancia registrados.', '<a class="btn ghost mini u-mt8" href="salud.html">Abrir Salud →</a> <a class="btn ghost mini u-mt8" href="pve.html">Abrir PVE →</a>');
+  }
+  const faltan = [];
+  if (!ind.length) faltan.push('inducción');
+  if (sr.length) faltan.push(sr.length + ' reposición(es) de EPP por entregar');
+  if (s.restr && (s.restr.para || []).length) faltan.push('restricción médica para ' + s.restr.para.join(', '));
+  $('fx').innerHTML =
+    (faltan.length ? '<div class="aviso amar"><b>Pendiente:</b> ' + esc(faltan.join(' · ')) + '</div>' : '') +
+    '<div class="card"><h2>Habilitación por tipo de trabajo</h2><div class="fx-sem">' + sem + '</div><a class="btn ghost mini" href="habilitacion.html">Abrir Personal habilitado →</a></div>' +
+    bloque('Requisitos', req, 'Sin requisitos registrados.') +
+    bloque('EPP entregado', ent.slice(0, 8).map((x)=> fila(esc(UI.corta(x.fecha)) + ' · ' + esc(x.resumen.motivo || 'Entrega'), esc(x.resumen.reposicionTexto || x.resumen.elementosTexto || '') + (x.resumen.reponer ? ' · reponer ' + esc(UI.corta(x.resumen.reponer)) : ''), x.resumen.reponer && x.resumen.reponer < h ? ['mal', 'Vida útil vencida'] : null)), 'Sin entregas de EPP.',
+      sr.length ? '<div class="aviso mal u-mt8">Por entregar (inspección de EPP): ' + esc(sr.map((x)=> x.resumen.elementosTexto).join(' · ')) + ' <a href="entrega-epp.html">Entregar →</a></div>' : '') +
+    bloque('Inspecciones de EPP', inspEpp.slice(0, 6).map((r)=> fila(esc(r.fechaInspeccion || ''), r.malos ? 'En mal estado: ' + esc(r.malos) : 'Todo en buen estado', r.malos ? ['mal', 'Con elementos malos'] : ['ok', 'OK'])), 'Sin inspecciones de EPP.') +
+    bloque('Dotación', dot.slice(0, 6).map((x)=> fila(esc(x.resumen.periodoNombre || UI.corta(x.fecha)), esc(x.resumen.itemsTexto || ''))), 'Sin entregas de dotación.') +
+    bloque('Inducción y reinducción', ind.slice(0, 4).map((x)=> fila(esc(x.resumen.tipoInduccion || 'Inducción') + ' · ' + esc(UI.corta(x.fecha)), esc(x.resumen.resultado || '') + (x.resumen.vence ? ' · vence ' + esc(UI.corta(x.resumen.vence)) : ''))), 'Sin inducción registrada.') +
+    bloque('Accidentes e incidentes donde fue el lesionado', rep.map((x)=> fila(esc(x.resumen.clase) + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(x.resumen.descripcion || '') + (x.resumen.diasIncapacidad ? ' · ' + x.resumen.diasIncapacidad + ' días de incapacidad' : ''))), 'Ninguno.') +
+    salud + '<div id="fx360"><div class="empty">Buscando en permisos, ATS, charlas y el SG-SST…</div></div><button type="button" class="btn ghost" id="fxPdf">🖨️ Imprimir la ficha</button>';
+  vinculos360(cedK(s.cedula) || k, s.nombre).then(pintar360);
+  $('fxPdf').addEventListener('click', ()=> { const c = $('fx').cloneNode(true); c.querySelectorAll('a, button').forEach((x)=> x.remove());
+    UI.imprimir([UI.cabecera('SG-FICHA-TRABAJADOR', 'FICHA DEL TRABAJADOR: ' + String(s.nombre).toUpperCase(), 'CC ' + s.cedula + ' · ' + (s.cargo || '') + ' · corte ' + UI.corta(h)) + '<div class="hp-ficha">' + c.innerHTML + '</div>'], false); });
+}
+cargar();
+</script>
+</body>
+</html>

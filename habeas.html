@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-OjLYn9qIwbQti2WKevey1NBeo22t5DcdUyo0u+DkV78='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Solicitudes de datos personales · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Solicitudes de datos personales · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.hb-l{margin:0;padding:0;list-style:none;} .hb-l li{border-bottom:1px solid var(--n-150);padding:10px 0;} .hb-l .t{font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Ley 1581 de 2012</div>
+    <h1>Solicitudes de datos personales</h1>
+    <p>Consultas y reclamos de los titulares, con su plazo legal</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div class="card"><p class="ayuda u-mtn4">Las personas las presentan desde <a href="privacidad.html">Aviso de privacidad</a>, sin usuario. Consulta: 10 días hábiles. Reclamo: 15 días hábiles (Ley 1581, arts. 14 y 15). Antes de entregar o cambiar datos, confirma la identidad.</p><div id="hbLista"><div class="empty">Cargando…</div></div></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v162 · Gestión de las solicitudes de derechos del titular (habeas data). */
+let rows = [];
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  const r = await SGSST.listar('habeas'); rows = (r.rows || []).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  const h = UI.hoy();
+  $('hbLista').innerHTML = rows.length ? '<ul class="hb-l">' + rows.map((x)=> { const s = x.resumen, abierta = s.estado !== 'RESPONDIDA', venc = abierta && s.vence < h;
+    return '<li><div class="t">' + esc(s.radicado || x.id) + ' · ' + esc(s.clase) + ' · ' + esc(s.nombre) + ' <span class="chip ' + (!abierta ? 'ok' : venc ? 'mal' : 'pronto') + '">' + (!abierta ? 'Respondida' : venc ? 'Vencida' : 'Responder antes del ' + esc(UI.corta(s.vence))) + '</span></div>' +
+      '<div>' + esc(s.derecho) + ' · CC ' + esc(s.cedula) + ' · ' + esc(s.contacto) + '</div>' + (s.detalle ? '<div class="m">' + esc(s.detalle) + '</div>' : '') +
+      '<div class="m">Identidad: ' + esc(s.verificacion || '') + '</div>' + (s.respuesta ? '<div class="aviso ok u-mt8">' + esc(UI.corta(s.fechaRespuesta)) + ': ' + esc(s.respuesta) + '</div>' : '') +
+      (abierta ? '<div class="fila-btn u-mt8"><button type="button" class="btn-mini" data-ver="' + esc(x.id) + '">Identidad verificada</button><button type="button" class="btn-mini" data-resp="' + esc(x.id) + '">Responder</button><a class="btn-mini" href="persona.html?ced=' + esc(s.cedula) + '">Ver sus datos</a></div>' : '') + '</li>'; }).join('') + '</ul>' : '<div class="empty">No hay solicitudes.</div>';
+}
+document.addEventListener('click', async (e)=> {
+  const v = e.target.closest('[data-ver]'), r = e.target.closest('[data-resp]'); if (!v && !r) return;
+  const id = (v || r).dataset.ver || (v || r).dataset.resp;
+  if (v) { const q = await Dialogo.pedir('¿Cómo se verificó la identidad? (ej.: presentó la cédula en persona, respondió desde su correo registrado)');
+    if (!q) return; const x = await SGSST.enviar({ action: 'parche', tipo: 'habeas', id, campos: { verificacion: 'Verificada el ' + UI.corta(UI.hoy()) + ': ' + q } }); UI.toast(x.ok ? '✓ Anotado' : Errores.texto('guardó', x), x.ok ? '' : 'mal'); cargar(); return; }
+  const m = UI.modal('<h3>Responder la solicitud</h3><div class="field"><label for="hbR">Respuesta (lo que se le contestó y por qué medio)</label><textarea id="hbR" rows="5" maxlength="1500"></textarea></div><button type="button" class="btn" id="hbOk">Guardar respuesta</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  m.el.querySelector('#hbOk').addEventListener('click', async ()=> { const t = m.el.querySelector('#hbR').value.trim(); if (t.length < 10) { UI.toast('Escribe la respuesta.'); return; }
+    const x = await SGSST.enviar({ action: 'parche', tipo: 'habeas', id, campos: { respuesta: t, fechaRespuesta: UI.hoy(), estado: 'RESPONDIDA' } }); m.cerrar(); UI.toast(x.ok ? '✓ Respondida' : Errores.texto('guardó', x), x.ok ? '' : 'mal'); cargar(); });
+});
+cargar();
+</script>
+</body>
+</html>

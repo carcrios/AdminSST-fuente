@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-undmdQskiIHAOvxKf8GacxI016BnyQ758zIseUktkFc='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Matrices del sistema integrado · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Matrices del sistema integrado · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">HSEQ · Sistema integrado</div>
+    <h1>Matrices del sistema integrado</h1>
+    <p>Competencias por cargo, auditores internos, calibración, comunicaciones y retención de registros (ISO 9001, 14001 y 45001)</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v147: lo que los auditores ISO piden y no tenía dónde quedar. Cada matriz es un tipo del servidor. */
+const SIS = { k: 'sistema', l: 'Sistema', t: 'select', op: ['Integrado', 'SST', 'Calidad', 'Ambiental'], medio: true };
+const M = {
+  competencia: { tab: 'Competencias por cargo', pref: 'CMP', nombre: 'Competencia del cargo', titulo: 'cargo', ayuda: 'ISO 9001 7.2 · ISO 45001 7.2 · Dec. 1072 art. 2.2.4.6.11: educación, formación y experiencia que pide cada cargo, y cómo se verifica.',
+    campos: [{ k: 'cargo', l: 'Cargo', req: true, medio: true }, SIS, { k: 'educacion', l: 'Educación', t: 'textarea', ph: 'Ej: técnico en electricidad' }, { k: 'formacion', l: 'Formación y certificados', t: 'textarea', ph: 'Ej: curso de alturas avanzado vigente, CONTE' },
+      { k: 'experiencia', l: 'Experiencia', ph: 'Ej: 2 años en mantenimiento' }, { k: 'habilidades', l: 'Habilidades', t: 'textarea' }, { k: 'verificacion', l: 'Cómo se verifica', ph: 'Ej: hoja de vida, certificados, prueba práctica', medio: true }, { k: 'responsable', l: 'Responsable', t: 'persona', medio: true }] },
+  auditorint: { tab: 'Auditores internos', pref: 'AUD', nombre: 'Auditor interno', titulo: 'nombre', ayuda: 'ISO 19011 · ISO 9001/45001 9.2: competencia del auditor e independencia (no audita su propio trabajo).',
+    campos: [{ k: 'nombre', l: 'Nombre', t: 'persona', req: true, medio: true }, SIS, { k: 'formacion', l: 'Formación como auditor', ph: 'Ej: curso auditor interno ISO 45001 (40 h)', req: true }, { k: 'fechaFormacion', l: 'Fecha del curso', t: 'date', medio: true },
+      { k: 'auditorias', l: 'Auditorías hechas', t: 'number', medio: true }, { k: 'procesoPropio', l: 'Proceso al que pertenece (no lo puede auditar)', req: true, medio: true }, { k: 'evaluacion', l: 'Evaluación del desempeño', t: 'select', op: ['Competente', 'En formación', 'No competente'], medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['ACTIVO', 'INACTIVO'], medio: true }] },
+  calibracion: { tab: 'Calibración de equipos', pref: 'CAL', nombre: 'Equipo de medición', titulo: 'equipo', ayuda: 'ISO 9001 7.1.5 · ISO 45001 9.1: explosímetros, sonómetros, luxómetros, pinzas, torquímetros… con su certificado vigente.',
+    campos: [{ k: 'equipo', l: 'Equipo', req: true, medio: true, ph: 'Ej: Detector de 4 gases' }, { k: 'codigo', l: 'Código o serial', req: true, medio: true }, SIS, { k: 'uso', l: 'Para qué se usa', medio: true },
+      { k: 'tipoControl', l: 'Control', t: 'select', op: ['Calibración', 'Verificación', 'Prueba de respuesta (bump test)'], medio: true }, { k: 'laboratorio', l: 'Laboratorio o proveedor', medio: true },
+      { k: 'fechaCalibracion', l: 'Última calibración', t: 'date', medio: true }, { k: 'proxima', l: 'Próxima calibración', t: 'date', req: true, medio: true }, { k: 'certificado', l: 'N.º de certificado', medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['APTO', 'FUERA DE SERVICIO'], medio: true }] },
+  comunicacion: { tab: 'Comunicaciones', pref: 'COM', nombre: 'Comunicación', titulo: 'queComunica', ayuda: 'ISO 9001 7.4 · ISO 14001 7.4 · ISO 45001 7.4: qué se comunica, a quién, cuándo, cómo y quién lo hace (interna y externa).',
+    campos: [{ k: 'queComunica', l: 'Qué se comunica', req: true }, SIS, { k: 'tipoCom', l: 'Interna o externa', t: 'select', op: ['Interna', 'Externa'], medio: true }, { k: 'aQuien', l: 'A quién', req: true, medio: true },
+      { k: 'cuando', l: 'Cuándo', medio: true, ph: 'Ej: mensual, al cambiar' }, { k: 'como', l: 'Cómo (medio)', medio: true, ph: 'Ej: cartelera, charla, correo' }, { k: 'responsable', l: 'Quién comunica', t: 'persona', medio: true }, { k: 'evidencia', l: 'Evidencia', medio: true, ph: 'Ej: acta, registro de asistencia' }] },
+  retencion: { tab: 'Retención de registros', pref: 'RET', nombre: 'Registro', titulo: 'registro', ayuda: 'Dec. 1072 art. 2.2.4.6.13 (mínimo 20 años para los registros de salud y exposición) · ISO 7.5.3: dónde se guarda, quién lo protege y cuánto tiempo.',
+    campos: [{ k: 'registro', l: 'Registro', req: true, ph: 'Ej: exámenes médicos ocupacionales' }, SIS, { k: 'ubicacion', l: 'Dónde se guarda', medio: true, ph: 'Ej: Portal SSTA · hoja Salud' }, { k: 'responsable', l: 'Responsable', t: 'persona', medio: true },
+      { k: 'proteccion', l: 'Protección y acceso', medio: true, ph: 'Ej: solo SST; copia semanal' }, { k: 'anios', l: 'Tiempo de retención (años)', t: 'number', req: true, medio: true }, { k: 'disposicion', l: 'Disposición final', t: 'select', op: ['Conservar', 'Destruir', 'Archivo histórico'], medio: true }, { k: 'base', l: 'Base legal', medio: true }] },
+  custodiahc: { tab: 'Custodia de historias clínicas', pref: 'CHC', nombre: 'Certificación de custodia', titulo: 'ips', ayuda: 'Res. 0312, estándar 3.1.5 · Res. 1843 de 2025: la IPS o el médico custodia las historias clínicas ocupacionales. Aquí solo va la certificación (el portal no guarda historias).',
+    campos: [{ k: 'ips', l: 'IPS o médico que custodia', req: true, medio: true }, { k: 'medico', l: 'Médico responsable', medio: true }, { k: 'licencia', l: 'Licencia en SST del médico', medio: true },
+      { k: 'fecha', l: 'Fecha de la certificación', t: 'date', req: true, medio: true }, { k: 'vence', l: 'Vigente hasta', t: 'date', medio: true }, { k: 'certificado', l: 'N.º o referencia del certificado', medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['Vigente', 'Vencida'], medio: true }] }
+};
+const TIPOS = Object.keys(M);
+let rows = [], tab = 'competencia';
+try { const t = new URLSearchParams(location.search).get('m'); if (M[t]) tab = t; } catch (e) {}
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function tabs(){ $('tabs').innerHTML = TIPOS.map((t)=> '<button type="button" role="tab" aria-selected="' + (t === tab) + '" class="' + (t === tab ? 'on' : '') + '" data-tab="' + t + '">' + esc(M[t].tab) + ' <span class="n">' + de(t).length + '</span></button>').join(''); }
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar(TIPOS.join(','));
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows || []; pintar();
+}
+function sub(t, x){ const s = x.resumen || {}, h = UI.hoy();
+  if (t === 'calibracion') { const v = s.proxima && s.proxima < h; return [esc(s.codigo || ''), (v ? '<b class="u-mal">Vencida: ' : 'Próxima: ') + esc(UI.corta(s.proxima)) + (v ? '</b>' : '')]; }
+  if (t === 'auditorint') return [esc(s.formacion || ''), 'No audita: ' + esc(s.procesoPropio || '—')];
+  if (t === 'retencion') return [esc(s.ubicacion || ''), esc((s.anios || '?') + ' años')];
+  if (t === 'custodiahc') { const v = s.vence && s.vence < UI.hoy(); return [esc(s.medico || ''), (v ? '<b class="u-mal">Vencida: ' : 'Vigente hasta: ') + esc(UI.corta(s.vence) || '—') + (v ? '</b>' : '')]; }
+  if (t === 'comunicacion') return [esc([s.tipoCom, s.aQuien, s.cuando].filter(Boolean).join(' · '))];
+  return [esc(s.verificacion || s.sistema || '')]; }
+function pintar(){
+  tabs(); const c = M[tab], l = de(tab);
+  $('panel').innerHTML = '<p class="ayuda">' + esc(c.ayuda) + '</p><div class="acciones-top"><button type="button" class="btn amber" id="bNuevo">Agregar ' + esc(c.nombre.toLowerCase()) + '</button></div>' +
+    (l.length ? l.map((x)=> '<button type="button" class="item" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen[c.titulo] || x.id) + '</div>' + sub(tab, x).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + '</div></div></button>').join('') : '<div class="empty">Todavía no hay registros. Toca «Agregar».</div>');
+  $('bNuevo').addEventListener('click', ()=> editar(tab, { id: SGSST.nuevoId(c.pref), nuevo: true, sistema: 'Integrado' }));
+  $('panel').querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editar(tab, d); }));
+}
+function editar(t, d){ const c = M[t];
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + c.nombre, campos: c.campos, datos: d,
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Matrices'); if (ok) cargar(); return ok; },
+    alGuardar: async (v)=> { if (t === 'auditorint' && v.procesoPropio && /auditor/i.test(v.procesoPropio)) return 'Escribe el proceso donde trabaja el auditor (para no asignarle auditar su propio trabajo).';
+      const r = await Registros.guardar(t, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; cargar(); return true; } });
+}
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

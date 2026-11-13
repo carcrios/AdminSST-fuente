@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-yUqYDprJ5Giqf2GaMr0tAoNriR4gpGL1L7KsA3aJSn8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Accesibilidad · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Accesibilidad · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.letra{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px;}
+.letra button{flex:1 1 0;min-width:84px;min-height:52px;border-radius:var(--r-m);border:2px solid var(--line);background:#fff;font:inherit;font-weight:800;cursor:pointer;color:var(--tinta);}
+.letra button[aria-pressed="true"]{border-color:var(--tinta);background:var(--amarillo-400);color:var(--tinta);}
+.letra .a1{font-size:var(--fs-base)}.letra .a2{font-size:var(--fs-display)}.letra .a3{font-size:var(--fs-subtitulo)}
+.cumple li{margin:6px 0;line-height:1.45;}
+.muestra{border:1px dashed var(--line);border-radius:var(--r-m);padding:10px 12px;margin-top:8px;font-size:var(--fs-base);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="index.html">← Volver</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Portal SSTA</div>
+    <h1>Accesibilidad</h1>
+    <p>Para que todas las personas puedan usar el portal</p></div></div>
+  </div>
+  <div class="card">
+    <h2>Ajustes de este celular</h2>
+    <p class="ayuda u-mt0">Se recuerdan en este celular y aplican en todas las páginas.</p>
+    <h3 class="u-mt8" id="tLetra">Tamaño de la letra</h3>
+    <div class="letra" role="group" aria-labelledby="tLetra">
+      <button type="button" class="a1" data-n="0" aria-pressed="false">A normal</button>
+      <button type="button" class="a2" data-n="1" aria-pressed="false">A grande</button>
+      <button type="button" class="a3" data-n="2" aria-pressed="false">A muy grande</button>
+    </div>
+    <div class="muestra">Así se ve el texto del portal con este tamaño.</div>
+    <h3 class="u-mt8">Modo sol (alto contraste)</h3>
+    <p class="ayuda">Blanco, negro y bordes marcados para leer a pleno sol o con baja visión.</p>
+    <button type="button" class="btn btn-sec" id="accSol" aria-pressed="false">Activar modo sol</button>
+  </div>
+  <div class="card">
+    <h2>Lo que ofrece el portal</h2>
+    <ul class="cumple">
+      <li><b>Escuchar:</b> arriba de cada página está el botón «Escuchar». El celular lee en voz alta lo que hay en la pantalla o en la ventana abierta, sin internet y sin instalar nada.</li>
+      <li><b>Dictar:</b> en los campos de texto largo, el botón «Dictar» escribe lo que se dice.</li>
+      <li><b>Firmar sin dibujar:</b> junto a cada recuadro de firma. Para quien no puede trazar la firma, se firma con nombre y cédula. Queda con la hora del servidor, el equipo y un código de verificación, igual que una firma a mano.</li>
+      <li><b>Lector de pantalla:</b> funciona con TalkBack (Android) y VoiceOver (iPhone). Cada botón y cada campo tiene su nombre, los avisos se leen solos y los errores se dicen al entrar al campo.</li>
+      <li><b>Teclado:</b> todo se puede usar con teclado. El foco se ve con un anillo de color y «Saltar al contenido» lleva directo a lo importante.</li>
+      <li><b>Sin depender del color:</b> los estados llevan palabra y símbolo (✓ vigente, ! por vencer, ✕ vencido), no solo color.</li>
+      <li><b>Contraste:</b> los textos cumplen el contraste mínimo de la norma WCAG 2.1 nivel AA (4,5 a 1) y se revisan con una prueba automática en cada versión.</li>
+      <li><b>Botones grandes:</b> en el celular, los botones miden al menos 44 píxeles para usarlos con guantes o con poca precisión.</li>
+      <li><b>Sin sonido:</b> nada depende de oír. Los reportes, el buzón y las alertas son escritos, y los contactos de emergencia ofrecen WhatsApp y mensaje de texto además de la llamada.</li>
+      <li><b>Menos movimiento:</b> si el celular pide reducir el movimiento, el portal no muestra animaciones.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Declaración de accesibilidad</h2>
+    <p class="ayuda u-mt0">El portal busca cumplir las pautas WCAG 2.1 nivel AA. Es una meta de mejora continua, en línea con la Ley 1618 de 2013 sobre los derechos de las personas con discapacidad y la Ley 982 de 2005 sobre las personas sordas y sordociegas.</p>
+    <p class="ayuda"><b>Limitaciones conocidas:</b> los PDF que se generan para imprimir reproducen los formatos de la empresa y no siempre son accesibles para un lector de pantalla. La consulta en pantalla sí lo es. Los videos de ayuda todavía no tienen versión en Lengua de Señas Colombiana.</p>
+    <p class="ayuda">Si algo del portal no se puede usar, cuéntanos y lo corregimos.</p>
+    <a class="btn" href="reportes.html?nuevo=1&amp;pqrs=1">Reportar una barrera de accesibilidad</a>
+  </div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = (id)=> document.getElementById(id);
+function pintar(){ const n = Letra.nivel(); document.querySelectorAll('.letra button').forEach((b)=> b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)));
+  const on = ModoSol.activo(); $('accSol').setAttribute('aria-pressed', String(on)); $('accSol').textContent = on ? 'Quitar modo sol' : 'Activar modo sol'; }
+document.querySelectorAll('.letra button').forEach((b)=> b.addEventListener('click', ()=> { Letra.poner(Number(b.dataset.n)); pintar(); }));
+$('accSol').addEventListener('click', ()=> { ModoSol.alternar(); pintar(); });
+pintar();
+</script>
+</body>
+</html>

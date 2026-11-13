@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+srlFlv5w94auSUYZRis555RSkPIlLbjqVyRzx5UY8A='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSTA-F-117 · Permiso para Trabajos en Espacios Confinados</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSTA-F-117 · Permiso para Trabajos en Espacios Confinados">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{
+  --ember:#5b3a91;--ember-dark:#432a6c;--steel:#1f2a33;--steel-mid:#3a4753;
+  --paper:#f6f3ec;--paper-panel:#ffffff;--line:#d8d2c4;--ok:#2f6b45;--warn:#b8860b;
+  --ink:#20242a;--muted:#6b6459;font-family:var(--font-family, 'Segoe UI', system-ui, sans-serif);
+}
+
+body{margin:0;background:repeating-linear-gradient(135deg, rgba(200,70,26,0.035) 0 2px, transparent 2px 14px),var(--paper);color:var(--ink);padding:24px 16px 80px;}
+
+/* Modo "agregar personal": solo se ve la sección de ejecutantes y un pie propio con Guardar. */
+
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+@media(max-width:600px){
+  body{padding:20px 14px 100px;}
+  .hdr{padding:20px 18px;flex-direction:column;align-items:flex-start;gap:10px;}
+  .hdr .meta{text-align:left;}
+  .hdr h1{font-size:var(--fs-display);line-height:1.35;}
+  .section{margin-top:20px;}
+  .section-body{padding:20px 16px;}
+  .section-title{padding:12px 16px;font-size:var(--fs-menor);}
+  .check-item{flex-direction:column;align-items:stretch;gap:10px;padding:14px 4px;}
+  .toggle{align-self:flex-start;}
+  .close-q{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 0;}
+  .grid2, .grid3{gap:16px;}
+  .field{margin-bottom:2px;}
+  .footer-actions{padding:10px 14px;}
+  .footer-actions .status{font-size:10px;}
+
+  /* Tabla de ejecutantes: de tabla ancha a tarjetas apiladas */
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+  .exec-table td.helper{display:flex;align-items:center;gap:10px;}
+  .exec-table td.helper::before{margin-bottom:0;}
+
+  /* Evita que iOS Safari haga zoom automático al enfocar un campo (ocurre cuando
+     el font-size es menor a 16px) y se quede la página "zoomeada" cortando el contenido */
+  input,select,textarea{font-size:var(--fs-campo) !important;}
+}
+
+/* La tabla de ejecutantes también debe apilarse en tarjetas al girar el celular
+   a horizontal — de lo contrario, el ancho de pantalla supera los 600px y la
+   tabla vuelve a columnas angostas justo cuando se buscaba más espacio para
+   firmar. Se repiten aquí solo las reglas de la tabla (no todo el bloque móvil,
+   para no apilar innecesariamente el resto de secciones que sí caben side-by-side
+   en horizontal). */
+@media (orientation:landscape) and (max-width:960px){
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+  canvas.mini-pad{height:170px !important;}
+}
+.field label{display:block;font-size:var(--fs-menor);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;}
+
+.field input[type=date],.field input[type=time]{overflow:hidden;-webkit-appearance:none;appearance:none;min-height:40px;line-height:1.3;}
+.field input[type=date]::-webkit-calendar-picker-indicator,.field input[type=time]::-webkit-calendar-picker-indicator{border-radius:var(--r-xs);padding:2px;cursor:pointer;}
+.field input[type=date]::-webkit-datetime-edit,.field input[type=time]::-webkit-datetime-edit{border-radius:var(--r-xs);}
+.field textarea{min-height:110px;resize:vertical;line-height:1.5;}
+
+.radio-row label{display:flex;align-items:center;gap:8px;font-size:var(--fs-titulo);font-weight:500;padding:4px 0;}
+
+.toggle button{border:1.5px solid var(--line);background:transparent;padding:6px 10px;font-size:var(--fs-etiqueta);font-weight:600;border-radius:var(--radius-sm, 7px);cursor:pointer;color:var(--n-400);min-width:36px;transition:.14s;}
+.toggle button.active-si{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(29,122,76,.3);}
+.toggle button.active-no{background:var(--warn);border-color:var(--warn);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(192,57,43,.3);}
+.toggle button.active-na{background:var(--n-400);border-color:var(--n-400);color:#fff;font-weight:700;}
+
+.sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.sig-actions button{background:none;border:none;color:var(--ember-dark);font-size:var(--fs-menor);font-weight:700;cursor:pointer;text-decoration:underline;}
+
+.sig-status{font-size:var(--fs-etiqueta);color:var(--muted);}
+
+.footer-actions{margin-top:24px;max-width:980px;margin-left:auto;margin-right:auto;background:var(--steel);border-radius:var(--radius-lg, 14px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-card);}
+
+.btn-secondary{background:transparent;color:var(--n-300);border:1px solid var(--n-600);padding:9px 16px;border-radius:var(--radius-sm, 7px);font-size:var(--fs-menor);font-weight:600;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--n-300);color:#fff;}
+/* LANDING */
+
+.landing-choices{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:560px){.landing-choices{grid-template-columns:1fr;}}
+.choice-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:24px 18px;cursor:pointer;transition:.15s;}
+.choice-card:hover{border-color:var(--ember);box-shadow:0 4px 14px rgba(200,70,26,.15);}
+.choice-card .icon{font-size:var(--fs-h1);margin-bottom:10px;}
+.choice-card h3{margin:0 0 6px;font-size:var(--fs-titulo);color:var(--steel);}
+.choice-card p{margin:0;font-size:var(--fs-menor);color:var(--muted);}
+.file-input-wrap{margin-top:10px;}
+.file-input-wrap input{font-size:var(--fs-menor);}
+
+.validation-banner{display:none;background:var(--rojo-50);border:1px solid var(--rojo-300);color:var(--rojo-900);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;}
+.validation-banner.show{display:block;}
+.validation-banner strong{display:block;margin-bottom:4px;font-size:var(--fs-menor);}
+.validation-banner ul{margin:0;padding-left:18px;}
+.draft-banner{display:none;background:var(--azul-50);border:1px solid var(--azul-200);color:var(--azul-700);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.draft-banner.show{display:flex;}
+
+@media print{
+  .footer-actions,.add-row-btn,.sig-actions,#landing,.validation-banner,.draft-banner{display:none !important;}
+  body{background:#fff;padding:0;}
+  .wrap{max-width:100%;}
+  .hdr{background:#fff !important;color:var(--ink) !important;border:2px solid var(--steel);box-shadow:none;}
+  .hdr::before{display:none;}
+  .hdr .brand{color:var(--ember);}
+  .hdr .meta{color:var(--n-650);}
+  .hdr-logo{background:var(--ember) !important;color:#fff !important;}
+  .section{box-shadow:none;border:1px solid var(--n-450);break-inside:avoid;}
+  .section-title{background:var(--bg) !important;color:var(--ink) !important;}
+  .toggle button.on{background:var(--ember) !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  canvas.pad,canvas.mini-pad{border:1px solid var(--n-450) !important;}
+  @page{margin:14mm 10mm;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LANDING -->
+  <div id="landing">
+    <div class="hdr mb-26">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Permiso para Trabajos en Espacios Confinados</h1></div></div>
+      <div class="meta">Código: <b>SSTA-F-117</b></div>
+    </div>
+    <h2>¿Qué deseas hacer?</h2>
+    <p>Este permiso se guarda en una Google Sheet compartida: se abre desde un dispositivo y se cierra desde otro, buscando el permiso por su código.</p>
+
+    <div class="landing-choices">
+      <div class="choice-card" id="cardNew">
+        <div class="icon" data-senal="confinados" aria-hidden="true"></div>
+        <h3>Abrir nuevo permiso</h3>
+        <p>Diligenciar mediciones de gases, EPP, controles administrativos y firmas de apertura. Se guarda directo en la hoja de cálculo.</p>
+      </div>
+      <div class="choice-card" id="cardClose">
+        <div class="icon" data-senal="cerrar" aria-hidden="true"></div>
+        <h3>Cerrar un permiso existente</h3>
+        <p>Escribe el código del permiso (o elígelo de la lista de abiertos) para revisar los datos y diligenciar el cierre.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="codeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadCodeBtn" type="button">Buscar permiso</button>
+          <button class="btn-secondary btn-menu" id="listOpenBtn" type="button">Ver permisos abiertos</button>
+          <button class="btn-secondary btn-menu" id="listClosedBtn" type="button">Ver historial (cerrados)</button>
+          <div class="lista-permisos" id="openList"></div>
+          <div id="historyPanel" style="display:none;margin-top:10px;text-align:left;">
+            <input class="entrada-buscar" type="text" id="historySearch" placeholder="Buscar por código o responsable...">
+            <div class="lista-historial" id="closedList"></div>
+          </div>
+        </div>
+      </div>
+      <div class="choice-card" id="cardReading">
+        <div class="icon" data-senal="tablero" aria-hidden="true"></div>
+        <h3>Registrar lectura de gases</h3>
+        <p>Para un permiso que ya está abierto y sigue en ejecución: agrega una nueva lectura de gases sin cerrar el permiso.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="readingCodeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadReadingBtn" type="button">Cargar permiso y registrar lectura</button>
+          <button class="btn-secondary btn-menu" id="listOpenForReadingBtn" type="button">Ver permisos abiertos</button>
+          <div class="lista-permisos" id="openListForReading"></div>
+        </div>
+      </div>
+
+      <div class="choice-card" id="cardAddPeople">
+        <div class="icon" data-senal="agregar" aria-hidden="true"></div>
+        <h3>Agregar personal</h3>
+        <p>Para un permiso ya abierto en ejecución: suma más ejecutantes que se van uniendo al trabajo, sin cerrar el permiso.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="addPeopleCodeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadAddPeopleBtn" type="button">Cargar permiso y agregar personal</button>
+          <button class="btn-secondary btn-menu" id="listOpenForAddBtn" type="button">Ver permisos abiertos</button>
+          <div class="lista-permisos" id="openListForAdd"></div>
+        </div>
+      </div>
+    </div>
+    <a href="index.html" style="display:block;margin-top:18px;font-size:var(--fs-menor);color:var(--n-450);text-decoration:none;">← Atrás SSTA</a>
+  </div>
+
+  <!-- PANEL DE LECTURA RÁPIDA (permiso ya abierto, sin cerrar) -->
+  <div id="readingApp" style="display:none">
+    <div class="hdr">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Registrar lectura — Espacios Confinados</h1></div></div>
+      <div class="meta">Código: <b id="readingPermitCode">—</b></div>
+    </div>
+    <div class="status-banner open"><span>Permiso abierto — solo se agregará la lectura, el permiso sigue activo</span></div>
+    <div class="section"><div class="section-body" id="gasTableContainerQuick"></div></div>
+    <div class="footer-actions" style="position:static;margin-top:20px;">
+      <button class="btn btn-secondary" id="readingBackBtn" type="button">← Volver al inicio</button>
+      <span class="status" id="readingStatus"></span>
+      <button class="btn" id="readingSaveBtn" type="button">Guardar lectura</button>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <div class="hdr">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Permiso para Trabajos en Espacios Confinados</h1></div></div>
+      <div class="meta" data-meta="largo">Código: <b>SSTA-F-117</b></div>
+    </div>
+    <div class="status-banner open" id="statusBanner">
+      <span id="statusBannerText">Permiso nuevo — aún no guardado</span>
+      <span>Código: <code id="permitCodeDisplay">—</code></span>
+    </div>
+
+    <!-- QR del permiso: se llena al guardar y sale en la impresión. -->
+    <div class="qr-permiso" id="qrPermiso"></div>
+
+    <div class="draft-banner" id="draftBanner">
+      <span id="draftBannerText"></span>
+      <span style="display:flex;gap:8px;">
+        <button type="button" id="draftRestoreBtn">Continuar borrador</button>
+        <button type="button" id="draftDiscardBtn">Descartar</button>
+      </span>
+    </div>
+    <div class="validation-banner" id="validationBanner"></div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec1">1. Datos generales de la tarea</div>
+      <div class="section-body">
+        <div class="grid2">
+          <div class="field"><label>Fecha de inicio</label><input type="date" id="desdeFecha"></div>
+          <div class="field"><label>Hora de inicio</label><input type="time" id="desdeHora"></div>
+          <div class="field"><label>Fecha de finalización</label><input type="date" id="hastaFecha"></div>
+          <div class="field"><label>Hora de término</label><input type="time" id="hastaHora"></div>
+          <div class="field"><label>Área o lugar</label><input type="text" id="sitio"></div>
+          <div class="field"><label>Responsable del trabajo</label><input type="text" id="responsable"></div>
+        </div>
+        <div class="field mt-6"><label>Actividad a realizar</label><textarea id="descripcion" placeholder="Describe el trabajo a realizar"></textarea></div>
+        <div class="grid2 mt-6">
+          <div class="field"><label>Herramientas y/o equipos a utilizar</label><div id="herramientasSel"></div><input type="hidden" id="herramientas"></div>
+          <div class="field"><label>¿Qué gases detecta el equipo de medición?</label><div id="gasesDetectaSel"></div><input type="hidden" id="gasesDetecta"></div>
+        </div>
+        <div class="grid3 mt-6">
+          <div class="field"><label>¿Cuenta con planeación de la tarea?</label>
+            <div class="radio-row"><label><input type="radio" name="cuentaPlaneacion" value="Si"> Sí</label><label><input type="radio" name="cuentaPlaneacion" value="No" checked> No</label></div>
+          </div>
+          <div class="field"><label>¿Requiere un permiso adicional?</label>
+            <div class="radio-row"><label><input type="radio" name="permAdicional" value="No" checked> No</label><label><input type="radio" name="permAdicional" value="Si"> Sí</label></div>
+          </div>
+          <div class="field"><label>¿Cuál?</label><div class="mt-8" id="cualPermisoSel"></div><input type="hidden" id="cualPermiso"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec2">2. Medición de gases</div>
+      <div class="section-body" id="gasTableContainer"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec3">3. Elementos de protección personal requeridos (EPP)</div>
+      <div class="section-body" id="eppContainer"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec4">4. Inspección de medidas preventivas y condiciones de seguridad <span class="progress-pill ml-auto" id="checklistProgress">0/0</span></div>
+      <div class="section-body" id="checklistContainer"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec5b">5. Controles administrativos <span class="progress-pill ml-auto" id="equiposProgress">0/0</span></div>
+      <div class="section-body">
+        <div id="equiposContainer"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec5">6. Observaciones y recomendaciones</div>
+      <div class="section-body"><div class="field"><textarea id="observaciones"></textarea></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec6">7. Firmas de emisión — término de responsabilidad</div>
+      <div class="section-body">
+        <p class="nota-suave"><b>Como ejecutor:</b> he verificado con el emisor la aplicación del permiso y los demás controles para minimizar los riesgos asociados a este trabajo. <b>Como supervisor de espacios confinados:</b> he verificado en campo la aplicación del permiso y considero seguro proceder con la ejecución del mismo.</p>
+        <div id="responsablesSigs" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+    </div>
+
+    <div class="section" id="execSection">
+      <div class="section-title" id="titleSecExec">Ejecutantes de la actividad</div>
+      <div class="section-body">
+        <div class="exec-cards" id="execBody"></div>
+        <button class="add-row-btn" id="addRowBtn" type="button">+ Agregar ejecutante</button>
+      </div>
+    </div>
+
+    <!-- SECTION 7: CLOSE -->
+    <div class="section">
+      <div class="section-title locked" id="titleSec7">7. Cierre del permiso</div>
+      <div class="section-body" id="closeSectionBody">
+        <p class="texto-suave" id="closeLockedMsg">Esta sección se habilita al importar el permiso desde el archivo generado en la apertura.</p>
+        <div id="closeFields" class="hidden">
+          <div class="grid3">
+            <div class="field"><label>Fecha real del cierre</label><input type="date" id="cierreFecha"></div>
+            <div class="field"><label>Hora de cierre</label><input type="time" id="cierreHora"></div>
+            <div class="field"><label>Motivo del cierre</label>
+              <select id="motivoCierre"><option value="">Elige…</option><option>Actividad Finalizada</option><option>Actividad Cancelada</option><option>Evento no deseado</option><option>Lluvia / Tormenta</option><option>Condiciones y/o actos inseguros</option></select>
+            </div>
+          </div>
+          <div class="mt-14">
+            <div class="close-q"><p>¿Se aplicaron las tres primeras "S" en el área antes de entregar el equipo?</p><div class="radio-row"><label><input type="radio" name="q1" value="Si"> Sí</label><label><input type="radio" name="q1" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿El personal que se encontraba interviniendo el equipo fue retirado?</p><div class="radio-row"><label><input type="radio" name="q2" value="Si"> Sí</label><label><input type="radio" name="q2" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han inspeccionado y almacenado correctamente los EPP utilizados?</p><div class="radio-row"><label><input type="radio" name="q3" value="Si"> Sí</label><label><input type="radio" name="q3" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han recogido y almacenado correctamente las herramientas usadas?</p><div class="radio-row"><label><input type="radio" name="q4" value="Si"> Sí</label><label><input type="radio" name="q4" value="No"> No</label></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px;">
+            <div class="sig-block">
+              <h5>Trabajador autorizado responsable del trabajo</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre1nombre"><input type="text" placeholder="Cédula" id="cierre1cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre1cargo"></div>
+              <canvas class="pad" id="padCierre1"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre1">Borrar firma</button><button type="button" data-undo="padCierre1">Deshacer trazo</button><span class="sig-status" id="statusCierre1">Sin firmar</span></div>
+            </div>
+            <div class="sig-block">
+              <h5>Supervisor SSTA</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre2nombre"><input type="text" placeholder="Cédula" id="cierre2cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre2cargo"></div>
+              <canvas class="pad" id="padCierre2"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre2">Borrar firma</button><button type="button" data-undo="padCierre2">Deshacer trazo</button><span class="sig-status" id="statusCierre2">Sin firmar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<div class="footer-actions" style="display:none" id="footerActions">
+  <span class="status" id="footerStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="printBtn" type="button">Imprimir / PDF</button>
+    <button class="btn-secondary no-print" id="historyBtn" type="button">Ver historial</button>
+    <div class="historial-permiso" id="historialPermiso"></div>
+    <button class="btn-secondary" id="backToStartBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="mainActionBtn" type="button">Guardar y exportar apertura</button>
+  </div>
+</div>
+
+<div id="footerAddPeople">
+  <span class="status" id="addPeopleStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="backFromAddPeopleBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="saveAddPeopleBtn" type="button">Guardar personal agregado</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="qr.js"></script>
+<script src="permiso-core.js"></script>
+<script>
+/* ================= DATA DEFINITIONS ================= */
+const checklistData = [
+  {cat:"Inspección de medidas preventivas", items:[
+    "¿Las condiciones y el estado del área de trabajo han sido revisadas antes de iniciar la tarea?",
+    "¿El medidor de gases reporta mediciones dentro de los parámetros establecidos?",
+    "¿El área está libre de gases, presión, sustancias químicas, tóxicas, combustibles e inflamables?",
+    "¿Existe una ventilación general adecuada?",
+    "¿Se requiere instalar sistemas de ventilación forzada?",
+    "¿Se realizó cálculo de ventilación?",
+    "¿Se monitorea constantemente la atmósfera en el sitio de trabajo?",
+    "¿Para el ingreso al lugar de trabajo se requiere de iluminación artificial?",
+    "¿Se realizó identificación de peligros?"
+  ]},
+  {cat:"Condiciones de seguridad", items:[
+    "Las tomas de corriente se encuentran fuera del espacio confinado y cuentan con GFCI.",
+    "¿Se cuenta con sistemas de comunicación (radios, cuerda, golpeteo)?",
+    "El equipo de rescate se encuentra disponible en sitio e inspeccionado.",
+    "¿En el área de trabajo se dispone de extintor?",
+    "¿Los equipos y/o herramientas se encuentran revisados y en buen estado?",
+    "¿El trabajador usa adecuadamente todos los elementos de protección personal requeridos?"
+  ]}
+];
+const equiposData = [
+  {cat:"Controles administrativos", items:[
+    "¿Se cuenta con personal suficiente para rotación?",
+    "¿Se encuentra señalizada el área?",
+    "¿Se cuenta con sistema de delimitación (conos, cinta de peligro, barrera, cadenas)?",
+    "¿Se cuenta con controles de acceso?",
+    "¿Se requiere bloqueo y etiquetado?",
+    "¿Se cuenta con análisis de trabajo seguro?",
+    "¿Al personal se le ha instruido en relación a los riesgos que puedan presentarse durante la ejecución de la tarea?",
+    "¿Se ha dispuesto de un trabajador que acompañe y apoye en caso de emergencia durante toda la actividad?",
+    "¿Permiten factores externos (condiciones atmosféricas) que el trabajo se haga con seguridad?"
+  ]},
+  {cat:"Requerimiento de documentos anexos", items:[
+    "Se han revisado los certificados de aptitud médico ocupacional de cada trabajador.",
+    "Se han elaborado los permisos adicionales requeridos por la labor programada (alturas, trabajo en caliente u otro)."
+  ]}
+];
+const eppData = [
+  "Casco con barbuquejo","Guantes","Ropa de trabajo","Mascarilla con filtros","Gafas de seguridad",
+  "Botas de seguridad","Careta de corte o esmerilar","Careta de soldador","Peto, chaleco y mangas de cuero",
+  "Tapabocas - nasobuco","Arnés de espacios confinados","Eslingas de protección","Equipo respirable SCBA",
+  "Fullface","Equipo de suministro de aire","Escafandra","Línea de guía","Compresor","Equipo de rescate",
+  "Camilla y botiquín de primeros auxilios"
+];
+const gasPhases = ['Lectura preingreso','Lectura durante el trabajo'];
+// Canales en el mismo orden en que los muestra el detector MSA ALTAIR 5X
+// de los detectores multigás: COMB · O2 · CO · H2S · NH3. Así el brigadista lee la
+// pantalla de arriba a abajo y llena los campos en ese mismo orden, sin
+// tener que ir saltando entre casillas.
+const gasTypes = [
+  {key:'lel',     label:'COMB (inflamables)', unidad:'% LEL', min:0,    max:9.99},
+  {key:'oxigeno', label:'O₂ (oxígeno)',       unidad:'%',     min:19.5, max:23.5},
+  {key:'co',      label:'CO (monóxido)',      unidad:'ppm',   min:0,    max:24.99},
+  {key:'h2s',     label:'H₂S (ác. sulfhídrico)', unidad:'ppm', min:0,   max:9.99},
+  {key:'nh3',     label:'NH₃ (amoníaco)',     unidad:'ppm',   min:0,    max:24.99}
+];
+let gasState = { lecturas: [] };
+let eppState = {};
+function evaluarGas(gas, valor){
+  if(valor===''||valor===null||isNaN(valor)) return null;
+  const n = parseFloat(valor);
+  return (n>=gas.min && n<=gas.max) ? 'ok' : 'alerta';
+}
+
+/* ================= TABLA DE MEDICIÓN DE GASES (propia de este tipo) ================= */
+function renderGasTable(container){
+  gasContainerActivo = container;
+  container.innerHTML = `
+    <div class="check-cat" style="margin-bottom:12px;">
+      <div style="font-size:var(--fs-menor);color:var(--muted);line-height:1.5;margin-bottom:10px;">
+        Ingresa los valores medidos para cada gas.
+        🟢 Verde = Valor seguro &nbsp;|&nbsp; 🔴 Rojo = ¡Alerta! Fuera de rango
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Fase de la lectura</label>
+          <select class="gasFaseInput" style="border:1px solid var(--line);border-radius:var(--r-xs);padding:8px 10px;font-size:var(--fs-base);">
+            ${gasPhases.map(p=>`<option>${p}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Hora de la lectura</label><input type="time" class="gasHoraInput"></div>
+      </div>
+      <div class="gasInputsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;"></div>
+      <div class="gasAlertBanner" style="display:none;margin-top:10px;padding:9px 12px;border-radius:var(--r-s);background:var(--rojo-50);color:var(--rojo-800);font-size:var(--fs-menor);font-weight:700;border:1px solid var(--rojo-200);">
+        ⚠ Uno o más valores están fuera de rango — no autorizar el ingreso / evacuar si ya se está trabajando.
+      </div>
+    </div>
+    <div class="gasLog"></div>
+    <div class="radio-row u-mt8"><label style="font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:8px;">¿Ventilación forzada instalada?</label>
+      <label><input type="radio" name="ventForzada" value="Si"> Sí</label><label><input type="radio" name="ventForzada" value="No" checked> No</label>
+      <select class="tipoVentilacion" style="border:1px solid var(--line);border-radius:var(--r-xs);padding:6px 8px;font-size:var(--fs-menor);"><option value="">Tipo de ventilación…</option><option>Positiva</option><option>Negativa</option><option>Mixta</option><option>Natural (airear)</option></select></div>`;
+
+  const grid = container.querySelector('.gasInputsGrid');
+  grid.innerHTML = gasTypes.map(g=>`
+    <div class="field" data-gas-field="${g.key}" style="border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px 10px;transition:.15s;">
+      <label style="margin-bottom:2px;">${g.label} <span style="font-weight:400;color:var(--muted);">(${g.unidad})</span></label>
+      <input type="number" step="0.01" inputmode="decimal" data-gas-val="${g.key}" placeholder="0.0">
+      <div style="font-size:var(--fs-etiqueta);color:var(--muted);margin-top:3px;">Rango seguro: ${g.min} – ${g.max} ${g.unidad}</div>
+    </div>`).join('');
+
+  function evaluarEnVivo(){
+    let hayAlerta = false;
+    gasTypes.forEach(g=>{
+      const inp = container.querySelector('[data-gas-val="'+g.key+'"]');
+      const field = container.querySelector('[data-gas-field="'+g.key+'"]');
+      const estado = evaluarGas(g, inp.value);
+      field.style.borderColor = estado==='ok' ? 'var(--ok)' : estado==='alerta' ? '#c0392b' : 'var(--line)';
+      field.style.background = estado==='ok' ? 'rgba(29,122,76,.06)' : estado==='alerta' ? 'rgba(192,57,43,.07)' : '';
+      if(estado==='alerta') hayAlerta = true;
+    });
+    container.querySelector('.gasAlertBanner').style.display = hayAlerta ? 'block' : 'none';
+  }
+  grid.addEventListener('input', evaluarEnVivo);
+
+  renderGasLog();
+}
+
+// Se recuerda cuál es el último contenedor donde se dibujó la tabla, para que
+// renderGasLog() actualice ese y no otro. Antes todo iba por id y, como la
+// tabla se dibuja DOS veces (en el formulario y en el panel de lectura rápida),
+// los ids quedaban duplicados: el navegador siempre encontraba los del primero,
+// así que el panel rápido leía campos vacíos y su botón no hacía nada — las
+// lecturas que se agregaban ahí simplemente no se guardaban.
+let gasContainerActivo = null;
+
+/* Devuelve la lectura que está escrita en los campos en este momento, o null
+   si no hay ningún valor. Antes había que tocar "+ Registrar lectura" para que
+   contara: quien llenaba los gases y guardaba directamente perdía la lectura
+   sin enterarse, porque el permiso se guardaba igual pero sin ella. */
+function lecturaPendiente(){
+  const c = gasContainerActivo;
+  if(!c) return null;
+  const valores = {};
+  let alguno = false;
+  gasTypes.forEach(g=>{
+    const el = c.querySelector('[data-gas-val="'+g.key+'"]');
+    const v = el ? el.value : '';
+    valores[g.key] = v==='' ? null : parseFloat(v);
+    if(v!=='') alguno = true;
+  });
+  if(!alguno) return null;
+  const fase = c.querySelector('.gasFaseInput');
+  const hora = c.querySelector('.gasHoraInput');
+  return {
+    fase: fase ? fase.value : '',
+    hora: (hora && hora.value) || new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    fecha: new Date().toISOString(),
+    valores
+  };
+}
+
+/* ¿Esta lectura es la misma que la última ya registrada? Evita duplicarla:
+   el borrador se guarda solo cada segundo y medio, así que collectGasState()
+   se llama muchas veces con los mismos valores en pantalla. */
+function mismaLectura(a, b){
+  if(!a || !b) return false;
+  if(a.fase !== b.fase || a.hora !== b.hora) return false;
+  return gasTypes.every(g => (a.valores[g.key]??null) === (b.valores[g.key]??null));
+}
+
+function renderGasLog(){
+  const log = gasContainerActivo ? gasContainerActivo.querySelector('.gasLog') : null;
+  if(!log) return;
+  if(!gasState.lecturas.length){ log.innerHTML = `<div style="font-size:var(--fs-menor);color:var(--muted);padding:8px 0;">Aún no hay lecturas registradas.</div>`; return; }
+  log.innerHTML = `<div style="font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin:10px 0 6px;">Lecturas registradas (${gasState.lecturas.length})</div>` +
+    gasState.lecturas.slice().reverse().map((l, revIdx)=>{
+      const idx = gasState.lecturas.length - 1 - revIdx;
+      const chips = gasTypes.map(g=>{
+        const v = l.valores[g.key];
+        if(v===null||v===undefined) return '';
+        const estado = evaluarGas(g, v);
+        const color = estado==='ok' ? '#1d7a4c' : '#c0392b';
+        const bg = estado==='ok' ? 'rgba(29,122,76,.1)' : 'rgba(192,57,43,.12)';
+        return `<span style="display:inline-block;font-size:var(--fs-etiqueta);font-weight:700;color:${color};background:${bg};border-radius:var(--r-xl);padding:3px 9px;margin:2px 4px 2px 0;">${estado==='ok'?'🟢':'🔴'} ${g.label}: ${v}${g.unidad}</span>`;
+      }).join('');
+      return `<div style="border:1px solid var(--line);border-radius:var(--r-s);padding:9px 11px;margin-bottom:7px;">
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-menor);color:var(--muted);margin-bottom:5px;">
+          <span><b style="color:var(--ink,var(--ink));">${l.fase}</b> · ${l.hora}</span>
+          <button type="button" data-del-lectura="${idx}" style="border:none;background:none;color:var(--warn);font-size:var(--fs-etiqueta);cursor:pointer;">Eliminar</button>
+        </div>
+        <div>${chips}</div>
+      </div>`;
+    }).join('');
+  log.querySelectorAll('button[data-del-lectura]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(PermisoCore.isLocked()) return;
+      gasState.lecturas.splice(parseInt(btn.dataset.delLectura,10),1);
+      renderGasLog();
+    });
+  });
+}
+
+function collectGasState(){
+  const c = gasContainerActivo || document;
+  const vent = c.querySelector('input[name=ventForzada]:checked');
+  const tipo = c.querySelector('.tipoVentilacion');
+  // Lo que esté escrito en los campos cuenta como una lectura más, sin tener
+  // que registrarla aparte. No se muta gasState: así llamar a esta función
+  // varias veces (el borrador automático lo hace) no duplica nada.
+  const pend = lecturaPendiente();
+  const ultima = gasState.lecturas[gasState.lecturas.length - 1];
+  const lecturas = (pend && !mismaLectura(pend, ultima))
+    ? gasState.lecturas.concat([pend])
+    : gasState.lecturas.slice();
+  return { lecturas, ventForzada: (vent||{}).value||'No', tipoVentilacion: (tipo||{}).value||'' };
+}
+function restoreGasState(data){
+  if(!data) return;
+  gasState.lecturas = data.lecturas || [];
+  renderGasLog();
+  const c = gasContainerActivo || document;
+  if(data.ventForzada){ const r=c.querySelector(`input[name=ventForzada][value="${data.ventForzada}"]`); if(r) r.checked=true; }
+  const tipo = c.querySelector('.tipoVentilacion');
+  if(data.tipoVentilacion && tipo) tipo.value = data.tipoVentilacion;
+}
+
+/* ================= EPP (checkboxes, no reusa el toggle genérico) ================= */
+function renderEpp(container){
+  container.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">` +
+    eppData.map((label,i)=>`<label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);padding:4px 0;">
+      <input type="checkbox" data-epp="epp_${i}"> ${label}</label>`).join('') + `</div>`;
+  container.addEventListener('change', e=>{
+    const cb = e.target.closest('input[data-epp]'); if(!cb) return;
+    eppState[cb.dataset.epp] = cb.checked;
+  });
+}
+function collectEppState(){ return Object.assign({}, eppState); }
+function restoreEppState(data){
+  if(!data) return;
+  Object.assign(eppState, data);
+  document.querySelectorAll('input[data-epp]').forEach(cb=>{ cb.checked = !!eppState[cb.dataset.epp]; });
+}
+
+/* ================= CONFIGURACIÓN DE ESTE TIPO DE PERMISO ================= */
+const cfg = {
+  key: 'confinados',
+  codePrefix: 'PEC',
+  draftSlug: 'confinados',
+  themeColor: '#5b3a91',
+  toggleStates: [
+    { val:'SI', label:'SÍ', cls:'active-si' },
+    { val:'NO', label:'NO', cls:'active-no' },
+    { val:'NA', label:'N/A', cls:'active-na' }
+  ],
+
+  // v148: Res. 0491 de 2020 — vigía permanente afuera, plan de rescate y conteo de entrada y salida.
+  criticosApertura: [
+    { id:'vigiaEntradaNombre', label:'Vigía (asistente de entrada) — nombre', req:true, ayuda:'Permanece afuera todo el tiempo; no entra ni puede ser ejecutante.' },
+    { id:'vigiaEntradaCc', label:'Cédula del vigía', req:true },
+    { id:'rescateConf', label:'Plan de rescate: rescatistas, equipo (trípode, arnés, línea) y cómo se comunican', tipo:'textarea', req:true, ph:'Ej: Juan Pérez y Ana Ruiz · trípode y malacate en el sitio · radio canal 3' }
+  ],
+  criticosCierre: [
+    { id:'conteoEntraron', label:'Personas que entraron', tipo:'number', req:true },
+    { id:'conteoSalieron', label:'Personas que salieron', tipo:'number', req:true }
+  ],
+  validarCriticos(v, missing, fase){
+    if (fase === 'apertura' && v.vigiaEntradaNombre && collectNombresEjecutantes_().indexOf(v.vigiaEntradaNombre.trim().toLowerCase()) !== -1) missing.push({ msg:'El vigía no puede ser uno de los ejecutantes (se queda afuera)', el: document.getElementById('vigiaEntradaNombre') });
+    if (fase === 'cierre' && v.conteoEntraron !== '' && v.conteoSalieron !== '' && Number(v.conteoEntraron) !== Number(v.conteoSalieron)) missing.push({ msg:'No salieron todos los que entraron: verifica antes de cerrar', el: document.getElementById('conteoSalieron') });
+  },
+  checklistGroups: [
+    { data: checklistData, statePrefix:'chk', stateKey:'checklist', containerId:'checklistContainer',
+      progressId:'checklistProgress', label:'la Lista de verificación', sectionLabel:'sección 3' },
+    { data: equiposData, statePrefix:'eq', stateKey:'equipos', containerId:'equiposContainer',
+      progressId:'equiposProgress', label:'Verificación de equipos', sectionLabel:'sección 4' }
+  ],
+
+  responsables: ["Encargado del área turno 1","Encargado del área turno 2","Supervisor SSTA","Supervisor de obra"],
+  responsablesOpcionales: ["Encargado del área turno 1","Encargado del área turno 2"],
+  responsableDashboardIndex: 2,
+  responsablesSectionLabel: 'sección 6',
+
+  // 'titleSec5b' (5. Controles administrativos) faltaba en el array de
+  // caliente.html que este archivo tenía copiado a mano — por eso nunca se
+  // veía bloqueada visualmente en modo cierre, a diferencia de las otras 7
+  // secciones. Con la lista explícita y correcta por tipo, queda incluida.
+  lockSectionIds: ['titleSec1','titleSec2','titleSec3','titleSec4','titleSec5b','titleSec5','titleSec6','titleSecExec'],
+  closeSectionTitleId: 'titleSec7',
+
+  // v148: Res. 0491 de 2020 — no se entra sin medir, ni con un gas fuera de rango.
+  extraValidateOpen(missing){
+    const lecturas = (gasState.lecturas || []).concat(lecturaPendiente() ? [lecturaPendiente()] : []);
+    if (!lecturas.length) { missing.push({ msg: 'Medición de gases antes de entrar (sección 2): sin lecturas no se abre', el: document.getElementById('titleSec2') }); return; }
+    const ult = lecturas[lecturas.length - 1], malos = gasTypes.filter(g => evaluarGas(g, ult.valores[g.key]) === 'alerta').map(g => g.label || g.key);
+    if (malos.length) missing.push({ msg: 'Última lectura de gases fuera de rango (' + malos.join(', ') + '): ventila y vuelve a medir antes de entrar', el: document.getElementById('titleSec2') });
+  },
+  requiredOpenFields: [
+    { id:'descripcion', label:'Descripción del trabajo (sección 1)' },
+    { id:'sitio',        label:'Sitio exacto del trabajo (sección 2)' },
+    { id:'responsable',  label:'Responsable del trabajo (sección 2)' }
+  ],
+  cualPermisoLabel: '¿Cuál permiso adicional? (sección 1)',
+  dateRange: { desdeFecha:'desdeFecha', desdeHora:'desdeHora', hastaFecha:'hastaFecha', hastaHora:'hastaHora', sectionLabel:'sección 2' },
+
+  // Lo que el núcleo debe comprobar al releer el permiso del servidor. Las
+  // lecturas de gases van aquí porque fueron justo el dato que se estuvo
+  // perdiendo en silencio: el servidor decía "ok" y la lectura se descartaba.
+  resumenVerificable(data){
+    const g = data && data.gases;
+    return { lecturas: (g && Array.isArray(g.lecturas)) ? g.lecturas.length : 0 };
+  },
+
+  extraOnInitRender(){
+    initSel_herramientas();
+    initSelGasesDetecta();
+    initSelCualPermiso();
+    renderGasTable(document.getElementById('gasTableContainer'));
+    renderEpp(document.getElementById('eppContainer'));
+  },
+  extraSetFieldValues(vals){
+    initSel_herramientas();
+    if (sel_herramientas) {
+      sel_herramientas.set(vals.herramientas || '');
+      document.getElementById('herramientas').value = sel_herramientas.get();
+    }
+    // Fichas de permisos adicionales (ver initSelCualPermiso más abajo)
+    initSelCualPermiso();
+    if (selCualPermiso) {
+      selCualPermiso.set(vals.cualPermiso || '');
+      document.getElementById('cualPermiso').value = selCualPermiso.get();
+    }
+    document.getElementById('herramientas').value = vals.herramientas || '';
+    // Gases que detecta el equipo: fichas + campo libre (ver initSelGasesDetecta)
+    initSelGasesDetecta();
+    if (selGasesDetecta) {
+      selGasesDetecta.set(vals.gasesDetecta || '');
+      document.getElementById('gasesDetecta').value = selGasesDetecta.get();
+    }
+    document.querySelectorAll('input[name=cuentaPlaneacion]').forEach(r=>{ r.checked = (r.value===vals.cuentaPlaneacion); });
+    restoreGasState(vals.gases);
+    restoreEppState(vals.epp);
+  },
+  extraCollectOpenData(){
+    return {
+      herramientas: document.getElementById('herramientas').value,
+      gasesDetecta: document.getElementById('gasesDetecta').value,
+      cuentaPlaneacion: (document.querySelector('input[name=cuentaPlaneacion]:checked')||{}).value||'No',
+      gases: collectGasState(),
+      epp: collectEppState()
+    };
+  }
+};
+
+PermisoCore.init(cfg);
+
+/* ================= REGISTRAR LECTURA SIN CERRAR EL PERMISO (propio de este tipo) ================= */
+let quickReadingData = null;
+document.getElementById('loadReadingBtn').addEventListener('click', async ()=>{
+  const code = document.getElementById('readingCodeInput').value.trim();
+  if(!code){ await Dialogo.avisar('Escribe el código del permiso.'); return; }
+  const btn = document.getElementById('loadReadingBtn');
+  btn.disabled = true; btn.textContent = 'Buscando…';
+  const data = await PermisoCore.fetchFromSheet(code);
+  btn.disabled = false; btn.textContent = 'Cargar permiso y registrar lectura';
+  if(!data) return;
+  if(data.status !== 'ABIERTO'){
+    await Dialogo.avisar('Este permiso no está abierto actualmente (estado: ' + (data.status||'desconocido') + '), no se pueden agregar lecturas.');
+    return;
+  }
+  quickReadingData = data;
+  document.getElementById('landing').style.display='none';
+  document.getElementById('readingApp').style.display='block';
+  document.getElementById('readingPermitCode').textContent = data.permitCode;
+  gasState.lecturas = [];
+  renderGasTable(document.getElementById('gasTableContainerQuick'));
+  restoreGasState(data.gases);
+});
+// Antes había que saberse el código de memoria o buscarlo en otra pantalla para
+// registrar una lectura. Se reusa la misma lista de abiertos de los otros
+// botones, en vez de duplicar la consulta.
+document.getElementById('listOpenForReadingBtn').addEventListener('click', async ()=>{
+  const listEl = document.getElementById('openListForReading');
+  listEl.innerHTML = 'Buscando…';
+  const rows = await PermisoCore.fetchOpenList();
+  PermisoCore.renderOpenList(listEl, rows, (code)=>{
+    document.getElementById('readingCodeInput').value = code;
+    document.getElementById('loadReadingBtn').click();
+  });
+});
+document.getElementById('readingBackBtn').addEventListener('click', ()=>{
+  document.getElementById('readingApp').style.display='none';
+  document.getElementById('landing').style.display='block';
+  document.getElementById('readingCodeInput').value='';
+  document.getElementById('readingStatus').textContent='';
+});
+document.getElementById('readingSaveBtn').addEventListener('click', async ()=>{
+  if(!quickReadingData) return;
+  const statusEl = document.getElementById('readingStatus');
+  const btn = document.getElementById('readingSaveBtn');
+  btn.disabled = true; statusEl.textContent = 'Guardando…';
+  quickReadingData.gases = collectGasState();
+  const res = await PermisoCore.sendToSheet(quickReadingData);
+  btn.disabled = false;
+  if(res.ok){
+    // Releer del servidor y comprobar que la lectura realmente quedó. Este es
+    // exactamente el caso que estuvo fallando en silencio durante días: el
+    // servidor respondía ok y descartaba el guardado.
+    const esperadas = (quickReadingData.gases.lecturas || []).length;
+    let confirmadas = null;
+    try{
+      const rel = await PermisoCore.fetchFromSheet(quickReadingData.permitCode);
+      confirmadas = (rel && rel.gases && Array.isArray(rel.gases.lecturas)) ? rel.gases.lecturas.length : 0;
+    }catch(e){ /* sin señal: no se pudo comprobar */ }
+
+    if(confirmadas !== null && confirmadas !== esperadas){
+      statusEl.textContent = '⚠ El servidor confirmó pero la lectura NO quedó guardada.';
+      statusEl.style.color = '#c0392b';
+      await Dialogo.avisar('⚠ ATENCIÓN: el servidor respondió que guardó, pero al releer el permiso\n' +
+            'hay ' + confirmadas + ' lectura(s) y deberían ser ' + esperadas + '.\n\n' +
+            'NO cierres esta página: los valores siguen en pantalla.\n' +
+            'Vuelve a guardar. Si se repite, avisa antes de dar la lectura por registrada.');
+      return;
+    }
+    statusEl.style.color = '';
+
+    // La lectura que estaba escrita ya quedó guardada: pasa a la bitácora y se
+    // limpian los campos. Sin esto, al registrar la siguiente lectura los
+    // valores viejos seguirían en pantalla y se guardarían otra vez.
+    gasState.lecturas = quickReadingData.gases.lecturas || [];
+    gasTypes.forEach(g=>{
+      const el = gasContainerActivo && gasContainerActivo.querySelector('[data-gas-val="'+g.key+'"]');
+      if(el) el.value = '';
+    });
+    const horaEl = gasContainerActivo && gasContainerActivo.querySelector('.gasHoraInput');
+    if(horaEl) horaEl.value = '';
+    renderGasLog();
+    statusEl.textContent = '✓ Lectura guardada — ' + new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  } else {
+    statusEl.textContent = res.error || 'No se pudo guardar. Revisa tu conexión e intenta de nuevo.';
+  }
+});
+
+/* ── Permisos adicionales: fichas en vez de escribir a mano ──
+   El campo #cualPermiso sigue existiendo (oculto) con el texto combinado, así
+   que permiso-core.js lo lee y lo valida igual que antes, sin cambios, y lo ya
+   guardado en la hoja se sigue leyendo tal cual. */
+let selCualPermiso = null;
+function initSelCualPermiso(){
+  const cont = document.getElementById('cualPermisoSel');
+  if(!cont || selCualPermiso) return;
+  const oculto = document.getElementById('cualPermiso');
+  selCualPermiso = SeleccionMultiple.crear(cont, {
+    opciones: ['Trabajo en alturas', 'Trabajo en caliente', 'Izaje de cargas', 'Trabajo eléctrico', 'Bloqueo y etiquetado (LOTO)'],
+    placeholderLibre: 'Otro permiso (escribe aquí)…',
+    onChange: ()=>{ oculto.value = selCualPermiso.get(); }
+  });
+}
+
+/* ── Herramientas y/o equipos a utilizar: fichas + campo libre ──
+   Se conserva #herramientas oculto con el texto combinado, para que lo que ya está
+   guardado en la hoja se siga leyendo igual y el resto del código no cambie. */
+let sel_herramientas = null;
+function initSel_herramientas(){
+  const cont = document.getElementById('herramientasSel');
+  if(!cont || sel_herramientas) return;
+  const oculto = document.getElementById('herramientas');
+  sel_herramientas = SeleccionMultiple.crear(cont, {
+    opciones: ['Llaves', 'Destornilladores', 'Alicates', 'Bisturí', 'Taladro', 'Pulidora', 'Martillo', 'Flexómetro', 'Nivel', 'Extensión eléctrica', 'Andamio', 'Escalera'],
+    placeholderLibre: 'Otras herramientas o equipos…',
+    onChange: ()=>{ oculto.value = sel_herramientas.get(); }
+  });
+}
+
+/* ── ¿Qué gases detecta el equipo de medición?: fichas + campo libre ──
+   Los cinco primeros son los canales del MSA ALTAIR 5X que se usa hoy; los
+   demás quedan por si en el futuro se usa otro detector. El campo libre del
+   final sigue permitiendo escribir cualquier gas que no esté en la lista.
+   Igual que en herramientas, se conserva #gasesDetecta oculto con el texto
+   combinado para que lo ya guardado en la hoja se lea sin migrar nada. */
+let selGasesDetecta = null;
+function initSelGasesDetecta(){
+  const cont = document.getElementById('gasesDetectaSel');
+  if(!cont || selGasesDetecta) return;
+  const oculto = document.getElementById('gasesDetecta');
+  selGasesDetecta = SeleccionMultiple.crear(cont, {
+    opciones: ['COMB (inflamables)', 'O₂ (oxígeno)', 'CO (monóxido)', 'H₂S (ác. sulfhídrico)', 'NH₃ (amoníaco)', 'Metano (CH₄)', 'Cloro (Cl₂)', 'SO₂ (dióxido de azufre)', 'CO₂ (dióxido de carbono)', 'COV (compuestos orgánicos volátiles)'],
+    placeholderLibre: 'Otro gas que detecte el equipo…',
+    onChange: ()=>{ oculto.value = selGasesDetecta.get(); }
+  });
+}
+</script>
+</body>
+</html>

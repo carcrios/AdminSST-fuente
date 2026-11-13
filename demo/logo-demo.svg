@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="430" height="200" viewBox="0 0 430 200">
+  <rect width="430" height="200" rx="26" fill="#ffffff"/>
+  <path d="M28 150 L92 62 L124 104 L150 74 L208 150 Z" fill="#1f4e6b"/>
+  <path d="M92 62 L104 79 L96 86 L88 78 L80 86 Z" fill="#ffffff"/>
+  <path d="M150 74 L160 87 L153 92 L146 86 Z" fill="#ffffff"/>
+  <rect x="28" y="152" width="180" height="7" rx="3.5" fill="#e0912a"/>
+  <text x="222" y="104" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#1f4e6b">MONTAJES</text>
+  <text x="222" y="140" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#e0912a">ANDINOS</text>
+  <text x="224" y="168" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#5c6a76" letter-spacing="3">EMPRESA DEMO</text>
+</svg>

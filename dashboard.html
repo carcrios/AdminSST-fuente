@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6jvrbYxhLLhYIgwM3iB4heOrZPHAUToEaSvxKD+oa1w='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permisos · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Permisos · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+  body{margin:0;font-family:var(--font-family,-apple-system,sans-serif);background:var(--bg,var(--bg));color:var(--ink,var(--ink));padding:1.5rem 1rem 3rem;}
+  .wrapper{max-width:760px;margin:0 auto;}
+  .header{background:var(--ink,var(--ink));border-radius:var(--r-l);padding:1.1rem 1.4rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-lift);}
+  .header h1{font-family:var(--font-display);font-size:var(--fs-display);margin:0;color:#fff;font-weight:700;}
+  .header a{font-size:var(--fs-menor);color:var(--ambar-300);text-decoration:none;font-weight:600;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:12px;}
+  .tab{flex:1;text-align:center;padding:11px 8px;border-radius:var(--r-m);border:1.5px solid var(--line,var(--line));background:var(--paper,#fff);font-size:var(--fs-base);font-weight:700;color:var(--ink-soft,#666);cursor:pointer;}
+  .tab.active{background:var(--ink,var(--ink));color:#fff;border-color:var(--ink,var(--ink));}
+  .tab .count{margin-left:5px;opacity:.75;}
+
+  .searchbar{margin-bottom:12px;}
+  .searchbar input{width:100%;box-sizing:border-box;border:1.5px solid var(--line,var(--line));border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-titulo);background:var(--paper,#fff);}
+
+  .refresh-note{font-size:var(--fs-menor);color:var(--ink-soft,var(--n-450));margin:0 0 1rem;}
+
+  /* Aviso de backends que no respondieron. Rojo y arriba de la lista a
+     propósito: significa que la lista está INCOMPLETA, y en un tablero de
+     permisos una lista incompleta que parece completa es una falsa tranquilidad. */
+  .aviso-incompleto{display:none;background:var(--rojo-50);border:1.5px solid var(--warn);color:var(--rojo-900);
+    border-radius:var(--r-m);padding:12px 14px;margin:0 0 12px;font-size:var(--fs-base);line-height:1.5;}
+  .aviso-incompleto b{display:block;font-size:var(--fs-base);margin-bottom:2px;}
+  .aviso-incompleto ul{margin:6px 0 8px;padding-left:18px;}
+  .aviso-incompleto button{min-height:var(--touch,44px);padding:0 16px;border:none;border-radius:var(--r-s);
+    background:var(--warn);color:#fff;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;}
+  .empty.incompleto{border:1.5px solid var(--warn);color:var(--rojo-900);background:var(--rojo-50);}
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .item{display:block;background:var(--paper,#fff);border:1px solid var(--line,var(--line));border-radius:var(--r-m);padding:.9rem 1.1rem;border-left:5px solid var(--amarillo-400);transition:.15s;text-decoration:none;color:inherit;}
+  .item:active{transform:scale(.99);}
+  .item.warn{border-left-color:var(--warn,var(--warn));background:linear-gradient(90deg, rgba(192,57,43,.05), transparent 40%);}
+  .item.closed{border-left-color:var(--ink-muted,var(--ink-soft));}
+  .item .row1{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  .icon-type{font-size:var(--fs-titulo);margin-right:4px;}
+  .code{font-family:var(--font-display);font-weight:700;background:var(--ink,var(--azul-700));color:#fff;padding:3px 9px;border-radius:var(--r-xs);font-size:var(--fs-menor);letter-spacing:.02em;}
+  .tipo{font-size:var(--fs-etiqueta);color:var(--ink-soft,var(--n-450));text-transform:uppercase;letter-spacing:.3px;}
+  .tiempo{font-size:var(--fs-menor);font-weight:700;padding:3px 10px;border-radius:var(--r-xl);white-space:nowrap;}
+  .tiempo.ok{color:var(--ok,var(--ok));background:rgba(29,122,76,.1);}
+  .tiempo.warn{color:var(--warn,var(--warn));background:rgba(192,57,43,.12);}
+  .tiempo.closed{color:var(--ink-soft);background:rgba(90,100,110,.1);}
+  /* Por vencer: ámbar, un aviso distinto del rojo de "ya venció". */
+  .tiempo.pronto{color:#8a6800;background:rgba(224,168,0,.18);}
+  .item.v-vencido{border-left-color:var(--warn,var(--warn));background:linear-gradient(90deg, rgba(192,57,43,.07), transparent 45%);}
+  .item.v-porvencer{border-left-color:var(--ambar-400);background:linear-gradient(90deg, rgba(224,168,0,.09), transparent 45%);}
+  .item.v-vigente{border-left-color:var(--ok,var(--ok));}
+  .meta{font-size:var(--fs-menor);color:var(--ink-soft,#666);margin-top:6px;}
+  .chevron{font-size:var(--fs-menor,12.5px);color:var(--ink-muted,var(--ink-soft));margin-top:3px;}
+  .empty{background:var(--paper,#fff);border:1px solid var(--line,var(--line));border-radius:var(--r-l);padding:2rem;text-align:center;color:var(--ink-soft,var(--n-450));font-size:var(--fs-base);}
+  .loading{text-align:center;color:var(--n-450);font-size:var(--fs-base);padding:2rem;}
+
+  /* Tarjeta de persona con EPP pendiente de reponer. Antes esta información
+     solo existía persona por persona dentro del módulo de EPP, o en el correo
+     del día: quien supervisa no tenía dónde ver de una sola vez qué le debe
+     a la cuadrilla. */
+  .item.epp{border-left-color:var(--warn,var(--warn));}
+  .item.epp .elementos{font-size:var(--fs-menor);color:var(--ink,var(--ink));margin-top:6px;line-height:1.55;}
+  .item.epp .elementos li{margin-bottom:2px;}
+  .item.epp ul{margin:4px 0 0;padding-left:18px;}
+  .desde{font-size:var(--fs-menor);color:var(--ink-soft,var(--ink-soft));margin-top:5px;}
+  .desde b{color:var(--warn,var(--warn));}
+
+  /* ══ v112: tablero con tarjetas tipo ticket ══
+     Cifras arriba, cada permiso como un talón con su señal ISO, el código en letra
+     técnica, el estado a la vista y una barra con el tiempo usado de su vigencia. */
+  body{padding:0 0 3rem;}
+  .wrapper{padding:0 14px;}
+  .header{margin:0 -14px 14px;border-radius:0 0 30px 30px;padding:1.1rem 1.2rem 1.3rem;}
+  .header h1{font-size:var(--fs-subtitulo);}
+  .kpis-t{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px;}
+  .kpi-t{background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.95);border-radius:var(--r-xl);padding:12px 13px;box-shadow:0 12px 30px rgba(40,90,170,.11);}
+  .kpi-t b{display:block;font-size:var(--fs-h1);font-weight:800;letter-spacing:-.05em;line-height:1;}
+  .kpi-t span{font-size:var(--fs-menor);font-weight:700;color:var(--pizarra-500);}
+  .kpi-t.mal b{color:var(--rojo-500);} .kpi-t.ok b{color:var(--verde-400);}
+  .tabs{background:rgba(120,140,170,.16);border-radius:var(--r-l);padding:4px;gap:4px;}
+  html body .tab{border:0;background:transparent;box-shadow:none;color:var(--pizarra-500);padding:10px 6px;}
+  html body .tab.active{background:#fff;color:var(--tinta);box-shadow:0 4px 12px rgba(40,90,170,.15);}
+  .list{gap:14px;}
+  .tk{display:block;position:relative;text-decoration:none;color:inherit;background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.95);border-radius:var(--r-xl);
+    box-shadow:0 12px 30px rgba(40,90,170,.11);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transition:transform .12s;}
+  .tk:active{transform:scale(.985);}
+  .tk-arriba{display:flex;gap:12px;align-items:center;padding:15px 15px 13px;}
+  .tk-txt{flex:1 1 auto;min-width:0;}
+  .tk-cod{font-size:var(--fs-base);color:var(--tinta);overflow-wrap:anywhere;}
+  .tk-tipo{font-size:var(--fs-campo);font-weight:800;letter-spacing:-.02em;line-height:1.2;}
+  .tk-sub{font-size:var(--fs-menor);color:var(--pizarra-500);font-weight:600;line-height:1.35;margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .tk-corte{position:relative;border-top:2px dashed rgba(16,33,58,.12);margin:0 14px;}
+  .tk-corte::before,.tk-corte::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--azul-50);box-shadow:inset 0 2px 3px rgba(16,33,58,.08);}
+  .tk-corte::before{left:-25px;} .tk-corte::after{right:-25px;}
+  .tk-abajo{padding:11px 15px 14px;}
+  .tk-barra{height:8px;border-radius:var(--r-xs);background:rgba(16,33,58,.08);overflow:hidden;}
+  .tk-barra i{display:block;height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,var(--menta-400),var(--verde-400));}
+  .tk.v-vencido .tk-barra i,.tk.warn .tk-barra i{background:linear-gradient(90deg,#ff7a63,#f0503a);}
+  .tk.v-porvencer .tk-barra i{background:linear-gradient(90deg,var(--ambar-300),var(--ambar-450));}
+  .tk-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:9px;font-size:var(--fs-menor);color:var(--pizarra-500);font-weight:600;}
+  .tk-ir{color:var(--azul);font-weight:800;white-space:nowrap;}
+  .tk .tiempo{flex:0 0 auto;font-weight:800;border-radius:var(--r-pill);padding:5px 11px;}
+  .tk.closed{opacity:.92;}
+  .tk.closed .tk-barra i{background:var(--n-400);}
+  .empty{border-radius:var(--r-xl);background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.95);box-shadow:0 12px 30px rgba(40,90,170,.11);font-weight:600;}
+  .aviso-incompleto{border-radius:var(--r-xl);}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><h1>Permisos y ATS</h1></div>
+    <a href="index.html">← Atrás</a>
+  </div>
+
+  <div class="kpis-t" id="kpis" aria-live="polite">
+    <div class="kpi-t"><b id="kAbiertos">–</b><span>Abiertos</span></div>
+    <div class="kpi-t mal"><b id="kVencidos">–</b><span>Vencidos</span></div>
+    <div class="kpi-t ok"><b id="kCerrados">–</b><span>Cerrados</span></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabAbiertos" data-tab="abiertos">Abiertos <span class="count" id="countAbiertos"></span></div>
+    <div class="tab" id="tabCerrados" data-tab="cerrados">Histórico <span class="count" id="countCerrados"></span></div>
+  </div>
+
+  <div class="searchbar">
+    <input type="text" id="searchInput" placeholder="Buscar por código, responsable o tipo…">
+  </div>
+
+  <p class="refresh-note" id="refreshNote">Cargando…</p>
+  <div class="aviso-incompleto" id="avisoIncompleto" role="alert"></div>
+  <div class="list" id="list"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script>
+OfflineBanner.init();
+
+// Mismos backends/token usados en los formularios de permisos.
+// Umbral (horas) a partir del cual un permiso abierto se marca en rojo.
+const HORAS_ALERTA = 8;
+// Antes este arreglo estaba copiado a mano aquí, en index.html y en
+// personal-autorizado.html — ahora los tres lo calculan desde config.js,
+// así cambiar una URL de backend solo implica editar un archivo.
+const PERMIT_BACKENDS = getPermitBackends(false);
+// El dashboard mostraba solo los 5 permisos: las inspecciones de EPP vivían en
+// otra pantalla, así que había que mirar en dos sitios para saber qué estaba
+// pendiente. Aquí se suma la tercera pestaña.
+const EPP_BACKEND = PORTAL_CONFIG.BACKENDS.epp;
+
+function iconoPara(nombre){
+  if(nombre.includes('Caliente')) return '🔥';
+  if(nombre.includes('Confinados')) return '🕳️';
+  if(nombre.includes('Izajes')) return '🏗️';
+  if(nombre.includes('Eléctrico')) return '⚡';
+  return '🧗';
+}
+/* ── Vencimiento real ──
+   El dashboard mostraba solo cuántas horas llevaba abierto un permiso, con un
+   umbral fijo de 8 horas igual para todos. Pero cada permiso declara su propia
+   vigencia ("hasta" fecha y hora) y ese dato ya estaba guardado sin usarse.
+   Para quien supervisa, "vence en 2h" dice mucho más que "lleva 6h abierto". */
+function fechaVencimiento(it){
+  if(!it.hastaFecha) return null;
+  // Se guarda como AAAA-MM-DD y HH:MM. Se arma en hora local, no en UTC: con
+  // UTC un permiso que vence a las 6pm aparecía venciendo a la 1pm.
+  const [a,m,d] = String(it.hastaFecha).split('-').map(Number);
+  if(!a || !m || !d) return null;
+  const [hh,mm] = String(it.hastaHora || '23:59').split(':').map(Number);
+  const f = new Date(a, m-1, d, isNaN(hh)?23:hh, isNaN(mm)?59:mm, 0, 0);
+  return isNaN(f.getTime()) ? null : f;
+}
+
+function estadoVigencia(it){
+  const vence = fechaVencimiento(it);
+  if(!vence) return null;                       // permiso sin vigencia declarada
+  const minutos = Math.round((vence.getTime() - Date.now()) / 60000);
+  const abs = Math.abs(minutos);
+  const texto = abs < 60
+    ? abs + ' min'
+    : (abs < 1440 ? (abs/60).toFixed(abs/60 < 10 ? 1 : 0) + ' h' : Math.round(abs/1440) + ' d');
+  if(minutos < 0)  return { nivel:'vencido',  texto:'VENCIDO hace ' + texto, minutos };
+  if(minutos <= 60) return { nivel:'porvencer', texto:'Vence en ' + texto, minutos };
+  return { nivel:'vigente', texto:'Vence en ' + texto, minutos };
+}
+
+/** % de la vigencia ya usado (0–100) para la barra del ticket. */
+function avance(it, h){
+  const vence = fechaVencimiento(it), ini = new Date(it.fechaApertura || '').getTime();
+  if(vence && !isNaN(ini) && vence.getTime() > ini) return Math.max(3, Math.min(100, Math.round((Date.now() - ini) / (vence.getTime() - ini) * 100)));
+  if(vence) return Date.now() > vence.getTime() ? 100 : 50;
+  return h === null ? 10 : Math.max(3, Math.min(100, Math.round(h / HORAS_ALERTA * 100)));
+}
+function pintarCifras(){
+  const venc = abiertos.filter(it => { const v = estadoVigencia(it); return v ? v.nivel === 'vencido' : (horasDesde(it.fechaApertura) || 0) >= HORAS_ALERTA; }).length;
+  document.getElementById('kAbiertos').textContent = abiertos.length;
+  document.getElementById('kVencidos').textContent = venc;
+  document.getElementById('kCerrados').textContent = cerrados.length;
+}
+function horasDesde(fechaStr){
+  const t = new Date(fechaStr).getTime();
+  if(isNaN(t)) return null;
+  return (Date.now() - t) / 36e5;
+}
+function formatHoras(h){
+  if(h===null) return '—';
+  if(h < 1) return Math.round(h*60)+' min';
+  return h.toFixed(1)+' h';
+}
+function formatFecha(fechaStr){
+  const t = new Date(fechaStr);
+  if(isNaN(t.getTime())) return '—';
+  return t.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + t.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+}
+
+let abiertos = [];
+let cerrados = [];
+// Tipos de permiso cuyo backend NO respondió en la última consulta:
+// [{nombre, motivo}]. Mientras haya alguno, la lista está incompleta.
+let fallidos = [];
+// null = todavía no se ha consultado nada (no se puede afirmar nada).
+let ultimaConsulta = null;
+let tabActual = 'abiertos';
+let eppPendientes = [];   // [{nombre, cedula, cargo, fecha, inspector, elementos[]}]
+let eppCargado = false;
+
+/* ATS en el tablero: antes solo estaban los 5 permisos, así que un ATS
+   abierto días después de su fecha no se veía en ningún lado. */
+async function cargarAts(){
+  const B = PORTAL_CONFIG.BACKENDS.ats;
+  const out = { abiertos: [], cerrados: [], fallo: null };
+  if(!B || !B.url || B.url.indexOf('http') !== 0) return out;
+  try{
+    const res = await fetchWithRetry(B.url + '?list=1&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    if(!data || !data.ok || !Array.isArray(data.rows)){ out.fallo = { nombre:'ATS', motivo:'respondió con error: ' + ((data && data.error) || 'sin detalle') }; return out; }
+    data.rows.forEach(r=>{
+      const fin = atsVence(r);
+      const item = {
+        tipo: 'Análisis de trabajo seguro', archivo: 'ats.html', icono: '', esAts: true,
+        code: r.code || '—', responsable: r.lider || '',
+        area: [r.centroCostos, r.area].filter(Boolean).join(' · '), trabajo: r.trabajo || '',
+        hastaFecha: fin ? String(r.fechaHasta || r.fechaDesde).slice(0,10) : '', hastaHora: '23:59',
+        fechaApertura: r.fechaDesde || r.updatedAt || null,
+        fechaCierre: r.estado === 'CERRADO' ? (r.cerradoEn || r.updatedAt || null) : null
+      };
+      (r.estado === 'CERRADO' ? out.cerrados : out.abiertos).push(item);
+    });
+  }catch(err){
+    out.fallo = { nombre:'ATS', motivo: (err && err.name === 'SyntaxError') ? 'respondió con una página en vez de datos (revisa el Apps Script del ATS)' : 'no respondió (sin señal o servidor caído)' };
+  }
+  return out;
+}
+
+async function cargar(){
+  // Si la pestaña está oculta (en segundo plano) o no hay señal, no tiene sentido
+  // consultar los 5 backends — antes esto se disparaba igual cada 2 minutos aunque
+  // nadie estuviera mirando el dashboard, gastando cuota de ejecución de Apps
+  // Script sin ninguna necesidad real.
+  if (document.hidden || !navigator.onLine) return;
+  const noteEl = document.getElementById('refreshNote');
+  const nAbiertos = [], nCerrados = [], nFallidos = [];
+  // Se consultan los 5 backends EN PARALELO (no uno detrás de otro): si alguno
+  // está caído o lento, ya no retrasa a los demás — antes, con un backend caído,
+  // la carga completa del dashboard podía tardar 10-15 segundos.
+  const pAts = cargarAts();
+  const resultados = await Promise.allSettled(PERMIT_BACKENDS.map(backend =>
+    fetchWithRetry(backend.url + '?' + (backend.listQuery || 'list=1') + '&token=' + encodeURIComponent(backend.token))
+      .then(res => res.json())
+      .then(data => ({ backend, data }))
+  ));
+  // ANTES un backend caído se omitía en silencio: si justo ese tenía el único
+  // permiso abierto, el tablero mostraba "No hay permisos abiertos ✓".
+  // Ahora cada tipo que no respondió queda registrado con su motivo.
+  resultados.forEach((r, i)=>{
+    if(r.status !== 'fulfilled'){
+      const err = r.reason;
+      const motivo = (err && err.name === 'SyntaxError')
+        ? 'respondió con una página en vez de datos (¿despliegue privado o URL cambiada?)'
+        : 'no respondió (sin señal o servidor caído)';
+      nFallidos.push({ nombre: PERMIT_BACKENDS[i].nombre, motivo });
+      return;
+    }
+    const { backend, data } = r.value;
+    if(!data || !data.ok || !Array.isArray(data.rows)){
+      nFallidos.push({ nombre: backend.nombre, motivo: 'respondió con error: ' + ((data && data.error) || 'sin detalle') });
+      return;
+    }
+    data.rows.forEach(row=>{
+        const item = {
+          tipo: backend.nombre,
+          archivo: backend.archivo,
+          icono: iconoPara(backend.nombre),
+          code: row.code || row.permitCode || '—',
+          responsable: row.responsable || '',
+          area: row.sitio || row.area || '',
+          hastaFecha: row.hastaFecha || '',
+          hastaHora: row.hastaHora || '',
+          fechaApertura: row.openedAt || row.updatedAt || null,
+          fechaCierre: row.status === 'CERRADO' ? (row.closedAt || row.updatedAt || null) : null
+        };
+        if(row.status === 'ABIERTO') nAbiertos.push(item);
+        else if(row.status === 'CERRADO') nCerrados.push(item);
+      });
+  });
+  const rAts = await pAts;
+  rAts.abiertos.forEach(x=>nAbiertos.push(x)); rAts.cerrados.forEach(x=>nCerrados.push(x));
+  if(rAts.fallo) nFallidos.push(rAts.fallo);
+  abiertos = nAbiertos; cerrados = nCerrados; fallidos = nFallidos;
+  ultimaConsulta = new Date();
+  // Orden por urgencia real: primero lo vencido, luego lo que está por vencer,
+  // y al final lo que tiene margen. Los que no declaran vigencia se ordenan
+  // como antes, por tiempo abierto.
+  abiertos.sort((a,b)=>{
+    const va = estadoVigencia(a), vb = estadoVigencia(b);
+    if(va && vb) return va.minutos - vb.minutos;      // menos minutos = más urgente
+    if(va) return -1;
+    if(vb) return 1;
+    return (horasDesde(b.fechaApertura)||0) - (horasDesde(a.fechaApertura)||0);
+  });
+  cerrados.sort((a,b)=> new Date(b.fechaCierre||0) - new Date(a.fechaCierre||0));
+
+  document.getElementById('countAbiertos').textContent = abiertos.length ? '('+abiertos.length+')' : '';
+  document.getElementById('countCerrados').textContent = cerrados.length ? '('+cerrados.length+')' : '';
+  noteEl.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'}) + ' — se refresca solo cada 2 minutos.';
+  mostrarAvisoIncompleto();
+  pintarCifras();
+  render();
+  avisosJornada();
+}
+/* v146: avisos de la jornada del supervisor — permisos que vencen en 30 min
+   (con notificación del equipo si la dio) y dos permisos abiertos en la misma área. */
+const yaAvisados = new Set();
+function avisosJornada(){
+  let el = document.getElementById('avisosJornada');
+  if(!el){ el = document.createElement('div'); el.id = 'avisosJornada'; el.setAttribute('role','status'); document.getElementById('refreshNote').insertAdjacentElement('afterend', el); }
+  const msgs = [];
+  abiertos.forEach(it=>{
+    const v = estadoVigencia(it); if(!v || v.minutos < 0 || v.minutos > 30) return;
+    msgs.push('El permiso ' + esc(it.code) + (it.area ? ' (' + esc(it.area) + ')' : '') + ' vence en ' + v.minutos + ' min: ciérralo o amplía su vigencia.');
+    if(!yaAvisados.has(it.code)){ yaAvisados.add(it.code);
+      try { if('Notification' in window && Notification.permission === 'granted') new Notification('Permiso por vencer', { body: it.code + ' vence en ' + v.minutos + ' min', tag: 'vence-' + it.code }); } catch(e){} }
+  });
+  const porArea = {};
+  abiertos.filter(it=>!it.esAts && it.area).forEach(it=>{ const k = String(it.area).trim().toLowerCase(); (porArea[k] = porArea[k] || []).push(it); });
+  Object.keys(porArea).forEach(k=>{ const l = porArea[k]; if(l.length > 1) msgs.push('Hay ' + l.length + ' permisos abiertos en la misma área (' + esc(l[0].area) + '): ' + l.map(x=>esc(x.code)).join(', ') + '. Revisa que los trabajos no se crucen (caliente junto a confinado, izaje sobre alturas…).'); });
+  el.innerHTML = msgs.map(m=>'<p style="background:var(--amber-50,#fff7e0);border:1px solid var(--amber,#e0a100);border-radius:var(--r-m,10px);padding:10px 12px;margin:8px 0;font-weight:600;">' + m + '</p>').join('');
+}
+
+/* ── EPP pendiente de reponer ──
+   Se toma la ÚLTIMA inspección de cada persona, no la suma de todas: sumar el
+   historial mostraría como pendiente lo que ya le repusieron hace meses, y
+   este es justo el listado que se usa para reclamarle a almacén. */
+async function cargarEpp(){
+  if(!EPP_BACKEND || !EPP_BACKEND.url || EPP_BACKEND.url.indexOf('http')!==0) return;
+  try{
+    const res = await fetchWithRetry(EPP_BACKEND.url + '?list=1&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    if(!data.ok || !Array.isArray(data.rows)) return;
+    const ultimaPorPersona = {};
+    data.rows.forEach(r=>{
+      const cc = String(r.cedula||'').trim() || String(r.nombre||'').trim();
+      if(!cc) return;
+      const previa = ultimaPorPersona[cc];
+      if(!previa || new Date(r.updatedAt) > new Date(previa.updatedAt)) ultimaPorPersona[cc] = r;
+    });
+    eppPendientes = Object.values(ultimaPorPersona)
+      .map(r=>({
+        nombre: r.nombre||'—', cedula: r.cedula||'', cargo: r.cargo||'',
+        fecha: r.fechaInspeccion||'', inspector: r.inspector||'', updatedAt: r.updatedAt,
+        elementos: String(r.malos||'').split('|').map(x=>x.trim()).filter(Boolean)
+      }))
+      .filter(p=>p.elementos.length);
+    eppPendientes.sort((a,b)=> new Date(a.updatedAt) - new Date(b.updatedAt)); // lo más viejo primero: es lo más atrasado
+    eppCargado = true;
+    document.getElementById('countEpp').textContent = eppPendientes.length ? '('+eppPendientes.length+')' : '';
+  }catch(e){ /* sin señal o backend no configurado: la pestaña queda vacía */ }
+}
+
+function diasDesde(v){
+  const t = new Date(v).getTime();
+  if(isNaN(t)) return null;
+  return Math.floor((Date.now()-t)/86400000);
+}
+
+function renderEpp(listEl, q){
+  let items = eppPendientes;
+  if(q){
+    items = items.filter(p =>
+      p.nombre.toLowerCase().includes(q) || String(p.cedula).toLowerCase().includes(q) ||
+      p.cargo.toLowerCase().includes(q) || p.inspector.toLowerCase().includes(q) ||
+      p.elementos.join(' ').toLowerCase().includes(q));
+  }
+  if(!items.length){
+    listEl.innerHTML = '<div class="empty">'+(eppCargado
+      ? (q ? 'No hay resultados para la búsqueda.' : 'No hay elementos de protección pendientes de reponer ✓')
+      : 'Cargando inspecciones de EPP…')+'</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(p=>{
+    const d = diasDesde(p.updatedAt);
+    const espera = d===null ? '' : (d===0 ? 'hoy' : (d===1 ? 'hace 1 día' : 'hace '+d+' días'));
+    return `<a class="item epp" href="inspeccion-epp.html">
+      <div class="row1">
+        <span><span class="icon-type">🦺</span><span class="code">${esc(p.nombre)}</span> <span class="tipo">${esc(p.cargo||'')}</span></span>
+        <span class="tiempo warn">${p.elementos.length} elemento(s)</span>
+      </div>
+      <div class="elementos"><ul>${p.elementos.map(e=>'<li>'+esc(e)+'</li>').join('')}</ul></div>
+      <div class="desde">Solicitado <b>${esc(espera)}</b>${p.fecha?' · inspección del '+esc(p.fecha):''}${p.inspector?' · revisó '+esc(p.inspector):''}</div>
+      <div class="chevron">Toca para abrir la inspección de EPP →</div>
+    </a>`;
+  }).join('');
+}
+
+/** Aviso arriba de la lista con los tipos de permiso que no respondieron. */
+function mostrarAvisoIncompleto(){
+  const el = document.getElementById('avisoIncompleto');
+  if(!fallidos.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = '<b>⚠️ Lista incompleta</b>' +
+    'No se pudieron consultar estos permisos, así que los suyos <u>no aparecen</u> abajo:' +
+    '<ul>' + fallidos.map(f => '<li><b style="display:inline">' + esc(f.nombre) + '</b>: ' + esc(f.motivo) + '</li>').join('') + '</ul>' +
+    '<button type="button" id="btnReintentarTablero">Reintentar ahora</button>';
+  el.style.display = 'block';
+  document.getElementById('btnReintentarTablero').addEventListener('click', (e)=>{
+    e.target.textContent = 'Consultando…'; e.target.disabled = true;
+    cargar();
+  });
+}
+
+function render(){
+  const listEl = document.getElementById('list');
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(tabActual === 'epp'){ renderEpp(listEl, q); return; }
+  let items = tabActual === 'abiertos' ? abiertos : cerrados;
+  if(q){
+    items = items.filter(it =>
+      it.code.toLowerCase().includes(q) ||
+      it.tipo.toLowerCase().includes(q) ||
+      (it.responsable||'').toLowerCase().includes(q) ||
+      (it.area||'').toLowerCase().includes(q) ||
+      (it.trabajo||'').toLowerCase().includes(q)
+    );
+  }
+
+  if(items.length===0){
+    let msg;
+    if(tabActual==='abiertos'){
+      if(q) msg = 'Ningún permiso ni ATS abierto coincide con la búsqueda.';
+      // El chulo verde SOLO cuando los 5 tipos respondieron. Con uno caído no
+      // se puede afirmar que no haya permisos abiertos: se dice lo que se sabe.
+      else if(fallidos.length) msg = '⚠️ No se puede confirmar que no haya permisos ni ATS abiertos: faltan datos de ' + fallidos.map(f=>esc(f.nombre)).join(', ') + '.';
+      else msg = 'No hay permisos ni ATS abiertos en este momento ✓';
+    } else {
+      msg = fallidos.length ? '⚠️ Faltan datos de ' + fallidos.map(f=>esc(f.nombre)).join(', ') + '. La lista puede estar incompleta.' : 'No hay permisos cerrados que coincidan con la búsqueda.';
+    }
+    listEl.innerHTML = `<div class="empty${fallidos.length && !q ? ' incompleto' : ''}">${msg}</div>`;
+    return;
+  }
+
+  if(tabActual==='abiertos'){
+    listEl.innerHTML = items.map(it=>{
+      const h = horasDesde(it.fechaApertura);
+      const v = estadoVigencia(it);
+      // Si el permiso declara vigencia, manda ella. Si no (permisos viejos), se
+      // sigue usando el umbral de horas abiertas como antes.
+      const alerta = v ? (v.nivel !== 'vigente') : (h!==null && h >= HORAS_ALERTA);
+      const clase = v ? ('v-' + v.nivel) : (alerta ? 'warn' : '');
+      const etiqueta = v
+        ? `<span class="tiempo ${v.nivel==='vencido'?'warn':(v.nivel==='porvencer'?'pronto':'ok')}">${esc(v.texto)}</span>`
+        : `<span class="tiempo ${alerta?'warn':'ok'}">${formatHoras(h)} abierto</span>`;
+      const enlace = it.esAts ? 'ats.html?code=' + encodeURIComponent(it.code) + '&ver=1' : it.archivo + '?code=' + encodeURIComponent(it.code);
+      // Barra: cuánto de la vigencia ya se usó (sin vigencia declarada: horas abiertas contra el umbral).
+      const usado = avance(it, h);
+      const sub = [it.esAts && it.trabajo ? it.trabajo.slice(0, 80) : '', it.responsable ? (it.esAts ? 'Líder: ' : '') + it.responsable : '', it.area].filter(Boolean).map(esc).join(' · ');
+      return `<a class="tk ${clase}" href="${enlace}">
+        <div class="tk-arriba">${Iconos.senal(it.esAts ? 'ats' : it.archivo)}
+          <div class="tk-txt"><div class="tk-cod codigo-tec">${esc(it.code)}</div><div class="tk-tipo">${esc(it.tipo)}</div>${sub ? '<div class="tk-sub">' + sub + '</div>' : ''}</div>
+          ${etiqueta}
+        </div>
+        <div class="tk-corte" aria-hidden="true"></div>
+        <div class="tk-abajo">
+          <div class="tk-barra" role="img" aria-label="${usado}% de la vigencia usada"><i style="width:${usado}%"></i></div>
+          <div class="tk-pie"><span>${it.fechaApertura ? 'Abierto ' + esc(formatFecha(it.fechaApertura)) : 'Abierto'}</span><span class="tk-ir">${it.esAts ? 'Revisar' : 'Abrir y cerrar'} ›</span></div>
+        </div>
+      </a>`;
+    }).join('');
+  } else {
+    listEl.innerHTML = items.map(it=>{
+      const sub = [it.responsable, it.area].filter(Boolean).map(esc).join(' · ');
+      return `<a class="tk closed" href="${it.esAts ? 'ats.html?code=' + encodeURIComponent(it.code) + '&ver=1' : it.archivo + '?code=' + encodeURIComponent(it.code)}">
+        <div class="tk-arriba">${Iconos.senal(it.esAts ? 'ats' : it.archivo)}
+          <div class="tk-txt"><div class="tk-cod codigo-tec">${esc(it.code)}</div><div class="tk-tipo">${esc(it.tipo)}</div>${sub ? '<div class="tk-sub">' + sub + '</div>' : ''}</div>
+          <span class="tiempo closed">Cerrado</span>
+        </div>
+        <div class="tk-corte" aria-hidden="true"></div>
+        <div class="tk-abajo"><div class="tk-pie u-mt0"><span>${it.fechaCierre ? 'Cerrado ' + esc(formatFecha(it.fechaCierre)) : 'Cerrado'}</span><span class="tk-ir">Ver detalle ›</span></div></div>
+      </a>`;
+    }).join('');
+  }
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    tabActual = tab.dataset.tab;
+    render();
+  });
+});
+document.getElementById('searchInput').addEventListener('input', render);
+
+cargar();
+setInterval(cargar, 120000);
+// Al volver a la pestaña (o recuperar señal) después de estar oculta/offline,
+// refresca de una vez en vez de esperar hasta el próximo intervalo de 2 minutos.
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) cargar(); });
+window.addEventListener('online', cargar);
+
+// El dashboard nunca registraba el Service Worker — si alguien entraba por un
+// enlace directo a esta página (sin pasar antes por index.html), el modo
+// offline no quedaba instalado y tampoco aparecía el banner de actualización.
+window.addEventListener('load', ()=>{
+  if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+});
+</script>
+</body>
+</html>

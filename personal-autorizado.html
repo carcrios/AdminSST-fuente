@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-0lbanJ/y11AGACjyb6o7gu5rYhkuAYPUO3T+GhxCeqw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSTA-F-149 · Personal Autorizado</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSTA-F-149 · Personal Autorizado">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{
+  --amber:var(--ambar-600); --amber-dark:#8a6408; --muted:#5f6b78;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg,var(--bg));color:var(--ink);font-family:var(--font-family,-apple-system,sans-serif);padding-bottom:120px;}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px;}
+
+.hdr{display:block;background:var(--ink);padding:1.4rem 1.2rem 1.1rem;margin:0 -14px 14px;border-radius:0 0 16px 16px;}
+.hdr .eyebrow{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--n-400);margin-bottom:6px;}
+.hdr h1{font-family:var(--font-display);font-size:var(--fs-display);color:#fff;margin:0 0 2px;}
+.hdr p{font-size:var(--fs-menor);color:var(--n-400);margin:0;}
+.hdr a.back{display:inline-block;margin-bottom:10px;font-size:var(--fs-menor);color:var(--ambar-600);text-decoration:none;font-weight:600;}
+
+.card{background:var(--paper,#fff);border:1px solid var(--line);border-radius:var(--r-m);padding:13px 15px;margin-bottom:10px;}
+.card .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.card .v{font-size:var(--fs-base);color:var(--ink);font-weight:600;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* iPhone (Safari/Brave): los campos de fecha y hora traen un ancho mínimo propio
+   y el texto centrado; se salían de la tarjeta y se montaban sobre el de al lado. */
+.grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;}
+.field input[type=date],.field input[type=time]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;width:100%;display:block;text-align:left;}
+.field input::-webkit-date-and-time-value{text-align:left;}
+
+
+.field{margin-bottom:12px;}
+.field label{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:13px 14px;font-size:var(--fs-campo);min-height:48px;background:var(--n-0);font-family:inherit;}
+
+.btn{display:block;width:100%;text-align:center;background:var(--ink);color:#fff;font-weight:700;font-size:var(--fs-base);border:none;border-radius:var(--r-m);padding:14px;margin-top:8px;cursor:pointer;}
+.btn.amber{background:var(--amber);color:var(--ink);}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink);}
+.btn:disabled{opacity:.55;}
+
+.obra-item{display:block;background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:13px 15px;margin-bottom:10px;text-decoration:none;color:inherit;border-left:4px solid var(--amber);}
+.obra-item .nombre{font-family:var(--font-display);font-weight:700;font-size:var(--fs-base);color:var(--ink);}
+.obra-item .meta{font-size:var(--fs-menor);color:var(--muted);margin-top:3px;}
+.empty{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:2rem;text-align:center;color:var(--muted);font-size:var(--fs-base);}
+
+.linked-permit{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--n-150);}
+.linked-permit:last-of-type{border-bottom:none;}
+.badge-tipo{display:inline-block;font-size:10px;font-weight:700;background:var(--ambar-100);color:var(--amber-dark);padding:3px 8px;border-radius:var(--r-xl);flex-shrink:0;}
+.code-chip{font-family:var(--font-display);font-size:var(--fs-etiqueta);font-weight:700;background:var(--ink);color:#fff;padding:3px 8px;border-radius:var(--r-xs);}
+.remove-x{margin-left:auto;color:var(--warn);font-size:var(--fs-base);cursor:pointer;background:none;border:none;}
+
+.picker-item{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:var(--r-m);padding:11px 12px;margin-bottom:8px;background:#fff;cursor:pointer;}
+.picker-item.selected{border-color:var(--amber);background:var(--ambar-50);}
+.picker-item .pi-code{font-family:var(--font-display);font-size:var(--fs-menor);font-weight:700;}
+.picker-item .pi-meta{font-size:var(--fs-etiqueta);color:var(--muted);margin-top:1px;}
+.picker-item .check{margin-left:auto;color:var(--amber-dark);font-weight:700;}
+
+.worker-row{border:1px solid var(--line);border-radius:var(--r-m);padding:12px 12px 10px;margin-bottom:12px;background:var(--n-0);}
+.worker-row input{width:100%;border:1.5px solid var(--n-150);border-radius:var(--r-s);padding:10px 12px;font-size:var(--fs-titulo);margin-bottom:8px;background:#fff;min-height:44px;font-family:inherit;}
+.worker-row .firma-lbl{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin:4px 0 6px;display:block;}
+.fila-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px 0 10px;}
+.fila-cab .fila-n{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.btn-quitar{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;border:1.5px solid var(--rojo-200);background:#fff;color:var(--warn);font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-xl);padding:6px 12px;min-height:34px;cursor:pointer;font-family:inherit;}
+.btn-quitar:active{background:var(--rojo-50);}
+canvas.mini-pad{width:100%;height:170px;border:1.5px dashed #b9b2a2;border-radius:var(--r-s);background:#fff;touch-action:none;cursor:crosshair;display:block;}
+.sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.sig-actions button{font-size:var(--fs-etiqueta);border:1px solid var(--line);background:#fff;border-radius:var(--r-xs);padding:5px 10px;cursor:pointer;color:var(--muted);}
+.sig-status{font-size:var(--fs-etiqueta);color:var(--muted);}
+.sig-status.signed{color:var(--ok);font-weight:700;}
+
+.day-item{display:block;background:#fff;border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:var(--r-m);padding:12px 14px;margin-bottom:9px;text-decoration:none;color:inherit;}
+.day-item .row1{display:flex;justify-content:space-between;align-items:center;}
+.day-item .fecha{font-family:var(--font-display);font-weight:700;font-size:var(--fs-base);}
+.day-item .count{font-size:var(--fs-etiqueta);font-weight:700;background:var(--bg);color:var(--ink-soft);border-radius:var(--r-xl);padding:3px 9px;}
+.day-item .meta{font-size:var(--fs-menor);color:var(--muted);margin-top:4px;}
+
+.persona-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:11px 13px;margin-bottom:8px;}
+.persona-item .pnombre{font-weight:700;font-size:var(--fs-base);}
+.persona-item .pmeta{font-size:var(--fs-etiqueta);color:var(--muted);margin-top:2px;}
+.persona-item .remove-x{margin-left:auto;}
+
+.search-box input{width:100%;border:1.5px solid var(--line);border-radius:var(--r-m);padding:12px 14px;font-size:var(--fs-titulo);margin-bottom:12px;}
+.status-msg{font-size:var(--fs-menor);color:var(--muted);text-align:center;margin-top:10px;min-height:16px;}
+.ya-cab{font-family:var(--font-display);font-size:var(--fs-base);font-weight:700;margin:4px 2px 8px;display:flex;justify-content:space-between;}
+.ya-cab span{font-size:var(--fs-etiqueta);color:var(--muted);font-weight:600;}
+.guardado{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;background:#fff;}
+.guardado.quitado{opacity:.45;text-decoration:line-through;}
+.guardado .gi{flex:1;min-width:0;}
+.guardado .gn{font-weight:700;font-size:var(--fs-base);line-height:1.3;overflow-wrap:anywhere;}
+.guardado .gm{font-size:var(--fs-etiqueta);color:var(--muted);}
+.guardado img{height:34px;width:72px;object-fit:contain;flex-shrink:0;}
+.guardado .sf{font-size:var(--fs-etiqueta);font-weight:700;color:var(--ok);}
+.guardado .sf.no{color:var(--warn);}
+.verif-ok{background:var(--verde-50);border:1px solid var(--verde-100);color:var(--verde-700);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-menor);line-height:1.45;margin-bottom:10px;display:flex;gap:10px;align-items:center;}
+.verif-ok img{height:36px;width:80px;object-fit:contain;background:#fff;border-radius:var(--r-xs);}
+.aviso-info{background:var(--azul-50);border:1px solid var(--azul-100);color:var(--azul-700);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-menor);line-height:1.45;margin-bottom:10px;}
+.aviso-fallo{background:var(--rojo-50);border:1px solid var(--rojo-200);color:var(--rojo-900);border-radius:var(--r-m);padding:11px 13px;font-size:var(--fs-menor);line-height:1.45;text-align:left;margin-bottom:10px;}
+.day-item .btn-pdf{margin-top:9px;width:100%;font-size:var(--fs-menor);font-weight:700;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--r-s);padding:9px;cursor:pointer;}
+.hp-anexo{padding-top:1px;}
+.hp-anexo .hp-permisos td{height:auto;padding:3px 4px;}
+.hp-anexo .hp-personal td{height:34px;}
+.hp-anexo .hp-personal .firma img{max-height:30px;}
+.hp-anexo .firma-verif{text-align:center;vertical-align:middle;height:52px;}
+.hp-anexo .firma-verif img{max-height:46px;max-width:100%;}
+.hp-anexo .sin-firma{font-size:7px;color:var(--n-450);font-style:italic;}
+.hp-anexo .hp-cab .hp-tit{font-size:var(--fs-menor);}
+.version-portal{font-size:var(--fs-etiqueta);color:var(--muted);text-align:center;margin:18px 0 0;}
+.hint{font-size:var(--fs-etiqueta);color:var(--muted);text-align:center;margin:6px 0 12px;}
+.screen{display:none;}
+.screen.active{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════ LANDING: lista de obras ═══════ -->
+<div class="screen active" id="screenLanding">
+  <div class="hdr" style="display:block;">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Anexo SSTA-F-149</div>
+    <h1>Personal Autorizado</h1>
+    <p>Registro diario de personal en obra</p></div></div>
+  </div>
+  <div class="acciones-top" style="margin-bottom:14px;"><button type="button" class="btn amber" id="btnNuevaObra">+ Nueva obra</button>
+  <button type="button" class="btn ghost" id="btnBaseDatos">👥 Base de datos de personal</button></div>
+  <div id="obrasList"></div>
+  <div class="version-portal" id="versionPortal">Portal SSTA · versión v174</div>
+</div>
+
+<!-- ═══════ BASE DE DATOS DE PERSONAL ═══════ -->
+<div class="screen" id="screenPersonal">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromPersonal">← Volver</a>
+    <div class="eyebrow">Base de datos</div>
+    <h1>Personal</h1>
+    <p>Se llena una vez, se reutiliza con autocompletar</p>
+  </div>
+  <div class="card">
+    <div class="k u-mb8">Agregar / actualizar persona</div>
+    <div class="field"><label>Nombre completo</label><input type="text" id="perNombre"></div>
+    <div class="field"><label>Cédula</label><input type="text" id="perCedula" inputmode="numeric"></div>
+    <div class="field"><label>Cargo</label><input type="text" id="perCargo"></div>
+    <button class="btn amber" id="btnGuardarPersona">Guardar en la base de datos</button>
+    <div class="status-msg" id="personalStatus"></div>
+  </div>
+  <div id="personalList"></div>
+</div>
+
+
+<!-- ═══════ CREAR OBRA ═══════ -->
+<div class="screen" id="screenCrearObra">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromCrear">← Cancelar</a>
+    <div class="eyebrow">Anexo SSTA-F-149</div>
+    <h1>Nueva obra</h1>
+    <p>Se crea una sola vez, se usa todos los días</p>
+  </div>
+  <div class="field"><label>Nombre de la obra</label><input type="text" id="obraNombre" placeholder="Ej. Mantenimiento planta Norte"></div>
+  <div class="field"><label>Área</label><input type="text" id="obraArea" placeholder="Ej. Zona de tanques — Bloque C"></div>
+  <div class="grid2">
+    <div class="field"><label>Fecha de inicio</label><input type="date" id="obraFechaInicio"></div>
+    <div class="field"><label>Fecha de finalización</label><input type="date" id="obraFechaFin"></div>
+  </div>
+  <button class="btn amber" id="btnGuardarObra">Crear obra</button>
+  <div class="status-msg" id="crearObraStatus"></div>
+</div>
+
+<!-- ═══════ DETALLE DE OBRA ═══════ -->
+<div class="screen" id="screenObra">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromObra">← Todas las obras</a>
+    <div class="eyebrow">Anexo SSTA-F-149</div>
+    <h1 id="obraDetNombre">—</h1>
+    <p id="obraDetArea">—</p>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="k">Inicio</div><div class="v" id="obraDetInicio">—</div></div>
+    <div class="card"><div class="k">Fin previsto</div><div class="v" id="obraDetFin">—</div></div>
+  </div>
+  <div class="card">
+    <div class="k">Permiso(s) de trabajo vinculados</div>
+    <div class="mt-6" id="permisosVinculadosList"></div>
+    <button class="btn ghost" id="btnVincularPermiso" style="font-size:var(--fs-menor);padding:9px;">+ Vincular permiso o ATS abierto</button>
+  </div>
+  <button class="btn amber" id="btnRegistrarHoy">✍️ Registrar personal de hoy</button>
+  <button class="btn ghost" id="btnVerHistorial">📅 Ver historial por día</button>
+</div>
+
+<!-- ═══════ VINCULAR PERMISO (picker) ═══════ -->
+<div class="screen" id="screenPicker">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromPicker">← Cancelar</a>
+    <div class="eyebrow">Anexo SSTA-F-149</div>
+    <h1>Vincular permiso o ATS</h1>
+    <p>Selecciona de los permisos y ATS abiertos ahora</p>
+  </div>
+  <div class="search-box"><input type="text" id="pickerSearch" placeholder="Buscar por código, tipo o área…"></div>
+  <div id="pickerList"></div>
+  <div class="status-msg" id="pickerStatus">Buscando permisos y ATS abiertos…</div>
+  <button class="btn amber" id="btnConfirmarPicker">Confirmar selección</button>
+</div>
+
+<!-- ═══════ REGISTRO DEL DÍA ═══════ -->
+<div class="screen" id="screenRegistro">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromRegistro">← Volver</a>
+    <div class="eyebrow" id="registroFechaLabel">—</div>
+    <h1>Personal de hoy</h1>
+    <p id="registroObraNombre">—</p>
+  </div>
+  <div class="mb-10" id="registroPermisosChips"></div>
+  <div class="field"><label>Fecha del registro</label><input type="date" id="registroFecha"></div>
+  <div id="yaRegistrados"></div>
+  <div class="hint">💡 Trae la gente del ATS o copia la lista del último registro, y solo ajusta lo que cambió</div>
+  <div class="grid2">
+    <button class="btn ghost btn-compacto" id="btnTraerAts">🧭 Traer del ATS</button>
+    <button class="btn ghost btn-compacto" id="btnCopiarAyer">📋 Copiar último registro</button>
+  </div>
+
+  <div id="trabajadoresList"></div>
+  <button class="btn ghost u-fs-base" id="btnAgregarTrabajador">+ Agregar otra persona</button>
+
+  <div class="card mt-16">
+    <div class="k u-mb8">Verificado y aprobado por</div>
+    <div id="verifActual"></div>
+    <div class="field"><label>Nombre</label><input type="text" id="verifNombre" autocomplete="off" placeholder="Nombre completo (escribe para buscar)"></div>
+    <div class="field"><label>Cédula</label><input type="text" id="verifCedula" inputmode="numeric"></div>
+    <div class="field"><label>Firma del verificador</label>
+      <canvas class="mini-pad" id="padVerificador"></canvas>
+      <div class="sig-actions">
+        <button type="button" data-clear="padVerificador">Borrar firma</button>
+        <button type="button" data-undo="padVerificador">Deshacer trazo</button>
+        <span class="sig-status" id="status_padVerificador">Sin firmar</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn amber" id="btnGuardarRegistro">Guardar registro</button>
+  <div class="status-msg" id="registroStatus"></div>
+</div>
+
+<!-- ═══════ HISTORIAL ═══════ -->
+<div class="screen" id="screenHistorial">
+  <div class="hdr">
+    <a class="back" href="#" id="backFromHistorial">← Volver</a>
+    <div class="eyebrow">Anexo SSTA-F-149</div>
+    <h1>Historial</h1>
+    <p id="historialObraNombre">—</p>
+  </div>
+  <div id="historialList"></div>
+</div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+// Reintenta lo pendiente al cargar la página — antes esto solo pasaba en los
+// 5 permisos; si algo quedaba en cola desde este anexo, se quedaba esperando
+// a que alguien abriera OTRA página del portal para poder enviarse.
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+// URL fija del backend en Google Apps Script (Anexo SSTA-F-149) — centralizada en config.js
+const FIXED_WEBAPP_URL = PORTAL_CONFIG.BACKENDS.personal.url;
+const API_TOKEN = PORTAL_CONFIG.API_TOKEN;
+function getWebAppUrl(){ return FIXED_WEBAPP_URL; }
+
+// Mismos backends usados en el dashboard, para el buscador de permisos abiertos.
+const PERMIT_BACKENDS = getPermitBackends(false);
+
+/* ================= PADS DE FIRMA =================
+   Antes este anexo tenía su propia copia de esta lógica (idéntica a la de
+   permiso-core.js). Ahora usa el mismo módulo compartido (SignaturePad,
+   en common.js) que usan los 4 permisos "gemelos" — un arreglo futuro en
+   el lienzo de firma (como el de firmas invisibles al restaurar varias
+   de golpe) queda hecho para los dos a la vez, no hay que acordarse de
+   repetirlo aquí a mano. */
+const sigMgr = SignaturePad.createManager({ signedLabel: 'Firmado', unsignedLabel: 'Sin firmar' });
+const pads = sigMgr.pads;
+const setupPad = sigMgr.setup;
+document.addEventListener('click', e=>{
+  const btn=e.target.closest('button[data-clear]'); if(btn){ pads[btn.dataset.clear] && pads[btn.dataset.clear].clear(); return; }
+  const ubtn=e.target.closest('button[data-undo]'); if(ubtn){ pads[ubtn.dataset.undo] && pads[ubtn.dataset.undo].undo(); return; }
+});
+sigMgr.bindOrientationChange();
+
+/* ================= BASE DE DATOS DE PERSONAL ================= */
+let personalCache = []; // [{cedula, nombre, cargo}]
+async function cargarPersonal(){
+  const listEl = document.getElementById('personalList');
+  listEl.innerHTML = '<div class="status-msg">Cargando…</div>';
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL + '?action=listPersonal&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    personalCache = (data.ok && data.personal) ? data.personal : [];
+    // v162 · Una sola verdad de las personas: Personal habilitado es la fuente principal. Quien está allá y no
+    // en esta base aparece también aquí (con su estado de habilitación) para usarlo sin volver a escribirlo.
+    try { const m = await Habilitacion.cargar(); const ya = new Set(personalCache.map((x)=> Habilitacion.clave(x.cedula)));
+      personalHab = Object.keys(m || {}).map((k)=> m[k]).filter((t)=> t && t.activo !== false && !ya.has(Habilitacion.clave(t.cedula))); } catch (e) { personalHab = []; }
+    renderPersonalList();
+  }catch(err){
+    listEl.innerHTML = '<div class="empty">No se pudo cargar. Revisa tu conexión.</div>';
+  }
+}
+let personalHab = [];
+function renderPersonalList(){
+  const listEl = document.getElementById('personalList');
+  const estadoHab = (c)=> { const r = Habilitacion.revisar(c, ['general']); return r.estado === 'ok' ? '<span class="chip ok">Habilitado</span>' : r.estado === 'pronto' ? '<span class="chip pronto">Por vencer</span>' : r.estado === 'mal' ? '<span class="chip mal">No habilitado</span>' : ''; };
+  const hab = personalHab.length ? '<div class="k u-mt10">También en Personal habilitado (' + personalHab.length + ')</div>' + personalHab.slice(0, 200).map((t)=> '<div class="persona-item"><div><div class="pnombre">' + esc(t.nombre) + ' ' + estadoHab(t.cedula) + '</div><div class="pmeta">CC ' + esc(t.cedula) + (t.cargo ? ' · ' + esc(t.cargo) : '') + (t.empresa ? ' · ' + esc(t.empresa) : '') + '</div></div><a class="btn-mini" href="persona.html?ced=' + encodeURIComponent(String(t.cedula).replace(/\D/g, '')) + '">Ficha</a></div>').join('') : '';
+  if(!personalCache.length){ listEl.innerHTML = '<div class="empty">Aún no hay personal registrado en esta base.</div>' + hab; return; }
+  listEl.innerHTML = '<p class="ayuda">La fuente principal de las personas es <a href="habilitacion.html">Personal habilitado</a>; esta base guarda a quien solo entra a obra (visitantes, personal de paso).</p>' + personalCache.map(p=>`
+    <div class="persona-item">
+      <div><div class="pnombre">${esc(p.nombre)} ${estadoHab(p.cedula)}</div><div class="pmeta">CC ${esc(p.cedula)}${p.cargo?' · '+esc(p.cargo):''}</div></div>
+      <button class="remove-x" data-cedula="${esc(p.cedula)}" title="Eliminar" aria-label="Eliminar a ${esc(p.nombre)}">✕</button>
+    </div>`).join('') + hab;
+  listEl.querySelectorAll('.remove-x').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!await Dialogo.confirmar('¿Eliminar a esta persona de la base de datos?')) return;
+      try{
+        await fetchWithRetry(FIXED_WEBAPP_URL, {
+          method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ action:'eliminarPersona', cedula: btn.dataset.cedula, token: PORTAL_CONFIG.API_TOKEN })
+        });
+      }catch(err){}
+      cargarPersonal();
+    });
+  });
+}
+document.getElementById('btnGuardarPersona').addEventListener('click', async ()=>{
+  const nombre = document.getElementById('perNombre').value.trim();
+  const cedula = document.getElementById('perCedula').value.trim();
+  const cargo = document.getElementById('perCargo').value.trim();
+  const statusEl = document.getElementById('personalStatus');
+  if(!nombre || !cedula){ statusEl.textContent = 'Nombre y cédula son obligatorios.'; return; }
+  { const mc = Valida.cedula(cedula); if (mc) { statusEl.textContent = 'Cédula: ' + mc + '.'; return; } }   // v162: la cédula es la llave de la persona
+  statusEl.textContent = 'Guardando…';
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'guardarPersona', nombre, cedula, cargo, token: PORTAL_CONFIG.API_TOKEN })
+    });
+    const json = await res.json();
+    if(!json.ok){ statusEl.textContent = json.error || 'No se pudo guardar.'; return; }
+    document.getElementById('perNombre').value=''; document.getElementById('perCedula').value=''; document.getElementById('perCargo').value='';
+    statusEl.textContent = '✓ Guardado.';
+    // v164 · Una sola lista de personas: quien entra al anexo queda también en el maestro (Personal habilitado),
+    // «por revisar» para SST. Si ya estaba (aun con una cédula anterior) no se repite.
+    try {
+      if (typeof SGSST !== 'undefined' && SGSST.url && SGSST.url()) {
+        const m = await SGSST.enviar({ action: 'asegurarPersona', nombre, cedula, cargo, origen: 'Anexo de personal autorizado' });
+        if (m && m.ok) statusEl.textContent = m.creado ? '✓ Guardado. También quedó en Personal habilitado (por revisar: falta registrar sus requisitos).' : '✓ Guardado. Ya estaba en Personal habilitado.';
+      }
+    } catch (e) {}
+    cargarPersonal();
+  }catch(err){
+    statusEl.textContent = 'No se pudo conectar. Revisa tu conexión.';
+  }
+});
+
+/* ================= AUTOCOMPLETAR DE PERSONAL (propio, no usa <datalist> —
+   el datalist nativo del navegador casi no funciona en Safari de iPhone) ================= */
+function attachPersonalAutocomplete(inputEl, onSelect){
+  let box = null;
+  function cerrar(){ if(box){ box.remove(); box=null; } }
+  function abrir(){
+    cerrar();
+    const q = inputEl.value.trim().toLowerCase();
+    if(!q) return;
+    const matches = personalCache.filter(p=>p.nombre.toLowerCase().includes(q)).slice(0,6);
+    if(!matches.length) return;
+    box = document.createElement('div');
+    box.className = 'autocomplete-box';
+    const rect = inputEl.getBoundingClientRect();
+    box.style.position = 'absolute';
+    box.style.left = (rect.left + window.scrollX) + 'px';
+    box.style.top = (rect.bottom + window.scrollY + 2) + 'px';
+    box.style.width = rect.width + 'px';
+    matches.forEach(p=>{
+      const item = document.createElement('div');
+      item.className = 'autocomplete-item';
+      item.innerHTML = `<b>${esc(p.nombre)}</b><span>CC ${esc(p.cedula)}${p.cargo?' · '+esc(p.cargo):''}</span>`;
+      item.addEventListener('mousedown', e=>{ e.preventDefault(); onSelect(p); cerrar(); });
+      box.appendChild(item);
+    });
+    document.body.appendChild(box);
+  }
+  inputEl.addEventListener('input', abrir);
+  inputEl.addEventListener('focus', abrir);
+  inputEl.addEventListener('blur', ()=> setTimeout(cerrar, 150));
+  window.addEventListener('scroll', cerrar, true);
+}
+
+/* ================= NAVEGACIÓN ================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+document.getElementById('backFromCrear').addEventListener('click', e=>{ e.preventDefault(); showScreen('screenLanding'); });
+document.getElementById('backFromObra').addEventListener('click', e=>{ e.preventDefault(); cargarObras(); showScreen('screenLanding'); });
+document.getElementById('backFromPicker').addEventListener('click', e=>{ e.preventDefault(); showScreen('screenObra'); });
+document.getElementById('backFromRegistro').addEventListener('click', e=>{ e.preventDefault(); showScreen('screenObra'); });
+document.getElementById('backFromHistorial').addEventListener('click', e=>{ e.preventDefault(); showScreen('screenObra'); });
+document.getElementById('backFromPersonal').addEventListener('click', e=>{ e.preventDefault(); showScreen('screenLanding'); });
+document.getElementById('btnBaseDatos').addEventListener('click', ()=>{ showScreen('screenPersonal'); cargarPersonal(); });
+
+/* ================= ESTADO ================= */
+let currentObra = null; // {obraId, nombre, area, fechaInicio, fechaFin, permisos:[{code,tipo,archivo}]}
+let trabajadorCounter = 0;
+
+/* ================= LANDING: listar obras ================= */
+let obrasCache = [];
+async function cargarObras(){
+  const listEl = document.getElementById('obrasList');
+  listEl.innerHTML = '<div class="status-msg">Cargando obras…</div>';
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL + '?action=listObras&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    obrasCache = (data.ok && Array.isArray(data.obras)) ? data.obras : [];
+    if(!data.ok || !data.obras.length){
+      listEl.innerHTML = '<div class="empty">Aún no hay obras registradas. Crea la primera con el botón de abajo.</div>';
+      return;
+    }
+    listEl.innerHTML = data.obras.map(o=>`
+      <a class="obra-item" href="#" data-obra-id="${esc(o.obraId)}">
+        <div class="nombre">${esc(o.nombre)}</div>
+        <div class="meta">${o.area ? esc(o.area) : ''} ${o.fechaInicio ? '· Desde '+esc(o.fechaInicio) : ''}</div>
+      </a>`).join('');
+    listEl.querySelectorAll('.obra-item').forEach(el=>{
+      el.addEventListener('click', e=>{
+        e.preventDefault();
+        const obra = data.obras.find(o=>o.obraId===el.dataset.obraId);
+        abrirObra(obra);
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div class="empty">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
+  }
+}
+document.getElementById('btnNuevaObra').addEventListener('click', ()=> showScreen('screenCrearObra'));
+
+/* ================= CREAR OBRA ================= */
+document.getElementById('btnGuardarObra').addEventListener('click', async ()=>{
+  const nombre = document.getElementById('obraNombre').value.trim();
+  const area = document.getElementById('obraArea').value.trim();
+  const fechaInicio = document.getElementById('obraFechaInicio').value;
+  const fechaFin = document.getElementById('obraFechaFin').value;
+  if(!nombre){ document.getElementById('crearObraStatus').textContent = 'El nombre de la obra es obligatorio.'; return; }
+  const btn = document.getElementById('btnGuardarObra');
+  btn.disabled = true;
+  document.getElementById('crearObraStatus').textContent = 'Guardando…';
+  const r = await crearObraEnServidor(nombre, area, fechaInicio, fechaFin);
+  btn.disabled = false;
+  if (r.error){ document.getElementById('crearObraStatus').textContent = r.error; return; }
+  abrirObra(r.obra);
+});
+async function crearObraEnServidor(nombre, area, fechaInicio, fechaFin){
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'crearObra', nombre, area, fechaInicio, fechaFin, permisos:[], token: PORTAL_CONFIG.API_TOKEN })
+    });
+    const json = await res.json();
+    if(!json.ok) return { error: json.error || 'No se pudo crear la obra.' };
+    return { obra: { obraId: json.obraId, nombre, area, fechaInicio, fechaFin, permisos: [] } };
+  }catch(err){
+    return { error: 'No se pudo conectar. Revisa tu conexión e intenta de nuevo.' };
+  }
+}
+
+/* ================= DETALLE DE OBRA ================= */
+function abrirObra(obra){
+  currentObra = obra;
+  document.getElementById('obraDetNombre').textContent = obra.nombre;
+  document.getElementById('obraDetArea').textContent = obra.area || 'Sin área especificada';
+  document.getElementById('obraDetInicio').textContent = obra.fechaInicio || '—';
+  document.getElementById('obraDetFin').textContent = obra.fechaFin || '—';
+  renderPermisosVinculados();
+  showScreen('screenObra');
+}
+function renderPermisosVinculados(){
+  const cont = document.getElementById('permisosVinculadosList');
+  const permisos = currentObra.permisos || [];
+  if(!permisos.length){ cont.innerHTML = '<div style="font-size:var(--fs-menor);color:var(--muted);padding:4px 0;">Ningún permiso vinculado todavía.</div>'; return; }
+  cont.innerHTML = permisos.map((p,i)=>`
+    <div class="linked-permit">
+      <span class="badge-tipo">${p.icono||''} ${p.tipo}</span>
+      <span class="code-chip">${esc(p.code)}</span>
+      <button class="remove-x" data-idx="${i}" title="Quitar">✕</button>
+    </div>`).join('');
+  cont.querySelectorAll('.remove-x').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      currentObra.permisos.splice(parseInt(btn.dataset.idx,10),1);
+      renderPermisosVinculados();
+      await guardarPermisosVinculados();
+    });
+  });
+}
+async function guardarPermisosVinculados(){
+  try{
+    await fetchWithRetry(FIXED_WEBAPP_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'vincularPermisos', obraId: currentObra.obraId, permisos: currentObra.permisos, token: PORTAL_CONFIG.API_TOKEN })
+    });
+  }catch(err){ /* si falla, queda igual en el siguiente intento; no es crítico bloquear la UI aquí */ }
+}
+
+/* ================= PICKER DE PERMISOS ABIERTOS ================= */
+let permisosAbiertosCache = [];
+let seleccionPicker = [];
+/* Busca lo que está ABIERTO en los 5 permisos y en el ATS.
+   ANTES: se consultaba un servidor detrás de otro (con Apps Script "dormido"
+   eran 15-40 s en "Cargando…"), cualquier servidor que fallara se omitía en
+   silencio y al final decía "No hay permisos abiertos" aunque sí los hubiera,
+   y se usaba el token capturado al abrir la página (no la clave vigente).
+   AHORA: todos a la vez, con límite de tiempo, y si alguno no respondió se
+   dice cuál y por qué, con botón para reintentar. */
+function conLimite(promesa, ms){
+  return Promise.race([promesa, new Promise((_,rej)=>setTimeout(()=>rej(new Error('tardó más de '+Math.round(ms/1000)+' s')), ms))]);
+}
+async function consultarAbiertos(backend, esAts){
+  const url = backend.url + '?' + (backend.listQuery || 'list=1') + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN);
+  const res = await conLimite(fetchWithRetry(url), 25000);
+  const texto = await res.text();
+  let data;
+  try{ data = JSON.parse(texto); }
+  catch(e){ throw new Error('respondió con una página en vez de datos (¿despliegue privado o URL cambiada?)'); }
+  if(!data || !data.ok || !Array.isArray(data.rows)){
+    throw new Error(ClavePortal.esErrorDeClave(data) ? 'no aceptó la clave del portal de este equipo' : 'respondió con error: ' + ((data && data.error) || 'sin detalle'));
+  }
+  const abiertos = esAts
+    ? data.rows.filter(r=>String(r.estado||'ABIERTO').toUpperCase() !== 'CERRADO')
+    : data.rows.filter(r=>String(r.status||'').trim().toUpperCase() === 'ABIERTO');
+  return abiertos.map(r=>({
+    code: String(r.code || r.permitCode || r.atsCode || ''),
+    tipo: esAts ? 'ATS' : backend.nombre, icono: backend.icono, archivo: backend.archivo,
+    area: String(r.sitio || r.area || (esAts ? r.trabajo : '') || ''),
+    openedAt: r.openedAt || r.createdAt || r.updatedAt || null
+  })).filter(p=>p.code);
+}
+async function cargarPermisosAbiertos(){
+  const statusEl = document.getElementById('pickerStatus');
+  const listEl = document.getElementById('pickerList');
+  statusEl.innerHTML = 'Buscando permisos y ATS abiertos…';
+  listEl.innerHTML = '';
+  permisosAbiertosCache = [];
+  const fuentes = PERMIT_BACKENDS.map(b=>({ backend:b, esAts:false }));
+  const ats = PORTAL_CONFIG.BACKENDS.ats;
+  if(ats && ats.url) fuentes.push({ backend:ats, esAts:true });
+  const resultados = await Promise.allSettled(fuentes.map(f=>consultarAbiertos(f.backend, f.esAts)));
+  const fallidos = [];
+  resultados.forEach((r,i)=>{
+    if(r.status === 'fulfilled') permisosAbiertosCache.push(...r.value);
+    else fallidos.push({ nombre: fuentes[i].backend.nombre, motivo: (r.reason && r.reason.message) || 'sin conexión' });
+  });
+  permisosAbiertosCache.sort((a,b)=>String(b.openedAt||'').localeCompare(String(a.openedAt||'')));
+  let msg = '';
+  if(fallidos.length){
+    msg = '<div class="aviso-fallo">⚠️ No se pudo consultar: ' +
+      fallidos.map(f=>'<b>'+esc(f.nombre)+'</b> ('+esc(f.motivo)+')').join(', ') +
+      '. Puede haber permisos abiertos que no aparecen aquí.' +
+      '<button type="button" class="btn ghost" id="btnReintentarPicker" style="margin-top:8px;padding:9px;font-size:var(--fs-menor);">↻ Reintentar</button></div>';
+  } else if(!permisosAbiertosCache.length){
+    msg = 'No hay permisos ni ATS abiertos en este momento.';
+  }
+  statusEl.innerHTML = msg;
+  const btnR = document.getElementById('btnReintentarPicker');
+  if(btnR) btnR.addEventListener('click', cargarPermisosAbiertos);
+  renderPicker();
+}
+document.getElementById('btnVincularPermiso').addEventListener('click', ()=>{
+  showScreen('screenPicker');
+  seleccionPicker = [];
+  document.getElementById('pickerSearch').value = '';
+  cargarPermisosAbiertos();
+});
+function renderPicker(){
+  const q = document.getElementById('pickerSearch').value.trim().toLowerCase();
+  const yaVinculados = (currentObra.permisos||[]).map(p=>p.code);
+  let items = permisosAbiertosCache.filter(p=>!yaVinculados.includes(p.code));
+  if(q) items = items.filter(p=> [p.code, p.tipo, p.area].some(v=>String(v||'').toLowerCase().includes(q)));
+  const listEl = document.getElementById('pickerList');
+  if(!permisosAbiertosCache.length){ listEl.innerHTML = ''; return; } // el motivo ya está en pickerStatus
+  if(!items.length){ listEl.innerHTML = '<div class="empty">' + (q ? 'No hay coincidencias.' : 'Todos los abiertos ya están vinculados a esta obra.') + '</div>'; return; }
+  listEl.innerHTML = items.map(p=>{
+    const sel = seleccionPicker.includes(p.code);
+    return `<div class="picker-item ${sel?'selected':''}" data-code="${esc(p.code)}">
+      <span class="badge-tipo">${p.icono} ${p.tipo}</span>
+      <div><div class="pi-code">${esc(p.code)}</div><div class="pi-meta">${p.area?esc(p.area):'Sin área'}</div></div>
+      ${sel?'<span class="check">✓</span>':''}
+    </div>`;
+  }).join('');
+  listEl.querySelectorAll('.picker-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const code = el.dataset.code;
+      const idx = seleccionPicker.indexOf(code);
+      if(idx===-1) seleccionPicker.push(code); else seleccionPicker.splice(idx,1);
+      renderPicker();
+    });
+  });
+}
+document.getElementById('pickerSearch').addEventListener('input', renderPicker);
+document.getElementById('btnConfirmarPicker').addEventListener('click', async ()=>{
+  const nuevos = permisosAbiertosCache.filter(p=>seleccionPicker.includes(p.code));
+  currentObra.permisos = (currentObra.permisos||[]).concat(nuevos);
+  renderPermisosVinculados();
+  await guardarPermisosVinculados();
+  showScreen('screenObra');
+});
+
+/* ================= REGISTRO DEL DÍA ================= */
+document.getElementById('btnRegistrarHoy').addEventListener('click', ()=> abrirRegistroHoy());
+async function abrirRegistroHoy(){
+  if(!personalCache.length) await cargarPersonal();
+  document.getElementById('registroObraNombre').textContent = currentObra.nombre;
+  document.getElementById('registroPermisosChips').innerHTML = (currentObra.permisos||[])
+    .map(p=>`<span class="badge-tipo">${p.icono||''} ${esc(p.code)}</span> `).join('') ||
+    '<span style="font-size:var(--fs-menor);color:var(--muted);">Sin permiso vinculado</span>';
+  // Fecha LOCAL: toISOString() da la fecha en UTC, y en Colombia (UTC-5)
+  // desde las 7 p.m. ponía la fecha de MAÑANA en el registro.
+  const ahora = new Date(); ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+  const hoy = ahora.toISOString().slice(0,10);
+  document.getElementById('registroFecha').value = hoy;
+  actualizarEtiquetaFecha();
+  document.getElementById('trabajadoresList').innerHTML = '';
+  Object.keys(pads).forEach(k=>{ if (/^padTr/.test(k)) delete pads[k]; });
+  trabajadorCounter = 0;
+  agregarTrabajadorRow();
+  const cargaDia = cargarRegistroDelDia();
+  document.getElementById('verifNombre').value=''; document.getElementById('verifCedula').value='';
+  // El recuadro de firma del verificador NUNCA se inicializaba (solo los de
+  // los trabajadores, que se crean con agregarTrabajadorRow): se veía, pero no
+  // dibujaba, y el guardado quedaba bloqueado en "Falta la firma del
+  // verificador". setup() no duplica listeners si ya estaba listo; clear()
+  // evita que la firma del registro anterior pase al de hoy.
+  const padVerif = document.getElementById('padVerificador');
+  setupPad(padVerif);
+  if (pads.padVerificador) pads.padVerificador.clear();
+  attachPersonalAutocomplete(document.getElementById('verifNombre'), persona=>{
+    document.getElementById('verifNombre').value = persona.nombre;
+    document.getElementById('verifCedula').value = persona.cedula;
+  });
+  document.getElementById('registroStatus').textContent='';
+  showScreen('screenRegistro');
+  setTimeout(()=>{ document.querySelectorAll('#screenRegistro canvas.mini-pad').forEach(c=>{ if(pads[c.id]) pads[c.id].refreshSize(); }); }, 50);
+  await cargaDia;
+}
+document.getElementById('registroFecha').addEventListener('change', ()=>{ actualizarEtiquetaFecha(); cargarRegistroDelDia(); });
+
+/* ---------- lo que YA está registrado ese día ----------
+   El registro del día se SUMA en el servidor: aquí se muestra quién ya está
+   (con su firma), para agregar solo a quien falta (llegó tarde, lo registró
+   otro supervisor…) y, si hace falta, quitar a alguien. */
+let registroExistente = null;   // null = no se sabe (sin conexión)
+let quitarAnexo = new Set();
+function claveP(p){ const c = String((p && p.cedula) || '').replace(/[^0-9A-Za-z]/g,''); return c ? 'C:'+c : 'N:'+String((p && p.nombre) || '').trim().toUpperCase().replace(/\s+/g,' '); }
+async function cargarRegistroDelDia(){
+  const fecha = document.getElementById('registroFecha').value;
+  const cont = document.getElementById('yaRegistrados');
+  registroExistente = null; quitarAnexo = new Set();
+  renderYaRegistrados();
+  if (!fecha || !currentObra) return;
+  cont.innerHTML = '<div class="status-msg" style="margin:0 0 10px;">Revisando quién ya está registrado este día…</div>';
+  try {
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL + '?action=registro&obraId=' + encodeURIComponent(currentObra.obraId) + '&fecha=' + encodeURIComponent(fecha) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    if (document.getElementById('registroFecha').value !== fecha) return; // cambió la fecha mientras tanto
+    registroExistente = (data && Array.isArray(data.trabajadores)) ? data : { trabajadores: [], verificador: null, nuevo: true };
+  } catch (e) {
+    registroExistente = null;
+    if (document.getElementById('registroFecha').value !== fecha) return;
+  }
+  renderYaRegistrados();
+}
+function renderYaRegistrados(){
+  const cont = document.getElementById('yaRegistrados');
+  const va = document.getElementById('verifActual');
+  if (registroExistente === null){
+    cont.innerHTML = navigator.onLine || !currentObra ? '' : '<div class="aviso-info">Sin conexión: no se puede ver quién ya está registrado este día. Lo que agregues se SUMA al registro al guardar (no borra a nadie).</div>';
+    va.innerHTML = '';
+    return;
+  }
+  const lista = registroExistente.trabajadores || [];
+  cont.innerHTML = lista.length ? `<div class="ya-cab">Ya registrados este día <span>${lista.length - [...quitarAnexo].length} persona(s)</span></div>` +
+    lista.map(t=>{
+      const k = claveP(t), q = quitarAnexo.has(k);
+      const firma = srcSeguro(t.firma) ? `<img src="${srcSeguro(t.firma)}" alt="firma">` : (t.firma ? '<span class="sf">✓ firmó</span>' : '<span class="sf no">sin firma</span>');
+      return `<div class="guardado${q ? ' quitado' : ''}" data-k="${esc(k)}"><div class="gi"><div class="gn">${esc(t.nombre)}</div><div class="gm">${t.cedula ? 'CC ' + esc(t.cedula) : 'Sin cédula'}${t.cargo ? ' · ' + esc(t.cargo) : ''}</div></div>${firma}<button type="button" class="btn-quitar">${q ? '↺ Volver' : '✕ Quitar'}</button></div>`;
+    }).join('') + '<div class="ya-cab" style="margin-top:14px;">Agregar personas</div>' : '';
+  cont.querySelectorAll('.guardado .btn-quitar').forEach(b=> b.addEventListener('click', async ()=>{
+    const k = b.parentElement.dataset.k;
+    if (quitarAnexo.has(k)) quitarAnexo.delete(k);
+    else if (await Dialogo.confirmar('¿Quitar a esta persona del registro de este día?')) quitarAnexo.add(k);
+    renderYaRegistrados();
+  }));
+  const v = registroExistente.verificador;
+  va.innerHTML = v && v.nombre ? `<div class="verif-ok">${v.firma && String(v.firma).indexOf('data:image') === 0 ? `<img src="${v.firma}" alt="firma">` : ''}<div>✓ Ya verificado por <b>${esc(v.nombre)}</b>${v.cedula ? ' (CC ' + esc(v.cedula) + ')' : ''}.<br>Si agregas personas, el verificador puede volver a firmar abajo (opcional).</div></div>` : '';
+}
+function clavesEnPantalla(){
+  const ya = new Set(((registroExistente && registroExistente.trabajadores) || []).map(claveP));
+  document.querySelectorAll('#trabajadoresList .worker-row').forEach(r=>{
+    const n = r.dataset.n, nom = document.getElementById('trNombre'+n).value.trim();
+    if (nom) ya.add(claveP({ nombre:nom, cedula:document.getElementById('trCedula'+n).value }));
+  });
+  return ya;
+}
+function quitarFilasVacias(){
+  document.querySelectorAll('#trabajadoresList .worker-row').forEach(r=>{
+    const n = r.dataset.n;
+    if (!document.getElementById('trNombre'+n).value.trim()){ delete pads['padTr'+n]; r.remove(); }
+  });
+  renumerarFilas();
+}
+/* Agrega personas como filas nuevas (sin repetir a nadie) y devuelve cuántas. */
+function agregarPersonas(personas){
+  const ya = clavesEnPantalla();
+  quitarFilasVacias();
+  let n = 0;
+  personas.forEach(p=>{ const k = claveP(p); if (ya.has(k)) return; ya.add(k); agregarTrabajadorRow(p); n++; });
+  if (!document.querySelector('#trabajadoresList .worker-row')) agregarTrabajadorRow();
+  setTimeout(()=>{ document.querySelectorAll('#trabajadoresList canvas.mini-pad').forEach(c=>{ if(pads[c.id]) pads[c.id].refreshSize(); }); }, 50);
+  return n;
+}
+document.getElementById('btnTraerAts').addEventListener('click', async ()=>{
+  const r = await TraerDeAts.elegir();
+  if (!r) return;
+  const n = agregarPersonas(r.personas);
+  await Dialogo.avisar(n ? `Se agregaron ${n} persona(s) del ${r.code}. Cada una debe firmar.` : `Todas las personas del ${r.code} ya están en este registro.`);
+  // El registro queda anexado también a ese ATS (sale en el PDF).
+  if (!(currentObra.permisos || []).some(p=>p.code === r.code) && await Dialogo.confirmar(`¿Anexar también la obra al ${r.code}? Así aparece en el PDF como "Anexado a".`)){
+    currentObra.permisos = (currentObra.permisos || []).concat([{ code:r.code, tipo:'ATS', icono:'🧭', archivo:'ats.html', area:r.area || r.trabajo || '' }]);
+    renderPermisosVinculados();
+    document.getElementById('registroPermisosChips').innerHTML = currentObra.permisos.map(p=>`<span class="badge-tipo">${p.icono||''} ${esc(p.code)}</span> `).join('');
+    guardarPermisosVinculados();
+  }
+});
+function actualizarEtiquetaFecha(){
+  const v = document.getElementById('registroFecha').value;
+  const d = new Date(v+'T00:00:00');
+  document.getElementById('registroFechaLabel').textContent = isNaN(d.getTime()) ? 'Registro diario' :
+    d.toLocaleDateString('es-CO',{weekday:'long', day:'2-digit', month:'long'});
+}
+
+/* Las filas se numeran por posición (1, 2, 3…), no por el orden en que se crearon. */
+function renumerarFilas(){ document.querySelectorAll('#trabajadoresList .worker-row .fila-n').forEach((el,i)=>{ el.textContent = 'Persona ' + (i+1); }); }
+function agregarTrabajadorRow(prefill){
+  trabajadorCounter++;
+  const n = trabajadorCounter;
+  const div = document.createElement('div');
+  div.className = 'worker-row';
+  div.dataset.n = n;
+  div.innerHTML = `
+    <div class="fila-cab"><span class="fila-n">Persona ${n}</span><button type="button" class="btn-quitar remove-worker" data-remove="${n}">✕ Quitar</button></div>
+    <input type="text" placeholder="Nombre completo (escribe para buscar)" id="trNombre${n}" autocomplete="off" value="${prefill?esc(prefill.nombre||''):''}">
+    <input type="text" placeholder="Cédula" id="trCedula${n}" inputmode="numeric" value="${prefill?esc(prefill.cedula||''):''}">
+    <input type="text" placeholder="Cargo" id="trCargo${n}" value="${prefill?esc(prefill.cargo||''):''}">
+    <label class="firma-lbl">Firma</label>
+    <canvas class="mini-pad" id="padTr${n}"></canvas>
+    <div class="sig-actions">
+      <button type="button" data-clear="padTr${n}">Borrar firma</button>
+      <button type="button" data-undo="padTr${n}">Deshacer trazo</button>
+      <span class="sig-status" id="status_padTr${n}">Sin firmar</span>
+    </div>`;
+  document.getElementById('trabajadoresList').appendChild(div);
+  setupPad(document.getElementById('padTr'+n));
+  div.querySelector('[data-remove]').addEventListener('click', ()=>{ delete pads['padTr'+n]; div.remove(); renumerarFilas(); });
+  renumerarFilas();
+  // Autocompletar cédula/cargo cuando se elige (o se escribe exacto) un nombre de la base de datos.
+  attachPersonalAutocomplete(document.getElementById('trNombre'+n), persona=>{
+    document.getElementById('trNombre'+n).value = persona.nombre;
+    document.getElementById('trCedula'+n).value = persona.cedula;
+    document.getElementById('trCargo'+n).value = persona.cargo || '';
+  });
+}
+document.getElementById('btnAgregarTrabajador').addEventListener('click', ()=> agregarTrabajadorRow());
+
+/* Copia la lista del último registro ANTERIOR a la fecha elegida (no el de
+   ese mismo día). El servidor devuelve el registro tal cual (sin campo "ok"):
+   se acepta cualquier respuesta con lista de trabajadores. Funciona con el
+   backend nuevo (ultimoRegistro&antesDe=) y con el que ya está desplegado
+   (si este devuelve el mismo día, se busca en el historial). */
+function fechaCorta_(v){ return String(v || '').slice(0, 10); }
+async function leerJsonAnexo_(res){
+  const txt = await res.text();
+  try { return JSON.parse(txt); } catch (e) { throw new Error((typeof Outbox !== 'undefined' && Outbox.describirPagina) ? Outbox.describirPagina(txt) : 'Respuesta no válida del servidor'); }
+}
+function esRegistro_(d){ return !!d && d.ok !== false && Array.isArray(d.trabajadores) && d.trabajadores.some(t=>t && String(t.nombre || '').trim()); }
+async function buscarRegistroAnterior(obraId, fecha){
+  const base = FIXED_WEBAPP_URL + '?obraId=' + encodeURIComponent(obraId) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN);
+  // 1) Una sola consulta.
+  const d = await leerJsonAnexo_(await fetchWithRetry(base + '&action=ultimoRegistro&antesDe=' + encodeURIComponent(fecha || '')));
+  if (d && d.ok === false && d.antesDe) return null;            // backend nuevo: no hay días anteriores
+  if (d && d.ok === false && /token|clave/i.test(d.error || '')) throw new Error(d.error);
+  if (esRegistro_(d) && d.fecha && (!fecha || fechaCorta_(d.fecha) < fecha)) return d;
+  if (d && d.ok === false && !/previos/i.test(d.error || '')) throw new Error(d.error || 'Error del servidor');
+  if (d && d.ok === false) return null;                         // la obra no tiene ningún registro
+  // 2) Devolvió el mismo día (o uno vacío): se busca en el historial.
+  const h = await leerJsonAnexo_(await fetchWithRetry(base + '&action=historial'));
+  const previas = ((h && h.registros) || []).map(r=>fechaCorta_(r.fecha)).filter(f=>f && (!fecha || f < fecha))
+    .sort().reverse();
+  for (const f of previas.slice(0, 5)){
+    const r = await leerJsonAnexo_(await fetchWithRetry(base + '&action=registro&fecha=' + encodeURIComponent(f)));
+    if (esRegistro_(r)) return Object.assign({}, r, { fecha: f });
+  }
+  return null;
+}
+document.getElementById('btnCopiarAyer').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnCopiarAyer');
+  const texto = btn.textContent;
+  const fecha = document.getElementById('registroFecha').value;
+  btn.disabled = true; btn.textContent = 'Cargando…';
+  try{
+    const reg = await buscarRegistroAnterior(currentObra.obraId, fecha);
+    if (!reg){ await Dialogo.avisar('No hay un registro anterior a esta fecha en esta obra para copiar.'); return; }
+    const d = new Date(fechaCorta_(reg.fecha) + 'T00:00:00');
+    const cuando = isNaN(d.getTime()) ? 'último registro' : 'registro del ' + d.toLocaleDateString('es-CO', { weekday:'long', day:'2-digit', month:'long' });
+    // Se copian los datos, pero NO las firmas — cada persona debe volver a firmar hoy.
+    // No se borra lo que estaba escrito: solo se agrega a quien falta.
+    const n = agregarPersonas(reg.trabajadores.filter(t=>t && String(t.nombre || '').trim()).map(t=>({ nombre:t.nombre, cedula:t.cedula || '', cargo:t.cargo || '' })));
+    await Dialogo.avisar(n ? `Se agregaron ${n} persona(s) del ${cuando}. Cada una debe volver a firmar hoy.` : `Todas las personas del ${cuando} ya están en este registro.`);
+  }catch(err){
+    await Dialogo.avisar(navigator.onLine ? 'No se pudo cargar el último registro: ' + (err && err.message || err) : 'Sin conexión: no se puede traer el último registro. Intenta cuando tengas señal.');
+  }finally{
+    btn.disabled = false; btn.textContent = texto;
+  }
+});
+
+/* La misma mezcla que hace el servidor, para mostrar/imprimir sin señal. */
+function mezclarLocal(previo, nuevo, quitar){
+  const fuera = new Set(quitar || []), lista = [], idx = {};
+  ((previo && previo.trabajadores) || []).forEach(t=>{ const k = claveP(t); if (fuera.has(k)) return; idx[k] = lista.length; lista.push(t); });
+  (nuevo.trabajadores || []).forEach(t=>{ const k = claveP(t); const p = Object.assign({}, t); if (k in idx){ if (!p.firma) p.firma = lista[idx[k]].firma; lista[idx[k]] = p; } else { idx[k] = lista.length; lista.push(p); } });
+  return { fecha: nuevo.fecha, trabajadores: lista, verificador: (nuevo.verificador && nuevo.verificador.nombre) ? nuevo.verificador : ((previo && previo.verificador) || null),
+           permisos: nuevo.permisos || (previo && previo.permisos) || [], savedAt: nuevo.savedAt };
+}
+
+/* Personal habilitado: se exige lo de todos más lo de cada permiso anexado (alturas, confinados…). */
+function contextoAnexo(){
+  const B = PORTAL_CONFIG.BACKENDS;
+  return ((currentObra && currentObra.permisos) || []).map((p)=> Object.keys(B).find((k)=> B[k].archivo === p.archivo)).filter(Boolean);
+}
+Habilitacion.vigilar(document, '#trabajadoresList [id^="trCedula"]', contextoAnexo);
+
+document.getElementById('btnGuardarRegistro').addEventListener('click', async ()=>{
+  const fecha = document.getElementById('registroFecha').value;
+  if(!fecha){ document.getElementById('registroStatus').textContent = 'Elige la fecha del registro.'; return; }
+
+  const trabajadores = [];
+  document.querySelectorAll('#trabajadoresList .worker-row').forEach(row=>{
+    const n = row.dataset.n;
+    const nombre = document.getElementById('trNombre'+n).value.trim();
+    if(!nombre) return; // fila vacía, se ignora
+    trabajadores.push({
+      nombre, cedula: document.getElementById('trCedula'+n).value.trim(), cargo: document.getElementById('trCargo'+n).value.trim(),
+      firma: pads['padTr'+n] ? pads['padTr'+n].getDataUrl() : null
+    });
+  });
+  const quitar = [...quitarAnexo];
+  const verifNombre = document.getElementById('verifNombre').value.trim();
+  const verifFirma = pads['padVerificador'] ? pads['padVerificador'].getDataUrl() : null;
+  const yaVerificado = !!(registroExistente && registroExistente.verificador && registroExistente.verificador.nombre);
+  if(!trabajadores.length && !quitar.length && !(verifNombre && verifFirma)){
+    document.getElementById('registroStatus').textContent = yaVerificado || (registroExistente && registroExistente.trabajadores.length) ? 'No hay cambios: agrega a alguien, quita a alguien o firma como verificador.' : 'Agregue al menos una persona.'; return;
+  }
+  // El verificador es obligatorio la primera vez; si el día ya está verificado
+  // y se agrega a alguien tarde, firmar de nuevo es opcional.
+  if((verifNombre && !verifFirma) || (!verifNombre && verifFirma)){ document.getElementById('registroStatus').textContent = 'Falta el nombre o la firma del verificador.'; return; }
+  if(!verifNombre && registroExistente && !yaVerificado){ document.getElementById('registroStatus').textContent = 'Falta el nombre y la firma del verificador.'; return; }
+  if(!verifNombre && registroExistente === null && !await Dialogo.confirmar('Sin conexión no se sabe si este día ya tiene verificador. ¿Guardar sin la firma del verificador?')) return;
+  const sinFirma = trabajadores.filter(t=>!t.firma).length;
+  if(sinFirma > 0 && !await Dialogo.confirmar(`${sinFirma} persona(s) quedaron sin firmar. ¿Guardar de todas formas?`)) return;
+  // Personal habilitado: según los permisos a los que está anexada la obra.
+  // v148: la misma regla de los permisos: no habilitado = bloqueado, salvo excepción escrita de SST (queda en el registro).
+  const ctxHab = typeof contextoAnexo === 'function' ? contextoAnexo() : contextoAnexo;
+  const habExc = await Habilitacion.exigir(trabajadores.map(t=>({ cc: t.cedula, nombre: t.nombre })), ctxHab, { que: 'No se puede registrar a estas personas' });
+  if (habExc === null) return;
+
+  const data = {
+    fecha,
+    trabajadores,
+    verificador: verifNombre ? { nombre: verifNombre, cedula: document.getElementById('verifCedula').value.trim(), firma: verifFirma } : null,
+    permisos: currentObra.permisos || [],
+    habilitacion: habExc.length ? habExc : undefined,
+    savedAt: new Date().toISOString()
+  };
+  const opId = 'reg-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+  // Lo que queda del día (lo que había + lo nuevo − lo quitado), para el PDF sin señal.
+  const mezclado = mezclarLocal(registroExistente, data, quitar);
+  const btn = document.getElementById('btnGuardarRegistro');
+  btn.disabled = true;
+  document.getElementById('registroStatus').textContent = 'Guardando…';
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'guardarRegistro', obraId: currentObra.obraId, fecha, data, quitar, opId, token: PORTAL_CONFIG.API_TOKEN })
+    });
+    // Texto primero: si el servidor responde con una página (error del script,
+    // inicio de sesión) no es "sin conexión", y así se dice.
+    const texto = await res.text();
+    let json;
+    try { json = JSON.parse(texto); }
+    catch(e){ const err = new Error(Outbox.describirPagina(texto, res.status)); err.pagina = true; throw err; }
+    btn.disabled = false;
+    if(!json.ok){ document.getElementById('registroStatus').textContent = json.error || 'No se pudo guardar.'; return; }
+    document.getElementById('registroStatus').textContent = '✓ Registro guardado.';
+    if (Jornada.enJornada()) Jornada.marcar('anexo', { code: currentObra.nombre, obraId: currentObra.obraId, fecha });
+    const obraGuardada = Object.assign({}, currentObra);
+    const total = json.cantidad != null ? json.cantidad : mezclado.trabajadores.length;
+    // El PDF sale del servidor: así incluye lo que registraron otros celulares.
+    if (await Dialogo.confirmar(`Registro guardado: ${total} persona(s) en este día.\n\n¿Quieres exportarlo a PDF ahora?`)) await exportarDias([fecha], null, obraGuardada, mezclado);
+    showScreen('screenObra');
+  }catch(err){
+    if (typeof Outbox !== 'undefined') {
+      try {
+        await Outbox.add(FIXED_WEBAPP_URL, { action:'guardarRegistro', obraId: currentObra.obraId, fecha, data, quitar, opId, token: PORTAL_CONFIG.API_TOKEN });
+        if (Jornada.enJornada()) Jornada.marcar('anexo', { code: currentObra.nombre, obraId: currentObra.obraId, fecha, pendiente: true });
+        mostrarPdfPendiente(mezclado, err && err.pagina ? err.message : '');
+      } catch (e) {
+        document.getElementById('registroStatus').textContent = 'No se pudo guardar ni en el servidor ni localmente (memoria llena o modo privado). Anote los datos antes de salir de la página.';
+      }
+    } else {
+      mostrarPdfPendiente(mezclado);
+    }
+    btn.disabled = false;
+  }
+});
+
+/* ================= HISTORIAL ================= */
+document.getElementById('btnVerHistorial').addEventListener('click', async ()=>{
+  document.getElementById('historialObraNombre').textContent = currentObra.nombre;
+  const listEl = document.getElementById('historialList');
+  listEl.innerHTML = '<div class="status-msg">Cargando historial…</div>';
+  showScreen('screenHistorial');
+  try{
+    const res = await fetchWithRetry(FIXED_WEBAPP_URL + '?action=historial&obraId=' + encodeURIComponent(currentObra.obraId) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+    const data = await res.json();
+    if(!data.ok || !data.registros.length){ listEl.innerHTML = '<div class="empty">Aún no hay registros para esta obra.</div>'; return; }
+    const fechas = data.registros.map(r=>fechaCorta(r.fecha));
+    const ordenadas = fechas.slice().sort();
+    // Rango para el PDF: por defecto, de la primera a la última fecha registrada.
+    listEl.innerHTML = `<div class="card rango-card">
+        <div class="k u-mb8">🖨️ Exportar a PDF por fechas</div>
+        <div class="grid2">
+          <div class="field u-mb6"><label>Desde</label><input type="date" id="rangoDesde" value="${esc(ordenadas[0])}"></div>
+          <div class="field u-mb6"><label>Hasta</label><input type="date" id="rangoHasta" value="${esc(ordenadas[ordenadas.length-1])}"></div>
+        </div>
+        <button type="button" class="btn amber" id="btnPdfTodo" style="margin-top:4px;">Exportar</button>
+      </div>` +
+      data.registros.map((r,i)=>{
+      const d = new Date(fechas[i]+'T00:00:00');
+      const fechaTxt = isNaN(d.getTime()) ? esc(r.fecha) : d.toLocaleDateString('es-CO',{weekday:'long', day:'2-digit', month:'short'});
+      return `<div class="day-item">
+        <div class="row1"><span class="fecha">${fechaTxt}</span><span class="count">${r.cantidad} persona${r.cantidad===1?'':'s'}</span></div>
+        <div class="meta">${r.verificador ? 'Verificado por: '+esc(r.verificador) : 'Sin verificador registrado'}</div>
+        <button type="button" class="btn-pdf" data-fecha="${esc(fechas[i])}">🖨️ Ver / exportar PDF</button>
+      </div>`;
+    }).join('') + '<div class="status-msg" id="historialStatus"></div>';
+    listEl.querySelectorAll('.btn-pdf').forEach(b=> b.addEventListener('click', ()=> exportarDias([b.dataset.fecha], b)));
+    const enRango = ()=>{
+      const d = document.getElementById('rangoDesde').value || '0000-00-00', h = document.getElementById('rangoHasta').value || '9999-99-99';
+      return ordenadas.filter(f=> f >= (d <= h ? d : h) && f <= (d <= h ? h : d));
+    };
+    const rotular = ()=>{ const n = enRango().length; const b = document.getElementById('btnPdfTodo'); b.textContent = n ? `Exportar ${n} día${n===1?'':'s'} a PDF` : 'No hay registros en ese rango'; b.disabled = !n; };
+    ['rangoDesde','rangoHasta'].forEach(id=> document.getElementById(id).addEventListener('change', rotular));
+    rotular();
+    document.getElementById('btnPdfTodo').addEventListener('click', e=> exportarDias(enRango(), e.currentTarget));
+  }catch(err){
+    listEl.innerHTML = '<div class="empty">No se pudo cargar el historial. Revisa tu conexión.</div>';
+  }
+});
+
+/* ================= HOJA PARA PDF (SSTA-F-149) =================
+   Mismo formato que los permisos y el ATS (tablas de common.css, clases .hp):
+   datos de la obra, A QUÉ PERMISOS Y ATS ESTÁ ANEXADO, el personal con su
+   firma y quién verificó y aprobó, con su firma. Se imprime con el diálogo
+   del navegador → "Guardar como PDF". Varios días = una hoja por día. */
+function fechaCorta(v){ const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(v||'')); return m ? m[1] : String(v||''); }
+function fechaLarga(v){
+  const f = fechaCorta(v), d = new Date(f+'T00:00:00');
+  return isNaN(d.getTime()) ? f : d.toLocaleDateString('es-CO',{weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+}
+function fechaHoja(v){ const f = fechaCorta(v); return /^\d{4}-\d{2}-\d{2}$/.test(f) ? f.slice(8,10)+'-'+f.slice(5,7)+'-'+f.slice(0,4) : (f || '—'); }
+let logoHoja = null;
+try{
+  fetch(EMPRESA.logo).then(r=>r.ok ? r.blob() : null).then(b=>{
+    if(!b) return; const fr = new FileReader(); fr.onload = ()=>{ logoHoja = fr.result; }; fr.readAsDataURL(b);
+  }).catch(()=>{});
+}catch(e){ /* sin logo: la hoja sale igual */ }
+
+function htmlHojaAnexo(reg, obra, primera){
+  const e = esc;
+  const permisos = (reg.permisos && reg.permisos.length) ? reg.permisos : (obra.permisos || []);
+  const trab = reg.trabajadores || [];
+  const ver = reg.verificador || {};
+  const img = (src)=> srcSeguro(src) ? '<img src="'+srcSeguro(src)+'" alt="firma">' : '<span class="sin-firma">Sin firma</span>';
+  const anexadoA = permisos.length ? permisos.map(p=> p.code).join(', ') : 'sin permisos ni ATS vinculados';
+  let h = '<div class="hp hp-anexo"' + (primera ? '' : ' style="break-before:page;page-break-before:always;"') + '>' +
+    '<table class="hp-cab"><colgroup><col style="width:16%"><col><col style="width:26%"></colgroup><tr>' +
+    '<td class="hp-logo"><img src="' + (logoHoja || EMPRESA.logo) + '" alt="Logo"></td>' +
+    '<td class="hp-tit">PERSONAL AUTORIZADO — REGISTRO DIARIO<div>Anexo del permiso de trabajo · Anexado a: <b>' + e(anexadoA) + '</b></div></td>' +
+    '<td class="hp-meta">' + (Empresa.codigo('SSTA-F-149') ? 'Código: <b>' + e(Empresa.codigo('SSTA-F-149')) + '</b><br>' : '') + 'Fecha del registro: <b>' + e(fechaHoja(reg.fecha)) + '</b><br>' + e(fechaLarga(reg.fecha)) + '</td>' +
+    '</tr></table>';
+  h += '<div class="hp-sec"><table><tr><td class="hp-st">Datos de la obra</td></tr></table>' +
+    '<table class="hp-campos"><colgroup><col style="width:13%"><col style="width:37%"><col style="width:13%"><col style="width:37%"></colgroup>' +
+    '<tr><td class="l">Obra</td><td>' + e(obra.nombre || '') + '</td><td class="l">Área</td><td>' + e(obra.area || '') + '</td></tr>' +
+    '<tr><td class="l">Inicio</td><td>' + e(fechaHoja(obra.fechaInicio)) + '</td><td class="l">Fin previsto</td><td>' + e(fechaHoja(obra.fechaFin)) + '</td></tr>' +
+    '</table></div>';
+  h += '<div class="hp-sec"><table><tr><td class="hp-st">Anexado a los siguientes permisos de trabajo y ATS</td></tr></table>';
+  if (permisos.length) {
+    h += '<table class="hp-ejec hp-permisos"><thead><tr><th style="width:5%">N°</th><th style="width:30%">Tipo</th><th style="width:25%">Código</th><th>Área / sitio</th></tr></thead><tbody>' +
+      permisos.map((p,i)=>'<tr><td class="a">'+(i+1)+'</td><td>'+e(p.tipo === 'ATS' ? 'ATS — Análisis de Trabajo Seguro' : 'Permiso de ' + (p.tipo||''))+'</td><td><b>'+e(p.code)+'</b></td><td>'+e(p.area||'')+'</td></tr>').join('') +
+      '</tbody></table>';
+  } else {
+    h += '<table><tr><td class="nota">Este registro no tiene permisos ni ATS vinculados.</td></tr></table>';
+  }
+  h += '</div>';
+  h += '<div class="hp-sec"><table><tr><td class="hp-st">Personal autorizado (' + trab.length + ')</td></tr></table>' +
+    '<table class="hp-ejec hp-personal"><thead><tr><th style="width:5%">N°</th><th style="width:33%">Nombre completo</th><th style="width:16%">Cédula</th><th style="width:20%">Cargo</th><th>Firma</th></tr></thead><tbody>' +
+    (trab.length ? trab.map((t,i)=>'<tr><td class="a">'+(i+1)+'</td><td>'+e(t.nombre)+'</td><td>'+e(t.cedula)+'</td><td>'+e(t.cargo)+'</td><td class="firma">'+img(t.firma)+'</td></tr>').join('')
+                 : '<tr><td colspan="5" class="nota">Sin personal registrado.</td></tr>') +
+    '</tbody></table></div>';
+  h += '<div class="hp-sec"><table><tr><td class="hp-st">Verificado y aprobado por</td></tr></table>' +
+    '<table class="hp-campos hp-verif"><colgroup><col style="width:13%"><col style="width:37%"><col style="width:13%"><col style="width:37%"></colgroup>' +
+    '<tr><td class="l">Nombre</td><td>' + e(ver.nombre || '') + '</td><td class="l" rowspan="2">Firma</td><td rowspan="2" class="firma-verif">' + img(ver.firma) + '</td></tr>' +
+    '<tr><td class="l">Cédula</td><td>' + e(ver.cedula || '') + '</td></tr>' +
+    '</table></div>';
+  h += '<div class="hp-pie">' + (reg.savedAt ? 'Guardado el ' + e(new Date(reg.savedAt).toLocaleString('es-CO')) + ' · ' : '') +
+    'Impreso el ' + e(new Date().toLocaleString('es-CO')) + ' desde el ' + e(Empresa.pie()) + '</div></div>';
+  return h;
+}
+function esperarImagenes(cont, maxMs){
+  const imgs = [...cont.querySelectorAll('img')].filter(i=>!i.complete);
+  if(!imgs.length) return Promise.resolve();
+  return Promise.race([
+    Promise.all(imgs.map(i=>new Promise(r=>{ i.addEventListener('load', r, {once:true}); i.addEventListener('error', r, {once:true}); }))),
+    new Promise(r=>setTimeout(r, maxMs || 2500))
+  ]);
+}
+async function imprimirAnexo(registros, obra){
+  let cont = document.getElementById('hojaPermiso');
+  if(!cont){ cont = document.createElement('div'); cont.id = 'hojaPermiso'; document.body.appendChild(cont); }
+  cont.innerHTML = registros.map((r,i)=>htmlHojaAnexo(r, obra, i===0)).join('');
+  if(!document.getElementById('paginaHojaAnexo')){
+    const st = document.createElement('style'); st.id = 'paginaHojaAnexo';
+    st.textContent = '@media print{@page{size:letter portrait;margin:9mm;}}';
+    document.head.appendChild(st);
+  }
+  document.body.classList.add('hp-lista');
+  await esperarImagenes(cont, 2500);
+  window.print();
+}
+/* Trae del servidor los días pedidos (con sus firmas) y los imprime juntos. */
+async function exportarDias(fechas, btn, obra, respaldo){
+  obra = obra || currentObra;
+  const statusEl = document.getElementById('historialStatus');
+  const txt = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Preparando PDF…'; }
+  const regs = [], fallas = [];
+  for(let i=0;i<fechas.length;i+=4){ // de a 4 para no saturar Apps Script
+    const lote = fechas.slice(i,i+4);
+    const res = await Promise.allSettled(lote.map(f=>
+      fetchWithRetry(FIXED_WEBAPP_URL + '?action=registro&obraId=' + encodeURIComponent(obra.obraId) + '&fecha=' + encodeURIComponent(f) + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN))
+        .then(r=>r.json())));
+    res.forEach((r,k)=>{
+      const d = r.status==='fulfilled' ? r.value : null;
+      if(d && d.ok !== false && Array.isArray(d.trabajadores)) regs.push(Object.assign({ fecha: lote[k] }, d));
+      else fallas.push(fechaHoja(lote[k]) + (d && d.error ? ' ('+d.error+')' : ''));
+    });
+    if(btn && fechas.length > 4) btn.textContent = 'Preparando PDF… ' + Math.min(i+4, fechas.length) + '/' + fechas.length;
+  }
+  if(btn){ btn.disabled = false; btn.textContent = txt; }
+  if(statusEl) statusEl.textContent = fallas.length ? 'No se pudieron traer: ' + fallas.join(', ') + '. Revisa la conexión e intenta de nuevo.' : '';
+  // Recién guardado y sin poder leerlo del servidor: se imprime lo que hay en el equipo.
+  if(!regs.length && respaldo) regs.push(respaldo);
+  if(!regs.length){ if(!statusEl || !document.getElementById('screenHistorial').classList.contains('active')) await Dialogo.avisar('No se pudo traer el registro. Revisa tu conexión.'); return; }
+  regs.sort((a,b)=>fechaCorta(a.fecha) < fechaCorta(b.fecha) ? -1 : 1);
+  await imprimirAnexo(regs, obra);
+}
+/* Sin señal: el registro quedó en cola, pero el PDF se puede sacar ya. */
+function mostrarPdfPendiente(data, causa){
+  const st = document.getElementById('registroStatus');
+  st.innerHTML = (causa
+      ? '<div class="aviso-fallo">⚠️ El registro quedó guardado en el equipo, pero el servidor no lo recibió. ' + esc(causa) + '</div>'
+      : 'Sin conexión — el registro quedó guardado localmente, se reintentará solo.') +
+    '<button type="button" class="btn ghost u-mt8" id="btnPdfPendiente">🖨️ Exportar este registro a PDF</button>';
+  const obra = Object.assign({}, currentObra);
+  document.getElementById('btnPdfPendiente').addEventListener('click', ()=> imprimirAnexo([data], obra));
+}
+window.addEventListener('afterprint', ()=> document.body.classList.remove('hp-lista'));
+
+/* ================= JORNADA (desde el ATS) =================
+   Pregunta en qué obra se registra (sugiere la que coincide con el sitio o el
+   trabajo, o la crea con los datos del ATS), anexa el ATS y sus permisos a la
+   obra y abre el registro de HOY con el personal del ATS listo para firmar. */
+const CLAVE_OBRA_JORNADA = (code)=> 'ssta-jornada-obra:' + code;
+function palabras(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[^a-z0-9]+/).filter(w=>w.length > 3); }
+async function iniciarAnexoDeJornada(){
+  const j = Jornada.actual();
+  if (!j) return;
+  if (!obrasCache.length) await cargarObras();
+  let elegida = null;
+  try { elegida = localStorage.getItem(CLAVE_OBRA_JORNADA(j.atsCode)); } catch(e){}
+  const yaElegida = obrasCache.find(o=>o.obraId === elegida);
+  if (yaElegida) return seguirAnexoDeJornada(j, yaElegida);
+  const claves = new Set(palabras(j.sitio + ' ' + j.trabajo));
+  const puntaje = (o)=> palabras(o.nombre + ' ' + o.area).filter(w=>claves.has(w)).length;
+  const lista = obrasCache.map(o=>({ o, p:puntaje(o) })).sort((a,b)=> b.p - a.p);
+  const fondo = document.createElement('div');
+  fondo.style.cssText = 'position:fixed;inset:0;background:rgba(15,25,35,.55);z-index:10001;display:flex;align-items:flex-end;justify-content:center;';
+  fondo.innerHTML = '<div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:84vh;overflow:auto;padding:16px 16px 22px;">' +
+    '<h3 style="margin:0 0 4px;font-size:var(--fs-campo);">🗂️ ¿En qué obra registras al personal?</h3>' +
+    '<p style="margin:0 0 12px;font-size:var(--fs-menor);color:var(--ink-soft);line-height:1.45;">Jornada del ' + esc(j.atsCode) + ' · ' + esc(j.trabajo || '') + '</p>' +
+    '<button type="button" class="btn amber" data-nueva style="margin:0 0 12px;">➕ Crear obra con los datos del ATS</button>' +
+    (lista.length ? lista.slice(0, 30).map(x=>'<a href="#" class="obra-item" data-obra="' + esc(x.o.obraId) + '" style="' + (x.p ? 'border-left-color:var(--ok);' : '') + '"><div class="nombre">' + esc(x.o.nombre) + (x.p ? ' <span style="font-size:var(--fs-etiqueta);color:var(--ok);">· coincide</span>' : '') + '</div><div class="meta">' + esc(x.o.area || '') + '</div></a>').join('') : '<div class="empty">No hay obras todavía.</div>') +
+    '<button type="button" class="btn ghost" data-cancelar>Ahora no</button></div>';
+  document.body.appendChild(fondo);
+  fondo.querySelector('[data-cancelar]').onclick = ()=> fondo.remove();
+  fondo.querySelectorAll('[data-obra]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); fondo.remove(); seguirAnexoDeJornada(j, obrasCache.find(o=>o.obraId === a.dataset.obra)); }));
+  fondo.querySelector('[data-nueva]').onclick = async (e)=>{
+    const nombre = await Dialogo.pedir('Nombre de la obra:', (j.trabajo || '').slice(0, 80));
+    if (!nombre || !nombre.trim()) return;
+    e.target.disabled = true; e.target.textContent = 'Creando…';
+    const r = await crearObraEnServidor(nombre.trim(), j.sitio || '', j.desde || '', j.hasta || '');
+    if (r.error){ e.target.disabled = false; e.target.textContent = '➕ Crear obra con los datos del ATS'; await Dialogo.avisar(r.error); return; }
+    obrasCache.unshift(r.obra);
+    fondo.remove();
+    seguirAnexoDeJornada(j, r.obra);
+  };
+}
+async function seguirAnexoDeJornada(j, obra){
+  if (!obra) return;
+  try { localStorage.setItem(CLAVE_OBRA_JORNADA(j.atsCode), obra.obraId); } catch(e){}
+  abrirObra(obra);
+  // Anexar a la obra el ATS y los permisos que se hicieron en esta jornada.
+  const B = PORTAL_CONFIG.BACKENDS;
+  const nuevos = [{ code:j.atsCode, tipo:'ATS', icono:'🧭', archivo:'ats.html', area:j.sitio || '' }];
+  Object.keys(j.hechos || {}).forEach(k=>{
+    const h = j.hechos[k];
+    if (k.indexOf('permiso:') !== 0 || !h || !h.code) return;
+    const t = B[k.slice(8)] || {};
+    nuevos.push({ code:h.code, tipo:t.nombre || k.slice(8), icono:t.icono || '', archivo:t.archivo || '', area:j.sitio || '' });
+  });
+  const faltan = nuevos.filter(n=> !(currentObra.permisos || []).some(p=>p.code === n.code));
+  if (faltan.length){ currentObra.permisos = (currentObra.permisos || []).concat(faltan); renderPermisosVinculados(); guardarPermisosVinculados(); }
+  await abrirRegistroHoy();
+  const n = agregarPersonas((j.personas || []).map(p=>({ nombre:p.nombre, cedula:p.cc || p.cedula || '', cargo:p.cargo || '' })));
+  await Dialogo.avisar('🗂️ Jornada del ' + j.atsCode + ': ' + (n ? n + ' persona(s) del ATS listas para firmar' : 'el personal del ATS ya está registrado hoy') + (faltan.length ? '.\nSe anexaron a la obra: ' + faltan.map(f=>f.code).join(', ') + '.' : '.'));
+}
+window.addEventListener('jornada-ir', (e)=>{ if (e.detail === 'anexo') iniciarAnexoDeJornada(); });
+
+/* ================= INICIO ================= */
+Jornada.barra();
+if (Jornada.enJornada() && /[?&]jornada=1\b/.test(location.search)){
+  const jj = Jornada.actual();
+  history.replaceState(null, '', location.pathname);
+  if (jj && !(jj.hechos && jj.hechos.anexo)) setTimeout(iniciarAnexoDeJornada, 0);
+}
+cargarObras();
+</script>
+</body>
+</html>

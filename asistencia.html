@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Y9mV8KQNBvfw+Gty+ayhUn5t+9Jm2BSFnsUiCN01hyk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistencia a charlas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSTA-F-005 · Asistencia a charlas">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{ --amber:var(--ambar-600); --amber-dark:#8a6408; --muted:#5f6b78; --azul:#2f6fbf; }
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg,var(--bg));color:var(--ink);font-family:var(--font-family,-apple-system,sans-serif);padding-bottom:120px;}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px;}
+.hdr{display:block;background:var(--ink);padding:1.3rem 1.2rem 1.05rem;margin:0 -14px 14px;border-radius:0 0 16px 16px;}
+.hdr .eyebrow{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--n-400);margin-bottom:6px;}
+.hdr h1{font-family:var(--font-display);font-size:var(--fs-display);color:#fff;margin:0 0 2px;}
+.hdr p{font-size:var(--fs-menor);color:var(--n-400);margin:0;}
+.hdr a.back{display:inline-block;margin-bottom:10px;font-size:var(--fs-menor);color:var(--ambar-600);text-decoration:none;font-weight:600;}
+.card{background:var(--paper,#fff);border:1px solid var(--line);border-radius:var(--r-m);padding:14px 15px;margin-bottom:12px;}
+.card h2{font-family:var(--font-display);font-size:var(--fs-titulo);margin:0 0 10px;}
+.field{margin-bottom:12px;position:relative;}
+.field label{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;}
+.field input,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:12px 13px;font-size:var(--fs-campo);min-height:46px;background:var(--n-0);font-family:inherit;}
+.field textarea{min-height:70px;resize:vertical;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* iPhone (Safari/Brave): los campos de fecha y hora traen un ancho mínimo propio
+   y el texto centrado; se salían de la tarjeta y se montaban sobre el de al lado. */
+.grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;}
+.field input[type=date],.field input[type=time]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;width:100%;display:block;text-align:left;}
+.field input::-webkit-date-and-time-value{text-align:left;}
+.field select{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:12px 13px;font-size:var(--fs-campo);min-height:46px;background:var(--n-0);font-family:inherit;color:var(--ink);-webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,#8a97a3 50%),linear-gradient(135deg,#8a97a3 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:32px;}
+.field select + input{margin-top:8px;}
+.btn{display:block;width:100%;text-align:center;background:var(--ink);color:#fff;font-weight:700;font-size:var(--fs-base);border:none;border-radius:var(--r-m);padding:14px;margin-top:8px;cursor:pointer;font-family:inherit;}
+.btn.amber{background:var(--amber);color:var(--ink);}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink);}
+.btn:disabled{opacity:.55;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:var(--r-xl);padding:6px 11px;font-size:var(--fs-menor);font-weight:600;cursor:pointer;color:var(--ink);}
+.chips button.on{border-color:var(--amber);background:var(--ambar-50);}
+.status-msg{font-size:var(--fs-menor);color:var(--muted);text-align:center;margin-top:10px;min-height:16px;}
+.empty{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:1.6rem;text-align:center;color:var(--muted);font-size:var(--fs-base);}
+.aviso{background:var(--rojo-50);border:1px solid var(--rojo-200);color:var(--rojo-900);border-radius:var(--r-m);padding:11px 13px;font-size:var(--fs-menor);line-height:1.45;margin-bottom:12px;}
+.aviso.info{background:var(--azul-50);border-color:var(--azul-100);color:var(--azul-700);}
+.screen{display:none;}
+.screen.active{display:block;}
+.semana-item{display:block;background:#fff;border:1px solid var(--line);border-left:4px solid var(--azul);border-radius:var(--r-m);padding:12px 14px;margin-bottom:9px;text-decoration:none;color:inherit;cursor:pointer;}
+.semana-item .t{font-family:var(--font-display);font-weight:700;font-size:var(--fs-base);}
+.semana-item .m{font-size:var(--fs-menor);color:var(--muted);margin-top:3px;line-height:1.4;}
+.dia-item{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:11px 13px;margin-bottom:8px;cursor:pointer;}
+.dia-item.hoy{border-color:var(--amber);box-shadow:0 0 0 2px var(--ambar-200);}
+.dia-item .dn{width:52px;flex-shrink:0;text-align:center;}
+.dia-item .dn b{display:block;font-family:var(--font-display);font-size:var(--fs-base);}
+.dia-item .dn span{font-size:var(--fs-etiqueta);color:var(--muted);}
+.dia-item .dt{flex:1;min-width:0;}
+.dia-item .tema{font-weight:700;font-size:var(--fs-base);overflow:hidden;text-overflow:ellipsis;}
+.dia-item .tema.vacio{color:var(--n-400);font-weight:500;}
+.dia-item .meta{font-size:var(--fs-etiqueta);color:var(--muted);margin-top:2px;}
+.dia-item .n{font-size:var(--fs-etiqueta);font-weight:700;background:var(--bg);color:var(--ink-soft);border-radius:var(--r-xl);padding:3px 9px;flex-shrink:0;}
+.guardado{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;background:#fff;}
+.guardado.quitado{opacity:.45;text-decoration:line-through;}
+.guardado .gi{flex:1;min-width:0;}
+.guardado .gn{font-weight:700;font-size:var(--fs-base);line-height:1.3;overflow-wrap:anywhere;}
+.guardado .gm{font-size:var(--fs-etiqueta);color:var(--muted);}
+.guardado img{height:34px;width:72px;object-fit:contain;flex-shrink:0;}
+.guardado .sf{font-size:var(--fs-etiqueta);color:var(--ok);font-weight:700;}
+.guardado .sf.no{color:var(--warn);}
+
+.as-row{border:1px solid var(--line);border-radius:var(--r-m);padding:12px 12px 10px;margin-bottom:12px;background:var(--n-0);}
+.as-row input{width:100%;border:1.5px solid var(--n-150);border-radius:var(--r-s);padding:10px 12px;font-size:var(--fs-titulo);margin-bottom:8px;background:#fff;min-height:44px;font-family:inherit;}
+.as-row .firma-lbl{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin:4px 0 6px;display:block;}
+.fila-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px 0 10px;}
+.fila-cab .fila-n{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.btn-quitar{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;border:1.5px solid var(--rojo-200);background:#fff;color:var(--warn);font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-xl);padding:6px 12px;min-height:34px;cursor:pointer;font-family:inherit;}
+.btn-quitar:active{background:var(--rojo-50);}
+canvas.mini-pad{width:100%;height:150px;border:1.5px dashed #b9b2a2;border-radius:var(--r-s);background:#fff;touch-action:none;cursor:crosshair;display:block;}
+.sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.sig-actions button{font-size:var(--fs-etiqueta);border:1px solid var(--line);background:#fff;border-radius:var(--r-xs);padding:5px 10px;cursor:pointer;color:var(--muted);}
+.sig-status{font-size:var(--fs-etiqueta);color:var(--muted);}
+.sig-status.signed{color:var(--ok);font-weight:700;}
+.sec-t{font-family:var(--font-display);font-size:var(--fs-base);font-weight:700;margin:16px 2px 8px;display:flex;justify-content:space-between;align-items:center;}
+.sec-t span{font-size:var(--fs-etiqueta);color:var(--muted);font-weight:600;}
+.version-portal{font-size:var(--fs-etiqueta);color:var(--muted);text-align:center;margin:18px 0 0;}
+.modal-fondo{position:fixed;inset:0;background:rgba(15,25,35,.5);z-index:9000;display:flex;align-items:flex-end;justify-content:center;}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:80vh;overflow:auto;padding:16px;}
+.modal h3{margin:0 0 10px;font-size:var(--fs-titulo);}
+.toast.aviso{background:var(--rojo-900);}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:78px;background:var(--ok);color:#fff;font-weight:600;font-size:var(--fs-base);padding:10px 16px;border-radius:var(--r-s);z-index:9500;box-shadow:0 3px 12px rgba(0,0,0,.25);max-width:92%;}
+
+/* ── Hoja SSTA-F-005 para imprimir / PDF (carta horizontal) ── */
+.f5{padding:1px 2px 0 1px;font-family:Arial, Helvetica, sans-serif;color:#000;font-size:8.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.f5 table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.f5 td,.f5 th{border:1px solid #000;padding:2px 4px;vertical-align:middle;overflow-wrap:anywhere;}
+.f5 tr{break-inside:avoid;page-break-inside:avoid;}
+.f5 .cab .logo img{max-height:44px;max-width:100%;display:block;margin:0 auto;}
+.f5 .cab .tit{text-align:center;font-weight:700;font-size:var(--fs-etiqueta);}
+.f5 .cab .meta td{font-size:7px;padding:1px 3px;border:none;border-bottom:1px solid #000;}
+.f5 .cab .meta tr:last-child td{border-bottom:none;}
+.f5 .cab .meta td + td{border-left:1px solid #000;}
+.f5 .cab td.meta-c{padding:0;}
+.f5 .azul{background:#5b8fd3;font-weight:700;text-align:center;}
+.f5 .tem td{height:17px;font-size:8.5px;}
+.f5 .tem b{font-weight:700;}
+.f5 .asis{margin-top:-1px;}
+.f5 .asis thead th{font-weight:700;font-size:8px;text-align:center;}
+.f5 .asis thead tr.dias th{background:#fff;font-size:8px;padding:1px 2px;}
+.f5 .asis td{height:30px;}
+.f5 .asis td.n{text-align:center;font-size:7px;}
+.f5 .asis td.f{text-align:center;padding:1px;}
+.f5 .asis td.f img{max-height:26px;max-width:100%;}
+.f5 .asis td.f .no{font-size:7.5px;font-weight:700;color:var(--rojo-900);}
+.f5 .asis td.f.nd{background:var(--bg);color:var(--n-450);font-size:8px;}
+.f5 .tem .sin{color:var(--n-450);font-style:italic;}
+.f5 .asis td.f .tx{font-size:6.5px;color:var(--n-650);}
+.f5 .pie{font-size:6.5px;color:var(--n-650);text-align:right;margin-top:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════ INICIO ═══════ -->
+<div class="screen active" id="screenInicio">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">SSTA-F-005</div>
+    <h1>Asistencia a charlas</h1>
+    <p>Capacitación, eventos y reuniones</p></div></div>
+  </div>
+  <div id="avisoServidor"></div>
+  <div class="card">
+    <h2>✍️ Registrar una charla</h2>
+    <div class="field"><label>Lugar de trabajo</label><input type="text" id="inLugar" autocomplete="off" placeholder="Ej. Planta principal · bodega 2"></div>
+    <div class="field"><label>Fecha de la charla</label><input type="date" id="inFecha"></div>
+    <button class="btn amber" id="btnAbrirCharla">Abrir charla</button>
+    <div class="status-msg" id="inicioStatus"></div>
+  </div>
+  <details class="card" id="cardRango">
+    <summary style="font-family:var(--font-display);font-weight:700;font-size:var(--fs-base);cursor:pointer;">🖨️ Exportar a PDF por fechas</summary>
+    <div class="mt-12">
+      <div class="grid2">
+        <div class="field"><label>Desde</label><input type="date" id="rgDesde"></div>
+        <div class="field"><label>Hasta</label><input type="date" id="rgHasta"></div>
+      </div>
+      <div class="fila-btn" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;"><button type="button" class="btn ghost mini" data-rango="mes">Este mes</button><button type="button" class="btn ghost mini" data-rango="ant">Mes anterior</button><button type="button" class="btn ghost mini" data-rango="anio">Este año</button></div>
+      <div class="field"><label>Lugar de trabajo (vacío = todos)</label><input type="text" id="rgLugar" autocomplete="off" placeholder="Todos los lugares"></div>
+      <button class="btn amber" id="btnPdfRango">Exportar</button>
+      <div class="status-msg" id="rangoStatus"></div>
+    </div>
+  </details>
+  <div class="sec-t">Semanas recientes <span id="semanasNota"></span></div>
+  <div id="semanasList"><div class="status-msg">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<!-- ═══════ SEMANA ═══════ -->
+<div class="screen" id="screenSemana">
+  <div class="hdr">
+    <a class="back" href="#" id="backSemana">← Semanas</a>
+    <div class="eyebrow" id="semLugar">—</div>
+    <h1 id="semTitulo">Semana</h1>
+    <p id="semSub">—</p>
+  </div>
+  <div id="semAviso"></div>
+  <div id="diasList"></div>
+  <button class="btn amber" id="btnPdfSemana">🖨️ Ver / exportar PDF de la semana</button>
+  <button class="btn ghost" id="btnRefrescarSemana">↻ Actualizar (ver lo de otros celulares)</button>
+</div>
+
+<!-- ═══════ DÍA ═══════ -->
+<div class="screen" id="screenDia">
+  <div class="hdr">
+    <a class="back" href="#" id="backDia">← Semana</a>
+    <div class="eyebrow" id="diaLugar">—</div>
+    <h1 id="diaTitulo">—</h1>
+    <p id="diaSub">SSTA-F-005 · Charla del día</p>
+  </div>
+  <div class="card">
+    <div class="field"><label>Tema de la charla</label><textarea id="inTema" placeholder="Ej. Uso correcto del arnés y línea de vida"></textarea><div id="temasSug" class="u-fs-menor" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div></div>
+    <div class="grid2">
+      <div class="field"><label>Hora</label><input type="time" id="inHora"></div>
+      <div class="field"><label>Duración</label>
+        <select id="selDuracion">
+          <option value="">Elegir…</option>
+          <option>5 min</option><option>10 min</option><option>15 min</option><option>20 min</option><option>30 min</option><option>45 min</option>
+          <option>1 hora</option><option>1 hora 30 min</option><option>2 horas</option><option>3 horas</option><option>4 horas</option><option>5 horas</option><option>6 horas</option>
+          <option value="otra">Otra…</option>
+        </select>
+        <input type="text" id="inDuracion" placeholder="Escribe la duración" hidden>
+      </div>
+    </div>
+    <div class="field"><label>Ejecutor (quien da la charla)</label><input type="text" id="inEjecutor" autocomplete="off" placeholder="Nombre (escribe para buscar)"></div>
+    <div class="field" id="campoEjecutor2" hidden><label>Segundo ejecutor <button type="button" id="btnQuitarEjecutor2" class="btn-quitar" style="float:right;min-height:26px;padding:2px 10px;font-size:var(--fs-menor);margin-top:-4px;">✕ Quitar</button></label>
+      <input type="text" id="inEjecutor2" autocomplete="off" placeholder="Nombre (escribe para buscar)"></div>
+    <button type="button" class="btn ghost" id="btnEjecutor2" style="font-size:var(--fs-menor);padding:10px;margin-top:0;">+ Agregar otro ejecutor</button>
+    <!-- v149: quien dicta la charla también firma (evidencia de quién la dio) -->
+    <div class="field"><label class="firma-lbl" for="padEjec">Firma de quien da la charla</label><canvas class="mini-pad" id="padEjec"></canvas>
+      <div class="sig-actions"><button type="button" data-clear="padEjec">Borrar firma</button></div><div id="ejecFirmada" class="ayuda"></div></div>
+  </div>
+
+  <div class="sec-t">Asistentes <span id="cuentaAsis">0</span></div>
+  <div id="guardadosList"></div>
+  <div id="nuevosList"></div>
+  <button class="btn ghost u-fs-base" id="btnAgregarAsis">+ Agregar asistente</button>
+  <div class="grid2">
+    <button class="btn ghost btn-compacto" id="btnTraerAts">🧭 Traer del ATS</button>
+    <button class="btn ghost btn-compacto" id="btnCopiarDia">📋 Lista de otro día</button>
+  </div>
+  <button class="btn amber mt-16" id="btnGuardarDia">Guardar charla</button>
+  <div class="status-msg" id="diaStatus"></div>
+</div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* ============================================================
+   CONTROL DE ASISTENCIA A CAPACITACIÓN, EVENTOS Y REUNIONES (SSTA-F-005)
+   El formato es semanal: una hoja por semana y lugar, con el tema de cada
+   día y la firma de cada trabajador en la columna del día que asistió.
+   Aquí se diligencia día por día desde el celular (tema + firmas) y la hoja
+   semanal se arma sola para imprimir o guardar en PDF.
+   ============================================================ */
+const URL_ASIS = (PORTAL_CONFIG.BACKENDS.asistencia && PORTAL_CONFIG.BACKENDS.asistencia.url) || '';
+const URL_PERSONAL = PORTAL_CONFIG.BACKENDS.personal && PORTAL_CONFIG.BACKENDS.personal.url;
+const DIAS = ['lun','mar','mie','jue','vie','sab','dom'];
+const NOMBRE_DIA = { lun:'Lunes', mar:'Martes', mie:'Miércoles', jue:'Jueves', vie:'Viernes', sab:'Sábado', dom:'Domingo' };
+const $ = (id)=>document.getElementById(id);
+const token = ()=>PORTAL_CONFIG.API_TOKEN;
+
+/* ---------- almacenamiento local (nunca debe tumbar la página) ---------- */
+const LS = { semanas:'ssta-asis-semanas', lugar:'ssta-asis-lugar', personal:'ssta-asis-personal',
+             doc:(c)=>'ssta-asis-doc:'+c, borrador:(c,d)=>'ssta-asis-borrador:'+c+':'+d };
+function lsGet(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+/* ---------- fechas (siempre texto AAAA-MM-DD, en hora local) ---------- */
+function hoyISO(){ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function sumarDias(iso, n){ const p = iso.split('-').map(Number); const d = new Date(Date.UTC(p[0], p[1]-1, p[2]+n)); return d.toISOString().slice(0,10); }
+function diaSemana(iso){ const p = iso.split('-').map(Number); return new Date(Date.UTC(p[0], p[1]-1, p[2])).getUTCDay(); }
+function lunesDe(iso){ const w = diaSemana(iso); return sumarDias(iso, w === 0 ? -6 : 1 - w); }
+function diaDe(iso){ return DIAS[(diaSemana(iso) + 6) % 7]; }
+function fechaDelDia(doc, dia){ return sumarDias(doc.semanaDel, DIAS.indexOf(dia)); }
+function fechaCorta(iso){ return /^\d{4}-\d{2}-\d{2}$/.test(iso||'') ? iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4) : (iso||''); }
+function fechaBonita(iso, conAnio){ const p = iso.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]).toLocaleDateString('es-CO', conAnio ? {day:'numeric', month:'long', year:'numeric'} : {day:'numeric', month:'short'}); }
+function normLugar(s){ return String(s||'').trim().toUpperCase().replace(/\s+/g,' '); }
+function clavePersona(p){ const c = String((p && p.cedula) || '').replace(/[^0-9A-Za-z]/g,''); return c ? 'C:'+c : 'N:'+String((p && p.nombre) || '').trim().toUpperCase().replace(/\s+/g,' '); }
+function nuevoOpId(){ return 'asi-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8); }
+function codigoLocal(semanaDel){ return 'ASI-' + semanaDel.replace(/-/g,'') + '-' + String(Math.floor(Math.random()*900000)+100000); }
+function toast(msg, tipo){ const t = document.createElement('div'); t.className = 'toast' + (tipo ? ' ' + tipo : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), tipo ? 6000 : 3500); }
+
+/* ---------- respuestas del servidor ----------
+   Si el Apps Script no está publicado para "Cualquier usuario" (o la URL es
+   de otra implementación), Google responde con una PÁGINA (inicio de sesión
+   o error), no con datos. Antes eso se trataba como "sin señal": la charla
+   quedaba en cola para siempre sin que nadie supiera por qué. */
+const MSG_PAGINA = 'El servidor de asistencia respondió con una página en vez de datos. Revisa en Apps Script → Implementar → Administrar implementaciones: debe decir "Ejecutar como: yo" y "Acceso: Cualquier usuario", y la URL de config.js debe ser la de esa implementación (termina en /exec).';
+async function leerJson(res){
+  const texto = await res.text();
+  try { return JSON.parse(texto); }
+  catch(e){ const err = new Error(MSG_PAGINA + ' (HTTP ' + res.status + ')'); err.pagina = true; throw err; }
+}
+
+/* ---------- la misma mezcla que hace el servidor (para mostrar lo pendiente) ---------- */
+function mezclarDia(doc, body){
+  doc.dias = doc.dias || {};
+  const previo = doc.dias[body.dia] || { tema:'', hora:'', duracion:'', ejecutor:'', asistentes:[] };
+  const quitar = new Set(body.quitar || []);
+  const lista = [], indice = {};
+  (previo.asistentes || []).forEach(a=>{ const k = clavePersona(a); if (quitar.has(k)) return; indice[k] = lista.length; lista.push(a); });
+  (body.asistentes || []).forEach(a=>{
+    if (!String(a.nombre||'').trim()) return;
+    const p = { nombre:String(a.nombre).trim(), cedula:String(a.cedula||'').trim(), cargo:String(a.cargo||'').trim(), firma:a.firma || '', pendiente: !!body._pendiente };
+    const k = clavePersona(p);
+    if (k in indice){ if (!p.firma) p.firma = lista[indice[k]].firma || ''; lista[indice[k]] = p; }
+    else { indice[k] = lista.length; lista.push(p); }
+  });
+  const campo = (k)=> Object.prototype.hasOwnProperty.call(body, k) ? String(body[k]||'').trim() : (previo[k] || '');
+  doc.dias[body.dia] = { tema:campo('tema'), hora:campo('hora'), duracion:campo('duracion'), ejecutor:campo('ejecutor'), ejecutorCedula:campo('ejecutorCedula'), ejecutorFirma: body.ejecutorFirma || previo.ejecutorFirma || '', asistentes:lista };
+  if (body.opId) doc.opIds = (doc.opIds || []).concat([body.opId]);
+  return doc;
+}
+/* Copia para guardar en el equipo sin las imágenes (pesan): se deja una marca. */
+function sinImagenes(doc){
+  return JSON.parse(JSON.stringify(doc, (k, v)=> (k === 'firma' && typeof v === 'string' && v.indexOf('data:image') === 0) ? '✓' : v));
+}
+function guardarCache(doc){
+  if (!doc || !doc.code) return;
+  // Sin servidor (modo solo-equipo) la semana guarda también las firmas: es la única copia.
+  if (!URL_ASIS && lsSet(LS.doc(doc.code), doc)) return;
+  lsSet(LS.doc(doc.code), sinImagenes(doc));
+}
+/* Lo que está en la cola sin señal para esta semana se suma a lo que se ve. */
+async function aplicarPendientes(doc){
+  doc._pendientes = 0;
+  if (typeof Outbox === 'undefined' || !URL_ASIS) return doc;
+  let items = [];
+  try { items = await Outbox.list(); } catch(e){ return doc; }
+  items.filter(it=> it.url === URL_ASIS && it.body && it.body.action === 'guardarDia' &&
+      (it.body.code === doc.code || (lunesDe(it.body.semanaDel || doc.semanaDel) === doc.semanaDel && normLugar(it.body.lugar) === normLugar(doc.lugar))) &&
+      !(doc.opIds || []).includes(it.body.opId))
+    .forEach(it=>{ mezclarDia(doc, Object.assign({}, it.body, { _pendiente:true, opId:null })); doc._pendientes++; });
+  return doc;
+}
+
+/* ---------- navegación ---------- */
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); window.scrollTo(0,0); }
+$('backSemana').addEventListener('click', e=>{ e.preventDefault(); cargarSemanas(); showScreen('screenInicio'); });
+$('backDia').addEventListener('click', async e=>{ e.preventDefault(); if (hayCambiosSinGuardar() && !await Dialogo.confirmar('Hay asistentes o cambios sin guardar. Quedan guardados como borrador en este equipo. ¿Salir?')) return; mostrarSemana(); });
+
+/* ---------- autocompletar (propio: el <datalist> casi no funciona en iPhone) ---------- */
+function autocompletar(inputEl, buscar, onSelect){
+  let box = null;
+  const cerrar = ()=>{ if (box){ box.remove(); box = null; } };
+  function abrir(){
+    cerrar();
+    const q = inputEl.value.trim().toLowerCase();
+    if (!q) return;
+    const items = buscar(q).slice(0, 6);
+    if (!items.length) return;
+    box = document.createElement('div');
+    box.className = 'autocomplete-box';
+    const r = inputEl.getBoundingClientRect();
+    Object.assign(box.style, { position:'absolute', left:(r.left + scrollX)+'px', top:(r.bottom + scrollY + 2)+'px', width:r.width+'px' });
+    items.forEach(it=>{
+      const d = document.createElement('div');
+      d.className = 'autocomplete-item';
+      d.innerHTML = '<b>' + esc(it.titulo) + '</b>' + (it.sub ? '<span>' + esc(it.sub) + '</span>' : '');
+      d.addEventListener('mousedown', e=>{ e.preventDefault(); onSelect(it); cerrar(); });
+      box.appendChild(d);
+    });
+    document.body.appendChild(box);
+  }
+  inputEl.addEventListener('input', abrir);
+  inputEl.addEventListener('focus', abrir);
+  inputEl.addEventListener('blur', ()=>setTimeout(cerrar, 150));
+  inputEl.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' || e.key === 'Enter') cerrar(); });
+  // Al abrir el teclado el celular desplaza la página: si se cerrara con
+  // cada desplazamiento, las sugerencias desaparecerían justo al escribir.
+  // Mientras se escribe en el campo, la lista lo sigue.
+  window.addEventListener('scroll', ()=>{
+    if (!box) return;
+    if (document.activeElement !== inputEl) { cerrar(); return; }
+    const r = inputEl.getBoundingClientRect();
+    box.style.left = (r.left + scrollX) + 'px'; box.style.top = (r.bottom + scrollY + 2) + 'px';
+  }, true);
+}
+
+/* ---------- base de datos de personal (la misma del anexo) ---------- */
+let personal = lsGet(LS.personal, []);
+async function cargarPersonal(){
+  if (!URL_PERSONAL) return;
+  try {
+    const res = await fetchWithRetry(URL_PERSONAL + '?action=listPersonal&token=' + encodeURIComponent(token()));
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.personal)){ personal = data.personal; lsSet(LS.personal, personal); }
+  } catch(e){ /* sin señal: se usa la última lista guardada en el equipo */ }
+}
+const buscarPersona = (q)=> personal.filter(p=> String(p.nombre||'').toLowerCase().includes(q) || String(p.cedula||'').includes(q))
+  .map(p=>({ titulo:p.nombre, sub:'CC ' + p.cedula + (p.cargo ? ' · ' + p.cargo : ''), p }));
+
+/* ================= INICIO ================= */
+let semanasCache = lsGet(LS.semanas, []);
+$('inFecha').value = hoyISO();
+$('inLugar').value = lsGet(LS.lugar, '');
+autocompletar($('inLugar'), (q)=>{
+  const vistos = new Set(), out = [];
+  semanasCache.forEach(s=>{ const L = String(s.lugar||''); if (L.toLowerCase().includes(q) && !vistos.has(normLugar(L))){ vistos.add(normLugar(L)); out.push({ titulo:L }); } });
+  return out;
+}, (it)=>{ $('inLugar').value = it.titulo; });
+
+if (!URL_ASIS) {
+  $('avisoServidor').innerHTML = '<div class="aviso info"><b>Modo solo en este equipo.</b> Todavía no está configurado el servidor de asistencia (falta la URL en config.js → BACKENDS.asistencia). Las charlas se guardan en este celular y se pueden imprimir o guardar en PDF, pero no se comparten con otros equipos.</div>';
+}
+
+function renderSemanas(){
+  const el = $('semanasList');
+  if (!semanasCache.length){ el.innerHTML = '<div class="empty">Aún no hay semanas registradas. Abre la primera charla arriba.</div>'; return; }
+  el.innerHTML = semanasCache.map(s=>`
+    <div class="semana-item" data-code="${esc(s.code)}">
+      <div class="t">Semana del ${esc(fechaBonita(s.semanaDel))} al ${esc(fechaBonita(s.semanaAl || sumarDias(s.semanaDel,6), true))}</div>
+      <div class="m">📍 ${esc(s.lugar)} · ${Number(s.charlas)||0} charla${Number(s.charlas)===1?'':'s'} · ${Number(s.asistentes)||0} persona${Number(s.asistentes)===1?'':'s'}${s.local ? ' · <b>solo en este equipo</b>' : ''}</div>
+      ${s.temas ? `<div class="m">${esc(String(s.temas).slice(0,160))}</div>` : ''}
+    </div>`).join('');
+  el.querySelectorAll('.semana-item').forEach(x=> x.addEventListener('click', ()=> abrirSemanaPorCodigo(x.dataset.code)));
+}
+async function cargarSemanas(){
+  renderSemanas();
+  if (!URL_ASIS){
+    // Modo local: el listado sale de lo guardado en el equipo.
+    semanasCache = semanasCache.map(s=>{ const d = lsGet(LS.doc(s.code), null); return d ? Object.assign(s, resumenLocal(d)) : s; });
+    renderSemanas(); return;
+  }
+  $('semanasNota').textContent = 'actualizando…';
+  try {
+    const res = await fetchWithRetry(URL_ASIS + '?list=1&token=' + encodeURIComponent(token()));
+    const data = await leerJson(res);
+    $('avisoServidor').innerHTML = '';
+    if (data.ok && Array.isArray(data.rows)){
+      const locales = semanasCache.filter(s=> s.local && !data.rows.some(r=> r.code === s.code || (r.semanaDel === s.semanaDel && normLugar(r.lugar) === normLugar(s.lugar))));
+      semanasCache = locales.concat(data.rows);
+      lsSet(LS.semanas, semanasCache);
+      $('semanasNota').textContent = '';
+    } else $('semanasNota').textContent = (data && data.error) ? (/SESION|usuario/i.test((data.codigoError || '') + data.error) ? '' : 'No se pudo traer la lista: ' + data.error) : '';   // v148: sin «error:» crudo; el aviso de entrar ya lo dice
+  } catch(e){
+    $('semanasNota').textContent = e.pagina ? 'el servidor no respondió con datos' : 'sin conexión (lista guardada)';
+    if (e.pagina) $('avisoServidor').innerHTML = '<div class="aviso">⚠️ ' + esc(e.message) + '</div>';
+  }
+  renderSemanas();
+}
+function resumenLocal(doc){
+  const personas = new Set(); let charlas = 0; const temas = [];
+  DIAS.forEach(d=>{ const x = doc.dias && doc.dias[d]; if (!x) return; if (x.tema){ charlas++; temas.push(NOMBRE_DIA[d] + ': ' + x.tema); } (x.asistentes||[]).forEach(a=>personas.add(clavePersona(a))); });
+  return { code:doc.code, semanaDel:doc.semanaDel, semanaAl:doc.semanaAl, lugar:doc.lugar, charlas, asistentes:personas.size, temas:temas.join(' | ') };
+}
+function recordarSemana(doc, local){
+  const r = resumenLocal(doc);
+  if (local) r.local = true;
+  semanasCache = [r].concat(semanasCache.filter(s=> s.code !== doc.code));
+  lsSet(LS.semanas, semanasCache);
+}
+
+/* ================= ABRIR ================= */
+let semana = null;   // la semana abierta
+let diaActual = null;
+
+$('btnAbrirCharla').addEventListener('click', async ()=>{
+  const lugar = $('inLugar').value.trim(), fecha = $('inFecha').value;
+  const st = $('inicioStatus');
+  if (!lugar){ st.textContent = 'Escribe el lugar de trabajo.'; $('inLugar').focus(); return; }
+  if (!fecha){ st.textContent = 'Elige la fecha.'; return; }
+  lsSet(LS.lugar, lugar);
+  const btn = $('btnAbrirCharla'); btn.disabled = true; st.textContent = 'Abriendo…';
+  try {
+    semana = await obtenerSemana(fecha, lugar);
+    st.textContent = '';
+    abrirDia(diaDe(fecha));
+  } finally { btn.disabled = false; }
+});
+
+/* La semana de esa fecha y lugar: la del servidor si hay señal; si no, la
+   guardada en el equipo, o una nueva con código propio (el servidor la une
+   con la de otro celular si ya existía). */
+async function obtenerSemana(fecha, lugar){
+  const semanaDel = lunesDe(fecha);
+  if (URL_ASIS && navigator.onLine){
+    try {
+      const res = await fetchWithRetry(URL_ASIS, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ action:'abrirSemana', fecha, lugar, opId:nuevoOpId(), token:token() }) });
+      const data = await leerJson(res);
+      if (data.ok && data.semana){
+        const doc = await aplicarPendientes(data.semana);
+        guardarCache(data.semana); recordarSemana(data.semana, false);
+        return doc;
+      }
+      if (ClavePortal.esErrorDeClave(data)) throw new Error('clave');
+    } catch(e){ /* sigue con lo del equipo */ }
+  }
+  const conocida = semanasCache.find(s=> s.semanaDel === semanaDel && normLugar(s.lugar) === normLugar(lugar));
+  const code = conocida ? conocida.code : codigoLocal(semanaDel);
+  // Una semana que existe en el servidor pero nunca se abrió en este equipo:
+  // sin señal no se sabe qué tiene; se marca para no decir "sin charla".
+  const doc = lsGet(LS.doc(code), null) || { code, semanaDel, semanaAl:sumarDias(semanaDel,6), lugar, dias:{}, opIds:[], version:0, local:!conocida, sinDetalle:!!(conocida && !conocida.local) };
+  if (!conocida) recordarSemana(doc, true);
+  return aplicarPendientes(doc);
+}
+async function traerSemana(code){
+  if (URL_ASIS && navigator.onLine && !/^local/.test(code)){
+    try {
+      const res = await fetchWithRetry(URL_ASIS + '?code=' + encodeURIComponent(code) + '&token=' + encodeURIComponent(token()));
+      const data = await leerJson(res);
+      if (data.ok && data.semana){ guardarCache(data.semana); recordarSemana(data.semana, false); return aplicarPendientes(data.semana); }
+    } catch(e){}
+  }
+  const doc = lsGet(LS.doc(code), null);
+  if (doc) return aplicarPendientes(doc);
+  const s = semanasCache.find(x=> x.code === code);
+  if (!s) return null;
+  return aplicarPendientes({ code, semanaDel:s.semanaDel, semanaAl:s.semanaAl, lugar:s.lugar, dias:{}, opIds:[], sinDetalle:true });
+}
+async function abrirSemanaPorCodigo(code){
+  $('semanasNota').textContent = 'abriendo…';
+  semana = await traerSemana(code);
+  $('semanasNota').textContent = '';
+  if (!semana){ await Dialogo.avisar('No se pudo abrir esa semana. Revisa tu conexión.'); return; }
+  mostrarSemana();
+}
+
+/* ================= SEMANA ================= */
+function mostrarSemana(){
+  const s = semana;
+  $('semLugar').textContent = '📍 ' + s.lugar;
+  $('semTitulo').textContent = 'Semana del ' + fechaBonita(s.semanaDel) + ' al ' + fechaBonita(s.semanaAl || sumarDias(s.semanaDel,6), true);
+  $('semSub').textContent = 'SSTA-F-005 · Control de asistencia';
+  const avisos = [];
+  if (s._pendientes) avisos.push('<div class="aviso info">⏳ ' + s._pendientes + ' guardado(s) de esta semana están en cola en este equipo. Ya se ven aquí y se envían solos en cuanto el servidor los reciba.</div>');
+  if (s.sinDetalle) avisos.push('<div class="aviso">Sin conexión: esta semana no se había abierto en este equipo, así que solo se ve lo registrado aquí. Lo de otros celulares aparece al volver la señal.</div>');
+  $('semAviso').innerHTML = avisos.join('');
+  const hoy = hoyISO();
+  $('diasList').innerHTML = DIAS.map(d=>{
+    const f = fechaDelDia(s, d), x = (s.dias && s.dias[d]) || {};
+    const n = (x.asistentes || []).length;
+    return `<div class="dia-item${f === hoy ? ' hoy' : ''}" data-dia="${d}">
+      <div class="dn"><b>${NOMBRE_DIA[d].slice(0,3)}</b><span>${esc(fechaBonita(f))}</span></div>
+      <div class="dt"><div class="tema${x.tema ? '' : ' vacio'}">${x.tema ? esc(x.tema) : (s.sinDetalle ? 'Sin datos en este equipo' : 'Sin charla registrada')}</div>
+        ${x.tema ? `<div class="meta">${[x.hora, x.duracion, x.ejecutor ? 'Ejecutor: ' + x.ejecutor : ''].filter(Boolean).map(esc).join(' · ')}</div>` : ''}</div>
+      <span class="n">${n} 👤</span>
+    </div>`;
+  }).join('');
+  $('diasList').querySelectorAll('.dia-item').forEach(el=> el.addEventListener('click', ()=> abrirDia(el.dataset.dia)));
+  showScreen('screenSemana');
+}
+$('btnRefrescarSemana').addEventListener('click', async ()=>{
+  const b = $('btnRefrescarSemana'); b.disabled = true; b.textContent = 'Actualizando…';
+  const nueva = await traerSemana(semana.code);
+  b.disabled = false; b.textContent = '↻ Actualizar (ver lo de otros celulares)';
+  if (nueva) { semana = nueva; mostrarSemana(); toast('✓ Semana actualizada'); }
+});
+
+/* ================= DÍA ================= */
+const sigMgr = SignaturePad.createManager({ signedLabel:'Firmado', unsignedLabel:'Sin firmar' });
+const pads = sigMgr.pads;
+sigMgr.bindOrientationChange();
+document.addEventListener('click', e=>{
+  const c = e.target.closest('button[data-clear]'); if (c){ pads[c.dataset.clear] && pads[c.dataset.clear].clear(); guardarBorradorPronto(); return; }
+  const u = e.target.closest('button[data-undo]'); if (u){ pads[u.dataset.undo] && pads[u.dataset.undo].undo(); guardarBorradorPronto(); }
+});
+let quitarSet = new Set();
+let contador = 0;
+
+autocompletar($('inEjecutor'), buscarPersona, (it)=>{ $('inEjecutor').value = it.p.nombre; $('inEjecutor').dataset.cedula = it.p.cedula || ''; guardarBorradorPronto(); });
+autocompletar($('inEjecutor2'), buscarPersona, (it)=>{ $('inEjecutor2').value = it.p.nombre; $('inEjecutor2').dataset.cedula = it.p.cedula || ''; guardarBorradorPronto(); });
+/* Hasta DOS ejecutores. Se guardan juntos en el mismo campo ("Ana / Carlos"),
+   así el servidor, la hoja y el PDF no cambian. */
+const SEP_EJEC = ' / ';
+function mostrarEjecutor2(si){ $('campoEjecutor2').hidden = !si; $('btnEjecutor2').style.display = si ? 'none' : ''; /* .btn trae display:block, que le gana a [hidden] */ if (!si){ $('inEjecutor2').value = ''; $('inEjecutor2').dataset.cedula = ''; } }
+$('btnEjecutor2').addEventListener('click', ()=>{ mostrarEjecutor2(true); $('inEjecutor2').focus(); });
+$('btnQuitarEjecutor2').addEventListener('click', ()=>{ mostrarEjecutor2(false); guardarBorradorPronto(); });
+function ponerEjecutores(texto, cedulas){
+  const n = String(texto || '').split(SEP_EJEC), c = String(cedulas || '').split(SEP_EJEC);
+  $('inEjecutor').value = (n[0] || '').trim(); $('inEjecutor').dataset.cedula = (c[0] || '').trim();
+  $('inEjecutor2').value = n.slice(1).join(SEP_EJEC).trim(); $('inEjecutor2').dataset.cedula = c.slice(1).join(SEP_EJEC).trim();
+  mostrarEjecutor2(!!$('inEjecutor2').value);
+}
+function ejecutoresTexto(){ return [$('inEjecutor').value.trim(), $('inEjecutor2').value.trim()].filter(Boolean).join(SEP_EJEC); }
+function ejecutoresCedula(){
+  const c1 = $('inEjecutor').value.trim() ? ($('inEjecutor').dataset.cedula || '') : '';
+  if (!$('inEjecutor2').value.trim()) return c1;
+  return c1 + SEP_EJEC + ($('inEjecutor2').dataset.cedula || '');
+}
+/* Duración: lista de 5 min a 6 horas; "Otra…" deja escribirla. El valor que se
+   guarda siempre es el del campo de texto (oculto si se eligió de la lista). */
+$('selDuracion').addEventListener('change', ()=>{
+  const v = $('selDuracion').value;
+  if (v === 'otra'){ $('inDuracion').hidden = false; $('inDuracion').value = ''; $('inDuracion').focus(); }
+  else { $('inDuracion').hidden = true; $('inDuracion').value = v; }
+  guardarBorradorPronto();
+});
+function marcarChips(){
+  const v = $('inDuracion').value.trim();
+  const hay = [...$('selDuracion').options].some(o=> o.value === v && v !== 'otra');
+  $('selDuracion').value = hay ? v : (v ? 'otra' : '');
+  $('inDuracion').hidden = !(v && !hay);
+}
+
+/* v146: propone temas para la charla (los del ATS del día y una rotación semanal), sin escribir de cero. */
+const TEMAS_BASE = ['Uso y revisión del arnés y la línea de vida','Orden y aseo en el frente de trabajo','Manejo manual de cargas y pausas activas','Uso correcto del EPP del día','Qué hacer en una emergencia: punto de encuentro y MEDEVAC','Riesgo eléctrico: bloqueo y etiquetado','Herramientas manuales en buen estado','Hidratación y exposición al sol','Reporte de actos y condiciones inseguras','Trabajo en caliente: chispas y extintor a la mano','Señalización y demarcación de áreas','Sustancias químicas: hoja de seguridad y etiqueta'];
+function pintarTemasSug(){
+  const el = $('temasSug'); if (!el) return;
+  if ($('inTema').value.trim()){ el.innerHTML = ''; return; }
+  const n = Math.floor(Date.now() / 86400000), l = [];
+  let usados = lsGet('ssta-temas-usados', []); if (!Array.isArray(usados)) usados = [];
+  for (let i = 0; l.length < 3 && i < TEMAS_BASE.length; i++){ const t = TEMAS_BASE[(n + i) % TEMAS_BASE.length]; if (usados.indexOf(t) === -1 || i >= TEMAS_BASE.length - 3) l.push(t); }
+  el.innerHTML = '<span style="align-self:center;color:var(--ink-soft);">Sugeridos:</span>' + l.map(t=>'<button type="button" class="chip" data-tema="' + esc(t) + '" style="min-height:40px;border:1.5px solid var(--line);border-radius:var(--r-pill,999px);background:var(--paper);padding:0 12px;cursor:pointer;">' + esc(t) + '</button>').join('');
+  el.querySelectorAll('[data-tema]').forEach(b=>b.onclick=()=>{ $('inTema').value = b.dataset.tema; $('inTema').dispatchEvent(new Event('input',{bubbles:true})); usados = [b.dataset.tema].concat(usados.filter(x=>x!==b.dataset.tema)).slice(0,8); lsSet('ssta-temas-usados', usados); pintarTemasSug(); });
+}
+$('inTema').addEventListener('input', pintarTemasSug);
+function abrirDia(dia){
+  diaActual = dia;
+  const s = semana, x = (s.dias && s.dias[dia]) || {};
+  const f = fechaDelDia(s, dia);
+  $('diaLugar').textContent = '📍 ' + s.lugar;
+  $('diaTitulo').textContent = NOMBRE_DIA[dia] + ' ' + fechaBonita(f, true);
+  $('inTema').value = x.tema || '';
+  $('inHora').value = x.hora || (f === hoyISO() && !x.tema ? new Date().toTimeString().slice(0,5) : '');
+  $('inDuracion').value = x.duracion || '';
+  ponerEjecutores(x.ejecutor || '', x.ejecutorCedula || '');
+  marcarChips();
+  quitarSet = new Set();
+  $('nuevosList').innerHTML = ''; contador = 0;
+  Object.keys(pads).forEach(k=>{ if (/^padAs/.test(k)) delete pads[k]; });
+  renderGuardados();
+  setTimeout(pintarTemasSug, 0);
+  const b = lsGet(LS.borrador(s.code, dia), null);
+  if (b){
+    if (b.tema != null) $('inTema').value = b.tema;
+    if (b.hora != null) $('inHora').value = b.hora;
+    if (b.duracion != null) $('inDuracion').value = b.duracion;
+    if (b.ejecutor != null) ponerEjecutores(b.ejecutor, '');
+    (b.quitar || []).forEach(k=>quitarSet.add(k));
+    renderGuardados();
+    marcarChips();
+  }
+  $('diaStatus').textContent = '';
+  showScreen('screenDia');
+  if (b && b.nuevos && b.nuevos.length){
+    b.nuevos.forEach(n=> agregarFila(n));
+    $('diaStatus').textContent = 'Se recuperó lo que quedó sin guardar en este equipo.';
+  } else agregarFila(); // siempre una fila lista para el siguiente (las vacías no se guardan)
+  setTimeout(()=> sigMgr.refreshIn($('screenDia')), 60);
+  if (!pads.padEjec) sigMgr.setup($('padEjec'));
+  try { pads.padEjec.clear && pads.padEjec.clear(); } catch (e) {}
+  $('ejecFirmada').textContent = x.ejecutorFirma ? 'Ya firmó quien dio la charla.' : '';
+}
+
+function renderGuardados(){
+  const x = (semana.dias && semana.dias[diaActual]) || {};
+  const lista = x.asistentes || [];
+  $('guardadosList').innerHTML = lista.map(a=>{
+    const k = clavePersona(a), q = quitarSet.has(k);
+    const firma = srcSeguro(a.firma) ? `<img src="${srcSeguro(a.firma)}" alt="firma">`
+      : (a.firma ? '<span class="sf">✓ firmó</span>' : '<span class="sf no">sin firma</span>');
+    return `<div class="guardado${q ? ' quitado' : ''}" data-k="${esc(k)}">
+      <div class="gi"><div class="gn">${esc(a.nombre)}</div><div class="gm">${a.cedula ? 'CC ' + esc(a.cedula) : 'Sin cédula'}${a.pendiente ? ' · ⏳ en cola' : ''}</div></div>
+      ${firma}<button type="button" class="btn-quitar">${q ? '↺ Volver' : '✕ Quitar'}</button></div>`;
+  }).join('');
+  $('guardadosList').querySelectorAll('.guardado button').forEach(b=> b.addEventListener('click', async ()=>{
+    const k = b.parentElement.dataset.k;
+    if (quitarSet.has(k)) quitarSet.delete(k);
+    else if (await Dialogo.confirmar('¿Quitar a esta persona de la charla de este día?')) quitarSet.add(k);
+    renderGuardados(); guardarBorradorPronto();
+  }));
+  actualizarCuenta();
+}
+function actualizarCuenta(){
+  const x = (semana.dias && semana.dias[diaActual]) || {};
+  const n = (x.asistentes || []).filter(a=>!quitarSet.has(clavePersona(a))).length + $('nuevosList').querySelectorAll('.as-row').length;
+  $('cuentaAsis').textContent = n + ' persona' + (n === 1 ? '' : 's');
+}
+
+function renumerarFilas(){ $('nuevosList').querySelectorAll('.as-row .fila-n').forEach((el,i)=>{ el.textContent = 'Asistente nuevo ' + (i+1); }); }
+function agregarFila(pre){
+  contador++;
+  const n = contador;
+  const div = document.createElement('div');
+  div.className = 'as-row'; div.dataset.n = n;
+  div.innerHTML = `
+    <div class="fila-cab"><span class="fila-n">Asistente nuevo ${n}</span><button type="button" class="btn-quitar quitar">✕ Quitar</button></div>
+    <input type="text" id="asNombre${n}" placeholder="Nombre completo (escribe para buscar)" autocomplete="off" value="${pre ? esc(pre.nombre || '') : ''}">
+    <input type="text" id="asCedula${n}" placeholder="N° de identificación" inputmode="numeric" value="${pre ? esc(pre.cedula || '') : ''}">
+    <label class="firma-lbl">Firma del trabajador</label>
+    <canvas class="mini-pad" id="padAs${n}"></canvas>
+    <div class="sig-actions">
+      <button type="button" data-clear="padAs${n}">Borrar firma</button>
+      <button type="button" data-undo="padAs${n}">Deshacer trazo</button>
+      <span class="sig-status" id="status_padAs${n}">Sin firmar</span>
+    </div>`;
+  $('nuevosList').appendChild(div);
+  sigMgr.setup($('padAs' + n));
+  if (pre && pre.firma && pre.firma.indexOf('data:image') === 0) setTimeout(()=> pads['padAs' + n] && pads['padAs' + n].setDataUrl(pre.firma), 80);
+  div.querySelector('.quitar').addEventListener('click', ()=>{ delete pads['padAs' + n]; div.remove(); renumerarFilas(); actualizarCuenta(); guardarBorradorPronto(); });
+  renumerarFilas();
+  autocompletar($('asNombre' + n), buscarPersona, (it)=>{ $('asNombre' + n).value = it.p.nombre; $('asCedula' + n).value = it.p.cedula || ''; div.dataset.cargo = it.p.cargo || ''; guardarBorradorPronto(); });
+  actualizarCuenta();
+  return div;
+}
+$('btnAgregarAsis').addEventListener('click', ()=>{
+  const d = agregarFila();
+  setTimeout(()=>{ sigMgr.refreshIn(d); d.querySelector('input').focus(); }, 50);
+});
+
+/* Lista de otro día: los días de ESTA semana y, si existe, la semana
+   anterior del mismo lugar (el lunes ya hay de dónde copiar). Se traen
+   nombre, cédula y cargo; cada persona vuelve a firmar. */
+async function opcionesParaCopiar(){
+  const ops = [];
+  const idx = DIAS.indexOf(diaActual);
+  // Primero los días anteriores (el más cercano primero), luego los posteriores.
+  const orden = DIAS.map((d,i)=>({ d, i })).filter(x=> x.d !== diaActual)
+    .sort((a,b)=> (a.i < idx) !== (b.i < idx) ? (a.i < idx ? -1 : 1) : (a.i < idx ? b.i - a.i : a.i - b.i));
+  orden.forEach(({ d })=>{
+    const x = semana.dias && semana.dias[d];
+    if (x && (x.asistentes || []).length) ops.push({ etq: NOMBRE_DIA[d] + ' ' + fechaBonita(fechaDelDia(semana, d)), x });
+  });
+  const previa = semanasCache.filter(s=> s.code !== semana.code && s.semanaDel < semana.semanaDel && normLugar(s.lugar) === normLugar(semana.lugar))
+    .sort((a,b)=> a.semanaDel < b.semanaDel ? 1 : -1)[0];
+  if (previa){
+    let doc = null;
+    try { doc = await traerSemana(previa.code); } catch (e) {}
+    if (doc && doc.dias){
+      DIAS.slice().reverse().forEach(d=>{
+        const x = doc.dias[d];
+        if (x && (x.asistentes || []).length && ops.length < 10) ops.push({ etq: NOMBRE_DIA[d] + ' ' + fechaBonita(fechaDelDia(doc, d)) + ' (semana anterior)', x });
+      });
+    }
+  }
+  return ops;
+}
+$('btnCopiarDia').addEventListener('click', async ()=>{
+  const btn = $('btnCopiarDia'), texto = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Buscando…';
+  let ops = [];
+  try { ops = await opcionesParaCopiar(); } finally { btn.disabled = false; btn.textContent = texto; }
+  if (!ops.length){ await Dialogo.avisar('No hay asistentes en otros días de esta semana ni en la semana anterior de este lugar.'); return; }
+  const fondo = document.createElement('div');
+  fondo.className = 'modal-fondo';
+  fondo.innerHTML = '<div class="modal"><h3>¿De qué día traer la lista?</h3><p style="font-size:var(--fs-menor);color:var(--muted);margin-top:0;">Se traen nombre, cédula y cargo. Cada persona debe volver a firmar hoy.</p>' +
+    ops.map((o,i)=>`<button type="button" class="btn ghost" data-i="${i}">${esc(o.etq)} · ${o.x.asistentes.length} personas${o.x.tema ? ' · ' + esc(String(o.x.tema).slice(0,40)) : ''}</button>`).join('') +
+    '<button type="button" class="btn" data-i="">Cancelar</button></div>';
+  document.body.appendChild(fondo);
+  fondo.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if (!b && e.target !== fondo) return;
+    fondo.remove();
+    if (!b || b.dataset.i === '' || b.dataset.i === undefined) return;
+    const elegido = ops[Number(b.dataset.i)];
+    const ya = new Set(((semana.dias[diaActual] || {}).asistentes || []).map(clavePersona));
+    [...$('nuevosList').querySelectorAll('.as-row')].forEach(r=>{
+      const nom = $('asNombre'+r.dataset.n).value.trim();
+      if (nom) ya.add(clavePersona({ nombre:nom, cedula:$('asCedula'+r.dataset.n).value }));
+      else { delete pads['padAs'+r.dataset.n]; r.remove(); }   // las filas vacías se reemplazan por la lista
+    });
+    renumerarFilas();
+    let n = 0;
+    elegido.x.asistentes.forEach(a=>{
+      if (!a || !String(a.nombre || '').trim()) return;
+      const k = clavePersona(a); if (ya.has(k)) return; ya.add(k);
+      const fila = agregarFila({ nombre:a.nombre, cedula:a.cedula || '' });
+      if (fila && a.cargo) fila.dataset.cargo = a.cargo;
+      n++;
+    });
+    if (!$('nuevosList').querySelector('.as-row')) agregarFila();
+    setTimeout(()=> sigMgr.refreshIn($('nuevosList')), 50);
+    actualizarCuenta(); guardarBorradorPronto();
+    toast(n ? '✓ Se agregaron ' + n + ' personas. Cada una debe firmar.' : 'Todas esas personas ya están en este día.');
+  });
+});
+
+/* Trae a la gente de un ATS abierto (cada uno firma aquí). */
+$('btnTraerAts').addEventListener('click', async ()=>{
+  const r = await TraerDeAts.elegir();
+  if (!r) return;
+  const ya = new Set(((semana.dias[diaActual] || {}).asistentes || []).map(clavePersona));
+  [...$('nuevosList').querySelectorAll('.as-row')].forEach(row=>{
+    const n = row.dataset.n, nom = $('asNombre'+n).value.trim();
+    if (nom) ya.add(clavePersona({ nombre:nom, cedula:$('asCedula'+n).value }));
+    else { delete pads['padAs'+n]; row.remove(); }
+  });
+  renumerarFilas();
+  let n = 0;
+  r.personas.forEach(p=>{ const k = clavePersona(p); if (ya.has(k)) return; ya.add(k); const d = agregarFila(p); d.dataset.cargo = p.cargo || ''; n++; });
+  if (!$('nuevosList').querySelector('.as-row')) agregarFila();
+  setTimeout(()=> sigMgr.refreshIn($('nuevosList')), 50);
+  actualizarCuenta(); guardarBorradorPronto();
+  toast(n ? '✓ Se agregaron ' + n + ' personas del ' + r.code + '. Cada una debe firmar.' : 'Todas las personas del ' + r.code + ' ya están en esta charla.');
+});
+
+/* ---------- borrador en el equipo: nada se pierde si se cierra la página ---------- */
+function leerNuevos(){
+  return [...$('nuevosList').querySelectorAll('.as-row')].map(r=>{
+    const n = r.dataset.n, p = pads['padAs' + n];
+    return { nombre:$('asNombre'+n).value.trim(), cedula:$('asCedula'+n).value.trim(), cargo:r.dataset.cargo || '', firma: p ? p.getDataUrl() : null };
+  });
+}
+function hayCambiosSinGuardar(){
+  if (!$('screenDia').classList.contains('active')) return false;
+  const x = (semana.dias && semana.dias[diaActual]) || {};
+  return leerNuevos().some(a=>a.nombre) || quitarSet.size > 0 || ($('inTema').value.trim() !== (x.tema || '') && $('inTema').value.trim() !== '');
+}
+function guardarBorrador(){
+  if (!semana || !diaActual || !$('screenDia').classList.contains('active')) return;
+  const b = { tema:$('inTema').value, hora:$('inHora').value, duracion:$('inDuracion').value, ejecutor:ejecutoresTexto(),
+              nuevos:leerNuevos().filter(a=>a.nombre || a.firma), quitar:[...quitarSet], ts:Date.now() };
+  if (!lsSet(LS.borrador(semana.code, diaActual), b)) {
+    // Sin espacio: se guarda al menos sin las firmas.
+    b.nuevos = b.nuevos.map(a=>Object.assign({}, a, { firma:null }));
+    lsSet(LS.borrador(semana.code, diaActual), b);
+  }
+}
+let tBorrador = null;
+function guardarBorradorPronto(){ clearTimeout(tBorrador); tBorrador = setTimeout(guardarBorrador, 500); }
+['input','change','pointerup','touchend'].forEach(ev=> $('screenDia').addEventListener(ev, guardarBorradorPronto, true));
+window.addEventListener('pagehide', guardarBorrador);
+
+/* ---------- guardar ---------- */
+$('btnGuardarDia').addEventListener('click', async ()=>{
+  const st = $('diaStatus');
+  const tema = $('inTema').value.trim();
+  if (!tema){ st.textContent = 'Escribe el tema de la charla.'; $('inTema').focus(); return; }
+  const nuevos = leerNuevos().filter(a=>a.nombre);
+  const sinFirma = nuevos.filter(a=>!a.firma).length;
+  const x = (semana.dias && semana.dias[diaActual]) || {};
+  const quedan = (x.asistentes || []).filter(a=>!quitarSet.has(clavePersona(a))).length + nuevos.length;
+  if (!quedan && !await Dialogo.confirmar('La charla no tiene asistentes. ¿Guardar solo el tema?')) return;
+  if (sinFirma && !await Dialogo.confirmar(sinFirma + ' persona(s) quedaron sin firmar. ¿Guardar de todas formas?')) return;
+  const body = { action:'guardarDia', code:semana.code, semanaDel:semana.semanaDel, lugar:semana.lugar, dia:diaActual,
+    tema, hora:$('inHora').value, duracion:$('inDuracion').value.trim(), ejecutor:ejecutoresTexto(),
+    ejecutorCedula:ejecutoresCedula(), ejecutorFirma:(pads.padEjec && pads.padEjec.getDataUrl()) || '', asistentes:nuevos, quitar:[...quitarSet], opId:nuevoOpId(), token:token() };
+  const btn = $('btnGuardarDia'); btn.disabled = true; st.textContent = 'Guardando…';
+
+  if (!URL_ASIS){
+    mezclarDia(semana, body); semana.updatedAt = new Date().toISOString();
+    const ok = lsSet(LS.doc(semana.code), semana);
+    btn.disabled = false;
+    if (!ok){ st.textContent = 'La memoria del equipo está llena: no se pudo guardar. Exporta el PDF ahora o libera espacio.'; return; }
+    recordarSemana(semana, true);
+    terminarGuardado('✓ Charla guardada en este equipo'); return;
+  }
+  let json;
+  try {
+    const res = await fetchWithRetry(URL_ASIS, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body) });
+    json = await leerJson(res);
+  } catch(err){
+    // Sin señal o respuesta que no es de datos: la charla NO se pierde, queda
+    // en el equipo y se reenvía sola. El aviso dice cuál de las dos pasó.
+    try {
+      await Outbox.add(URL_ASIS, body);
+      mezclarDia(semana, Object.assign({}, body, { _pendiente:true }));
+      semana._pendientes = (semana._pendientes || 0) + 1;
+      recordarSemana(semana, !!semana.local);
+      btn.disabled = false;
+      if (err.pagina){
+        terminarGuardado('La charla quedó guardada en el equipo, pero el servidor no la recibió.', 'aviso');
+        $('semAviso').insertAdjacentHTML('afterbegin', '<div class="aviso">⚠️ ' + esc(err.message) + '</div>');
+      } else terminarGuardado('Sin conexión — la charla quedó guardada en el equipo y se envía sola al volver la señal.');
+    } catch(e){
+      btn.disabled = false;
+      st.textContent = 'No se pudo guardar ni en el servidor ni en el equipo (memoria llena o modo privado). No salgas de la página: exporta el PDF o intenta de nuevo con señal.';
+    }
+    return;
+  }
+  {
+    btn.disabled = false;
+    if (!json.ok){
+      if (ClavePortal.esErrorDeClave(json)) { st.textContent = 'El servidor no aceptó la clave del portal de este equipo. Escríbela y vuelve a guardar.'; return; }
+      st.textContent = json.error || 'No se pudo guardar.'; return;
+    }
+    if (json.code && json.code !== semana.code){ lsDel(LS.doc(semana.code)); semanasCache = semanasCache.filter(s=>s.code !== semana.code); semana.code = json.code; }
+    mezclarDia(semana, body);
+    semana.local = false;
+    guardarCache(semana); recordarSemana(semana, false);
+    terminarGuardado('✓ Charla guardada');
+  }
+});
+function terminarGuardado(msg, tipo){
+  if (Jornada.enJornada()) Jornada.marcar('charla', { code: semana.code, pendiente: !!semana._pendientes || tipo === 'aviso' });
+  lsDel(LS.borrador(semana.code, diaActual));
+  quitarSet = new Set();
+  mostrarSemana();
+  toast(msg, tipo);
+}
+
+/* ================= HOJA SSTA-F-005 (imprimir / PDF) =================
+   Igual al formato en papel: encabezado, temario de lunes a domingo (hora,
+   duración, ejecutor) y la tabla de asistentes con la firma en la columna
+   de cada día. Una persona que vino varios días ocupa UNA fila. */
+let logoHoja = null;
+try { fetch(EMPRESA.logo).then(r=>r.ok ? r.blob() : null).then(b=>{ if (!b) return; const fr = new FileReader(); fr.onload = ()=>{ logoHoja = fr.result; }; fr.readAsDataURL(b); }).catch(()=>{}); } catch(e){}
+
+function personasDeSemana(doc){
+  const filas = [], idx = {};
+  DIAS.forEach(d=>{
+    ((doc.dias && doc.dias[d] && doc.dias[d].asistentes) || []).forEach(a=>{
+      const k = clavePersona(a);
+      if (!(k in idx)){ idx[k] = filas.length; filas.push({ nombre:a.nombre, cedula:a.cedula, dias:{} }); }
+      const f = filas[idx[k]];
+      if (!f.cedula && a.cedula) f.cedula = a.cedula;
+      f.dias[d] = a.firma || 'SIN';
+    });
+  });
+  return filas;
+}
+/* Copia de la semana con solo los días dentro del rango (los demás quedan en blanco). */
+function recortarSemana(doc, desde, hasta){
+  if (!desde && !hasta) return doc;
+  const c = Object.assign({}, doc, { dias:{} });
+  DIAS.forEach(d=>{ const f = fechaDelDia(doc, d); if ((!desde || f >= desde) && (!hasta || f <= hasta) && doc.dias && doc.dias[d]) c.dias[d] = doc.dias[d]; });
+  return c;
+}
+function htmlHojaF005(doc, nueva){
+  const e = esc;
+  const F005 = Empresa.formato('SSTA-F-005');
+  const personas = personasDeSemana(doc);
+  // Solo filas con asistentes (sin renglones en blanco). En un día con charla,
+  // quien no está dice "No asistió"; un día sin charla queda sombreado con "—".
+  const huboCharla = {};
+  DIAS.forEach(d=>{ const x = doc.dias && doc.dias[d]; huboCharla[d] = !!(x && (String(x.tema || '').trim() || (x.asistentes || []).length)); });
+  const celdaDia = (p, d)=> p.dias[d] ? '<td class="f">' + celdaFirma(p.dias[d]) + '</td>'
+    : (huboCharla[d] ? '<td class="f"><span class="no">No asistió</span></td>' : '<td class="f nd">—</td>');
+  const celdaFirma = (v)=> !v ? '' : (srcSeguro(v) ? '<img src="' + srcSeguro(v) + '" alt="firma">'
+    : (v === 'SIN' ? '<span class="tx">Asistió (sin firma)</span>' : '<span class="tx">✓ Firmó</span>'));
+  let h = '<div class="f5"' + (nueva ? ' style="break-before:page;page-break-before:always;"' : '') + '>' +
+    '<table class="cab"><colgroup><col style="width:17%"><col><col style="width:22%"></colgroup><tr>' +
+    '<td class="logo"><img src="' + (logoHoja || EMPRESA.logo) + '" alt="Logo"></td>' +
+    '<td class="tit">CONTROL DE ASISTENCIA A CAPACITACION, EVENTOS Y REUNIONES.</td>' +
+    '<td class="meta-c"><table class="meta"><tr><td colspan="2">Página 1 de 1</td></tr>' + (F005.version ? '<tr><td colspan="2">Versión: ' + e(F005.version) + '</td></tr>' : '') +
+    (F005.codigo ? '<tr><td colspan="2">Código: ' + e(F005.codigo) + '</td></tr>' : '') + (F005.fecha || F005.actualizacion ? '<tr><td>' + (F005.fecha ? 'Fecha: ' + e(F005.fecha) : '') + '</td><td>' + (F005.actualizacion ? 'Actualización: ' + e(F005.actualizacion) : '') + '</td></tr>' : '') + '</table></td>' +
+    '</tr></table>' +
+    '<table class="tem"><colgroup><col style="width:37%"><col style="width:11.5%"><col style="width:13%"><col></colgroup>' +
+    '<tr><td class="azul">Temario</td><td><b>Semana del:</b> ' + e(fechaCorta(doc.semanaDel)) + '</td><td><b>Al:</b> ' + e(fechaCorta(doc.semanaAl || sumarDias(doc.semanaDel,6))) + '</td><td><b>Lugar de trabajo:</b> ' + e(doc.lugar) + '</td></tr>' +
+    DIAS.map(d=>{ const x = (doc.dias && doc.dias[d]) || {};
+      if (!huboCharla[d]) return '<tr><td><b>' + NOMBRE_DIA[d] + ':</b> <span class="sin">No hubo charla</span></td><td><b>Hora:</b> —</td><td><b>Duración:</b> —</td><td><b>Ejecutor:</b> —</td></tr>';
+      return '<tr><td><b>' + NOMBRE_DIA[d] + ':</b> ' + e(x.tema || '') + '</td><td><b>Hora:</b> ' + e(x.hora || '—') + '</td><td><b>Duración:</b> ' + e(x.duracion || '—') + '</td><td><b>Ejecutor:</b> ' + e(x.ejecutor || '—') + (String(x.ejecutorFirma || '').indexOf('data:image') === 0 ? '<br><img src="' + x.ejecutorFirma + '" alt="Firma ejecutor" style="max-height:28pt;max-width:110pt">' : '') + '</td></tr>'; }).join('') +
+    '</table>' +
+    '<table class="asis"><colgroup><col style="width:2.6%"><col style="width:15%"><col style="width:10.8%">' + DIAS.map(()=>'<col>').join('') + '</colgroup>' +
+    '<thead><tr><th class="azul" rowspan="2">N°</th><th class="azul" rowspan="2">NOMBRE DEL EMPLEADO</th><th class="azul" rowspan="2">N° IDENTIFICACIÓN</th><th class="azul" colspan="7">DIA DE ASISTENCIA (Firma del trabajador)</th></tr>' +
+    '<tr class="dias">' + ['Lunes','Martes','Miercoles','Jueves','Viernes','Sábado','Domingo'].map(x=>'<th>' + x + '</th>').join('') + '</tr></thead><tbody>';
+  personas.forEach((p, i)=>{
+    h += '<tr><td class="n">' + (i + 1) + '</td><td>' + e(p.nombre) + '</td><td>' + e(p.cedula || '—') + '</td>' + DIAS.map(d=> celdaDia(p, d)).join('') + '</tr>';
+  });
+  if (!personas.length) h += '<tr><td colspan="10" style="text-align:center;color:var(--n-450);">Sin asistentes registrados esta semana.</td></tr>';
+  h += '</tbody></table><div class="pie">Semana ' + e(doc.code) + ' · Impreso el ' + e(new Date().toLocaleString('es-CO')) + ' desde el ' + e(Empresa.pie()) + '</div></div>';
+  return h;
+}
+async function imprimirSemana(doc){ return imprimirSemanas([doc]); }
+async function imprimirSemanas(docs){
+  let cont = $('hojaPermiso');
+  if (!cont){ cont = document.createElement('div'); cont.id = 'hojaPermiso'; document.body.appendChild(cont); }
+  cont.innerHTML = docs.map((d,i)=> htmlHojaF005(d, i > 0)).join('');
+  if (!$('paginaF005')){ const st = document.createElement('style'); st.id = 'paginaF005'; st.textContent = '@media print{@page{size:letter landscape;margin:7mm;}}'; document.head.appendChild(st); }
+  document.body.classList.add('hp-lista');
+  const imgs = [...cont.querySelectorAll('img')].filter(i=>!i.complete);
+  if (imgs.length) await Promise.race([Promise.all(imgs.map(i=>new Promise(r=>{ i.addEventListener('load', r, {once:true}); i.addEventListener('error', r, {once:true}); }))), new Promise(r=>setTimeout(r, 2500))]);
+  window.print();
+}
+window.addEventListener('afterprint', ()=> document.body.classList.remove('hp-lista'));
+$('btnPdfSemana').addEventListener('click', async ()=>{
+  const b = $('btnPdfSemana'); b.disabled = true; b.textContent = 'Preparando PDF…';
+  // Con señal se trae la semana completa del servidor (firmas de todos los celulares).
+  const fresca = URL_ASIS ? await traerSemana(semana.code) : semana;
+  if (fresca && !fresca.sinDetalle) semana = fresca;
+  b.disabled = false; b.textContent = '🖨️ Ver / exportar PDF de la semana';
+  const faltan = DIAS.some(d=> ((semana.dias && semana.dias[d] && semana.dias[d].asistentes) || []).some(a=> a.firma === '✓'));
+  if (faltan && !await Dialogo.confirmar('Sin conexión: algunas firmas guardadas en el servidor no están en este equipo y saldrán como "✓ Firmó". ¿Imprimir así?')) return;
+  await imprimirSemana(semana);
+});
+
+// Cuando sale de la cola una charla guardada sin señal, se refresca lo que se ve.
+window.addEventListener('outbox-enviado', async (ev)=>{
+  if (!semana || !ev.detail || ev.detail.url !== URL_ASIS) return;
+  const nueva = await traerSemana(semana.code);
+  if (nueva && !nueva.sinDetalle){ semana = nueva; if ($('screenSemana').classList.contains('active')) mostrarSemana(); }
+});
+
+/* ---------- PDF por rango de fechas: una hoja por semana y lugar ---------- */
+(function(){
+  const hoy = hoyISO();
+  $('rgDesde').value = hoy.slice(0,8) + '01';   // desde el 1 del mes
+  $('rgHasta').value = hoy;
+  autocompletar($('rgLugar'), (q)=>{
+    const vistos = new Set(), out = [];
+    semanasCache.forEach(s=>{ const L = String(s.lugar||''); if (L.toLowerCase().includes(q) && !vistos.has(normLugar(L))){ vistos.add(normLugar(L)); out.push({ titulo:L }); } });
+    return out;
+  }, (it)=>{ $('rgLugar').value = it.titulo; });
+})();
+/* v148: fechas listas para el auditor (antes había que escribir las dos) */
+(function(){ const h = new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10), ini = h.slice(0, 8) + '01';
+  const antIni = (()=> { const d = new Date(ini + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 10); })(), antFin = (()=> { const d = new Date(ini + 'T12:00:00Z'); d.setUTCDate(0); return d.toISOString().slice(0, 10); })();
+  const poner = (a, b)=> { $('rgDesde').value = a; $('rgHasta').value = b; };
+  poner(antIni, antFin);
+  document.querySelectorAll('[data-rango]').forEach((b)=> b.addEventListener('click', ()=> { const k = b.dataset.rango; if (k === 'mes') poner(ini, h); else if (k === 'ant') poner(antIni, antFin); else poner(h.slice(0, 4) + '-01-01', h); }));
+})();
+$('btnPdfRango').addEventListener('click', async ()=>{
+  let desde = $('rgDesde').value, hasta = $('rgHasta').value;
+  const st = $('rangoStatus');
+  if (!desde || !hasta){ st.textContent = 'Elige las dos fechas.'; return; }
+  if (desde > hasta) [desde, hasta] = [hasta, desde];
+  const lugar = normLugar($('rgLugar').value);
+  const semanas = semanasCache.filter(s=> s.semanaDel <= hasta && sumarDias(s.semanaDel, 6) >= desde && (!lugar || normLugar(s.lugar) === lugar))
+    .sort((a,b)=> a.semanaDel < b.semanaDel ? -1 : a.semanaDel > b.semanaDel ? 1 : String(a.lugar).localeCompare(String(b.lugar)));
+  if (!semanas.length){ st.textContent = 'No hay charlas registradas en ese rango' + (lugar ? ' para ese lugar' : '') + '.'; return; }
+  const b = $('btnPdfRango'); b.disabled = true;
+  const docs = [], fallas = [];
+  for (let i = 0; i < semanas.length; i++){
+    b.textContent = 'Preparando… ' + (i+1) + '/' + semanas.length;
+    const d = await traerSemana(semanas[i].code);
+    if (d && !d.sinDetalle) docs.push(recortarSemana(d, desde, hasta)); else fallas.push(semanas[i].lugar + ' (' + fechaCorta(semanas[i].semanaDel) + ')');
+  }
+  b.disabled = false; b.textContent = 'Exportar';
+  // Solo las semanas que en ese rango sí tienen charlas.
+  const conCharlas = docs.filter(d=> DIAS.some(x=> d.dias[x] && (d.dias[x].tema || (d.dias[x].asistentes || []).length)));
+  st.textContent = fallas.length ? 'No se pudieron traer: ' + fallas.join(', ') + '. Verifica la conexión.' : '';
+  if (!conCharlas.length){ if (!fallas.length) st.textContent = 'En ese rango no hay charlas con tema o asistentes.'; return; }
+  const faltan = conCharlas.some(d=> DIAS.some(x=> ((d.dias[x] && d.dias[x].asistentes) || []).some(a=> a.firma === '✓')));
+  if (faltan && !await Dialogo.confirmar('Sin conexión: algunas firmas no están en este equipo y saldrán como "✓ Firmó". ¿Imprimir así?')) return;
+  await imprimirSemanas(conCharlas);
+});
+
+/* ================= JORNADA (desde el ATS) =================
+   Abre la charla de HOY en el sitio del ATS, con el tema "Socialización del
+   ATS…", el líder como ejecutor y el personal del ATS listo para firmar. */
+async function abrirCharlaDeJornada(){
+  const j = Jornada.actual();
+  if (!j) return;
+  if (j.sitio) $('inLugar').value = j.sitio;
+  $('inFecha').value = hoyISO();
+  if (!$('inLugar').value.trim()){ $('inicioStatus').textContent = 'Jornada del ' + j.atsCode + ': escribe el lugar de trabajo y toca «Abrir charla».'; $('inLugar').focus(); return; }
+  lsSet(LS.lugar, $('inLugar').value.trim());
+  semana = await obtenerSemana($('inFecha').value, $('inLugar').value.trim());
+  abrirDia(diaDe($('inFecha').value));
+  if (!$('inTema').value.trim()) $('inTema').value = 'Socialización del ATS ' + j.atsCode + (j.trabajo ? ': ' + j.trabajo : '');
+  if (!$('inEjecutor').value.trim() && j.responsable) $('inEjecutor').value = j.responsable;
+  const ya = new Set(((semana.dias[diaActual] || {}).asistentes || []).map(clavePersona));
+  [...$('nuevosList').querySelectorAll('.as-row')].forEach(row=>{
+    const n = row.dataset.n, nom = $('asNombre'+n).value.trim();
+    if (nom) ya.add(clavePersona({ nombre:nom, cedula:$('asCedula'+n).value }));
+    else { delete pads['padAs'+n]; row.remove(); }
+  });
+  let n = 0;
+  (j.personas || []).forEach(p=>{ const per = { nombre:p.nombre, cedula:p.cc || p.cedula || '', cargo:p.cargo || '' }; const k = clavePersona(per); if (ya.has(k)) return; ya.add(k); const d = agregarFila(per); d.dataset.cargo = per.cargo; n++; });
+  if (!$('nuevosList').querySelector('.as-row')) agregarFila();
+  setTimeout(()=> sigMgr.refreshIn($('nuevosList')), 60);
+  actualizarCuenta(); guardarBorradorPronto();
+  toast(n ? '🗂️ Jornada: ' + n + ' persona(s) del ATS listas para firmar' : '🗂️ Jornada: el personal del ATS ya está en esta charla');
+}
+window.addEventListener('jornada-ir', (e)=>{ if (e.detail === 'charla') abrirCharlaDeJornada(); });
+
+/* ================= INICIO ================= */
+cargarPersonal();
+cargarSemanas();
+Jornada.barra();
+if (Jornada.enJornada() && /[?&]jornada=1\b/.test(location.search)){
+  const jj = Jornada.actual();
+  history.replaceState(null, '', location.pathname);
+  if (jj && !(jj.hechos && jj.hechos.charla)) abrirCharlaDeJornada();
+}
+</script>
+</body>
+</html>

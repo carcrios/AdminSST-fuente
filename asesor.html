@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EOK3Oo00xxQgZAfKElFCzcF8oiEzMW6swlU4w7aPXw0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Panel del asesor · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Panel del asesor · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<link rel="stylesheet" href="consola.css">
+<style>
+.seg{display:inline-block;font-weight:800;font-size:var(--fs-etiqueta);border-radius:var(--r-xs);padding:2px 7px;margin-right:4px;background:var(--ink);color:#fff;}
+.seg.s3{background:#0a8f7a;} .seg.s7{background:var(--ok);} .seg.s21{background:#b07a00;} .seg.s60{background:var(--rojo-800);}
+.filtro{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.filtro button{border:1.5px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:7px 12px;min-height:44px;font:600 13px inherit;font-family:inherit;cursor:pointer;}
+.filtro button.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+.tar{border-bottom:1px dashed var(--n-150);padding:9px 0;font-size:var(--fs-base);}
+.tar .tt{font-weight:700;line-height:1.35;}
+.tar small{display:block;color:var(--muted);font-size:var(--fs-menor);line-height:1.4;}
+.tar .acc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.std{display:flex;gap:8px;align-items:flex-start;border-bottom:1px dashed var(--n-150);padding:7px 0;font-size:var(--fs-base);line-height:1.35;}
+.std input{width:20px;height:20px;flex:0 0 20px;}
+.std small{display:block;color:var(--muted);font-size:var(--fs-menor);}
+/* v107: tarjeta de cliente con «Asignar tarea» y avance de las tareas */
+.cli{background:#fff;border:1px solid var(--line);border-left:5px solid var(--n-300);border-radius:var(--r-m);margin-bottom:9px;overflow:hidden;}
+.cli.ok{border-left-color:var(--ok);} .cli.pronto{border-left-color:var(--amber);} .cli.mal{border-left-color:var(--mal);}
+.cli .item{border:0;border-radius:0;margin:0;padding-bottom:6px;}
+.cli-acc{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 12px 11px;}
+.cli-acc .btn{margin:0;min-height:44px;font-size:var(--fs-base);padding:8px 10px;}
+.barra-av{height:8px;border-radius:var(--r-xs);background:var(--n-150);overflow:hidden;margin:6px 0 2px;}
+.barra-av i{display:block;height:100%;background:var(--ok);border-radius:var(--r-xs);}
+.res-tar{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px;}
+.tar .acc .btn-mini,#cTar .aviso .btn-mini{min-height:44px;padding:0 14px;margin-left:0;}
+.tar .av{font-size:var(--fs-menor);color:#334;margin-top:3px;line-height:1.4;overflow-wrap:anywhere;}
+.como{font-size:var(--fs-base);line-height:1.45;}
+#cTar > .m{font-size:var(--fs-base);line-height:1.45;}
+</style>
+</head>
+<body class="consola">
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="admin.html">← Volver a la consola</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Consola del administrador</div>
+    <h1>Panel del asesor</h1>
+    <p>Tus empresas cliente por tamaño y riesgo (7, 21 o 60 estándares), las tareas que les dejas y su avance</p></div></div>
+  </div>
+  <span class="sello-consola">🔒 Consola del administrador</span>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="acciones-top">
+    <button type="button" class="btn amber" id="btnNuevo">+ Nuevo cliente</button>
+    <button type="button" class="btn ghost" id="btnSync">Traer el avance de todos</button>
+    <button type="button" class="btn ghost" id="btnPdf">Estado de mis clientes (PDF)</button>
+  </div>
+  <div class="aviso info como"><b>Para dejarle una tarea a una empresa:</b> toca «Asignar tarea» en su tarjeta. Queda en su plan de acción, en los pendientes del inicio y en el correo del lunes de quien la recibe; aquí ves si está abierta, vencida o cerrada. <a href="admin.html#ayuda">Cómo funciona</a></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="filtro" id="fGrupo">
+    <button type="button" class="on" data-g="">Todos</button><button type="button" data-g="3">3 estándares</button><button type="button" data-g="7">7 estándares</button><button type="button" data-g="21">21 estándares</button><button type="button" data-g="60">60 estándares</button>
+  </div>
+  <div class="grid2"><select id="fRiesgo" class="buscar u-m0"><option value="">Todas las clases de riesgo</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option></select>
+    <input type="search" class="buscar u-m0" id="buscar" placeholder="Buscar cliente"></div>
+  <div id="fEstado" class="u-mt10"></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrCli"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+// v115: el panel es de la consola del administrador general; sin su sesión, se entra por la consola.
+if (!(Sesion.yo() && ['admin', 'sst'].indexOf(Sesion.rol()) !== -1)) location.replace('admin.html');
+const ORIGEN = 'Asesor SST';
+const C_CLI = [{ k: 'nombre', l: 'Empresa', req: true }, { k: 'nit', l: 'NIT', medio: true }, { k: 'ciudad', l: 'Ciudad', medio: true },
+  { k: 'actividad', l: 'Actividad económica' },
+  { k: 'trabajadores', l: 'Número de trabajadores', t: 'number', req: true, medio: true }, { k: 'claseRiesgo', l: 'Clase de riesgo más alta', t: 'select', op: ['I', 'II', 'III', 'IV', 'V'], medio: true }, { k: 'agropecuaria', l: 'Unidad de producción agropecuaria', t: 'select', op: ['No', 'Sí'], medio: true },
+  { k: 'contacto', l: 'Contacto (responsable del SG-SST)', medio: true }, { k: 'telefono', l: 'Teléfono', medio: true }, { k: 'correo', l: 'Correo' },
+  { k: 'codigo', l: 'Código en tu sitio multiempresa', ph: 'ej: acme-sas', medio: true, ayuda: 'Si la empresa entra a TU sitio con ?e=código.' },
+  { k: 'sitio', l: 'O dirección de su propio portal', ph: 'https://…github.io/…', medio: true, ayuda: 'Si tiene un sitio aparte.' },
+  { k: 'servidor', l: 'URL del servidor del cliente (/exec)', ph: 'https://script.google.com/macros/s/…/exec', ayuda: 'La que sale en verConfiguracion del servidor único de la empresa. Sin ella, el cliente queda solo como registro (no se le pueden dejar tareas).' },
+  { k: 'modo', l: 'Tipo de servidor', t: 'select', op: [['unico', 'Servidor único (empresa instalada con el portal)'], ['sgsst', 'URL directa del SG-SST']], medio: true },
+  { k: 'clave', l: 'Clave del portal del cliente', medio: true, ayuda: 'La clave que se escribe en 🔑 Clave en sus celulares. Queda guardada en tu servidor; solo la ven Administrador y SST.' },
+  { k: 'llaveProveedor', l: 'Llave del proveedor', medio: true, ayuda: 'Sale en su verConfiguracion (llaveProveedor). Con ella tu consola le manda los módulos contratados a su servidor.' },
+  { k: 'scriptId', l: 'ID del proyecto de Apps Script', medio: true, ayuda: 'Sale en su verConfiguracion (scriptId). Lo usa actualizar-servidores.js.' },
+  { k: 'proximaVisita', l: 'Próxima visita', t: 'date', medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['ACTIVO', 'INACTIVO'], medio: true },
+  { k: 'notas', l: 'Notas', t: 'textarea' }];
+let rows = [], fG = '', fE = '', actual = null;
+/* v109: las cifras de arriba dejan la lista de clientes filtrada por lo que está mal. */
+window.filtrarKpi = (v)=> { fE = v || ''; pintar(); };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const segHtml = (g)=> '<span class="seg s' + g + '">' + g + ' est.</span>';
+
+/* Su portal: su propio sitio o el tuyo multiempresa con su código. */
+const sitioCli = (d)=> /^https?:\/\//.test(d.sitio || '') ? d.sitio : /^[a-z0-9][a-z0-9-]{1,39}$/.test(d.codigo || '') ? location.href.split(/[?#]/)[0].replace(/[^/]*$/, '') + '?e=' + encodeURIComponent(d.codigo) : '';
+const verChip = (v)=> !v ? '' : v === VERSION_PORTAL_WEB ? '<span class="chip ok">servidor ' + esc(v) + '</span>' : '<span class="chip pronto" title="Corre herramientas/actualizar-servidores.js">servidor ' + esc(v) + ' · desactualizado</span>';
+/* ── Conexión con el servidor de cada cliente ── */
+const Cli = {
+  url(c){ const b = String(c.servidor || '').trim().replace(/\/+$/, ''); return !b ? '' : c.modo === 'sgsst' ? b : b + '/sgsst'; },
+  _k(c){ return 'ssta-admin-cli:' + c.id; },
+  ses(c){ try { const s = JSON.parse(localStorage.getItem(this._k(c)) || 'null'); return s && s.exp > Date.now() ? s : null; } catch (e) { return null; } },
+  async _json(res){ const t = await res.text(); try { return JSON.parse(t); } catch (e) { return { ok: false, error: 'El servidor del cliente no respondió con datos (¿URL correcta y publicada como aplicación web?).' }; } },
+  async get(c, params){
+    const s = this.ses(c), q = Object.keys(params).map((k)=> k + '=' + encodeURIComponent(params[k])).join('&');
+    return this._json(await fetchWithRetry(this.url(c) + '?' + q + '&token=' + encodeURIComponent(c.clave || '') + (s ? '&sesion=' + encodeURIComponent(s.token) : '')));
+  },
+  async post(c, body){
+    const s = this.ses(c);
+    return this._json(await fetch(this.url(c), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ token: c.clave || '', sesion: s ? s.token : '', opId: SGSST.nuevoOpId() }, body)) }));
+  },
+  async entrar(c, usuario, clave){
+    const sal = await this.get(c, { action: 'sal', usuario: String(usuario).trim().toLowerCase() });
+    if (!sal.ok) return sal;
+    const r = await this.post(c, { action: 'entrar', usuario: String(usuario).trim().toLowerCase(), prueba: await Sesion.derivar(clave, sal.salt, sal.iter) });
+    if (r.ok) try { localStorage.setItem(this._k(c), JSON.stringify({ token: r.sesion, exp: r.exp, yo: r.yo })); } catch (e) {}
+    return r;
+  },
+  /** Si el cliente usa usuarios con nombre, pide entrar con el usuario que te dio. */
+  pedir(c, motivo){
+    return new Promise((ok)=> {
+      const m = UI.modal('<h3>Entrar al portal de ' + esc(c.nombre) + '</h3><p class="ayuda">' + esc(motivo || 'Este cliente usa usuarios con nombre. Entra con el usuario que te creó (rol SST).') + '</p>' +
+        '<div class="field"><label>Usuario</label><input type="text" id="ceU" autocapitalize="none"></div><div class="field"><label>Clave</label><input type="password" id="ceC"></div>' +
+        '<button type="button" class="btn amber" id="ceOk">Entrar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="ceMsg"></div>', true);
+      m.el.querySelector('[data-cerrar]').addEventListener('click', ()=> ok(false));
+      m.el.querySelector('#ceOk').addEventListener('click', async ()=> {
+        m.el.querySelector('#ceMsg').textContent = 'Comprobando…';
+        const r = await this.entrar(c, m.el.querySelector('#ceU').value, m.el.querySelector('#ceC').value);
+        if (!r.ok) { m.el.querySelector('#ceMsg').textContent = r.error || 'No se pudo entrar.'; return; }
+        m.cerrar(); ok(true);
+      });
+    });
+  },
+  /** GET/POST que, si el cliente pide sesión, ofrece entrar y reintenta una vez. */
+  async pedirSiHaceFalta(c, fn){
+    let r = await fn();
+    if (r && r.codigoError === 'SESION' && await this.pedir(c, r.error)) r = await fn();
+    return r;
+  }
+};
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; return; }
+  const r = await SGSST.listar('cliente');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+  // v115: desde la consola, «Tareas» abre directo ese cliente (#cli=<id>).
+  const m = /^#cli=([\w-]+)/.exec(location.hash || '');
+  if (m && rows.some((x)=> x.id === m[1])) { history.replaceState(null, '', location.pathname); abrir(m[1]); }
+}
+function pintar(){
+  const h = UI.hoy(), act = de('cliente').filter((x)=> x.estado !== 'INACTIVO');
+  const cuenta = (g)=> act.filter((x)=> Number(x.resumen.grupo0312) === g).length;
+  const desact = act.filter((x)=> x.resumen.versionServidor && x.resumen.versionServidor !== VERSION_PORTAL_WEB).length;
+  const venc = act.reduce((a, x)=> a + (Number(x.resumen.tareasVencidas) || 0), 0), abT = act.reduce((a, x)=> a + (Number(x.resumen.tareasAbiertas) || 0), 0), visV = act.filter((x)=> x.vence && x.vence < h).length;
+  $('kpis').innerHTML = '<div class="kpi" data-ir="filtro:"><div class="v">' + act.length + '</div><div class="n">clientes activos</div><div class="f">' + (cuenta(3) ? segHtml(3) + cuenta(3) + ' · ' : '') + segHtml(7) + cuenta(7) + ' · ' + segHtml(21) + cuenta(21) + ' · ' + segHtml(60) + cuenta(60) + '</div></div>' +
+    '<div class="kpi ' + (venc ? 'mal' : 'ok') + '" data-ir="filtro:' + (venc ? 'vencidas' : '') + '"><div class="v">' + venc + '</div><div class="n">tareas vencidas en los clientes</div><div class="f">' + abT + ' abiertas · según la última sincronización</div></div>' +
+    '<div class="kpi ' + (visV ? 'mal' : 'ok') + '" data-ir="filtro:' + (visV ? 'visitas' : '') + '"><div class="v">' + visV + '</div><div class="n">visitas atrasadas</div></div>' +
+    (act.some((x)=> x.resumen.versionServidor) ? '<div class="kpi ' + (desact ? 'pronto' : 'ok') + '" data-ir="filtro:' + (desact ? 'servidor' : '') + '"><div class="v">' + desact + '</div><div class="n">servidores por actualizar</div><div class="f">portal ' + esc(VERSION_PORTAL_WEB) + ' · herramientas/actualizar-servidores.js</div></div>' : '');
+  const q = UI.norm($('buscar').value).trim(), rg = $('fRiesgo').value;
+  const malE = { vencidas: (x)=> x.estado !== 'INACTIVO' && Number(x.resumen.tareasVencidas) > 0, visitas: (x)=> x.estado !== 'INACTIVO' && x.vence && x.vence < h,
+    servidor: (x)=> x.estado !== 'INACTIVO' && x.resumen.versionServidor && x.resumen.versionServidor !== VERSION_PORTAL_WEB };
+  $('fEstado').innerHTML = de('cliente').length ? UI.chipsFiltro([['', 'Todos (' + de('cliente').length + ')'], ['vencidas', 'Con tareas vencidas (' + de('cliente').filter(malE.vencidas).length + ')'], ['visitas', 'Visita atrasada (' + visV + ')']]
+    .concat(act.some((x)=> x.resumen.versionServidor) ? [['servidor', 'Servidor por actualizar (' + desact + ')']] : []), fE) : '';
+  $('fEstado').querySelectorAll('[data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  const l = de('cliente').filter((x)=> (!fE || (malE[fE] && malE[fE](x))) && (!fG || String(x.resumen.grupo0312) === fG) && (!rg || x.resumen.claseRiesgo === rg) && (!q || UI.norm(x.titulo + ' ' + x.resumen.nit + ' ' + x.resumen.ciudad).includes(q)))
+    .sort((a, b)=> (a.estado === 'INACTIVO') - (b.estado === 'INACTIVO') || (Number(b.resumen.tareasVencidas) || 0) - (Number(a.resumen.tareasVencidas) || 0) || String(a.titulo).localeCompare(String(b.titulo)));
+  $('lista').innerHTML = l.length ? l.map((x)=> { const s = x.resumen, c = x.estado === 'INACTIVO' ? 'gris' : Number(s.tareasVencidas) ? 'mal' : x.vence && x.vence < h ? 'pronto' : 'ok';
+    const ab = Number(s.tareasAbiertas) || 0, ve = Number(s.tareasVencidas) || 0, ce = Number(s.tareasCerradas) || 0, tot = ab + ce, av = tot ? Math.round(ce * 100 / tot) : 0;
+    return '<div class="cli ' + c + '"><button type="button" class="item" data-id="' + esc(x.id) + '"><div class="fila"><div style="flex:1;min-width:0;"><div class="t">' + segHtml(Number(s.grupo0312) || 60) + esc(x.titulo) + '</div>' +
+      '<div class="m">' + esc([s.trabajadores ? s.trabajadores + ' trabajadores' : '', s.claseRiesgo ? 'riesgo ' + s.claseRiesgo : '', s.ciudad, s.contacto ? 'responsable: ' + s.contacto : ''].filter(Boolean).join(' · ')) + '</div>' +
+      (s.sincronizado ? '<div class="m"><b>Tareas:</b> ' + ab + ' abierta' + (ab === 1 ? '' : 's') + (ve ? ' (' + ve + ' vencida' + (ve === 1 ? '' : 's') + ')' : '') + (s.tareasCerradas !== undefined && s.tareasCerradas !== '' ? ' · ' + ce + ' cerrada' + (ce === 1 ? '' : 's') : '') +
+        (s.puntaje !== '' && s.puntaje != null ? ' · autoevaluación ' + esc(String(s.puntaje).replace('.', ',')) + '%' : '') + ' · al ' + esc(new Date(s.sincronizado).toLocaleDateString('es-CO')) + '</div>' +
+        (tot && s.tareasCerradas !== undefined && s.tareasCerradas !== '' ? '<div class="barra-av" role="img" aria-label="Avance de las tareas: ' + av + ' %"><i style="width:' + av + '%"></i></div><div class="m">Avance de las tareas: ' + av + ' %</div>' : '')
+        : '<div class="m">Tareas: sin sincronizar (ábrelo o toca «Traer el avance de todos»)</div>') +
+      '<div class="m">' + (x.vence ? 'Visita ' + esc(UI.corta(x.vence)) : '') + (s.versionServidor && s.versionServidor !== VERSION_PORTAL_WEB ? (x.vence ? ' · ' : '') + '<b style="color:var(--ambar-700);">servidor ' + esc(s.versionServidor) + '</b>' : '') + '</div></div><span class="chip ' + c + '">' + (x.estado === 'INACTIVO' ? 'Inactivo' : ve ? 'Atrasado' : 'Al día') + '</span></div></button>' +
+      (x.estado === 'INACTIVO' ? '' : '<div class="cli-acc"><button type="button" class="btn amber" data-asig="' + esc(x.id) + '">Asignar tarea</button><button type="button" class="btn ghost" data-id="' + esc(x.id) + '">Ver sus tareas</button></div>') + '</div>'; }).join('')
+    : '<div class="empty">' + (de('cliente').length ? 'Ningún cliente con ese filtro.' : 'Todavía no hay clientes. Agrega el primero con «+ Nuevo cliente».') + '</div>';
+  $('lista').querySelectorAll('[data-asig]').forEach((b)=> b.addEventListener('click', ()=> abrir(b.dataset.asig, true)));
+  $('lista').querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', ()=> abrir(b.dataset.id)));
+}
+$('fGrupo').addEventListener('click', (e)=> { const b = e.target.closest('[data-g]'); if (!b) return; fG = b.dataset.g; $('fGrupo').querySelectorAll('button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+$('fRiesgo').addEventListener('change', pintar); $('buscar').addEventListener('input', pintar);
+
+function editarCliente(d){
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo cliente' : d.nombre), campos: C_CLI, datos: d,
+    despues: '<div class="aviso info" data-seg></div>',
+    alAbrir: (el, pref)=> { const ag = el.querySelector('#' + pref + 'agropecuaria'); const v = ()=> { const g = grupo0312(el.querySelector('#' + pref + 'trabajadores').value, el.querySelector('#' + pref + 'claseRiesgo').value, ag && ag.value === 'Sí'); el.querySelector('[data-seg]').textContent = 'Le aplican ' + UI.textoGrupo(g) + '.'; };
+      el.querySelector('#' + pref + 'trabajadores').addEventListener('input', v); el.querySelector('#' + pref + 'claseRiesgo').addEventListener('change', v); if (ag) ag.addEventListener('change', v); v(); },
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde el panel del asesor'); if (ok) { show('scrLista'); cargar(); } return ok; },
+    alGuardar: async (v)=> { v.grupo0312 = grupo0312(v.trabajadores, v.claseRiesgo, v.agropecuaria === 'Sí'); v.servidor = String(v.servidor || '').trim();
+      if (v.servidor && !/^https:\/\//.test(v.servidor)) return 'La URL del servidor debe empezar por https://';
+      const r = await Registros.guardar('cliente', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      await cargar(); if (!d.nuevo) abrir(d.id); return true; } });
+}
+$('btnNuevo').addEventListener('click', ()=> editarCliente({ id: SGSST.nuevoId('CLI'), nuevo: true, claseRiesgo: 'I', modo: 'unico', estado: 'ACTIVO' }));
+
+/* ── Un cliente: su segmento, sus tareas y las visitas ── */
+let tareas = [], autoeval = null, respCli = [], fTar = 'abiertas';
+/** Abre un cliente. Con `asignar`, deja abierta de una vez la ventana para asignarle una tarea. */
+async function abrir(id, asignar){
+  const d = await Registros.abrir(id); if (!d) return;
+  actual = d; tareas = []; autoeval = null; perfilCli = null; respCli = []; fTar = 'abiertas';
+  const g = Number(d.grupo0312) || grupo0312(d.trabajadores, d.claseRiesgo, d.agropecuaria === 'Sí' || d.agropecuaria === true);
+  const s = $('scrCli');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver a los clientes</a><div class="eyebrow">' + esc(d.nit ? 'NIT ' + d.nit : d.id) + '</div><h1>' + esc(d.nombre) + '</h1><p>' + segHtml(g) + esc([d.trabajadores + ' trabajadores', 'riesgo ' + d.claseRiesgo, d.ciudad].filter(Boolean).join(' · ')) + '</p></div>' +
+    '<div class="acciones-top"><button type="button" class="btn ghost" id="cEditar">Datos del cliente</button>' + (sitioCli(d) ? '<a class="btn ghost" href="' + esc(sitioCli(d)) + '" target="_blank" rel="noopener">Abrir su portal ↗</a>' : '') +
+      '<button type="button" class="btn ghost" id="cPdf">Informe para el cliente (PDF)</button></div>' +
+    '<div class="aviso info">Le aplican ' + esc(UI.textoGrupo(g)) + '.</div>' +
+    '<div class="card"><h2>Tareas que le asignaste</h2>' +
+      (Cli.url(d) ? '<div class="acciones-top"><button type="button" class="btn amber" id="cNueva">+ Asignar tarea</button><button type="button" class="btn ghost" id="cStd">Tareas de sus ' + g + ' estándares</button></div>' : '') +
+      '<div id="cTar"><div class="status-msg">' + (Cli.url(d) ? 'Trayendo del portal del cliente…' : '') + '</div></div>' +
+      (Cli.url(d) ? '' : '<div class="aviso amar">Para asignarle tareas falta conectar su portal: en «Datos del cliente» escribe la URL de su servidor (/exec) y la clave de su portal. <button type="button" class="btn-mini" id="cConectar">Conectar ahora</button></div>') + '</div>' +
+    '<div class="card"><h2>Visitas</h2><div id="cVis"></div><div class="grid2"><div class="field"><label for="vF">Fecha</label><input type="date" id="vF" value="' + UI.hoy() + '"></div><div class="field"><label for="vP">Próxima visita</label><input type="date" id="vP" value="' + esc(Festivos.sumarDias(UI.hoy(), 30)) + '"></div></div>' +
+      '<div class="field"><label for="vN">Qué se revisó y compromisos *</label><textarea id="vN" placeholder="Qué se revisó, compromisos…"></textarea></div><button type="button" class="btn ghost" id="vOk">Anotar visita</button><div class="status-msg" id="vMsg"></div></div>' +
+    '<div id="cHist"></div><div class="status-msg" id="cMsg"></div>';
+  pintarVisitas();
+  $('cEditar').addEventListener('click', ()=> editarCliente(actual));
+  if ($('cConectar')) $('cConectar').addEventListener('click', ()=> editarCliente(actual));
+  $('vOk').addEventListener('click', anotarVisita);
+  $('cPdf').addEventListener('click', pdfCliente);
+  if ($('cNueva')) $('cNueva').addEventListener('click', ()=> nuevaTarea());
+  if ($('cStd')) $('cStd').addEventListener('click', tareasEstandares);
+  $('cHist').appendChild(UI.botonHistorial(d.id, d.nombre));
+  show('scrCli');
+  if (!Cli.url(d)) { if (asignar) UI.toast('Primero conecta su portal (URL del servidor y clave) para poder asignarle tareas.', 'mal'); return; }
+  const listo = traerTareas();
+  if (asignar) { await listo; if (actual === d) nuevaTarea(); }
+}
+async function traerTareas(){
+  const c = actual, cont = $('cTar');
+  if (!navigator.onLine) { cont.innerHTML = '<div class="aviso">Sin conexión.</div>'; return; }
+  let r;
+  try { r = await Cli.pedirSiHaceFalta(c, ()=> Cli.get(c, { action: 'list', tipo: 'accion,auditoria,empresa' })); }
+  catch (e) { cont.innerHTML = '<div class="aviso">No hubo respuesta del servidor del cliente. Revisa la URL.</div>'; return; }
+  if (!r.ok) { cont.innerHTML = '<div class="aviso">' + esc(r.error || 'Error') + (r.codigoError === 'CLAVE' ? ' Revisa la clave del portal del cliente.' : '') + '</div>'; return; }
+  tareas = r.rows.filter((x)=> x.tipo === 'accion' && x.resumen.origen === ORIGEN).sort((a, b)=> (a.estado === 'CERRADA') - (b.estado === 'CERRADA') || String(a.resumen.fechaCompromiso).localeCompare(String(b.resumen.fechaCompromiso)));
+  autoeval = r.rows.filter((x)=> x.tipo === 'auditoria' && /^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA').sort((a, b)=> String(b.resumen.fechaEjecucion).localeCompare(String(a.resumen.fechaEjecucion)))[0] || null;
+  // Versión de su servidor (para saber a quién falta actualizar).
+  let versionServidor = '';
+  try { const pg = await Cli.get(c, { action: 'ping' }); versionServidor = (pg && pg.version) || (pg && pg.ok ? 'anterior a v99' : ''); } catch (e) {}
+  const perfil = r.rows.find((x)=> x.tipo === 'empresa' && x.id === 'EMPRESA-PERFIL') || r.rows.find((x)=> x.tipo === 'empresa');
+  perfilCli = perfil || null; actual.versionServidor = versionServidor || actual.versionServidor || '';
+  // A quién se le puede asignar (usuarios activos de esa empresa; servidores v107 o posteriores).
+  try { const rr = await Cli.get(c, { action: 'responsables' }); respCli = rr && rr.ok && Array.isArray(rr.usuarios) ? rr.usuarios : []; if (rr && rr.ok && rr.responsableSST) respCli.unshift({ nombre: rr.responsableSST, cargo: 'Responsable del SG-SST', rol: '' }); } catch (e) { respCli = []; }
+  if (actual !== c) return;
+  pintarTareas(perfil);
+  // Se guarda el resumen en tu panel (para la lista y el correo diario).
+  const h = UI.hoy(), ab = tareas.filter((x)=> x.estado !== 'CERRADA'), campos = { tareasAbiertas: ab.length, tareasVencidas: ab.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h).length, tareasCerradas: tareas.length - ab.length,
+    puntaje: autoeval ? Number(autoeval.resumen.puntaje) : '', sincronizado: new Date().toISOString(), versionServidor };
+  await SGSST.enviar({ action: 'parche', tipo: 'cliente', id: c.id, campos });
+  Object.assign(actual, campos);
+  const rw = rows.find((x)=> x.id === c.id); if (rw) Object.assign(rw.resumen, campos);   // la lista y los totales, al volver
+}
+const pl = (n, t)=> n + ' ' + t + (n === 1 ? '' : 's');
+/** Estado de una tarea para el asesor: [texto, color, grupo del filtro]. */
+function estTarea(x, h){
+  if (x.estado === 'CERRADA') return x.resumen.verificada ? ['Cerrada · verificada', 'ok', 'cerradas'] : ['Cerrada · por verificar', 'pronto', 'cerradas'];
+  if (x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h) return ['Vencida', 'mal', 'vencidas'];
+  return x.estado === 'EN PROCESO' ? ['Abierta · en proceso', 'azul', 'abiertas'] : ['Abierta', 'gris', 'abiertas'];
+}
+function pintarTareas(perfil){
+  perfil = perfil === undefined ? perfilCli : perfil;
+  const h = UI.hoy(), c = actual;
+  const aviso = perfil && (Number(perfil.resumen.trabajadores) !== Number(c.trabajadores) || perfil.resumen.claseRiesgo !== c.claseRiesgo)
+    ? '<div class="aviso amar">En su portal dice ' + esc(perfil.resumen.trabajadores) + ' trabajadores, riesgo ' + esc(perfil.resumen.claseRiesgo) + ' (le aplicarían ' + esc(perfil.resumen.grupo0312) + ' estándares). <button type="button" class="btn-mini" id="cUsarPerfil">Usar estos datos</button></div>' : '';
+  const pr = perfil ? perfil.resumen : {}, cs = pr.correoSST || '', ca = pr.correoAsesor || '';
+  const correos = '<div class="aviso ' + (cs ? 'info' : 'amar') + '" style="font-size:var(--fs-base);">' + (cs ? 'Avisos por correo: las tareas nuevas y los recordatorios llegan a <b>' + esc(cs) + '</b>' + (ca ? '; tú recibes copia y el aviso cuando cierran una (' + esc(ca) + ')' : '') + '.' : 'Avisos por correo sin configurar: el cliente ve las tareas en su plan de acción y en sus pendientes del inicio, pero no le llega correo inmediato.') +
+    ' <button type="button" class="btn-mini" id="cCorreos">' + (cs ? 'Cambiar' : 'Configurar') + '</button></div>';
+  const cuenta = { abiertas: 0, vencidas: 0, cerradas: 0 }; tareas.forEach((x)=> { cuenta[estTarea(x, h)[2]]++; });
+  const tot = tareas.length, av = tot ? Math.round(cuenta.cerradas * 100 / tot) : 0;
+  const vis = tareas.filter((x)=> fTar === 'todas' || estTarea(x, h)[2] === fTar || (fTar === 'abiertas' && estTarea(x, h)[2] === 'vencidas'));
+  const resumen = tot ? '<div class="res-tar"><span class="chip gris">' + pl(cuenta.abiertas + cuenta.vencidas, 'abierta') + '</span><span class="chip ' + (cuenta.vencidas ? 'mal' : 'ok') + '">' + pl(cuenta.vencidas, 'vencida') + '</span><span class="chip ok">' + pl(cuenta.cerradas, 'cerrada') + '</span></div>' +
+      '<div class="barra-av" role="img" aria-label="Avance: ' + av + ' %"><i style="width:' + av + '%"></i></div><div class="m" style="font-size:var(--fs-menor);color:var(--muted);margin-bottom:8px;">Avance: ' + cuenta.cerradas + ' de ' + tot + ' cerradas (' + av + ' %)</div>' +
+      '<div class="filtro" id="fTar" role="group" aria-label="Qué tareas ver">' + [['abiertas', 'Abiertas (' + (cuenta.abiertas + cuenta.vencidas) + ')'], ['vencidas', 'Vencidas (' + cuenta.vencidas + ')'], ['cerradas', 'Cerradas (' + cuenta.cerradas + ')'], ['todas', 'Todas']]
+        .map(([k, t])=> '<button type="button" data-ft="' + k + '"' + (fTar === k ? ' class="on"' : '') + ' aria-pressed="' + (fTar === k) + '">' + t + '</button>').join('') + '</div>' : '';
+  $('cTar').innerHTML = (actual.versionServidor ? '<div class="u-mb6">' + verChip(actual.versionServidor) + '</div>' : '') + aviso + correos + (autoeval ? '<div class="m u-mb6">Última autoevaluación: <b>' + esc(String(autoeval.resumen.puntaje).replace('.', ',')) + '%</b> · ' + esc(autoeval.resumen.valoracion || '') + ' · ' + esc(UI.corta(autoeval.resumen.fechaEjecucion)) + '</div>' : '<div class="m u-mb6">El cliente aún no tiene autoevaluación cerrada en su portal.</div>') +
+    resumen + (vis.length ? vis.map((x)=> { const e = estTarea(x, h), s = x.resumen;
+      return '<div class="tar"><div class="tt">' + esc(s.accion) + ' <span class="chip ' + e[1] + '">' + e[0] + '</span></div><small>' + esc([s.responsable && 'Responsable: ' + s.responsable, s.fechaCompromiso && (x.estado !== 'CERRADA' && s.fechaCompromiso < h ? 'venció el ' : 'para el ') + UI.corta(s.fechaCompromiso), s.prioridad && 'prioridad ' + String(s.prioridad).toLowerCase()].filter(Boolean).join(' · ')) + '</small>' +
+        (s.hallazgo ? '<small>' + esc(s.hallazgo) + '</small>' : '') +
+        (x.estado !== 'CERRADA' ? '<div class="av">' + (Number(s.avances) ? '<b>Avance:</b> ' + esc(s.avances) + ' anotación' + (Number(s.avances) === 1 ? '' : 'es') + (s.ultimoAvance ? ' · última: ' + esc(s.ultimoAvance) : '') : s.avances === 0 || s.avances === '0' ? 'Sin avances anotados todavía.' : '') + '</div>' : '') +
+        (x.estado === 'CERRADA' && s.fechaCierre ? '<small>Cerrada el ' + esc(UI.corta(s.fechaCierre)) + (s.eficaz ? ' · eficaz: ' + esc(s.eficaz) : '') + '</small>' : '') +
+        '<div class="acc">' + (x.estado === 'CERRADA' && !s.verificada ? '<button type="button" class="btn-mini" data-ver="' + esc(x.id) + '">Verificar</button>' : '') +
+        (x.estado === 'CERRADA' ? '<button type="button" class="btn-mini" style="background:var(--rojo-900);" data-reabrir="' + esc(x.id) + '">Reabrir</button>' : '<button type="button" class="btn-mini" data-nota="' + esc(x.id) + '">Anotar al cliente</button>') + '</div></div>'; }).join('')
+      : '<div class="empty">' + (tot ? 'Ninguna tarea en este filtro.' : 'Todavía no le has asignado tareas. Toca «+ Asignar tarea».') + '</div>');
+  $('cCorreos').addEventListener('click', ()=> configurarCorreos(perfil));
+  if ($('fTar')) $('fTar').addEventListener('click', (e)=> { const b = e.target.closest('[data-ft]'); if (!b) return; fTar = b.dataset.ft; pintarTareas(); });
+  if ($('cUsarPerfil')) $('cUsarPerfil').addEventListener('click', async ()=> { const p = perfil.resumen;
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'cliente', id: c.id, campos: { trabajadores: Number(p.trabajadores), claseRiesgo: p.claseRiesgo, agropecuaria: p.agropecuaria ? 'Sí' : 'No', grupo0312: grupo0312(p.trabajadores, p.claseRiesgo, !!p.agropecuaria) } });
+    if (r.ok) { await cargar(); abrir(c.id); } });
+  $('cTar').querySelectorAll('[data-ver]').forEach((b)=> b.addEventListener('click', ()=> cambiarTarea(b.dataset.ver, 'verificar')));
+  $('cTar').querySelectorAll('[data-reabrir]').forEach((b)=> b.addEventListener('click', ()=> cambiarTarea(b.dataset.reabrir, 'reabrir')));
+  $('cTar').querySelectorAll('[data-nota]').forEach((b)=> b.addEventListener('click', ()=> cambiarTarea(b.dataset.nota, 'nota')));
+}
+/* Avisos por correo de las tareas: se guardan en el perfil del cliente (en SU servidor),
+   que es quien manda los correos y solo a esas direcciones. */
+function configurarCorreos(perfil){
+  const c = actual, pr = perfil ? perfil.resumen : {};
+  let mio = ''; try { mio = (Sesion.yo() || {}).correo || localStorage.getItem('ssta-admin-correo-asesor') || ''; } catch (e) {}
+  const m = UI.modal('<h3>Avisos por correo · ' + esc(c.nombre) + '</h3><p class="ayuda">El servidor de ' + esc(c.nombre) + ' avisa por correo cuando le dejas una tarea, le recuerda las que vencen en 3 días o ya vencieron, y te avisa a ti cuando cierran una para que la verifiques. Necesita que su servidor esté en la versión v98 o posterior.</p>' +
+    '<div class="field"><label>Correo del responsable del SG-SST en la empresa *</label><input type="email" id="ccS" value="' + esc(pr.correoSST || c.correo || '') + '" autocapitalize="none"></div>' +
+    '<div class="field"><label>Tu correo (copia de los avisos y tareas cerradas)</label><input type="email" id="ccA" value="' + esc(pr.correoAsesor || mio) + '" autocapitalize="none"></div>' +
+    '<p class="ayuda">También le llega al usuario del portal del cliente que se llame como el responsable de la tarea, si tiene correo.</p>' +
+    '<button type="button" class="btn amber" id="ccOk">Guardar en el portal del cliente</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="ccMsg"></div>', true);
+  m.el.querySelector('#ccOk').addEventListener('click', async ()=> {
+    const v = (id)=> m.el.querySelector(id).value.trim().toLowerCase(), ok = (x)=> !x || /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/.test(x), msg = m.el.querySelector('#ccMsg');
+    const cs = v('#ccS'), ca = v('#ccA');
+    if (!cs) { msg.textContent = 'Falta el correo del responsable.'; return; }
+    if (!ok(cs) || !ok(ca)) { msg.textContent = 'Revisa los correos.'; return; }
+    const campos = { correoSST: cs, correoAsesor: ca };
+    // Si el cliente aún no tiene perfil, se crea con los datos de tu panel.
+    if (!perfil) Object.assign(campos, { nombre: c.nombre, nit: c.nit || '', actividad: c.actividad || '', trabajadores: Number(c.trabajadores) || '', claseRiesgo: c.claseRiesgo || 'I', agropecuaria: c.agropecuaria === 'Sí', grupo0312: Number(c.grupo0312) || grupo0312(c.trabajadores, c.claseRiesgo, c.agropecuaria === 'Sí'), fechaActualizacion: UI.hoy() });
+    msg.textContent = 'Guardando…';
+    const r = await Cli.pedirSiHaceFalta(c, ()=> Cli.post(c, { action: 'parche', tipo: 'empresa', id: 'EMPRESA-PERFIL', campos }));
+    if (!r.ok) { msg.textContent = Errores.texto('guardó', r); return; }
+    try { if (ca) localStorage.setItem('ssta-admin-correo-asesor', ca); } catch (e) {}
+    m.cerrar(); UI.toast('✓ Avisos por correo configurados en el portal del cliente.'); traerTareas();
+  });
+}
+const yo = ()=> Sesion.nombre() || (typeof EMPRESA !== 'undefined' && EMPRESA.nombre) || 'Asesor';
+async function cambiarTarea(id, que){
+  const c = actual;
+  let body;
+  if (que === 'verificar') { const n = await Dialogo.pedir('Nota de verificación (opcional):', 'Evidencia revisada'); if (n === null) return; body = { action: 'parche', tipo: 'accion', id, campos: { verificada: { fecha: UI.hoy(), por: yo(), nota: n } } }; }
+  else if (que === 'reabrir') { const n = await Dialogo.pedir('¿Por qué se reabre? (el cliente lo verá en el seguimiento)', ''); if (!n) return;
+    body = { action: 'parche', tipo: 'accion', id, campos: { estado: 'ABIERTA', verificada: null }, agregar: { seguimiento: [{ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), quien: yo() + ' (asesor)', texto: 'Reabierta: ' + n }] } }; }
+  else { const n = await Dialogo.pedir('Anotación para el cliente (queda en el seguimiento de la tarea):', ''); if (!n) return;
+    body = { action: 'parche', tipo: 'accion', id, agregar: { seguimiento: [{ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), quien: yo() + ' (asesor)', texto: n }] } }; }
+  const r = await Cli.pedirSiHaceFalta(c, ()=> Cli.post(c, body));
+  if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+  UI.toast('✓ Guardado en el portal del cliente.'); traerTareas();
+}
+const PRIORIDADES = ['Alta', 'Media', 'Baja'];
+let perfilCli = null;
+const pendCorreo = ()=> !(perfilCli && perfilCli.resumen.correoSST);
+/** Opciones del responsable: los usuarios de la empresa (si su servidor los da), su responsable
+ *  del SG-SST y el contacto que tienes anotado; con «Otro» se escribe cualquier nombre. */
+function opcionesResp(sel){
+  const vistos = {}, ops = [];
+  const add = (n, det)=> { n = String(n || '').trim(); const k = UI.norm(n); if (!n || vistos[k]) return; vistos[k] = 1; ops.push('<option value="' + esc(n) + '"' + (n === sel ? ' selected' : '') + '>' + esc(n + (det ? ' · ' + det : '')) + '</option>'); };
+  const ROL = { sst: 'SST', admin: 'Administrador', supervisor: 'Supervisor', comite: 'Comité', consulta: 'Consulta' };
+  respCli.forEach((u)=> add(u.nombre, [u.cargo, ROL[u.rol]].filter(Boolean).join(', ')));
+  add(actual.contacto, 'contacto anotado en tu panel');
+  return '<option value="">Elige a quién</option>' + ops.join('') + '<option>Otro</option>';
+}
+function nuevaTarea(pre){
+  pre = pre || {};
+  const c = actual, g = Number(c.grupo0312), P = PLANTILLAS_AUDITORIA[g === 60 ? 'RES0312' : 'RES0312_' + g], h = UI.hoy();
+  const resp0 = pre.responsable || (respCli[0] && respCli[0].nombre) || c.contacto || '';
+  const m = UI.modal('<h3>Asignar tarea a ' + esc(c.nombre) + '</h3>' +
+    '<p class="ayuda u-mt0">Los campos con * son obligatorios.</p>' +
+    '<div class="field"><label for="tT">Tarea (qué debe hacer) *</label><input type="text" id="tT" maxlength="180" value="' + esc(pre.titulo || '') + '" placeholder="Ej: Firmar y divulgar la política de SST"></div>' +
+    '<div class="field"><label for="tD">Detalle e instrucciones</label><textarea id="tD" rows="3" placeholder="Qué evidencia esperas, dónde subirla, a quién preguntar…">' + esc(pre.detalle || '') + '</textarea></div>' +
+    '<div class="field"><label for="tR">Responsable en la empresa *</label><select id="tR">' + opcionesResp(resp0) + '</select>' +
+      '<div class="ayuda" style="margin-top:4px;">' + (respCli.length ? 'Son los usuarios de su portal: le aparece en sus pendientes y en su correo del lunes.' : 'Su portal no dio la lista de usuarios (servidor anterior a v107 o sin usuarios): elige el contacto o «Otro» y escribe el nombre como está en su portal.') + '</div></div>' +
+    '<div class="grid2"><div class="field"><label for="tF">Fecha límite *</label><input type="date" id="tF" min="' + h + '" value="' + esc(pre.fecha || Festivos.sumarDias(h, 30)) + '"></div>' +
+      '<div class="field"><label for="tP">Prioridad *</label><select id="tP">' + PRIORIDADES.map((p)=> '<option' + (p === (pre.prioridad || 'Media') ? ' selected' : '') + '>' + p + '</option>').join('') + '</select></div></div>' +
+    '<div class="field"><label for="tE">Estándar relacionado (Res. 0312)</label><select id="tE" data-sin-otro><option value="">Ninguno en particular</option>' + P.items.map((i)=> '<option value="' + esc(i[0]) + '"' + (i[0] === pre.estandar ? ' selected' : '') + '>' + esc(i[0] + ' · ' + i[4].split(' — ')[0].slice(0, 80)) + '</option>').join('') + '</select></div>' +
+    '<div class="aviso info u-fs-base">Queda en el plan de acción de su portal (origen «Asesor SST»), en los pendientes del inicio y en el correo del lunes del responsable' + (pendCorreo() ? '' : ', y le llega un correo de una vez') + '.</div>' +
+    '<div id="tSal"></div><button type="button" class="btn amber" id="tOk">Asignar la tarea</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="tMsg"></div>', true);
+  const sel = m.el.querySelector('#tR'); Valida.otro(sel);
+  if (resp0 && sel.value !== resp0) sel.value = resp0;
+  m.el.querySelector('#tOk').addEventListener('click', async ()=> {
+    const el = (id)=> m.el.querySelector(id), v = (id)=> String(el(id).value || '').trim();
+    const malos = Valida.revisar(m.el, [
+      { el: el('#tT'), etiqueta: 'Tarea', error: ()=> !v('#tT') ? 'falta' : v('#tT').length < 5 ? 'escríbela un poco más clara (mínimo 5 letras)' : '' },
+      { el: sel, etiqueta: 'Responsable', error: ()=> !v('#tR') || /^otro$/i.test(v('#tR')) ? 'elige a quién o escribe su nombre en «Otro»' : '' },
+      { el: el('#tF'), etiqueta: 'Fecha límite', error: ()=> !v('#tF') ? 'falta' : Valida.fecha(v('#tF')) || (v('#tF') < h ? 'no puede ser anterior a hoy' : '') }
+    ], el('#tSal'));
+    if (malos.length) return;
+    el('#tOk').disabled = true; el('#tMsg').textContent = 'Guardando en el portal del cliente…';
+    const r = await crearTarea({ titulo: v('#tT'), detalle: v('#tD'), estandar: v('#tE'), responsable: v('#tR'), fecha: v('#tF'), prioridad: v('#tP') });
+    el('#tOk').disabled = false;
+    if (!r.ok) { el('#tMsg').textContent = Errores.texto('guardó', r); return; }
+    m.cerrar(); UI.toast('✓ Tarea asignada a ' + v('#tR') + ' en el plan de acción de ' + c.nombre + '.'); fTar = 'abiertas'; traerTareas();
+  });
+}
+function crearTarea(t){
+  const c = actual, h = UI.hoy();
+  const doc = { origen: ORIGEN, origenRef: 'ASESOR', estandar: t.estandar || '', hallazgo: (t.estandar ? 'Estándar ' + t.estandar + '. ' : '') + (t.detalle || ''), accion: t.titulo, tipoAccion: 'Preventiva',
+    prioridad: t.prioridad || 'Media', responsable: t.responsable, fechaCompromiso: t.fecha || Festivos.sumarDias(h, 30), centro: '', fotos: [], estado: 'ABIERTA', fecha: h, asignadaPor: yo(), seguimiento: [] };
+  // En lote, el servidor del cliente manda un solo correo con todas (al llegar la última).
+  if (t.lote) Object.assign(doc, { lote: t.lote, loteN: t.loteN, loteI: t.loteI });
+  return Cli.pedirSiHaceFalta(c, ()=> Cli.post(c, { action: 'guardar', tipo: 'accion', id: SGSST.nuevoId('ACC'), doc, versionBase: 0 }));
+}
+/* Tareas a partir de los estándares que le aplican: los que no cumplió en su última autoevaluación
+   (o todos, si aún no la tiene), menos los que ya tienen una tarea abierta. */
+async function tareasEstandares(){
+  const c = actual, g = Number(c.grupo0312), P = PLANTILLAS_AUDITORIA[g === 60 ? 'RES0312' : 'RES0312_' + g];
+  let nc = null;
+  if (autoeval) { const d = await Cli.pedirSiHaceFalta(c, ()=> Cli.get(c, { action: 'doc', id: autoeval.id })); if (d.ok) nc = new Set((d.doc.items || []).filter((i)=> i.r === 'NC' || !i.r).map((i)=> i.id)); }
+  const abiertas = new Set(tareas.filter((x)=> x.estado !== 'CERRADA').map((x)=> (/^Estándar (\d+(?:\.\d+)*)/.exec(x.resumen.hallazgo || '') || [])[1]).filter(Boolean));
+  const m = UI.modal('<h3>Tareas de sus ' + g + ' estándares</h3><p class="ayuda">' + (nc ? 'Marcados: los que no cumplió en su autoevaluación del ' + esc(UI.corta(autoeval.resumen.fechaEjecucion)) + '.' : 'Aún no tiene autoevaluación: están marcados todos.') + ' Los que ya tienen una tarea abierta no se repiten.</p>' +
+    P.items.map((i, k)=> { const ya = abiertas.has(i[0]); const marc = !ya && (!nc || nc.has(i[0]));
+      return '<label class="std"><input type="checkbox" data-k="' + k + '"' + (marc ? ' checked' : '') + (ya ? ' disabled' : '') + '><div><b>' + esc(i[0]) + '</b> ' + esc(i[4].split(' — ')[0]) + (ya ? ' <small>ya tiene tarea abierta</small>' : '') + '<small>' + esc(i[4].split(' — ').slice(-1)[0]) + '</small></div></label>'; }).join('') +
+    '<div class="grid2 u-mt8"><div class="field"><label for="sR">Responsable *</label><select id="sR">' + opcionesResp((respCli[0] && respCli[0].nombre) || c.contacto || '') + '</select></div><div class="field"><label for="sF">Fecha límite *</label><input type="date" id="sF" min="' + UI.hoy() + '" value="' + Festivos.sumarDias(UI.hoy(), 45) + '"></div></div><div id="sSal"></div>' +
+    '<button type="button" class="btn amber" id="sOk">Dejar las tareas marcadas</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="sMsg"></div>', true);
+  Valida.otro(m.el.querySelector('#sR'));
+  m.el.querySelector('#sOk').addEventListener('click', async ()=> {
+    const sel = [...m.el.querySelectorAll('input[data-k]:checked')].map((x)=> P.items[+x.dataset.k]), resp = m.el.querySelector('#sR').value.trim(), f = m.el.querySelector('#sF').value, msg = m.el.querySelector('#sMsg');
+    if (!sel.length) { msg.textContent = 'Marca al menos un estándar.'; return; }
+    if (Valida.revisar(m.el, [{ el: m.el.querySelector('#sR'), etiqueta: 'Responsable', error: ()=> !resp || /^otro$/i.test(resp) ? 'elige a quién o escribe su nombre en «Otro»' : '' },
+      { el: m.el.querySelector('#sF'), etiqueta: 'Fecha límite', error: ()=> !f ? 'falta' : f < UI.hoy() ? 'no puede ser anterior a hoy' : '' }], m.el.querySelector('#sSal')).length) return;
+    let n = 0; const lote = 'L' + Date.now().toString(36);
+    for (const i of sel) { msg.textContent = 'Creando ' + (n + 1) + ' de ' + sel.length + '…';
+      const r = await crearTarea({ titulo: 'Cumplir el estándar ' + i[0] + ': ' + i[4].split(' — ')[0], detalle: i[4].split(' — ').slice(-1)[0], estandar: i[0], responsable: resp, fecha: f, prioridad: Number(i[3]) >= 4 ? 'Alta' : 'Media', lote, loteN: sel.length, loteI: n + 1 });
+      if (!r.ok) { msg.textContent = 'Se crearon ' + n + '. Error: ' + (r.error || ''); return; } n++; }
+    m.cerrar(); UI.toast('✓ ' + n + ' tarea(s) en el plan de acción del cliente.'); traerTareas();
+  });
+}
+function pintarVisitas(){
+  const v = (actual.visitas || []).slice().sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  $('cVis').innerHTML = v.length ? v.map((x)=> '<div class="tar"><div class="tt">' + esc(UI.corta(x.fecha)) + '</div><small>' + esc(x.nota) + '</small></div>').join('') : '<div class="m u-nota">Sin visitas anotadas.' + (actual.proximaVisita ? ' Próxima: ' + esc(UI.corta(actual.proximaVisita)) : '') + '</div>';
+}
+async function anotarVisita(){
+  const f = $('vF').value, p = $('vP').value, n = $('vN').value.trim();
+  if (Valida.revisar($('scrCli'), [{ el: $('vF'), etiqueta: 'Fecha', error: ()=> !f ? 'falta' : Valida.pasada(f) }, { el: $('vN'), etiqueta: 'Qué se revisó', error: ()=> n ? '' : 'falta' },
+    { el: $('vP'), etiqueta: 'Próxima visita', error: ()=> p && f && p < f ? 'no puede ser antes de la visita' : '' }], $('vMsg')).length) return;
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'cliente', id: actual.id, campos: { ultimaVisita: f, proximaVisita: p }, agregar: { visitas: [{ uid: SGSST.nuevoOpId(), fecha: f, nota: n }] } });
+  if (!r.ok) { $('cMsg').textContent = Errores.texto('guardó', r); return; }
+  actual.visitas = (actual.visitas || []).concat([{ fecha: f, nota: n }]); actual.ultimaVisita = f; actual.proximaVisita = p; $('vN').value = '';
+  pintarVisitas(); UI.toast('✓ Visita anotada.'); cargar();
+}
+function pdfCliente(){
+  const c = actual, h = UI.hoy(), g = Number(c.grupo0312);
+  UI.imprimir([UI.cabecera('SG-INFORME-ASESORIA', 'INFORME DE ASESORÍA EN SST', c.nombre + ' · ' + UI.corta(h)) +
+    UI.seccion('EMPRESA', UI.tablaDatos([['Empresa', c.nombre], ['NIT', c.nit || ''], ['Trabajadores', String(c.trabajadores || '')], ['Clase de riesgo', c.claseRiesgo || ''], ['Estándares que aplican', UI.textoGrupo(g)], ['Última autoevaluación', autoeval ? String(autoeval.resumen.puntaje).replace('.', ',') + ' % · ' + (autoeval.resumen.valoracion || '') : 'Sin autoevaluación']])) +
+    UI.seccion('TAREAS', tareas.length ? '<table><tr><td class="l">Tarea</td><td class="l">Responsable</td><td class="l">Fecha límite</td><td class="l">Estado</td></tr>' + tareas.map((x)=> '<tr><td>' + esc(x.resumen.accion) + '</td><td>' + esc(x.resumen.responsable || '') + '</td><td>' + esc(UI.corta(x.resumen.fechaCompromiso)) + '</td><td>' +
+      esc(x.estado === 'CERRADA' ? (x.resumen.verificada ? 'Verificada' : 'Hecha, por verificar') : x.resumen.fechaCompromiso < h ? 'VENCIDA' : x.estado) + '</td></tr>').join('') + '</table>' : '<table><tr><td>Sin tareas.</td></tr></table>') +
+    UI.seccion('VISITAS', '<table>' + ((c.visitas || []).map((v)=> '<tr><td style="width:18%;">' + esc(UI.corta(v.fecha)) + '</td><td>' + esc(v.nota) + '</td></tr>').join('') || '<tr><td>Sin visitas anotadas.</td></tr>') + '</table>')]);
+}
+$('btnSync').addEventListener('click', async ()=> {
+  const act = de('cliente').filter((x)=> x.estado !== 'INACTIVO');
+  const b = $('btnSync'); b.disabled = true; let n = 0, mal = [];
+  for (const x of act) {
+    b.textContent = 'Trayendo ' + (++n) + ' de ' + act.length + '…';
+    const c = await SGSST.doc(x.id); if (!c || !Cli.url(c)) continue;
+    try {
+      const r = await Cli.get(c, { action: 'list', tipo: 'accion,auditoria' });
+      if (!r.ok) { mal.push(c.nombre + ': ' + (r.codigoError === 'SESION' ? 'pide entrar (ábrelo)' : r.error)); continue; }
+      const h = UI.hoy(), t = r.rows.filter((y)=> y.tipo === 'accion' && y.resumen.origen === ORIGEN), ab = t.filter((y)=> y.estado !== 'CERRADA');
+      const au = r.rows.filter((y)=> y.tipo === 'auditoria' && /^RES0312/.test(y.resumen.plantilla) && y.estado === 'CERRADA').sort((p, q)=> String(q.resumen.fechaEjecucion).localeCompare(String(p.resumen.fechaEjecucion)))[0];
+      let vs = ''; try { const pg = await Cli.get(c, { action: 'ping' }); vs = (pg && pg.version) || (pg && pg.ok ? 'anterior a v99' : ''); } catch (e) {}
+      await SGSST.enviar({ action: 'parche', tipo: 'cliente', id: c.id, campos: { versionServidor: vs, tareasAbiertas: ab.length, tareasCerradas: t.length - ab.length, tareasVencidas: ab.filter((y)=> y.resumen.fechaCompromiso && y.resumen.fechaCompromiso < h).length, puntaje: au ? Number(au.resumen.puntaje) : '', sincronizado: new Date().toISOString() } });
+    } catch (e) { mal.push(c.nombre + ': sin respuesta'); }
+  }
+  b.disabled = false; b.textContent = 'Traer el avance de todos';
+  UI.toast(mal.length ? 'Listo, con problemas en: ' + mal.join(' · ') : '✓ Avance actualizado.', mal.length ? 'mal' : '');
+  cargar();
+});
+$('btnPdf').addEventListener('click', ()=> {
+  const l = de('cliente').filter((x)=> x.estado !== 'INACTIVO').sort((a, b)=> (Number(a.resumen.grupo0312) || 60) - (Number(b.resumen.grupo0312) || 60));
+  UI.imprimir([UI.cabecera('SG-INFORME-ASESORIA', 'ESTADO DE LOS CLIENTES DE ASESORÍA', 'Corte ' + UI.corta(UI.hoy())) +
+    '<table><tr><td class="l">Cliente</td><td class="l">Trabajadores</td><td class="l">Riesgo</td><td class="l">Estándares</td><td class="l">Autoevaluación</td><td class="l">Tareas abiertas</td><td class="l">Vencidas</td><td class="l">Próxima visita</td></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(x.titulo) + '</td><td>' + esc(s.trabajadores) + '</td><td>' + esc(s.claseRiesgo) + '</td><td>' + esc(s.grupo0312) + '</td><td>' + (s.puntaje !== '' && s.puntaje != null ? esc(String(s.puntaje).replace('.', ',')) + ' %' : '—') + '</td><td>' + esc(s.tareasAbiertas || 0) + '</td><td>' + esc(s.tareasVencidas || 0) + '</td><td>' + esc(UI.corta(x.vence)) + '</td></tr>'; }).join('') + '</table>'], true);
+});
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-48Ess/PhS/JIKjrLipXqIVrcZVCK75B3uTZuH5DTvz8=' 'sha256-lupPwTLPchVKaAXHMJO4YnzP+RccYRQSpxpvopXTs0A=' 'sha256-Mp3LALzUdVjFil6jzujl1G9xGqf3RqtL7cvDe8iZHLA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurar empresa · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Configurar empresa · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{ --muted:var(--ink-soft); --mal:var(--warn); --amber:var(--ambar-600); }
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg,var(--bg));color:var(--ink);font-family:var(--font-family,-apple-system,sans-serif);padding-bottom:60px;}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px;}
+.hdr{display:block;background:var(--ink);padding:1.3rem 1.2rem 1.05rem;margin:0 -14px 14px;border-radius:0 0 16px 16px;}
+.hdr .eyebrow{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--n-400);margin-bottom:6px;}
+.hdr h1{font-family:var(--font-display);font-size:var(--fs-display);color:#fff;margin:0 0 3px;}
+.hdr p{font-size:var(--fs-menor);color:var(--n-400);margin:0;line-height:1.45;}
+.hdr a.back{display:inline-block;margin-bottom:10px;font-size:var(--fs-menor);color:var(--ambar-600);text-decoration:none;font-weight:600;}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:14px 15px;margin-bottom:12px;}
+.card h2{font-family:var(--font-display);font-size:var(--fs-titulo);margin:0 0 4px;}
+.card .ayuda{font-size:var(--fs-menor);color:var(--muted);margin:0 0 12px;line-height:1.45;}
+.paso{display:inline-block;background:var(--ink);color:#fff;border-radius:var(--r-xl);font-size:var(--fs-etiqueta);font-weight:700;padding:2px 9px;margin-right:6px;vertical-align:2px;}
+label{display:block;font-size:var(--fs-menor);font-weight:700;color:var(--n-700);margin:10px 0 4px;}
+input[type=text],input[type=email],textarea{width:100%;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-s);padding:10px 11px;font:inherit;font-size:var(--fs-titulo);background:#fff;color:var(--ink);}
+textarea{min-height:84px;resize:vertical;font-size:var(--fs-base);}
+input:focus,textarea:focus{outline:2px solid #c9a22766;border-color:var(--ambar-600);}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+@media (max-width:520px){.g2{grid-template-columns:minmax(0,1fr);}}
+.logo-fila{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.logo-prev{width:150px;height:84px;border:1.5px dashed var(--line);border-radius:var(--r-m);background:#fff center/88% auto no-repeat;flex:0 0 auto;}
+.color{display:flex;align-items:center;gap:10px;}
+.color input[type=color]{width:52px;height:40px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:2px;background:#fff;}
+table.fmt{width:100%;border-collapse:collapse;font-size:var(--fs-menor);}
+table.fmt th{text-align:left;font-size:var(--fs-etiqueta);color:var(--muted);font-weight:700;padding:4px 4px 6px;}
+table.fmt td{padding:4px;vertical-align:top;}
+table.fmt td input{font-size:var(--fs-base);padding:8px 8px;}
+table.fmt .tit{font-weight:600;font-size:var(--fs-menor);line-height:1.3;padding-top:9px;}
+@media (max-width:620px){
+  table.fmt thead{display:none;}
+  table.fmt tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 8px;border-bottom:1px dashed var(--line);padding:6px 0 10px;}
+  table.fmt td.tit{grid-column:1/-1;}
+  table.fmt td[data-l]::before{content:attr(data-l);display:block;font-size:var(--fs-etiqueta);color:var(--muted);font-weight:700;margin-bottom:2px;}
+}
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+.mods label{display:flex;align-items:center;gap:9px;margin:0;font-weight:600;font-size:var(--fs-base);border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 11px;cursor:pointer;}
+.mods input{width:20px;height:20px;}
+.btn{display:block;width:100%;text-align:center;background:var(--ink);color:#fff;font-weight:700;font-size:var(--fs-titulo);border:none;border-radius:var(--r-m);padding:14px;margin-top:10px;cursor:pointer;font-family:inherit;}
+.btn.amber{background:var(--amber);color:var(--ink);}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink);}
+.btn.peq{display:inline-block;width:auto;padding:9px 13px;font-size:var(--fs-base);margin:0;}
+.msg{font-size:var(--fs-menor);line-height:1.45;border-radius:var(--r-m);padding:10px 12px;margin-top:10px;}
+.msg.ok{background:var(--verde-50);border:1px solid var(--verde-100);color:var(--verde-700);}
+.msg.mal{background:var(--rojo-50);border:1px solid var(--rojo-200);color:var(--rojo-900);}
+.msg.aviso{background:var(--ambar-50);border:1px solid var(--ambar-200);color:var(--ambar-900);}
+.vista{display:flex;align-items:center;gap:12px;background:var(--ink);border-radius:var(--r-l);padding:14px;color:#fff;}
+.vista .lg{width:84px;height:48px;border-radius:var(--r-m);background:#fff center/88% auto no-repeat;flex:0 0 auto;}
+.vista b{display:block;font-family:var(--font-display);font-size:var(--fs-display);}
+.vista span{font-size:var(--fs-menor);color:var(--n-400);}
+pre{white-space:pre-wrap;word-break:break-all;background:var(--ink);color:var(--line);border-radius:var(--r-m);padding:12px;font-size:var(--fs-etiqueta);max-height:260px;overflow:auto;}
+/* v113: estándares mínimos (Res. 0312) */
+.e0312-res{display:flex;align-items:center;gap:14px;border-radius:var(--r-l);padding:14px;margin-top:12px;color:#fff;background:linear-gradient(135deg,var(--cian-500),var(--azul));}
+.e0312-res .n{font-size:var(--fs-hero);font-weight:800;letter-spacing:-.05em;line-height:1;flex:0 0 auto;min-width:64px;text-align:center;}
+.e0312-res b{display:block;font-size:var(--fs-titulo);}
+.e0312-res span{display:block;font-size:var(--fs-menor);opacity:.92;line-height:1.4;}
+.e0312-ciclo{margin-top:14px;}
+.e0312-ciclo h3{font-size:var(--fs-menor);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;display:flex;justify-content:space-between;}
+.e0312-cat{border:1.5px solid var(--line);border-radius:var(--r-m);margin-bottom:6px;background:#fff;}
+.e0312-cat summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-weight:700;font-size:var(--fs-base);list-style:none;}
+.e0312-cat summary::-webkit-details-marker{display:none;}
+.e0312-cat summary .c{margin-left:auto;font-size:var(--fs-menor);font-weight:800;background:var(--bg);border-radius:var(--r-pill);padding:3px 10px;white-space:nowrap;}
+.e0312-cat ol{margin:0;padding:0 12px 10px 34px;font-size:var(--fs-menor);line-height:1.45;}
+.e0312-cat li{margin:3px 0;}
+.e0312-cat li code{font-weight:700;color:var(--azul);margin-right:4px;}
+.mods label .apoya{margin-left:auto;font-size:var(--fs-etiqueta);font-weight:800;color:#0c8a57;background:var(--verde-50);border-radius:var(--r-pill);padding:2px 7px;white-space:nowrap;}
+.qr-final{display:flex;gap:14px;align-items:center;margin:10px 0;flex-wrap:wrap;}
+.qr-final canvas{width:160px;height:160px;border:1px solid var(--n-300);border-radius:var(--r-m);background:#fff;}
+.qr-final > div{flex:1 1 180px;}
+.ver-enlace{margin-top:6px;font-size:var(--fs-menor);} .ver-enlace code{display:block;word-break:break-all;background:var(--n-50,#f6f8fa);padding:6px 8px;border-radius:var(--r-xs);margin-top:4px;}
+</style>
+<style>
+.tipos{display:grid;gap:8px;margin-bottom:10px;}
+.tipos label{display:block;border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 12px;cursor:pointer;font-size:var(--fs-base);line-height:1.35;}
+.tipos label span{display:block;font-size:var(--fs-menor);color:var(--ink-soft);margin-top:2px;}
+.tipos label:has(input:checked){border-color:var(--ink);background:var(--n-50);}
+/* v118: asistente — primero qué se instala, y un aviso fijo que lo recuerda */
+.inst-inicio h2{font-size:var(--fs-subtitulo);margin:6px 0 4px;}
+.inst-ops{display:grid;gap:12px;margin-top:12px;}
+.inst-op{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;border:2px solid var(--line);border-radius:var(--r-l);padding:16px;background:#fff;cursor:pointer;font:inherit;color:var(--ink);}
+.inst-op:hover{border-color:var(--azul);box-shadow:0 8px 22px rgba(47,107,255,.15);}
+.inst-op .ico{width:52px;height:52px;flex:0 0 52px;border-radius:var(--r-l);display:grid;place-items:center;font-size:var(--fs-h1);color:#fff;}
+.inst-op.admin .ico{background:linear-gradient(135deg,#3b2a7a,var(--violeta));} .inst-op.cli .ico{background:linear-gradient(135deg,var(--cian-500),var(--azul));}
+.inst-op > span:last-child{display:block;}
+.inst-op b{display:block;font-size:var(--fs-display);margin-bottom:3px;}
+.inst-op > span:last-child > span{display:block;font-size:var(--fs-base);color:var(--muted);line-height:1.45;}
+.inst-op em{display:inline-block;margin-top:8px;font-style:normal;font-size:var(--fs-menor);font-weight:800;border-radius:var(--r-pill);padding:3px 10px;background:var(--bg);color:var(--azul-800);}
+.inst-avanzado{margin-top:12px;font-size:var(--fs-base);}
+.inst-avanzado button{background:none;border:0;color:var(--azul);text-decoration:underline;font:inherit;cursor:pointer;padding:0;}
+/* v162 · Barra de contexto compacta: una línea de 48 px, sin degradados (misma identidad del portal) */
+.que-instalo{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;margin:0 -14px 14px;padding:0 14px;min-height:48px;color:var(--tinta);background:var(--paper);border-bottom:1px solid var(--n-300);border-left:4px solid var(--azul);}
+.que-instalo.proveedor{border-left-color:var(--tinta);} .que-instalo.cliente{border-left-color:var(--azul);} .que-instalo.propio{border-left-color:var(--verde-600);}
+.que-instalo .ico{font-size:var(--fs-display);flex:0 0 auto;}
+.que-instalo > span:not(.ico){display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;}
+.que-instalo small{display:inline;font-size:var(--fs-menor);font-weight:600;color:var(--tenue,var(--ink-muted));letter-spacing:0;text-transform:none;}
+.que-instalo b{display:inline;font-size:var(--fs-base);line-height:1.2;overflow:hidden;text-overflow:ellipsis;}
+.que-instalo span span{display:none;}
+.que-instalo button{margin-left:auto;flex:0 0 auto;background:transparent;color:var(--azul);border:0;padding:8px 4px;font:700 var(--fs-menor) inherit;font-family:inherit;cursor:pointer;min-height:40px;text-decoration:underline;}
+.que-instalo .barra{position:absolute;left:0;bottom:0;height:3px;background:rgba(255,255,255,.85);transition:width .3s;}
+.mod-cat{border:1.5px solid var(--line);border-radius:var(--r-l);padding:12px;margin-bottom:10px;}
+.mod-cat-cab{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.mod-cat-cab b{font-size:var(--fs-titulo);} .mod-cat-cab small{display:block;font-size:var(--fs-menor);color:var(--muted);font-weight:500;}
+.mod-cat-cab .n{margin-left:auto;font-size:var(--fs-menor);font-weight:800;background:var(--bg);border-radius:var(--r-pill);padding:3px 10px;}
+.mod-cat-cab button{border:1.5px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:6px 12px;font:700 12.5px inherit;font-family:inherit;cursor:pointer;min-height:36px;}
+.mod-cat.apagada{opacity:.6;}
+.tipos[hidden],.mods label[hidden],.mod-cat[hidden]{display:none;}
+.mod-cat > summary{list-style:none;cursor:pointer;} .mod-cat > summary::-webkit-details-marker{display:none;}
+.mod-cat > summary .mod-cat-cab{margin-bottom:0;} .mod-cat[open] > summary .mod-cat-cab{margin-bottom:10px;}
+.mod-cat > summary .chev{width:18px;height:18px;transition:transform .2s;flex:0 0 auto;} .mod-cat[open] > summary .chev{transform:rotate(180deg);}
+.paquetes{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+.paquetes button{border:1.5px solid var(--azul);color:var(--azul);background:#fff;border-radius:var(--r-pill);padding:8px 14px;font:700 13px inherit;font-family:inherit;cursor:pointer;min-height:40px;}
+.paquetes button[aria-pressed="true"]{background:var(--azul);color:#fff;}
+.siguientes{background:var(--azul-50);border:1.5px solid #d9d0ff;border-radius:var(--r-l);padding:12px 14px;margin-top:12px;font-size:var(--fs-base);line-height:1.5;}
+.siguientes ol{margin:6px 0 0 18px;padding:0;}
+</style>
+</head>
+<body data-ayuda-corta>
+<div class="wrap" data-empresa-no-tocar>
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="eyebrow">Portal SSTA · instalación</div>
+    <h1>Configurar la empresa</h1>
+    <p>Primero eliges qué vas a instalar; luego llenas solo lo que hace falta para eso, paso a paso.</p>
+  </div>
+
+  <div class="card inst-inicio" id="instInicio" hidden>
+    <h2>¿Qué vas a instalar?</h2>
+    <p class="ayuda u-m0">Elige una. Arriba quedará siempre a la vista qué estás instalando.</p>
+    <div class="inst-ops">
+      <button type="button" class="inst-op admin" data-inst="proveedor"><span class="ico">🛡️</span><span><b>Mi sitio — soy el administrador</b><span>Tu marca, tu servidor y tu consola. Se hace una sola vez, antes del primer cliente.</span><em>Una vez</em></span></button>
+      <button type="button" class="inst-op cli" data-inst="cliente"><span class="ico">🏢</span><span><b>Una empresa cliente</b><span>Cada empresa a la que le vendes el portal: sus datos, sus estándares 0312, sus módulos y su servidor. Queda guardada en tu consola.</span><em>Cada cliente nuevo</em></span></button>
+    </div>
+    <div class="bien" style="margin-top:12px;background:var(--azul-50);border:1px solid var(--azul-100);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);">¿Primera vez? <a href="instalar.html"><b>Instalar paso a paso</b></a> te lleva por todo (servidor, sitio y consola) y prueba tu servidor.</div>
+    <div class="inst-avanzado">¿La empresa tiene su propio sitio, aparte del tuyo? <button type="button" data-inst="propio">Sitio propio de una empresa (avanzado)</button></div>
+  </div>
+
+  <div class="que-instalo" id="queInstalo" hidden></div>
+
+  <div class="card" id="cTipo">
+    <h2><span class="paso">0</span><span id="tTipo">Tipo de instalación</span></h2>
+    <div class="tipos" id="tipos" hidden>
+      <label><input type="radio" name="tipo" value="propio"> <b>Sitio propio de la empresa</b><span>La empresa tiene su propio sitio: se descarga <code>empresa.js</code>.</span></label>
+      <label><input type="radio" name="tipo" value="cliente"> <b>Empresa dentro de tu sitio multiempresa</b><span>Tu sitio atiende a varias empresas: se descarga <code>empresas/&lt;código&gt;.json</code> y el enlace para sus celulares.</span></label>
+      <label><input type="radio" name="tipo" value="proveedor"> <b>Tu sitio multiempresa (tu marca)</b><span>El <code>empresa.js</code> del sitio que vendes: nombre del producto, logo y color de tu marca.</span></label>
+    </div>
+    <div id="bCliente" hidden>
+      <div class="g2">
+        <div><label for="cCodigo">Código de la empresa</label><input type="text" id="cCodigo" placeholder="ej: acme-sas" autocapitalize="none" maxlength="40"></div>
+        <div><label for="cSitio">Dirección de tu sitio multiempresa</label><input type="text" id="cSitio" placeholder="https://tu-usuario.github.io/portal/"></div>
+      </div>
+      <p class="ayuda">Minúsculas, números y guiones. Va en el enlace: <b id="vEnlace">—</b></p>
+    </div>
+    <div id="bProveedor" hidden>
+      <label for="cProducto">Nombre de tu producto</label><input type="text" id="cProducto" placeholder="Ej: Gestión SST 360" maxlength="40">
+      <p class="ayuda">Reemplaza "Portal SSTA" en los títulos, los pies de página y la app instalada. En los datos de abajo pon los de tu empresa (salen mientras alguien no ha escrito el código de su empresa).</p>
+      <label for="cDefecto">Empresa principal (opcional)</label><input type="text" id="cDefecto" placeholder="ej: acme-sas" autocapitalize="none" maxlength="40">
+      <p class="ayuda">Código de la empresa que abre <b>sola</b>, sin preguntar nada, en cualquier celular que entre al sitio (las demás siguen entrando con su enlace <code>?e=</code>). Debe existir <code>empresas/&lt;código&gt;.json</code>. Si el sitio es de una sola empresa, ponla aquí.</p>
+    </div>
+  </div>
+
+  <div class="card" id="cDatos">
+    <h2><span class="paso">1</span><span id="tDatos">Datos de la empresa</span></h2>
+    <p class="ayuda">Salen en el inicio del portal, en los encabezados y en el pie de cada PDF.</p>
+    <div class="g2">
+      <div><label for="cNombre">Razón social</label><input type="text" id="cNombre" placeholder="Ej: Montajes Industriales del Centro S.A.S."></div>
+      <div><label for="cCorto">Nombre corto (encabezados)</label><input type="text" id="cCorto" placeholder="Ej: MONTAJES DEL CENTRO" maxlength="30"></div>
+      <div><label for="cNit">NIT</label><input type="text" id="cNit" placeholder="Ej: 900.123.456-7"></div>
+      <div><label for="cLicencia">Licencia (texto que entrega el proveedor)</label><textarea id="cLicencia" rows="2" placeholder="Pega aquí la licencia" spellcheck="false" style="font-family:ui-monospace,monospace;font-size:var(--fs-menor);"></textarea></div>
+      <div><label for="cSub">Subtítulo del inicio</label><input type="text" id="cSub" placeholder="Ej: Sistema de Gestión SST"></div>
+    </div>
+    <label>Logo (PNG o JPG; se ajusta solo)</label>
+    <div class="logo-fila">
+      <div class="logo-prev" id="logoPrev"></div>
+      <div>
+        <input type="file" id="cLogo" aria-label="Logo de la empresa (imagen)" accept="image/png,image/jpeg,image/svg+xml,image/webp">
+        <div class="ayuda" style="margin:6px 0 0;">Sin logo, el portal muestra un distintivo con las iniciales.</div>
+      </div>
+    </div>
+    <label for="cColor">Color de la marca</label>
+    <div class="color"><input type="color" id="cColor" value="#1f3b57"><span class="ayuda u-m0">Franja superior del inicio y color de la app instalada.</span></div>
+    <div id="bPrivacidad"><h3 style="margin:16px 0 4px;font-size:var(--fs-titulo);">Datos personales (Ley 1581 de 2012)</h3>
+    <p class="ayuda">Salen en el aviso de privacidad del portal (privacidad.html). La empresa es la responsable del tratamiento.</p>
+    <div class="g2">
+      <div><label for="cPrivCorreo">Correo para consultas y reclamos de datos personales</label><input type="email" id="cPrivCorreo" placeholder="datospersonales@empresa.com"></div>
+      <div><label for="cPrivPolitica">Enlace a su política de tratamiento de datos (opcional)</label><input type="url" id="cPrivPolitica" placeholder="https://…"></div>
+    </div></div>
+  </div>
+
+  <div class="card" id="c0312">
+    <h2><span class="paso">2</span>Estándares mínimos (Res. 0312 de 2019)</h2>
+    <p class="ayuda">Según el número de trabajadores y la clase de riesgo, la empresa debe cumplir 3, 7, 21 o 60 estándares. Cuenta a todos los trabajadores (de planta, temporales y en misión) y usa la clase de riesgo más alta de la afiliación a la ARL. El portal usa este dato en la autoevaluación, la carpeta de evidencias, el plan anual y el informe, hasta que SST lo cambie en el perfil de la empresa.</p>
+    <div class="g2">
+      <div><label for="cTrab">Número de trabajadores</label><input type="text" id="cTrab" inputmode="numeric" placeholder="Ej: 35" maxlength="6"></div>
+      <div><label for="cRiesgo">Clase de riesgo más alta (ARL)</label><select id="cRiesgo" style="width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:10px 11px;font:inherit;font-size:var(--fs-titulo);background:#fff;"><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option></select></div>
+    </div>
+    <label style="display:flex;gap:9px;align-items:flex-start;font-weight:600;margin-top:12px;"><input type="checkbox" id="cAgro" style="width:20px;height:20px;flex:0 0 auto;"> <span>Es una <b>unidad de producción agropecuaria</b> (con 10 o menos trabajadores permanentes, le aplican 3 estándares, art. 7)</span></label>
+    <div id="r0312"></div>
+  </div>
+
+  <div class="card" id="cFormatos">
+    <h2><span class="paso">3</span>Códigos de los formatos <small style="font-weight:600;color:var(--muted);">(opcional)</small></h2>
+    <p class="ayuda">Como aparecen en el listado maestro de documentos de la empresa. Lo que se deje vacío no se muestra.</p>
+    <table class="fmt">
+      <thead><tr><th>Formato</th><th>Código</th><th>Versión</th><th>Fecha</th><th>Actualización</th></tr></thead>
+      <tbody id="tFormatos"></tbody>
+    </table>
+  </div>
+
+  <div class="card" id="cModulos">
+    <h2><span class="paso">4</span>Módulos que usará</h2>
+    <p class="ayuda">Agrupados como se venden: la base que traen todos los planes, el complemento Obra y lo que solo trae Integral. Lo que se desmarque no aparece en su portal y su servidor no lo acepta. La marca <b>0312 · n</b> dice cuántos de los estándares que le aplican apoya cada módulo.</p>
+    <div class="paquetes" id="paquetes" role="group" aria-label="Plan contratado"><button type="button" data-paq="sgsst">SG-SST Esencial</button><button type="button" data-paq="sgsstObra">SG-SST + Obra</button><button type="button" data-paq="integral">Integral</button></div><p class="ayuda" id="planActual" aria-live="polite"></p>
+    <div class="mods" id="mods"></div>
+    <div id="menusDentro"></div>
+  </div>
+
+  <div class="card" id="cCorreos">
+    <h2><span class="paso">5</span>Correos y clientes <small style="font-weight:600;color:var(--muted);">(opcional)</small></h2>
+    <div class="g2">
+      <div><label for="cCorreoEpp">Correo que aprueba la reposición de EPP</label><input type="email" id="cCorreoEpp" placeholder="sst@empresa.com"></div>
+      <div><label for="cDominio">Dominio de correo de la empresa</label><input type="text" id="cDominio" placeholder="empresa.com"></div>
+    </div>
+    <div class="g2">
+      <div><label for="cWaNombre">Quién recibe por WhatsApp la foto de un EPP en mal estado</label><input type="text" id="cWaNombre" placeholder="Nombre"></div>
+      <div><label for="cWaNumero">Su WhatsApp</label><input type="text" id="cWaNumero" placeholder="+57 300 000 0000" inputmode="tel"></div>
+    </div>
+    <label for="cCentros">Centros de costo / clientes para el ATS (uno por línea)</label>
+    <textarea id="cCentros" placeholder="Planta propia&#10;Cliente 1&#10;Cliente 2"></textarea>
+  </div>
+
+  <div class="card" id="cServidor">
+    <h2><span class="paso">6</span><span id="tServidor">Servidor de la empresa</span></h2>
+    <p class="ayuda">En el Apps Script de la empresa, ejecuta <b>verConfiguracion</b> y pega aquí lo que sale (o las dos líneas <code>servidor</code> y <code>apiToken</code>).</p>
+    <textarea id="cServidorTxt" placeholder="  servidor: 'https://script.google.com/macros/s/…/exec',&#10;  apiToken: '…',"></textarea>
+    <div id="servidorMsg"></div>
+  </div>
+
+  <div class="card" id="cFinal">
+    <h2><span class="paso">7</span><span id="tFinal">Revisar y descargar</span></h2>
+    <div class="vista"><div class="lg" id="vLogo"></div><div><b id="vNombre">Portal SSTA</b><span id="vSub">—</span></div></div>
+    <div id="errores"></div>
+    <div id="bConsola" hidden>
+      <button type="button" class="btn amber" id="btnConsola">Guardar en tu consola y publicar</button>
+      <p class="ayuda">Queda en tu servidor: sus celulares la toman de allí al abrir el portal (no hay que subir archivos a GitHub) y su servidor recibe los módulos contratados.</p>
+      <div id="msgConsola"></div>
+    </div>
+    <button type="button" class="btn amber" id="btnEmpresa">⬇️ Descargar empresa.js</button>
+    <div id="qrCliente" hidden class="qr-final"><canvas id="qrCanvas" width="160" height="160"></canvas><div><div class="ayuda" id="qrTexto"></div><button type="button" class="btn ghost mini" id="btnCopiarEnlace">📋 Copiar enlace</button><details class="ver-enlace"><summary>Ver enlace</summary><code id="qrUrl"></code></details></div></div>
+    <button type="button" class="btn ghost" id="btnManifest">⬇️ Descargar manifest.json</button>
+    <details class="mt-12"><summary style="font-size:var(--fs-menor);font-weight:700;cursor:pointer;">Ver el archivo empresa.js</summary><pre id="vista"></pre>
+      <button type="button" class="btn ghost peq" id="btnCopiar">Copiar</button></details>
+    <div class="siguientes" id="siguientes" hidden></div>
+    <p class="ayuda u-mt12" id="despues">Después: sube los dos archivos al sitio, ábrelo y entra a 🩺 Estado. Todo debe salir en verde. Guía completa: INSTALAR-NUEVA-EMPRESA.md.</p>
+  </div>
+</div>
+
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="qr.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="preop-formularios.js"></script>
+<script src="preop-base.js"></script>
+<script src="inspecciones-plantillas.js"></script>
+<script src="ayuda-guias.js"></script>
+<script src="menus-empresa.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const E = EMPRESA;   // la configuración actual de este sitio: se edita sobre ella
+  const MODULOS = (typeof CATALOGO_MODULOS !== 'undefined' && CATALOGO_MODULOS) || [];   // v116: el catálogo está en empresa-motor.js (lo usa también la consola)
+  const esFabrica = !!E.sinConfigurar;   // este sitio todavía tiene los datos de ejemplo de fábrica
+  const ME = typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo;
+  // En un sitio multiempresa sin empresa elegida, el formulario empieza vacío (empresa nueva).
+  const nuevaEnMulti = ME && E.sinEmpresa;
+  let tipo = ME ? 'cliente' : 'propio';
+  // v115: la consola abre el configurador con «?tipo=» (cliente nuevo o tu marca) o «?editar=<código>» (módulos de un cliente).
+  const QS = new URLSearchParams(location.search), DESDE_CONSOLA = QS.has('editar') || QS.has('nueva') || QS.has('tipo');
+  if (/^(propio|cliente|proveedor)$/.test(QS.get('tipo') || '') && (ME || QS.get('tipo') === 'propio')) tipo = QS.get('tipo');
+  if (E.editandoCliente) tipo = 'cliente';
+  if (DESDE_CONSOLA) { const a = document.querySelector('.hdr .back'); if (a) { a.href = 'admin.html'; a.textContent = '← Volver a la consola'; }
+    // v116: abierto desde la consola, con su mismo aspecto (oscuro), para no confundirlo con el portal de un cliente.
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'consola.css'; document.head.appendChild(l); document.body.classList.add('consola'); }
+  if (E.editandoCliente) document.querySelector('.hdr').insertAdjacentHTML('beforeend', '<div class="aviso info u-mt10">Editando <b>' + esc(E.nombre || E.codigo) + '</b> (código <b>' + esc(E.codigo) + '</b>) con lo que tiene publicado. Cambia lo que necesites y, al final, toca <b>Guardar en tu consola y publicar</b>: queda en tu servidor y sus celulares lo toman solos. No hay que descargar ni subir nada.</div>');
+  let logo = esFabrica || nuevaEnMulti ? '' : E.logo;
+  const RAIZ_SITIO = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+
+  // ── Cargar lo actual
+  if (!esFabrica && !nuevaEnMulti) {
+    $('cNombre').value = E.nombre || ''; $('cCorto').value = E.nombreCorto || ''; $('cNit').value = E.nit || ''; $('cLicencia').value = E.licencia || ''; $('cSub').value = E.subtitulo || '';
+    $('cCorreoEpp').value = (E.correos && E.correos.aprobacionEpp) || ''; $('cDominio').value = (E.correos && E.correos.dominio) || '';
+    $('cCentros').value = (E.centrosCosto || []).join('\n');
+    $('cPrivCorreo').value = (E.privacidad && E.privacidad.correo) || ''; $('cPrivPolitica').value = (E.privacidad && E.privacidad.politica) || '';
+    $('cWaNombre').value = (E.contactoEpp && E.contactoEpp.nombre) || ''; $('cWaNumero').value = (E.contactoEpp && E.contactoEpp.whatsapp) || '';
+    if (E.servidor) $('cServidorTxt').value = "  servidor: '" + E.servidor + "',\n  apiToken: '" + (E.apiToken || '') + "',";
+  } else {
+    $('cSub').value = 'Sistema de Gestión SST';
+  }
+  if (E.colorMarca && !nuevaEnMulti) $('cColor').value = E.colorMarca;
+  // v113: perfil de la Res. 0312 guardado en la instalación
+  if (E.perfil0312 && !esFabrica && !nuevaEnMulti) { $('cTrab').value = E.perfil0312.trabajadores || ''; $('cRiesgo').value = E.perfil0312.claseRiesgo || 'I'; $('cAgro').checked = !!E.perfil0312.agropecuaria; }
+  $('cCodigo').value = (ME && E.codigo) || '';
+  $('cSitio').value = RAIZ_SITIO;
+  $('cProducto').value = (ME ? MultiEmpresa.proveedor.producto : E.producto) || '';
+  const marcarTipo = ()=> { document.querySelectorAll('[name="tipo"]').forEach((r)=> { r.checked = r.value === tipo; }); $('bCliente').hidden = tipo !== 'cliente'; $('bProveedor').hidden = tipo !== 'proveedor';
+    // El panel del asesor es de la consola del administrador: no es un módulo de los clientes.
+    const ma = document.querySelector('[data-mod="asesor"]'); if (ma) ma.closest('label').hidden = tipo === 'cliente';
+    aplicarTipo(); };
+  /* v118: qué tarjetas ve cada tipo de instalación, el aviso fijo «Estás instalando…» y los pasos en orden. */
+  const VE = { cTipo: ['cliente', 'proveedor'], cDatos: ['propio', 'cliente', 'proveedor'], c0312: ['propio', 'cliente'], cFormatos: ['propio', 'cliente'], cModulos: ['propio', 'cliente'],
+    cCorreos: ['propio', 'cliente'], cServidor: ['propio', 'cliente', 'proveedor'], cFinal: ['propio', 'cliente', 'proveedor'] };
+  let elegido = true;
+  function aplicarTipo() {
+    if (typeof contarCats === 'function') try { contarCats(); } catch (e) {}
+    const ini = $('instInicio'), av = $('queInstalo');
+    ini.hidden = elegido; av.hidden = !elegido;
+    Object.keys(VE).forEach((id) => { const c = $(id); if (c) c.hidden = !elegido || VE[id].indexOf(tipo) === -1; });
+    $('tTipo').textContent = tipo === 'proveedor' ? 'Tu marca' : 'Código y enlace de la empresa';
+    $('tDatos').textContent = tipo === 'proveedor' ? 'Datos de tu empresa (la que vende el portal)' : 'Datos de la empresa';
+    $('bPrivacidad').hidden = tipo === 'proveedor';
+    $('tServidor').textContent = tipo === 'proveedor' ? 'Tu servidor (el de tu consola)' : 'Servidor de la empresa';
+    $('tFinal').textContent = tipo === 'cliente' && $('bConsola') && !$('bConsola').hidden ? 'Revisar y guardar' : 'Revisar y descargar';
+    let n = 0; document.querySelectorAll('.card').forEach((c) => { const p = c.querySelector('h2 > .paso'); if (p && !c.hidden) p.textContent = ++n; });
+    if (!elegido) return;
+    const nom = $('cNombre').value.trim(), cod = $('cCodigo').value.trim();
+    const T = {
+      proveedor: ['🛡️', 'Instalando:', 'tu sitio (administrador)', 'Una sola vez. Los clientes se instalan después, desde tu consola.'],
+      cliente: ['🏢', 'Instalando:', (nom || 'Empresa sin nombre') + (cod ? ' · código ' + cod : ''), 'Se guarda en tu consola. No cambia tu sitio ni tu marca.'],
+      propio: ['🏭', 'Instalando el sitio propio de', nom || 'una empresa', 'Su propio empresa.js, aparte de tu sitio.']
+    }[tipo];
+    const cambiar = !E.editandoCliente && !(DESDE_CONSOLA && tipo === 'cliente') && ME;
+    av.className = 'que-instalo ' + tipo;
+    av.innerHTML = '<span class="ico" aria-hidden="true">' + T[0] + '</span><span><small>' + esc(T[1]) + '</small><b>' + esc(T[2]) + '</b><span>' + esc(T[3]) + '</span></span>' + (cambiar ? '<button type="button" id="btnCambiarTipo">Cambiar</button>' : '');
+    const bc = $('btnCambiarTipo'); if (bc) bc.addEventListener('click', () => { elegido = false; aplicarTipo(); window.scrollTo(0, 0); });
+    pintarSiguientes();
+  }
+  function pintarSiguientes() {
+    const sg = $('siguientes'), d = $('despues'); if (!sg) return;
+    if (tipo === 'proveedor') {
+      sg.hidden = false; d.hidden = true;
+      sg.innerHTML = '<b>Después de descargar, en este orden:</b><ol><li>Sube <code>empresa.js</code> y <code>manifest.json</code> a tu repositorio.</li><li>Abre <a href="admin.html">tu consola (admin.html)</a> y crea tu usuario con el código de <code>sgsst__codigoAdministrador</code>.</li><li>En tu servidor ejecuta una vez <code>sgsst__instalarVigilancia</code>.</li><li>Desde la consola, «Instalar empresa nueva» para tu primer cliente.</li></ol>';
+    } else if (tipo === 'cliente') {
+      sg.hidden = false; d.hidden = true;
+      sg.innerHTML = '<b>Cómo queda:</b> con «Guardar en tu consola y publicar» la empresa queda registrada y sus celulares la toman al abrir su enlace. Si no ves ese botón, entra primero a <a href="admin.html">tu consola</a> y vuelve a «Instalar empresa nueva».';
+    } else { sg.hidden = true; d.hidden = false; }
+  }
+  // Sitio multiempresa abierto sin venir de la consola: primero se pregunta qué se instala.
+  if (ME && !DESDE_CONSOLA && !E.editandoCliente) elegido = false;
+  document.getElementById('instInicio').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-inst]'); if (!b) return;
+    tipo = b.dataset.inst; elegido = true;
+    if (tipo === 'proveedor') cargarProveedor();
+    marcarTipo(); pintar(); document.dispatchEvent(new Event('change')); window.scrollTo(0, 0);
+  });
+  document.addEventListener('input', (e) => { if (e.target && (e.target.id === 'cNombre' || e.target.id === 'cCodigo')) aplicarTipo(); });
+  $('tipos').addEventListener('change', (e)=> {
+    const r = e.target.closest('[name="tipo"]'); if (!r) return; tipo = r.value; marcarTipo();
+    // Tu marca: se arranca de lo que tiene el sitio (si es multiempresa, la configuración del proveedor).
+    if (tipo === 'proveedor') cargarProveedor();
+    pintar();
+  });
+  function cargarProveedor(){
+    if (ME) { const P = MultiEmpresa.proveedor; $('cNombre').value = P.nombre || ''; $('cCorto').value = P.nombreCorto || ''; $('cNit').value = P.nit || ''; $('cSub').value = P.subtitulo || ''; logo = /^data:/.test(P.logo || '') ? P.logo : ''; if (P.colorMarca) $('cColor').value = P.colorMarca; $('cDefecto').value = P.empresaPorDefecto || ''; $('cServidorTxt').value = P.servidor ? "  servidor: '" + P.servidor + "',\n  apiToken: '" + (P.apiToken || '') + "'," : ''; }
+  }
+  marcarTipo();
+  if (tipo === 'proveedor') cargarProveedor();
+  // Formatos de gestión que trajeron versiones nuevas del portal (un empresa.js viejo no los tiene).
+  const GESTION = { 'SG-REPORTE': 'Reporte e investigación de actos, condiciones, incidentes y accidentes', 'SG-INV-AT': 'Investigación de accidentes de trabajo (formato Res. 1401 de 2007, con datos del FURAT)', 'SG-PLAN': 'Plan de acción del SG-SST', 'SG-HABILITACION': 'Estado de habilitación del personal',
+    'SG-INSPECCION': 'Inspección planeada / preoperacional', 'SG-INVENTARIO': 'Inventario de equipos e inspecciones', 'SG-INDICADORES': 'Informe de indicadores del SG-SST',
+    'SG-COMITE-CONFORMACION': 'Conformación de comités (COPASST / Convivencia)', 'SG-COPASST-ACTA': 'Acta de reunión del COPASST', 'SG-CONVIVENCIA-ACTA': 'Acta de reunión del Comité de Convivencia Laboral',
+    'SG-CONVIVENCIA-QUEJA': 'Expediente de queja (Comité de Convivencia)', 'SG-CONVIVENCIA-INFORME': 'Informe de gestión del Comité de Convivencia', 'SG-AUDITORIA': 'Informe de auditoría del SG-SST', 'SG-AUDITORIA-PROGRAMA': 'Programa anual de auditorías',
+    'SG-PLAN-ANUAL': 'Plan anual de trabajo del SG-SST', 'SG-PLAN-CAPACITACION': 'Plan de capacitación', 'SG-MATRIZ-PELIGROS': 'Matriz de identificación de peligros y valoración de riesgos', 'SG-SUSTANCIAS': 'Inventario de sustancias químicas', 'SG-PLAN-EMERGENCIAS': 'Plan de prevención, preparación y respuesta ante emergencias', 'SG-SIMULACRO': 'Informe de simulacro', 'SG-PROFESIOGRAMA': 'Profesiograma', 'SG-EXAMENES': 'Programación de evaluaciones médicas ocupacionales', 'SG-AUSENTISMO': 'Informe de ausentismo', 'SG-POLITICA': 'Política de seguridad y salud en el trabajo', 'SG-MATRIZ-LEGAL': 'Matriz de requisitos legales', 'SG-LISTADO-MAESTRO': 'Listado maestro de documentos', 'SG-PROVEEDORES': 'Evaluación de proveedores y contratistas', 'SG-REVISION-DIRECCION': 'Revisión por la alta dirección', 'SG-RENDICION': 'Rendición de cuentas en SST', 'SG-CONTRATISTA': 'Ficha y documentos del contratista', 'SG-INGRESO-CONTRATISTA': 'Control de ingreso de contratistas', 'SG-MATRIZ-EPP': 'Matriz de EPP por cargo', 'SG-ENTREGA-EPP': 'Registro de entrega de EPP', 'SG-INDUCCION': 'Inducción y reinducción en SST', 'SG-PROGRAMA-ALTO-RIESGO': 'Programas de tareas de alto riesgo', 'SG-PESV': 'Plan estratégico de seguridad vial', 'SG-TABLERO-GERENCIA': 'Informe del SG-SST para la gerencia', 'SG-REPORTE-ANUAL-0312': 'Reporte anual de estándares mínimos', 'SG-ASPECTOS-AMBIENTALES': 'Matriz de aspectos e impactos ambientales', 'SG-RESIDUOS': 'Registro de generación de residuos', 'SG-INFORME-ASESORIA': 'Informe de asesoría en SST', 'SG-COMPATIBILIDAD': 'Matriz de compatibilidad de sustancias químicas', 'SG-GESTION-QUIMICA': 'Gestión del riesgo químico (SGA)', 'SG-CRONOGRAMA-INSP': 'Cronograma de inspecciones', 'SG-OBJETIVOS': 'Objetivos del SG-SST', 'SG-DESIGNACION': 'Designación del responsable del SG-SST', 'SG-ROLES': 'Roles y responsabilidades en el SG-SST', 'SG-RECURSOS': 'Asignación de recursos para el SG-SST', 'SG-REGLAMENTO': 'Reglamento de higiene y seguridad industrial', 'SG-PROC-PELIGROS': 'Procedimiento de identificación de peligros, evaluación y valoración de riesgos', 'SG-PROC-INVESTIGACION': 'Procedimiento de reporte e investigación de incidentes, accidentes de trabajo y enfermedades laborales', 'SG-PROC-ACCIONES': 'Procedimiento de acciones correctivas, preventivas y de mejora', 'SG-PROC-CAMBIO': 'Procedimiento de gestión del cambio', 'SG-PROC-AUDITORIA': 'Procedimiento de auditoría interna del SG-SST', 'SG-PROC-REVISION': 'Procedimiento de revisión por la alta dirección', 'SG-PROC-DOCUMENTOS': 'Procedimiento de control de documentos y conservación de registros', 'SG-PROC-COMUNICACION': 'Procedimiento de comunicación, participación y consulta', 'SG-PROC-COMPRAS': 'Procedimiento de adquisiciones y contratación con criterios de SST', 'SG-PROC-EMERGENCIAS': 'Procedimiento de prevención, preparación y respuesta ante emergencias', 'SG-PROG-CAPACITACION': 'Programa de capacitación, inducción y reinducción en SST', 'SG-PROG-INSPECCIONES': 'Programa de inspecciones planeadas', 'SG-PROG-MEDICO': 'Programa de evaluaciones médicas ocupacionales', 'SG-MANUAL': 'Manual del Sistema de Gestión de la Seguridad y Salud en el Trabajo', 'SG-CONTEXTO': 'Contexto de la organización (DOFA y partes interesadas)', 'SG-RIESGOS-CALIDAD': 'Matriz de riesgos y oportunidades', 'SG-OBJETIVOS-CALIDAD': 'Objetivos e indicadores de calidad', 'SG-PNC': 'Registro de producto o servicio no conforme', 'SG-PQRS': 'Informe de PQRS de clientes', 'SG-SATISFACCION': 'Encuesta e informe de satisfacción del cliente', 'SG-PREOPERACIONAL': 'Inspección preoperacional', 'SG-CIERRE-MES': 'Informe mensual del SG-SST', 'SG-EVIDENCIAS': 'Índice de evidencias del SG-SST por estándar', 'SG-ETIQUETAS-QR': 'Etiquetas QR de equipos e instalaciones', 'SG-EMERGENCIAS-ACTA': 'Acta de reunión del comité de emergencias', 'SG-EVAL-PROVEEDOR': 'Evaluación y reevaluación de proveedores, contratistas y subcontratistas', 'SG-LUGARES-QUIMICOS': 'Lugares de almacenamiento de sustancias químicas', 'SG-CONSUMOS': 'Informe de consumos de agua, energía y combustibles' };
+  E.formatos = E.formatos || {};
+  Object.keys(GESTION).forEach((id) => { if (!E.formatos[id]) E.formatos[id] = { codigo: '', titulo: GESTION[id], version: '', fecha: '', actualizacion: '' }; });
+  // v126: los códigos los crea cada empresa. Una empresa nueva empieza con todo en blanco.
+  const NUEVA_EMPRESA = QS.get('nueva') === '1';
+  $('tFormatos').innerHTML = Object.keys(E.formatos).map((id) => {
+    const f = E.formatos[id];
+    return '<tr data-id="' + esc(id) + '"><td class="tit">' + esc(f.titulo || id) + '</td>' +
+      '<td data-l="Código"><input type="text" data-k="codigo" value="' + esc(NUEVA_EMPRESA ? '' : (f.codigo || '')) + '" placeholder="Sin código"></td>' +
+      '<td data-l="Versión"><input type="text" data-k="version" aria-label="Versión de ' + esc(f.codigo || f.nombre || '') + '" value="' + esc(NUEVA_EMPRESA ? '' : (f.version || '')) + '"></td>' +
+      '<td data-l="Fecha"><input type="text" data-k="fecha" value="' + esc(NUEVA_EMPRESA ? '' : (f.fecha || '')) + '" placeholder="dd/mm/aaaa"></td>' +
+      '<td data-l="Actualización"><input type="text" data-k="actualizacion" value="' + esc(NUEVA_EMPRESA ? '' : (f.actualizacion || '')) + '" placeholder="dd/mm/aaaa"></td></tr>';
+  }).join('');
+  // v118: los módulos por categoría (las del inicio), con «todos / ninguno» por categoría y paquetes.
+  const NOMBRE_MOD = {}; MODULOS.forEach(([k, t]) => { NOMBRE_MOD[k] = t; });
+  const CATS = (typeof CATEGORIAS_MODULOS !== 'undefined' && CATEGORIAS_MODULOS) || [['todos', 'Módulos', '', MODULOS.map((x) => x[0])]];
+  const enCat = [].concat.apply([], CATS.map((c) => c[3])), sueltos = MODULOS.map((x) => x[0]).filter((k) => enCat.indexOf(k) === -1);
+  const casilla = (k) => NOMBRE_MOD[k] ? '<label><input type="checkbox" data-mod="' + k + '"' + (!E.modulos || E.modulos[k] !== false ? ' checked' : '') + '> ' + NOMBRE_MOD[k] + '</label>' : '';
+  $('mods').classList.remove('mods');
+  $('mods').innerHTML = CATS.concat(sueltos.length ? [['otros', 'Otros', '', sueltos]] : []).map(([id, nom, desc, ks]) =>
+    '<details class="mod-cat" data-cat="' + id + '"><summary><div class="mod-cat-cab"><span><b>' + esc(nom) + '</b><small>' + esc(desc) + '</small></span><span class="n" data-n></span><button type="button" data-todos>Todos</button><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div></summary><div class="mods">' + ks.map(casilla).join('') + '</div></details>').join('');
+  function contarCats() {
+    document.querySelectorAll('.mod-cat').forEach((c) => {
+      const cs = [...c.querySelectorAll('[data-mod]')].filter((i) => !i.closest('label').hidden), on = cs.filter((i) => i.checked).length;
+      c.querySelector('[data-n]').textContent = on + ' de ' + cs.length;
+      c.querySelector('[data-todos]').textContent = on === cs.length ? 'Ninguno' : 'Todos';
+      c.classList.toggle('apagada', !on); c.hidden = !cs.length;
+    });
+  }
+  $('mods').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-todos]'); if (!b) return; e.preventDefault();   // el botón está dentro del título plegable: no lo abre ni lo cierra
+    const cs = [...b.closest('.mod-cat').querySelectorAll('[data-mod]')].filter((i) => !i.closest('label').hidden), todos = cs.every((i) => i.checked);
+    cs.forEach((i) => { i.checked = !todos; }); contarCats(); pintar();
+  });
+  $('mods').addEventListener('change', contarCats);
+  // v165: los tres planes que se venden (empresa-motor.js → PLANES_PORTAL). Un clic deja prendido exactamente el plan;
+  // después se puede prender o apagar un módulo suelto y el plan queda «personalizado».
+  const PLANES = (typeof PLANES_PORTAL !== 'undefined' && PLANES_PORTAL) || {};
+  function pintarPlan() {
+    const m = {}; document.querySelectorAll('[data-mod]').forEach((c) => { m[c.dataset.mod] = c.checked; });
+    const p = typeof planDeModulos === 'function' ? planDeModulos(m) : '', el = $('planActual');
+    document.querySelectorAll('[data-paq]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.paq === p ? 'true' : 'false'));
+    if (el) el.innerHTML = p ? 'Plan <b>' + esc(PLANES[p].nombre) + '</b> · ' + esc(PLANES[p].para) + '.' : 'Plan <b>personalizado</b>: hay módulos prendidos o apagados fuera de los planes (se cobran como adicionales).';
+  }
+  $('paquetes').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-paq]'); if (!b || !PLANES[b.dataset.paq]) return; const l = PLANES[b.dataset.paq].mods;
+    document.querySelectorAll('[data-mod]').forEach((i) => { i.checked = !l || l.indexOf(i.dataset.mod) !== -1; });
+    contarCats(); pintar(); pintarPlan();
+  });
+  $('mods').addEventListener('change', pintarPlan); setTimeout(pintarPlan, 0);
+  // v124: dentro de los módulos, qué preoperacionales y qué listas de inspección se ofrecen.
+  $('menusDentro').innerHTML = MenusEmpresa.html(E, { sinModulos: true }); MenusEmpresa.activar($('menusDentro'));
+  marcarTipo();
+
+  // ── Logo: se reduce y queda dentro de empresa.js (un solo archivo que subir)
+  $('cLogo').addEventListener('change', () => {
+    const f = $('cLogo').files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      if (/svg/.test(f.type) && fr.result.length < 120000) { logo = fr.result; pintar(); return; }
+      const img = new Image();
+      img.onload = () => {
+        const max = 420, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        logo = c.toDataURL('image/png');
+        if (logo.length > 120000) logo = c.toDataURL('image/jpeg', 0.88);
+        pintar();
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  });
+
+  function leerServidor() {
+    const t = $('cServidorTxt').value;
+    const s = (/servidor:\s*'([^']+)'/.exec(t) || /(https:\/\/script\.google\.com\/macros\/s\/[^\s'"]+)/.exec(t) || [])[1] || '';
+    const k = (/apiToken:\s*'([^']+)'/.exec(t) || [])[1] || '';
+    // v116: lo que verConfiguracion da para la consola (no va en empresa.js ni en el archivo del cliente).
+    const x = (n) => ((new RegExp(n + ":\\s*'([^']*)'")).exec(t) || [])[1] || '';
+    return { servidor: s.trim(), apiToken: k.trim(), clave: x('clave').trim(), llaveProveedor: x('llaveProveedor').trim(), scriptId: x('scriptId').trim() };
+  }
+  function armar() {
+    const formatos = {};
+    document.querySelectorAll('#tFormatos tr').forEach((tr) => {
+      const id = tr.dataset.id, f = { codigo: '', titulo: E.formatos[id].titulo || '' , version: '', fecha: '', actualizacion: '' };
+      tr.querySelectorAll('input').forEach((i) => { f[i.dataset.k] = i.value.trim(); });
+      formatos[id] = { codigo: f.codigo, titulo: f.titulo, version: f.version, fecha: f.fecha, actualizacion: f.actualizacion };
+    });
+    const modulos = {}; document.querySelectorAll('[data-mod]').forEach((c) => { modulos[c.dataset.mod] = c.checked; });
+    const srv = leerServidor();
+    const centros = $('cCentros').value.split('\n').map((x) => x.trim()).filter(Boolean);
+    // Lo que el formulario no muestra (requisitos de habilitación, etc.) se conserva tal cual.
+    // El sitio del proveedor parte de su propia configuración, nunca de la empresa que esté abierta en este equipo.
+    const base = tipo === 'proveedor' && ME ? MultiEmpresa.proveedor : E;
+    const otros = {}; Object.keys(base).forEach((k) => { if (['sinEmpresa', 'sinConfigurar', 'codigo', 'nombre', 'nombreCorto', 'nit', 'subtitulo', 'logo', 'colorMarca', 'formatos', 'modulos', 'correos', 'privacidad', 'contactoEpp', 'centrosCosto', 'servidor', 'apiToken', 'demo', 'perfil0312', 'empresaPorDefecto', 'editandoCliente', 'consola'].indexOf(k) === -1) otros[k] = JSON.parse(JSON.stringify(base[k])); });
+    const p0312 = perfil0312();
+    return Object.assign(otros, {
+      nombre: $('cNombre').value.trim(), nombreCorto: $('cCorto').value.trim().toUpperCase(), nit: $('cNit').value.trim(), licencia: $('cLicencia').value.trim() || undefined, subtitulo: $('cSub').value.trim(),
+      logo: logo || '', colorMarca: $('cColor').value, formatos, modulos,
+      correos: { aprobacionEpp: $('cCorreoEpp').value.trim(), dominio: $('cDominio').value.trim().replace(/^@/, '') },
+      privacidad: { correo: $('cPrivCorreo').value.trim(), politica: /^https:\/\//.test($('cPrivPolitica').value.trim()) ? $('cPrivPolitica').value.trim() : '' },
+      contactoEpp: { nombre: $('cWaNombre').value.trim(), cargo: '', whatsapp: $('cWaNumero').value.trim() },
+      ocultos: MenusEmpresa.leer($('menusDentro')).ocultos, bautizos: MenusEmpresa.leer($('menusDentro')).bautizos,
+      centrosCosto: centros, servidor: srv.servidor, apiToken: srv.apiToken, demo: false,
+      perfil0312: tipo === 'proveedor' ? undefined : p0312,
+      plan: tipo === 'proveedor' ? undefined : ((typeof planDeModulos === 'function' && planDeModulos(modulos)) || 'personalizado')   // v165: qué plan tiene (lo ve la consola)
+    }, tipo === 'proveedor' ? { multiempresa: true, empresaPorDefecto: $('cDefecto').value.trim().toLowerCase(), producto: $('cProducto').value.trim() || 'Portal SSTA', sinEmpresa: undefined, codigo: undefined } : { multiempresa: undefined, producto: tipo === 'propio' && !ME ? (E.producto || undefined) : undefined, sinEmpresa: undefined, codigo: undefined });
+  }
+  const codigoOk = ()=> /^[a-z0-9][a-z0-9-]{1,39}$/.test($('cCodigo').value.trim());
+  const enlace = ()=> String($('cSitio').value.trim() || RAIZ_SITIO).replace(/\/?$/, '/') + '?e=' + encodeURIComponent($('cCodigo').value.trim());
+  function jsonCliente(c){
+    const emp = Object.assign({}, c); delete emp.multiempresa; delete emp.producto; delete emp.demo; delete emp.sinEmpresa; delete emp.codigo; delete emp.empresaPorDefecto;
+    return JSON.stringify({ codigo: $('cCodigo').value.trim(), generado: new Date().toISOString(), empresa: emp }, null, 2);
+  }
+  function problemas(c) {
+    const p = [], a = [];
+    if (!c.nombre) p.push('Falta la razón social.');
+    if (!c.nombreCorto) p.push('Falta el nombre corto.');
+    if (c.nit && typeof Valida !== 'undefined' && Valida.nit(c.nit) && !/^900\.000\.000/.test(c.nit)) a.push('NIT: ' + Valida.nit(c.nit) + '.');   // v162
+    if (/^TU (EMPRESA|MARCA)$/i.test(c.nombreCorto)) p.push('Cambia el nombre corto: «' + c.nombreCorto + '» es el de ejemplo.');
+    if (tipo === 'cliente' && !codigoOk()) p.push('El código de la empresa: minúsculas, números y guiones (2 a 40), sin espacios.');
+    if (tipo === 'proveedor' && $('cDefecto').value.trim() && !/^[a-z0-9][a-z0-9-]{1,39}$/.test($('cDefecto').value.trim().toLowerCase())) p.push('La empresa principal: minúsculas, números y guiones (2 a 40), sin espacios.');
+    if (tipo === 'proveedor' && !$('cProducto').value.trim()) a.push('Sin nombre de producto: se seguirá llamando Portal SSTA.');
+    if (tipo === 'proveedor' && !c.servidor) { /* el sitio del proveedor puede no tener servidor propio */ }
+    else if (!c.servidor) (tipo === 'cliente' ? p : a).push('Sin servidor: el portal no podrá guardar. Pega lo que da verConfiguracion en el paso 6.');
+    if (c.servidor && !/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(c.servidor)) p.push('La URL del servidor no parece la de una aplicación web de Apps Script (debe terminar en /exec).');
+    if (c.servidor && !c.apiToken) p.push('Falta el apiToken (sale junto a la URL en verConfiguracion).');
+    if (!logo) a.push('Sin logo: se usará un distintivo con las iniciales.');
+    if (tipo !== 'proveedor' && !(c.privacidad && c.privacidad.correo)) a.push('Sin correo para datos personales: el aviso de privacidad dirá que se pregunte al área SST.');
+    if (tipo !== 'proveedor' && !c.perfil0312) a.push('Sin número de trabajadores (paso 2): el portal tomará los 60 estándares hasta que SST defina el perfil de la empresa.');
+    return { p, a };
+  }
+  // v116: empresa.js lleva solo los datos; el motor está en empresa-motor.js y se actualiza con el portal
+  // (un empresa.js viejo, con el motor adentro, queda al día al volver a generarlo aquí).
+  const motor = '';
+  function archivo(c) {
+    return '/* ============================================================\n' +
+      '   empresa.js — ' + c.nombre.replace(/\*\//g, '') + '\n' +
+      '   Generado con configurar-empresa.html el ' + new Date().toLocaleString('es-CO') + '.\n' +
+      '   Para cambiar algo, vuelve a abrir configurar-empresa.html en este sitio:\n' +
+      '   el formulario carga estos mismos datos.\n' +
+      '   ============================================================ */\n\n' +
+      'const EMPRESA = ' + JSON.stringify(c, null, 2) + ';\n';
+  }
+  /* ── v113: estándares mínimos según tamaño y riesgo (regla en auditorias-plantillas.js) ── */
+  const MOD_DE_ESTANDAR = {
+    '1.1.1': ['documental', 'kit'], '1.1.2': ['documental'], '1.1.3': ['documental', 'plananual'], '1.1.4': ['habilitacion', 'contratistas'], '1.1.5': ['habilitacion'],
+    '1.1.6': ['copasst'], '1.1.7': ['copasst'], '1.1.8': ['convivencia'], '1.2.1': ['plananual', 'asistencia', 'induccion'], '1.2.2': ['induccion'], '1.2.3': ['habilitacion'],
+    '2.1.1': ['documental', 'kit'], '2.2.1': ['indicadores', 'documental'], '2.3.1': ['auditorias', 'evidencias'], '2.4.1': ['plananual'], '2.5.1': ['documental', 'evidencias'],
+    '2.6.1': ['revision'], '2.7.1': ['documental'], '2.8.1': ['reportes'], '2.9.1': ['proveedores'], '2.10.1': ['proveedores', 'contratistas'], '2.11.1': ['documental'],
+    '3.1.1': ['salud'], '3.1.2': ['salud'], '3.1.3': ['salud'], '3.1.4': ['salud'], '3.1.5': ['salud'], '3.1.6': ['salud'], '3.1.7': ['salud'], '3.1.8': ['ambiental'], '3.1.9': ['ambiental'],
+    '3.2.1': ['reportes'], '3.2.2': ['reportes', 'plan'], '3.2.3': ['reportes', 'indicadores'], '3.3.1': ['indicadores'], '3.3.2': ['indicadores'], '3.3.3': ['indicadores'], '3.3.4': ['indicadores'], '3.3.5': ['indicadores'], '3.3.6': ['indicadores'],
+    '4.1.1': ['peligros'], '4.1.2': ['peligros'], '4.1.3': ['quimicos'], '4.1.4': ['peligros'],
+    '4.2.1': ['peligros', 'programas', 'caliente', 'alturas', 'confinados', 'izajes', 'electrico', 'ats'], '4.2.2': ['inspecciones', 'epp'], '4.2.3': ['documental', 'programas'],
+    '4.2.4': ['inspecciones', 'preop'], '4.2.5': ['inspecciones', 'preop'], '4.2.6': ['dotacion', 'epp'],
+    '5.1.1': ['emergencias'], '5.1.2': ['emergencias', 'comiteemergencias', 'brigadistas'],
+    '6.1.1': ['indicadores'], '6.1.2': ['auditorias'], '6.1.3': ['revision'], '6.1.4': ['auditorias'],
+    '7.1.1': ['plan'], '7.1.2': ['plan'], '7.1.3': ['plan'], '7.1.4': ['plan'], 'UPA.3': ['epp', 'dotacion']
+  };
+  function perfil0312() {
+    const t = Number(String($('cTrab').value).replace(/\D/g, ''));
+    if (!t) return undefined;
+    const agro = $('cAgro').checked, r = $('cRiesgo').value;
+    return { trabajadores: t, claseRiesgo: r, agropecuaria: agro, grupo0312: grupo0312(t, r, agro), fecha: new Date().toISOString().slice(0, 10) };
+  }
+  function pintar0312() {
+    const p = perfil0312(), caja = $('r0312');
+    document.querySelectorAll('.mods .apoya').forEach((x) => x.remove());
+    if (!p) { caja.innerHTML = '<div class="msg aviso">Escribe el número de trabajadores para ver cuántos estándares debe cumplir.</div>'; return; }
+    const g = p.grupo0312, ciclos = clasificar0312(g), oficial = g === 60;
+    const aviso = p.agropecuaria && g !== 3 ? '<div class="msg aviso">Con ' + p.trabajadores + ' trabajadores' + (/IV|V/.test(p.claseRiesgo) ? ' o riesgo ' + p.claseRiesgo : '') + ' ya no aplica el grupo de 3 de las unidades agropecuarias.</div>' : '';
+    caja.innerHTML = aviso + '<div class="e0312-res"><div class="n">' + g + '</div><div><b>estándares mínimos que debe cumplir</b><span>Res. 0312 de 2019, ' + ARTICULO_0312[g] + ': ' + esc(QUIEN_0312[g]) + '.</span></div></div>' +
+      ciclos.map((ci) => '<div class="e0312-ciclo"><h3><span>' + esc(ci.ciclo) + '</span><span>' + ci.n + ' de ' + g + '</span></h3>' +
+        ci.categorias.map((c) => '<details class="e0312-cat"><summary>' + esc(c.nombre) + '<span class="c">' + c.n + (c.n === 1 ? ' estándar' : ' estándares') + (oficial ? ' · ' + String(c.peso).replace('.', ',') + ' %' : '') + '</span></summary><ol>' +
+          c.items.map((x) => '<li><code>' + esc(x.id) + '</code>' + esc(x.nombre) + '</li>').join('') + '</ol></details>').join('') + '</div>').join('') +
+      '<p class="ayuda u-mt10">' + (oficial ? 'El porcentaje es el peso de cada categoría en la calificación (art. 27).' : 'Cada estándar va en la categoría de su numeral equivalente en los 60 (así lo califica el portal).') +
+      ' Cumplir estos estándares no exime de las demás normas de SST (Decreto 1072 de 2015, Ley 1562 de 2012, comité de convivencia, vigía o COPASST, etc.).</p>';
+    // En «Módulos», qué módulos apoyan esos estándares (informativo: no se apaga nada).
+    const cuenta = {}; ciclos.forEach((ci) => ci.categorias.forEach((c) => c.items.forEach((x) => (MOD_DE_ESTANDAR[x.id] || []).forEach((m) => { cuenta[m] = (cuenta[m] || 0) + 1; }))));
+    document.querySelectorAll('[data-mod]').forEach((i) => { const n = cuenta[i.dataset.mod]; if (n) i.parentElement.insertAdjacentHTML('beforeend', '<span class="apoya" title="Módulo que apoya ' + n + ' de los estándares que le aplican">0312 · ' + n + '</span>'); });
+  }
+  function pintar() {
+    pintar0312();
+    const c = armar();
+    const lg = logo || '';
+    $('logoPrev').style.backgroundImage = lg ? 'url("' + lg + '")' : '';
+    $('vLogo').style.backgroundImage = lg ? 'url("' + lg + '")' : '';
+    $('vNombre').textContent = (tipo === 'proveedor' ? $('cProducto').value.trim() : (ME ? MultiEmpresa.proveedor.producto : E.producto)) || 'Portal SSTA';
+    $('btnEmpresa').textContent = tipo === 'cliente' ? '⬇️ Descargar empresas/' + ($('cCodigo').value.trim() || 'código') + '.json' : '⬇️ Descargar empresa.js';
+    $('btnManifest').hidden = tipo === 'cliente';
+    $('vEnlace').textContent = codigoOk() ? enlace() : '—';
+    $('qrCliente').hidden = !(tipo === 'cliente' && codigoOk());
+    if (tipo === 'cliente' && codigoOk() && typeof QR !== 'undefined') { try { QR.dibujar($('qrCanvas'), enlace(), { px: 160 }); } catch (e) {} $('qrTexto').textContent = 'Enlace para los celulares de ' + (c.nombreCorto || 'la empresa') + '. Escanéalo o cópialo y mándalo por WhatsApp.'; $('qrUrl').textContent = enlace(); }
+    $('vSub').textContent = (c.nombre || 'Razón social') + (c.nit ? ' · NIT ' + c.nit : '') + (c.subtitulo ? ' — ' + c.subtitulo : '');
+    const { p, a } = problemas(c);
+    $('errores').innerHTML = (p.length ? '<div class="msg mal">' + p.map(esc).join('<br>') + '</div>' : '') + (a.length ? '<div class="msg aviso">' + a.map(esc).join('<br>') + '</div>' : '') +
+      (!p.length && !a.length ? '<div class="msg ok">Todo listo para descargar.</div>' : '');
+    const srv = leerServidor();
+    $('servidorMsg').innerHTML = srv.servidor ? '<div class="msg ' + (srv.apiToken ? 'ok' : 'aviso') + '">Servidor: ' + esc(srv.servidor) + (srv.apiToken ? '<br>Token: ' + esc(srv.apiToken.slice(0, 6)) + '…' : '<br>Falta el apiToken.') + '</div>' : '';
+    const cv = Object.assign({}, c, { logo: c.logo.length > 120 ? c.logo.slice(0, 60) + '…(imagen)' : c.logo });
+    $('vista').textContent = tipo === 'cliente' ? jsonCliente(cv) : motor === null ? 'Cargando…' : archivo(cv);
+    $('btnEmpresa').disabled = $('btnManifest').disabled = !!p.length || motor === null;
+  }
+  document.addEventListener('input', pintar);
+  document.addEventListener('change', pintar);
+
+  /* ── v116: guardar el cliente en TU servidor desde la consola (sin archivos) ── */
+  const ADMIN = (function () { try { const x = JSON.parse(localStorage.getItem('ssta-admin-sesion') || 'null'); return x && x.token && x.exp > Date.now() && x.yo && x.yo.rol === 'admin' ? x : null; } catch (e) { return null; } })();
+  const PROV = ME ? MultiEmpresa.proveedor : null;
+  const urlConsola = PROV && PROV.servidor ? String(PROV.servidor).replace(/\/+$/, '') + '?modulo=sgsst' : '';   // v121: ?modulo= (con /sgsst Google pedía iniciar sesión)
+  const claveConsola = (function () { try { return localStorage.getItem('ssta-admin-clave-portal') || (PROV && PROV.apiToken) || ''; } catch (e) { return (PROV && PROV.apiToken) || ''; } })();
+  const opId = () => 'cfg-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  async function getConsola(q) { const r = await fetch(urlConsola + '&' + Object.keys(q).map((k) => k + '=' + encodeURIComponent(q[k])).join('&') + '&token=' + encodeURIComponent(claveConsola) + '&sesion=' + encodeURIComponent(ADMIN.token)); return r.json(); }
+  async function postConsola(b) { const r = await fetch(urlConsola, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ token: claveConsola, sesion: ADMIN.token, opId: opId() }, b)) }); return r.json(); }
+  const enConsola = () => !!(ADMIN && urlConsola && tipo === 'cliente');
+  function pintarConsola() { $('bConsola').hidden = !enConsola(); aplicarTipo(); }
+  document.addEventListener('change', pintarConsola);
+  $('btnConsola').addEventListener('click', async () => {
+    const msg = $('msgConsola'), b = $('btnConsola');
+    const c = armar(), { p } = problemas(c);
+    if (p.length) { msg.innerHTML = '<div class="msg mal">Corrige primero lo que está en rojo arriba.</div>'; return; }
+    const codigo = $('cCodigo').value.trim(), srv = leerServidor();
+    const config = JSON.parse(jsonCliente(c)).empresa;
+    b.disabled = true; msg.innerHTML = '<div class="msg aviso">Guardando en tu servidor…</div>';
+    try {
+      const l = await getConsola({ action: 'list', tipo: 'cliente' });
+      if (!l.ok) throw new Error(l.error || 'Tu servidor no respondió la lista de clientes.');
+      let ed = null; try { ed = JSON.parse(sessionStorage.getItem('ssta-admin-editar') || 'null'); } catch (e) {}
+      const fila = l.rows.find((x) => (ed && ed.id && x.id === ed.id)) || l.rows.find((x) => String(x.resumen.codigo || '').toLowerCase() === codigo);
+      let doc = {}, version = 0, id = fila ? fila.id : 'CLI-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      if (fila) { const d = await getConsola({ action: 'doc', id }); if (!d.ok) throw new Error(d.error || 'No se pudo abrir el cliente.'); doc = d.doc || {}; version = d.version || 0; }
+      const p0 = c.perfil0312 || {}, mods = config.modulos || {}, ks = Object.keys(mods);
+      Object.assign(doc, {
+        nombre: c.nombre, nit: c.nit || doc.nit || '', codigo, estado: doc.estado || 'ACTIVO', modo: 'unico',
+        trabajadores: p0.trabajadores || doc.trabajadores || '', claseRiesgo: p0.claseRiesgo || doc.claseRiesgo || 'I', agropecuaria: p0.agropecuaria ? 'Sí' : (doc.agropecuaria || 'No'), grupo0312: p0.grupo0312 || doc.grupo0312 || '',
+        servidor: srv.servidor || doc.servidor || '', clave: srv.clave || doc.clave || '', llaveProveedor: srv.llaveProveedor || doc.llaveProveedor || '', scriptId: srv.scriptId || doc.scriptId || '',
+        config, publicado: new Date().toISOString(), modulosOn: ks.filter((k) => mods[k] !== false).length, modulosTotal: ks.length, plan: (typeof planDeModulos === 'function' && planDeModulos(mods)) || 'personalizado'
+      });
+      const g = await postConsola({ action: 'guardar', tipo: 'cliente', id, doc, versionBase: version });
+      if (!g.ok) throw new Error(g.error || 'No se pudo guardar.');
+      const pub = await postConsola({ action: 'publicarCliente', id });
+      const m = pub && pub.modulos;
+      msg.innerHTML = '<div class="msg ok">✓ Guardado en tu consola. Sus celulares toman esta configuración al abrir el portal.' +
+        (m ? (m.ok ? '<br>✓ Su servidor recibió los módulos contratados.' : '<br>⚠ Módulos solo en pantalla: ' + esc(m.error || '') ) : '') +
+        '<br><a href="admin.html">← Volver a la consola</a></div>';
+      try { sessionStorage.removeItem('ssta-admin-editar'); } catch (e) {}
+    } catch (e) { msg.innerHTML = '<div class="msg mal">' + esc(e.message || 'Sin conexión con tu servidor.') + '</div>'; }
+    b.disabled = false;
+  });
+  pintarConsola();
+  function descargar(nombre, texto, tipo) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([texto], { type: tipo }));
+    a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  $('btnEmpresa').addEventListener('click', () => tipo === 'cliente' ? descargar($('cCodigo').value.trim() + '.json', jsonCliente(armar()), 'application/json') : descargar('empresa.js', archivo(armar()), 'text/javascript'));
+  $('btnCopiar').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(tipo === 'cliente' ? jsonCliente(armar()) : archivo(armar())).then(() => { $('btnCopiar').textContent = '✓ Copiado'; }); });
+  $('btnManifest').addEventListener('click', async () => {
+    const c = armar();
+    let m = {};
+    try { m = await (await fetch('manifest.json', { cache: 'no-store' })).json(); } catch (e) {}
+    if (tipo === 'proveedor') { m.name = c.producto; m.short_name = c.producto.slice(0, 18); }
+    else { const pr = E.producto || 'Portal SSTA'; m.name = pr + ' — ' + c.nombreCorto; m.short_name = (pr === 'Portal SSTA' ? 'SSTA ' + c.nombreCorto : c.nombreCorto).slice(0, 18); }
+    m.theme_color = c.colorMarca;
+    descargar('manifest.json', JSON.stringify(m, null, 2), 'application/json');
+  });
+  pintar();
+})();
+</script>
+<script>
+/* v140: los campos de las tablas dicen qué son al lector de pantalla (columna · fila). */
+(function(){ const nombrar = ()=> document.querySelectorAll('td[data-l] input:not([aria-label]), td[data-l] select:not([aria-label]), td[data-l] textarea:not([aria-label])').forEach((el)=> { const td = el.closest('td'), tr = el.closest('tr'), c = tr && tr.querySelector('td'); const fila = c && c !== td ? (c.querySelector('input') ? c.querySelector('input').value : c.textContent).trim() : (tr && tr.dataset.id) || ''; el.setAttribute('aria-label', td.dataset.l + (fila ? ' · ' + fila.slice(0, 40) : '')); });
+  const w = document.querySelector('body > .wrap, body > div'); if (w && !document.querySelector('main,[role=main]')) w.setAttribute('role', 'main');
+  nombrar(); new MutationObserver(nombrar).observe(document.body, { childList: true, subtree: true }); })();
+</script>
+<script>
+/* v162 · Copiar el enlace del cliente (la URL completa queda escondida en «Ver enlace»). */
+(function () { const b = document.getElementById('btnCopiarEnlace'); if (!b) return;
+  b.addEventListener('click', async () => { const u = (document.getElementById('qrUrl') || {}).textContent || ''; if (!u) return;
+    try { await navigator.clipboard.writeText(u); b.textContent = '✓ Copiado'; } catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById('qrUrl')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selecciona y copia'; }
+    setTimeout(() => { b.textContent = '📋 Copiar enlace'; }, 2500); }); })();
+</script>
+</body>
+</html>

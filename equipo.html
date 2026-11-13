@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8NLfquVblMyQg5mGv5YpuRVBQc69rUEd1d/4cievQeM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Ficha del equipo · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ficha del equipo · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.fx-sem{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0;}
+.fx-s{border-left:4px solid var(--n-300);background:var(--paper);border-radius:var(--r-m);padding:8px 10px;box-shadow:var(--sombra-1,0 1px 3px rgba(0,0,0,.08));}
+.fx-s .n{font-size:var(--fs-menor);font-weight:700;}.fx-s .v{font-weight:800;}.fx-s .f{font-size:.78rem;color:var(--n-600);}
+.fx-s.ok{border-color:var(--ok);}.fx-s.ok .v{color:var(--ok);}.fx-s.mal{border-color:var(--mal);}.fx-s.mal .v{color:var(--mal);}.fx-s.pronto{border-color:var(--ambar-500);}.fx-s.pronto .v{color:var(--ambar-500);}
+.fx-l{margin:0;padding:0;list-style:none;}.fx-l li{border-bottom:1px solid var(--n-150);padding:7px 0;font-size:var(--fs-menor);}.fx-l li:last-child{border-bottom:0;}
+.fx-l b{font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Todo de un equipo en un solo lugar</div>
+    <h1 id="fxNom">Ficha del equipo</h1>
+    <p id="fxSub">Busca el equipo por código o nombre</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="card"><div class="field"><label for="fxBus">Equipo</label><input type="search" id="fxBus" list="dlEq" placeholder="Escribe el código o el nombre" data-no-ac autocomplete="off"><datalist id="dlEq"></datalist></div></div>
+  <div id="fx"></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="qr.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v159 · Ficha del equipo: datos, vencimientos y mantenimiento, inspecciones, preoperacionales,
+   acciones abiertas por sus hallazgos, reportes donde se nombra y su QR. */
+let rows = [];
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const N = (t)=> String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  const r = await SGSST.listar('equipo,inspeccion,preop,accion,reporte');
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || [];
+  $('dlEq').innerHTML = de('equipo').map((e)=> '<option value="' + esc(e.resumen.codigo || e.id) + '">' + esc(e.resumen.nombre || '') + '</option>').join('');
+  const elegir = ()=> { const q = N($('fxBus').value); if (!q) return; const e = de('equipo').find((x)=> N(x.resumen.codigo) === q || N(x.id) === q) || de('equipo').find((x)=> N(x.resumen.nombre).includes(q)); if (e) ver(e.id); };
+  $('fxBus').addEventListener('change', elegir);
+  const qs = new URLSearchParams(location.search), id = qs.get('id'), cod = qs.get('eq');
+  if (id) ver(id); else if (cod) { $('fxBus').value = cod; elegir(); }
+}
+const fila = (t, m, c)=> '<li><b>' + t + '</b>' + (m ? '<br>' + m : '') + (c ? ' <span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>' : '') + '</li>';
+const bloque = (titulo, items, vacio, extra)=> '<div class="card"><h2>' + titulo + '</h2>' + (items.length ? '<ul class="fx-l">' + items.join('') + '</ul>' : '<div class="empty">' + vacio + '</div>') + (extra || '') + '</div>';
+function ver(id){
+  const e = de('equipo').find((x)=> x.id === id);
+  if (!e) { $('fx').innerHTML = '<div class="aviso amar">No está en el inventario de equipos. <a href="inspecciones.html">Abrir inventario →</a></div>'; return; }
+  try { history.replaceState(history.state, '', location.pathname + '?id=' + encodeURIComponent(id)); } catch (er) {}
+  const s = e.resumen, h = UI.hoy(), cod = N(s.codigo);
+  $('fxNom').textContent = (s.codigo ? s.codigo + ' · ' : '') + (s.nombre || 'Equipo'); $('fxSub').textContent = [s.categoria, s.area, s.ubicacion, s.activo === false ? 'FUERA DE USO' : ''].filter(Boolean).join(' · ');
+  const insp = de('inspeccion').filter((x)=> x.resumen.equipoId === id).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  const pre = de('preop').filter((x)=> cod && N(x.resumen.codigoEquipo) === cod).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  const refs = new Set(insp.concat(pre).map((x)=> x.id));
+  const acc = de('accion').filter((x)=> refs.has(x.resumen.origenRef) || (cod && N(x.resumen.hallazgo).includes(cod)));
+  const rep = de('reporte').filter((x)=> cod && cod.length >= 3 && N(x.resumen.descripcion + ' ' + (x.titulo || '')).includes(cod));
+  const ven = Object.keys(s.vencimientos || {}).map((k)=> { const v = s.vencimientos[k]; return fila(esc(k), (s.hechas && s.hechas[k] ? 'Hecho ' + esc(UI.corta(s.hechas[k])) + ' · ' : '') + 'vence ' + esc(UI.corta(v)), v && v < h ? ['mal', 'Vencido'] : v && v <= Festivos.sumarDias(h, 30) ? ['pronto', 'Por vencer'] : ['ok', 'Al día']); });
+  if (s.mantTipo && s.mantTipo !== 'No aplica') ven.push(fila('Mantenimiento ' + esc(String(s.mantTipo).toLowerCase()), (s.mantUltimo ? 'Último ' + esc(UI.corta(s.mantUltimo)) : 'Sin registro del último') + (s.mantProximo ? ' · siguiente ' + esc(UI.corta(s.mantProximo)) : ''), s.mantProximo && s.mantProximo < h ? ['mal', 'Atrasado'] : null));
+  const ult = insp[0], ultPre = pre[0], nc2 = insp.length >= 2 && insp[0].resumen.resultado === 'NO CONFORME' && insp[1].resumen.resultado === 'NO CONFORME';
+  const abiertas = acc.filter((x)=> x.estado !== 'CERRADA');
+  const estado = s.activo === false ? ['mal', 'Fuera de uso'] : (ult && ult.resumen.resultado === 'NO CONFORME') || (ultPre && Number(ultPre.resumen.malos) > 0) ? ['mal', 'Con novedad'] : ['ok', 'Operativo'];
+  const enlacePre = location.href.replace(/[^/]*$/, '') + 'equipo.html?eq=' + encodeURIComponent(s.codigo || '');
+  $('fx').innerHTML =
+    (nc2 ? '<div class="aviso mal">No conforme en las dos últimas inspecciones: considera sacarlo de uso o cambiarlo.</div>' : '') +
+    '<div class="card"><h2>Estado <span class="chip ' + estado[0] + '">' + estado[1] + '</span></h2><div class="fx-sem">' +
+      '<div class="fx-s ' + (ult ? (ult.resumen.resultado === 'NO CONFORME' ? 'mal' : 'ok') : 'pronto') + '"><div class="n">Última inspección</div><div class="v">' + (ult ? esc(UI.corta(ult.resumen.fecha)) : 'Ninguna') + '</div><div class="f">' + esc(ult ? ult.resumen.resultado || '' : '') + '</div></div>' +
+      '<div class="fx-s ' + (ultPre ? (Number(ultPre.resumen.malos) ? 'mal' : 'ok') : '') + '"><div class="n">Último preoperacional</div><div class="v">' + (ultPre ? esc(UI.corta(ultPre.resumen.fecha)) : 'Ninguno') + '</div><div class="f">' + esc(ultPre ? (ultPre.resumen.responsable || '') : '') + '</div></div>' +
+      '<div class="fx-s ' + (abiertas.length ? 'pronto' : 'ok') + '"><div class="n">Acciones abiertas</div><div class="v">' + abiertas.length + '</div></div></div>' +
+      '<a class="btn ghost mini" href="inspecciones.html">Abrir inventario e inspecciones →</a></div>' +
+    bloque('Datos técnicos', [['Marca', s.marca], ['Modelo', s.modelo], ['Serie', s.serie], ['Compra / ingreso', s.fechaCompra && UI.corta(s.fechaCompra)], ['Proveedor', s.proveedor], ['Características', s.caracteristicas]].filter((x)=> x[1]).map((x)=> fila(esc(x[0]), esc(x[1]))), 'Sin datos técnicos. Agrégalos en el inventario para la hoja de vida.') +
+    bloque('Vencimientos y mantenimiento', ven, 'Sin vencimientos registrados.') +
+    bloque('Mantenimientos y reparaciones', (s.mantHist || []).slice().sort((a, b)=> String(b.f).localeCompare(String(a.f))).map((m)=> fila(esc(UI.corta(m.f)) + ' · ' + esc(m.t), esc(m.d || '') + (m.q ? ' · ' + esc(m.q) : ''))), 'Sin mantenimientos registrados.') +
+    bloque('Inspecciones', insp.slice(0, 10).map((x)=> fila(esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.plantilla || x.resumen.categoria || 'Inspección'), esc(x.resumen.inspector || ''), x.resumen.resultado === 'NO CONFORME' ? ['mal', 'No conforme'] : ['ok', x.resumen.resultado || 'Conforme'])), 'Sin inspecciones registradas.') +
+    bloque('Preoperacionales', pre.slice(0, 10).map((x)=> fila(esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.responsable || ''), esc(x.resumen.nombreFormulario || ''), Number(x.resumen.malos) ? ['mal', x.resumen.malos + ' novedad(es)'] : ['ok', 'Sin novedad'])), 'Sin preoperacionales con este código.') +
+    bloque('Acciones por sus hallazgos', acc.slice(0, 10).map((x)=> fila(esc(x.resumen.accion || x.titulo || ''), esc(x.resumen.responsable || 'Sin responsable') + (x.resumen.fechaCompromiso ? ' · ' + esc(UI.corta(x.resumen.fechaCompromiso)) : ''), x.estado === 'CERRADA' ? ['ok', 'Cerrada'] : ['pronto', 'Abierta'])), 'Sin acciones.', '<a class="btn ghost mini u-mt8" href="plan-accion.html">Plan de acción →</a>') +
+    (rep.length ? bloque('Reportes donde se nombra', rep.slice(0, 8).map((x)=> fila(esc(x.resumen.clase) + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(String(x.resumen.descripcion || '').slice(0, 160)))), '') : '') +
+    (s.codigo ? '<div class="card"><h2>QR de la ficha</h2><canvas id="fxQr" width="200" height="200"></canvas><p class="ayuda">Pégalo en el equipo: al escanearlo se abre esta ficha.</p></div>' : '') +
+    '<button type="button" class="btn ghost" id="fxPdf">🖨️ Imprimir la ficha</button>';
+  if (s.codigo && $('fxQr')) try { QR.dibujar($('fxQr'), enlacePre, { px: 200, margen: 2 }); } catch (er) {}
+  $('fxPdf').addEventListener('click', ()=> { const c = $('fx').cloneNode(true); c.querySelectorAll('a, button, canvas').forEach((x)=> x.remove());
+    UI.imprimir([UI.cabecera('SG-FICHA-EQUIPO', 'FICHA DEL EQUIPO: ' + String((s.codigo ? s.codigo + ' ' : '') + (s.nombre || '')).toUpperCase(), 'Corte ' + UI.corta(h)) + '<div class="hp-ficha">' + c.innerHTML + '</div>'], false); });
+}
+cargar();
+</script>
+</body>
+</html>

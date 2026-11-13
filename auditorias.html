@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PFIgDvSZUujjqL7gKjc5fuZplbCeLHzcMBrPpkK+mWk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Auditorías · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Auditorías · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.preg .op button.on[data-v="OBS"]{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+.preg .ref{font-size:var(--fs-etiqueta);font-weight:800;color:var(--muted);letter-spacing:.03em;margin-right:4px;}
+.preg .peso{float:right;font-size:var(--fs-etiqueta);color:var(--muted);font-weight:700;}
+.preg .pista{font-size:var(--fs-menor);color:var(--azul-700);background:var(--azul-50);border-radius:var(--r-s);padding:5px 8px;margin:6px 0 0;line-height:1.35;}
+.preg .extra{margin-top:8px;}
+.preg .extra input,.preg .extra textarea,.preg .extra select{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:9px 11px;font-size:var(--fs-titulo);font-family:inherit;background:var(--n-0);margin-top:5px;}
+.preg.es-obs{background:var(--ambar-50);margin:0 -15px;padding:10px 15px;}
+.grupo-h{font-size:var(--fs-etiqueta);font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 2px;}
+.barra{height:12px;border-radius:var(--r-s);background:var(--bg);overflow:hidden;margin:6px 0 2px;}
+.barra > div{height:100%;background:var(--ok);}
+.barra.mal > div{background:var(--mal);} .barra.pronto > div{background:var(--amber);}
+.puntaje{position:sticky;top:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 13px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,.06);}
+.puntaje b{font-family:var(--font-display);font-size:var(--fs-subtitulo);}
+.faltan-r{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:7px;font-size:var(--fs-menor);color:var(--rojo-900);font-weight:600;}
+.faltan-r.ok{color:var(--ok);}
+.faltan-r button{font:inherit;font-size:var(--fs-menor);font-weight:700;border:1px solid var(--rojo-200);background:var(--rojo-50);color:var(--rojo-800);border-radius:var(--r-s);padding:2px 7px;min-height:30px;cursor:pointer;}
+.preg.sin-resp{border-left:4px solid #e3b2aa;}
+.preg.bloq{opacity:.55;background:var(--n-50);}
+.preg.bloq .no-aplica-g{font-size:var(--fs-menor);color:var(--muted);margin-top:5px;}
+.preg.resaltar{box-shadow:0 0 0 3px var(--ambar-500);}
+.ciclos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;font-size:var(--fs-etiqueta);color:var(--muted);margin-top:4px;}
+.hall{border:1px solid var(--line);border-left:4px solid var(--mal);border-radius:var(--r-m);padding:9px 11px;margin-bottom:8px;font-size:var(--fs-base);line-height:1.4;}
+.hall.obs,.hall.om{border-left-color:var(--amber);}
+.hall small{display:block;color:var(--muted);font-size:var(--fs-menor);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Auditorías</h1>
+    <p>Programa anual, estándares mínimos, auditoría interna, ISO 45001 y clientes</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="avisoCopia"></div>
+  <div id="alertas"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="programa">Programa <span id="anioTab"></span></button>
+    <button type="button" data-tab="todas">Todas <span class="n" id="nTodas">0</span></button>
+    <button type="button" data-tab="hallazgos">Acciones abiertas <span class="n" id="nHall">0</span></button>
+  </div>
+  <div id="fLista"></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <button type="button" class="btn amber" id="btnNueva">+ Programar auditoría</button>
+  <button type="button" class="btn ghost" id="btnPrograma">🖨️ Programa anual de auditorías (PDF)</button>
+  <div class="card u-mt10" id="cardAuditor" hidden></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<div class="screen" id="scrAud"></div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="auditor-enlaces.js" defer></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const ORIGENES_AUD = ['Auditoría', 'Autoevaluación Res. 0312'];
+ let perfil = null;
+let filas = [], acciones = [], tab = 'programa', aud = null, pistas = {}, pistasCargadas = false;
+/* v109: filtro de cada lista (lo dejan las cifras de arriba). */
+const fAud = { programa: '', todas: '', hallazgos: '' };
+window.filtrarKpi = (v)=> { fAud[tab] = v || ''; pintar(); };
+const chipsAud = (ops)=> { $('fLista').innerHTML = UI.chipsFiltro(ops, fAud[tab]); $('fLista').querySelectorAll('[data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f))); };
+
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const anio = ()=> UI.hoy().slice(0, 4);
+const fechaDe = (x)=> x.resumen.fechaEjecucion || x.resumen.fechaPlan || '';
+function claseDe(x){
+  if (x.estado === 'CERRADA') return 'ok';
+  if (x.estado === 'PROGRAMADA') return UI.semaforo(x.resumen.fechaPlan, 15);
+  return 'pronto';
+}
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; $('btnNueva').disabled = true; return; }
+  const [r, ra] = await Promise.all([SGSST.listar('auditoria,empresa'), SGSST.listar('accion')]);
+  UI.avisoCopia($('avisoCopia'), r);
+  perfil = await UI.perfilEmpresa(r.rows);
+  filas = r.rows.filter((x)=> x.tipo === 'auditoria'); acciones = ra.rows.filter((x)=> ORIGENES_AUD.indexOf(x.resumen.origen) !== -1);
+  pintar();
+}
+function pintar(){
+  const a = anio(), delAnio = filas.filter((x)=> fechaDe(x).slice(0, 4) === a);
+  const hechas = delAnio.filter((x)=> x.estado === 'CERRADA');
+  const ab = acciones.filter((x)=> x.estado !== 'CERRADA');
+  const ultima = filas.filter((x)=> /^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && x.resumen.puntaje != null).sort((p, q)=> String(fechaDe(q)).localeCompare(String(fechaDe(p))))[0];
+  const v = ultima ? valoracion0312(ultima.resumen.puntaje) : null;
+  $('anioTab').textContent = a; $('nTodas').textContent = filas.length; $('nHall').textContent = ab.length;
+  const venAb = ab.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < UI.hoy());
+  window.verUltima0312 = ()=> { if (ultima) abrir(ultima.id); };
+  $('kpis').innerHTML = '<div class="kpi" data-ir="tab:programa|filtro:' + (hechas.length < delAnio.length ? 'pendientes' : '') + '"><div class="v">' + hechas.length + ' / ' + delAnio.length + '</div><div class="n">auditorías del programa ' + a + ' realizadas</div></div>' +
+    '<div class="kpi ' + (venAb.length ? 'mal' : '') + '" data-ir="tab:hallazgos|filtro:' + (venAb.length ? 'vencidas' : '') + '"><div class="v">' + ab.length + '</div><div class="n">acciones de auditoría abiertas</div></div>' +
+    '<div class="kpi ' + (v ? v.c : '') + '" data-ir="' + (ultima ? 'fn:verUltima0312' : 'tab:todas') + '"><div class="v">' + (ultima ? String(ultima.resumen.puntaje.toFixed(1)).replace('.', ',') + ' %' : '—') + '</div><div class="n">última autoevaluación Res. 0312</div>' + (v ? '<div class="f">' + esc(v.n) + ' · ' + esc(UI.corta(fechaDe(ultima))) + '</div>' : '') + '</div>';
+  const al = [];
+  // Qué estándares le aplican a la empresa (perfil: trabajadores y clase de riesgo)
+  al.push(perfil ? '<div class="aviso info">🏢 ' + esc(perfil.trabajadores) + ' trabajadores · riesgo ' + esc(perfil.claseRiesgo) + ' → le aplican <b>' + esc(UI.textoGrupo(Number(perfil.grupo0312))) + '</b>. <button type="button" class="btn-mini" id="btnPerfil">Cambiar</button></div>'
+    : '<div class="aviso amar">🏢 Falta el perfil de la empresa (número de trabajadores y clase de riesgo): define si le aplican 7, 21 o 60 estándares. <button type="button" class="btn-mini" id="btnPerfil">Definirlo</button></div>');
+  if (!filas.some((x)=> !/^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && fechaDe(x) >= Festivos.sumarDias(UI.hoy(), -365))) al.push('<div class="aviso amar">No hay una auditoría del SG-SST cerrada en los últimos 12 meses. La auditoría es anual y se planifica con el COPASST (Decreto 1072, art. 2.2.4.6.29; estándares 6.1.2 y 6.1.4).</div>');
+  if (!filas.some((x)=> /^RES0312/.test(x.resumen.plantilla) && fechaDe(x).slice(0, 4) === a)) al.push('<div class="aviso info">La autoevaluación de estándares mínimos se hace cada año (Res. 0312, art. 28). Prográmala con «+ Programar auditoría».</div>');
+  $('alertas').innerHTML = al.join('');
+  if ($('btnPerfil')) $('btnPerfil').addEventListener('click', ()=> UI.editarPerfil(()=> cargar()));
+  const pendientes = delAnio.filter((x)=> x.estado !== 'CERRADA'), atrasadas = filas.filter((x)=> x.estado === 'PROGRAMADA' && x.resumen.fechaPlan < UI.hoy());
+  if (tab === 'programa') chipsAud(delAnio.length ? [['', 'Todas (' + delAnio.length + ')'], ['pendientes', 'Por realizar (' + pendientes.length + ')']] : []);
+  else if (tab === 'todas') chipsAud(filas.length ? [['', 'Todas (' + filas.length + ')'], ['atrasadas', 'Atrasadas (' + atrasadas.length + ')']] : []);
+  else chipsAud(ab.length ? [['', 'Todas (' + ab.length + ')'], ['vencidas', 'Vencidas (' + venAb.length + ')']] : []);
+  if (!delAnio.length && tab === 'programa' || !filas.length && tab === 'todas' || !ab.length && tab === 'hallazgos') $('fLista').innerHTML = '';
+  const l = tab === 'programa' ? (fAud.programa === 'pendientes' ? pendientes : delAnio) : tab === 'todas' ? (fAud.todas === 'atrasadas' ? atrasadas : filas) : null;
+  if (tab === 'hallazgos') {
+    const h = UI.hoy(), lst = (fAud.hallazgos === 'vencidas' ? venAb : ab).slice().sort((p, q)=> String(p.resumen.fechaCompromiso).localeCompare(String(q.resumen.fechaCompromiso)));
+    $('lista').innerHTML = lst.length ? lst.map((x)=>{ const s = x.resumen, c = UI.semaforo(s.fechaCompromiso, 5);
+      return '<a class="item ' + c + '" href="plan-accion.html#' + encodeURIComponent(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.accion) + '</div><div class="m">' + esc(s.hallazgo) + '</div><div class="m">👤 ' + esc(s.responsable) + ' · ' + esc(s.origenRef) + '</div></div>' +
+        '<span class="chip ' + c + '">' + (s.fechaCompromiso < h ? 'Venció ' : '') + esc(UI.corta(s.fechaCompromiso)) + '</span></div></a>'; }).join('') : '<div class="empty">' + (fAud.hallazgos ? 'Ninguna acción de auditoría vencida ✓' : 'No hay acciones de auditoría abiertas.') + '</div>';
+    return;
+  }
+  const ord = l.slice().sort((p, q)=> String(fechaDe(p)).localeCompare(String(fechaDe(q))) * (tab === 'todas' ? -1 : 1));
+  $('lista').innerHTML = ord.length ? ord.map((x)=>{
+    const s = x.resumen, c = claseDe(x), hh = s.hallazgos || {};
+    const res = /^RES0312/.test(s.plantilla) && s.puntaje != null ? String(s.puntaje.toFixed(1)).replace('.', ',') + ' % · ' + s.valoracion : [hh.ncMayor && hh.ncMayor + ' NC mayor', hh.ncMenor && hh.ncMenor + ' NC menor', hh.obs && hh.obs + ' obs.', hh.om && hh.om + ' OM'].filter(Boolean).join(' · ');
+    return '<button type="button" class="item ' + c + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.titulo || s.tipoAuditoria) + '</div>' +
+      '<div class="m">' + esc(s.tipoAuditoria) + (s.auditor ? ' · 👤 ' + esc(s.auditor) : '') + (x.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div>' +
+      (x.estado === 'EN EJECUCIÓN' ? '<div class="m">Avance: ' + s.respondidos + ' de ' + s.items + ' puntos</div>' : '') + (res && x.estado === 'CERRADA' ? '<div class="m">Resultado: ' + esc(res) + '</div>' : '') + '</div>' +
+      '<span class="chip ' + c + '">' + esc(x.estado === 'PROGRAMADA' ? (s.fechaPlan < UI.hoy() ? 'Atrasada ' : 'Programada ') + UI.corta(s.fechaPlan) : x.estado === 'CERRADA' ? 'Cerrada ' + UI.corta(s.fechaEjecucion) : 'En ejecución') + '</span></div></button>';
+  }).join('') : '<div class="empty">' + (fAud[tab] ? 'Nada pendiente en este filtro ✓' : tab === 'programa' ? 'No hay auditorías programadas para ' + anio() + '.' : 'No hay auditorías.') + '</div>';
+}
+
+/* ── Programar / abrir ── */
+function nuevaAuditoria(){
+  // De las autoevaluaciones 0312 se ofrece la que le aplica a la empresa (las otras, abajo).
+  const g = perfil ? Number(perfil.grupo0312) : 60;
+  const rango = (k)=> { const x = PLANTILLAS_AUDITORIA[k].grupo0312; return x === g ? 0 : x ? 2 : 1; };
+  const orden = Object.keys(PLANTILLAS_AUDITORIA).sort((a, b)=> rango(a) - rango(b));
+  const m = UI.modal('<h3>¿Qué auditoría?</h3><div class="chips" id="plChips">' + orden.map((k)=> { const P = PLANTILLAS_AUDITORIA[k], otra = P.grupo0312 && P.grupo0312 !== g;
+    return '<button type="button" data-p="' + k + '"' + (otra ? ' style="opacity:.55;"' : '') + '>' + esc(P.nombre) + (P.grupo0312 === g ? ' ← la que le aplica' : '') + '</button>'; }).join('') + '</div>' +
+    (perfil ? '' : '<p class="ayuda">Define el perfil de la empresa para saber si le aplican 7, 21 o 60 estándares.</p>') + '<button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  m.el.querySelector('#plChips').addEventListener('click', (e)=>{
+    const b = e.target.closest('[data-p]'); if (!b) return; m.cerrar();
+    const P = PLANTILLAS_AUDITORIA[b.dataset.p];
+    aud = { id: SGSST.nuevoId('AUD'), nuevo: true, plantilla: b.dataset.p, tipoAuditoria: P.corto, titulo: P.corto + ' ' + anio(), fechaPlan: Festivos.sumarDias(UI.hoy(), 15), fechaEjecucion: '',
+      estado: 'PROGRAMADA', auditor: { nombre: '', cargo: '', independiente: true }, equipo: '', alcance: '', objetivo: '', criterios: P.criterios, areas: '', copasst: { participo: false, nombre: '' },
+      items: P.items.map((i)=> ({ id: i[0], grupo: i[1], ref: i[2], valor: i[3], texto: i[4], r: '', just: '', evid: '', sev: 'ncMenor', hdesc: '' })),
+      hallazgos: [], auditados: '', conclusiones: '', fortalezas: '', firmaAuditor: '', firmaAuditado: '', auditadoNombre: '', acciones: [] };
+    pintarAud();
+  });
+}
+async function abrir(id){
+  if (SGSST._lsGet('ssta-sgsst-pend', {})[id]) { UI.toast('Esta auditoría tiene cambios sin enviar desde este equipo. Ábrela cuando se envíen.', 'mal'); return; }
+  $('scrAud').innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><h1>Abriendo…</h1></div>'; show('scrAud');
+  const d = await SGSST.doc(id);
+  if (!d) { const f = filas.find((x)=> x.id === id); $('scrAud').innerHTML += '<div class="aviso">No se pudo abrir' + (f && f.pendiente ? ' (aún está pendiente de enviar)' : '') + '.</div>'; return; }
+  aud = d; pintarAud();
+}
+
+/* Lo que el portal ya sabe, como pista al lado de cada estándar (no responde por ti). */
+async function cargarPistas(){
+  pistas = {};
+  try {
+    const r = await SGSST.listar('comite,reporte,mes,inspeccion,auditoria,reunion,accion,trabajador,politica,plananual,presupuesto,gasto,peligro,revmatriz,sustancia,medicion,emergencia,simulacro,legal,documento,cambio,proveedor,revision,rendicion,examen,perfil,psico,sve,induccion,entrega,eppcargo');
+    const rows = r.rows, h = UI.hoy(), hace12 = Festivos.sumarDias(h, -365);
+    const cm = (k)=> rows.find((x)=> x.tipo === 'comite' && x.resumen.comite === k);
+    const reu = (k)=> rows.filter((x)=> x.tipo === 'reunion' && x.resumen.comite === k && x.resumen.tipo === 'Ordinaria' && x.resumen.fecha >= hace12).length;
+    const est = (c)=> !c || !c.resumen.periodo ? 'no está conformado en el portal' : (c.resumen.periodo.fin >= h ? 'periodo vigente hasta ' + UI.corta(c.resumen.periodo.fin) : 'periodo VENCIDO el ' + UI.corta(c.resumen.periodo.fin));
+    const cop = cm('copasst'), con = cm('convivencia');
+    pistas['1.1.6'] = 'COPASST: ' + est(cop) + ' · ' + reu('copasst') + ' reuniones ordinarias en 12 meses.';
+    pistas['1.1.7'] = 'COPASST: ' + (cop ? cop.resumen.capacitaciones : 0) + ' capacitación(es) registradas.';
+    pistas['1.1.8'] = 'Convivencia: ' + est(con) + ' · ' + reu('convivencia') + ' reuniones ordinarias en 12 meses.';
+    const at = rows.filter((x)=> x.tipo === 'reporte' && x.resumen.clase === 'Accidente de trabajo' && x.resumen.fecha >= hace12);
+    const aTiempo = at.filter((x)=> x.resumen.furat && x.resumen.furat.radicado && x.resumen.furat.fecha && x.resumen.furat.fecha <= Festivos.sumarHabiles(x.resumen.fecha, 2)).length;
+    pistas['3.2.1'] = at.length ? at.length + ' accidente(s) en 12 meses; FURAT dentro de 2 días hábiles: ' + aTiempo + '.' : 'Sin accidentes registrados en 12 meses.';
+    const inv = rows.filter((x)=> x.tipo === 'reporte' && /Accidente|Incidente/.test(x.resumen.clase) && x.resumen.fecha >= hace12);
+    pistas['3.2.2'] = inv.length ? inv.filter((x)=> x.resumen.investigacion && x.resumen.investigacion.estado === 'CERRADA').length + ' de ' + inv.length + ' incidentes/accidentes con investigación cerrada.' : 'Sin incidentes ni accidentes en 12 meses.';
+    const meses = rows.filter((x)=> x.tipo === 'mes' && x.resumen.mes >= hace12.slice(0, 7)).length;
+    ['3.3.1', '3.3.2', '3.3.6'].forEach((k)=> { pistas[k] = 'Indicadores: ' + meses + ' mes(es) con datos en los últimos 12.'; });
+    pistas['6.1.1'] = pistas['3.3.1'];
+    const ins12 = rows.filter((x)=> x.tipo === 'inspeccion' && x.resumen.fecha >= hace12), ins = ins12.length;
+    const insCop = ins12.filter((x)=> x.resumen.tipoInspeccion === 'COPASST').length, insGer = ins12.filter((x)=> x.resumen.tipoInspeccion === 'Gerencial').length;
+    pistas['4.2.4'] = ins + ' inspección(es) planeadas en 12 meses' + (insCop || insGer ? ': ' + insCop + ' del COPASST y ' + insGer + ' gerencial(es), con participantes y firmas.' : ' (ninguna marcada como del COPASST: regístralas con tipo «COPASST» y sus participantes).') + ' El cronograma programado frente a ejecutado está en Inspecciones.';
+    const trab = rows.filter((x)=> x.tipo === 'trabajador' && x.resumen.activo !== false), conInd = trab.filter((x)=> x.resumen.req && x.resumen.req.induccion && x.resumen.req.induccion.vence >= h).length;
+    if (trab.length) pistas['1.2.2'] = 'Personal habilitado: ' + conInd + ' de ' + trab.length + ' con inducción vigente.';
+    const ind12 = rows.filter((x)=> x.tipo === 'induccion' && String(x.fecha) >= hace12);
+    if (ind12.length) pistas['1.2.2'] = (pistas['1.2.2'] ? pistas['1.2.2'] + ' ' : '') + ind12.length + ' inducción(es)/reinducción(es) en 12 meses (' + ind12.filter((x)=> x.estado === 'APROBADA').length + ' aprobadas con evaluación).';
+    const ent = rows.filter((x)=> x.tipo === 'entrega'), mat = rows.filter((x)=> x.tipo === 'eppcargo');
+    pistas['4.2.6'] = mat.length || ent.length ? mat.length + ' cargo(s) con matriz de EPP; ' + ent.filter((x)=> String(x.fecha) >= hace12).length + ' entrega(s) con firma en 12 meses (' + ent.filter((x)=> x.resumen.capacitado === false).length + ' sin capacitación en el uso).' : 'Sin matriz ni entregas de EPP en el portal.';
+    const aud12 = rows.filter((x)=> x.tipo === 'auditoria' && !/^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && (x.resumen.fechaEjecucion || '') >= hace12);
+    pistas['6.1.2'] = aud12.length ? aud12.length + ' auditoría(s) cerradas en 12 meses.' : 'Sin auditorías cerradas en 12 meses en el portal.';
+    const acc = rows.filter((x)=> x.tipo === 'accion');
+    const accAT = acc.filter((x)=> /Accidente|Incidente/.test(x.resumen.origen));
+    pistas['7.1.3'] = accAT.length + ' acción(es) del plan salen de incidentes/accidentes (' + accAT.filter((x)=> x.estado === 'CERRADA').length + ' cerradas).';
+    pistas['7.1.1'] = acc.filter((x)=> /Inspección/.test(x.resumen.origen)).length + ' acción(es) salen de inspecciones; ' + acc.length + ' en total en el plan.';
+    // Planeación, salud y documental (v93)
+    const de = (t)=> rows.filter((x)=> x.tipo === t), ultimo = (t, f)=> de(t).map((x)=> x.resumen[f]).filter(Boolean).sort().pop() || '';
+    const pol = de('politica').sort((p, q)=> String(q.resumen.fechaFirma).localeCompare(String(p.resumen.fechaFirma)))[0];
+    pistas['2.1.1'] = pol ? 'Política versión ' + pol.resumen.versionDoc + ', firmada el ' + UI.corta(pol.resumen.fechaFirma) + (pol.resumen.proximaRevision < h ? ' · REVISIÓN VENCIDA' : '') + ' · ' + pol.resumen.divulgaciones + ' divulgación(es).' : 'No hay política registrada en el portal.';
+    pistas['2.2.1'] = pol ? pol.resumen.objetivos + ' objetivo(s) con indicador y meta.' : 'Sin objetivos registrados.';
+    const pat = de('plananual').find((x)=> String(x.resumen.anio) === h.slice(0, 4));
+    pistas['2.4.1'] = pat ? 'Plan ' + pat.resumen.anio + ': cumplimiento ' + pat.resumen.cumplimiento + ' %' + (pat.resumen.firmado === true ? ', firmado' : ', SIN FIRMAS') + '.' : 'No hay plan anual del año en el portal.';
+    pistas['1.2.1'] = pat ? 'Plan de capacitación: ' + pat.resumen.capEjecutadas + ' de ' + pat.resumen.capProgramadas + ' ejecutadas' + (pat.resumen.cobertura !== '' ? ', cobertura ' + pat.resumen.cobertura + ' %' : '') + '.' : 'Sin plan de capacitación en el portal.';
+    // v169: si hay presupuesto con ejecución (Presupuesto del SG-SST), esa es la evidencia; si no, el valor del plan anual.
+    const anioP = UI.hoy().slice(0, 4), pre = de('presupuesto').find((x)=> String(x.resumen.anio) === anioP);
+    const gas = de('gasto').filter((x)=> String(x.resumen.anio) === anioP).reduce((a, x)=> a + (Number(x.resumen.valor) || 0), 0);
+    pistas['1.1.3'] = pre ? 'Presupuesto del SG-SST: $ ' + Number(pre.resumen.totalPresupuestado || 0).toLocaleString('es-CO') + ', ejecutado $ ' + gas.toLocaleString('es-CO') +
+        (pre.resumen.aprobadoPor ? ' (aprobado por ' + pre.resumen.aprobadoPor + ')' : '') + '.'
+      : pat && pat.resumen.presupuesto ? 'Presupuesto del plan anual: $ ' + Number(pat.resumen.presupuesto).toLocaleString('es-CO') + '.' : '';
+    const docs = de('documento'); pistas['2.5.1'] = docs.length ? docs.length + ' documento(s) en el listado maestro; ' + docs.filter((x)=> x.resumen.estado === 'Vigente' && x.resumen.proximaRevision && x.resumen.proximaRevision < h).length + ' con revisión vencida.' : 'Sin listado maestro en el portal.';
+    const ren = de('rendicion').filter((x)=> x.resumen.fecha >= hace12); pistas['2.6.1'] = ren.length + ' rendición(es) de cuentas en 12 meses.';
+    const leg = de('legal').filter((x)=> x.resumen.vigente !== 'No'), legEv = leg.filter((x)=> x.resumen.cumple && x.resumen.cumple !== 'Sin evaluar' && x.resumen.cumple !== 'No aplica');
+    pistas['2.7.1'] = leg.length ? leg.length + ' normas en la matriz legal; ' + legEv.length + ' evaluadas' + (legEv.length ? ', ' + Math.round(legEv.filter((x)=> x.resumen.cumple === 'Cumple').length * 100 / legEv.length) + ' % cumple' : '') + '.' : 'Sin matriz legal en el portal.';
+    const prv = de('proveedor').filter((x)=> x.resumen.activo !== false);
+    pistas['2.10.1'] = prv.length ? prv.filter((x)=> x.resumen.proximaEvaluacion >= h).length + ' de ' + prv.length + ' proveedores/contratistas evaluados al día.' : 'Sin proveedores evaluados en el portal.';
+    pistas['2.9.1'] = prv.length ? 'Los criterios de evaluación incluyen las especificaciones de SST en compras.' : '';
+    pistas['2.11.1'] = de('cambio').length + ' cambio(s) gestionados (' + de('cambio').filter((x)=> x.resumen.fecha >= hace12).length + ' en 12 meses).';
+    const per = de('perfil').sort((p, q)=> String(q.resumen.anio).localeCompare(String(p.resumen.anio)))[0];
+    pistas['3.1.1'] = per ? 'Diagnóstico de condiciones de salud ' + per.resumen.anio + ' (' + per.resumen.trabajadores + ' evaluados).' : 'Sin diagnóstico de condiciones de salud en el portal.';
+    pistas['3.1.2'] = per ? per.resumen.actividades + ' actividad(es) de promoción y prevención registradas.' : '';
+    pistas['3.1.7'] = pistas['3.1.2'];
+    const ult = {}; de('examen').forEach((x)=> { const k = x.resumen.cedula || x.resumen.nombre; if (!ult[k] || x.resumen.fecha > ult[k].resumen.fecha) ult[k] = x; });
+    const exV = Object.values(ult).filter((x)=> x.resumen.tipoExamen !== 'Egreso');
+    pistas['3.1.4'] = exV.length ? exV.filter((x)=> !x.resumen.proxima || x.resumen.proxima >= h).length + ' de ' + exV.length + ' trabajadores con examen periódico al día.' : 'Sin exámenes registrados en el portal.';
+    pistas['3.1.3'] = rows.some((x)=> x.tipo === 'cargo') ? 'Hay profesiograma en el portal.' : 'Revisa el profesiograma (Salud → Profesiograma).';
+    const rst = exV.filter((x)=> x.resumen.tieneRestricciones);
+    pistas['3.1.6'] = rst.length ? rst.filter((x)=> x.resumen.comunicada).length + ' de ' + rst.length + ' con restricciones comunicadas.' : 'Nadie tiene restricciones vigentes.';
+    const pel = de('peligro');
+    pistas['4.1.1'] = pel.length ? pel.length + ' peligro(s) en la matriz (GTC 45); ' + pel.filter((x)=> ['I', 'II'].indexOf(x.resumen.nivel) !== -1).length + ' no aceptables.' : 'La matriz de peligros está vacía en el portal.';
+    const rvm = ultimo('revmatriz', 'fecha'); pistas['4.1.2'] = rvm ? 'Última revisión con los trabajadores: ' + UI.corta(rvm) + (rvm < hace12 ? ' (hace más de un año)' : '') + '.' : 'Sin revisión de la matriz con participación de los trabajadores.';
+    const sus = de('sustancia').filter((x)=> x.resumen.estado !== 'Fuera de uso');
+    pistas['4.1.3'] = sus.length ? sus.length + ' sustancia(s); ' + sus.filter((x)=> x.resumen.carcinogena === true || x.resumen.toxicidadAguda === true).length + ' prioritaria(s); ' + sus.filter((x)=> x.resumen.hojaSeguridad !== 'Sí').length + ' sin hoja de seguridad.' : 'Sin inventario de sustancias en el portal.';
+    const med = de('medicion'); pistas['4.1.4'] = med.length ? med.length + ' medición(es); ' + med.filter((x)=> x.resumen.proxima && x.resumen.proxima < h).length + ' vencida(s); ' + med.filter((x)=> x.resumen.resultado !== 'Cumple').length + ' no cumplen.' : 'Sin mediciones ambientales en el portal.';
+    const medP = pel.reduce((a, x)=> a + (Number(x.resumen.controlesPendientes) || 0), 0); pistas['4.2.1'] = pel.length ? medP + ' medida(s) de intervención por implementar en la matriz.' : '';
+    const eme = de('emergencia'), sim = de('simulacro').filter((x)=> x.resumen.fecha >= hace12);
+    pistas['5.1.1'] = eme.length ? eme.length + ' plan(es) de emergencia; ' + sim.length + ' simulacro(s) en 12 meses.' : 'Sin plan de emergencias en el portal.';
+    pistas['5.1.2'] = eme.length ? eme.reduce((a, x)=> a + (Number(x.resumen.brigadistasCapacitados) || 0), 0) + ' de ' + eme.reduce((a, x)=> a + (Number(x.resumen.brigadistas) || 0), 0) + ' brigadistas capacitados en el último año.' : '';
+    const rev = de('revision').filter((x)=> x.estado === 'CERRADA' && x.resumen.fecha >= hace12);
+    pistas['6.1.3'] = rev.length ? 'Revisión por la dirección del ' + UI.corta(rev[0].resumen.fecha) + '.' : 'Sin revisión por la dirección cerrada en 12 meses.';
+    pistas['7.1.2'] = acc.filter((x)=> x.resumen.origen === 'Revisión por la dirección').length + ' acción(es) del plan salen de la revisión por la dirección.';
+    pistas['7.1.4'] = acc.filter((x)=> /Autoevaluación/.test(x.resumen.origen)).length + ' acción(es) del plan de mejoramiento de la autoevaluación.';
+    Object.keys(pistas).forEach((k)=> { if (!pistas[k]) delete pistas[k]; });
+  } catch (e) {}
+}
+
+/* ── Pantalla de la auditoría ── */
+function puntaje(items){
+  let t = 0, max = 0; const ciclo = {};
+  items.forEach((i)=> { if (i.bloq) return; const ok = i.r === 'C' || (i.r === 'NA' && i.just); max += i.valor; ciclo[i.grupo] = ciclo[i.grupo] || { max: 0, v: 0 }; ciclo[i.grupo].max += i.valor; if (ok) { t += i.valor; ciclo[i.grupo].v += i.valor; } });
+  // Si hay estándares que no le aplican a la empresa (tamaño y riesgo), el porcentaje es sobre los que sí.
+  const total = max > 0 && max < 99.5 ? t * 100 / max : t;
+  return { total: Math.round(total * 100) / 100, ciclo };
+}
+/* ── Qué estándares le aplican (Res. 0312: art. 3 → 7, art. 9 → 21, art. 16 → 60) ──
+   Con el perfil de la empresa definido (trabajadores y clase de riesgo):
+   · los estándares de su grupo se califican Cumple / No cumple (sin «No aplica»: los de su
+     grupo son obligatorios para su tamaño y riesgo);
+   · si se usa la lista de 60 en una empresa de 7 o 21, los que no le corresponden quedan
+     bloqueados y no cuentan en el porcentaje.
+   Única excepción: 1.1.5 (pensión especial por alto riesgo, Dec. 2090 de 2003), que solo
+   aplica si hay trabajadores en actividades de alto riesgo: admite «No aplica» justificado. */
+const PUEDE_NA = ['1.1.5'];
+function grupoEmpresa(){ return perfil && perfil.trabajadores ? Number(perfil.grupo0312) || null : null; }
+function aplicarGrupo(a, P){
+  const g = grupoEmpresa(); if (!g || !P || P.tipo !== 'puntaje') return;
+  const set = g === 60 ? null : new Set(SUBGRUPOS_0312[g].map((x)=> x[0]));
+  a.items.forEach((it)=> {
+    const fuera = P.grupo0312 === 60 && set && !set.has(it.id);
+    if (fuera) { it.bloq = true; it.r = 'NA'; it.just = 'No le aplica: empresa de ' + perfil.trabajadores + ' trabajadores y riesgo ' + perfil.claseRiesgo + ' (le aplican ' + g + ' estándares, Res. 0312 ' + (g === 7 ? 'art. 3' : 'art. 9') + ')'; }
+    else if (it.bloq) { it.bloq = false; it.r = ''; it.just = ''; }
+  });
+}
+function faltanItems(){ return aud.items.filter((i)=> !i.bloq && !i.r); }
+function pintarAud(){
+  const a = aud, P = PLANTILLAS_AUDITORIA[a.plantilla] || PLANTILLAS_AUDITORIA.LIBRE, es0312 = P.tipo === 'puntaje';
+  const cerrada = a.estado === 'CERRADA', programada = a.estado === 'PROGRAMADA';
+  const s = $('scrAud');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">' + esc(a.tipoAuditoria) + '</div><h1>' + esc(a.titulo || 'Auditoría') + '</h1><p>' + esc(a.estado) + (a.nuevo ? ' · nueva' : ' · ' + esc(a.id)) + '</p></div>' +
+    '<div class="card"><h2>1. Planeación</h2>' +
+      '<div class="field"><label>Título</label><input type="text" id="auTit" value="' + esc(a.titulo) + '"' + (cerrada ? ' disabled' : '') + '></div>' +
+      '<div class="grid2"><div class="field"><label>Fecha planeada</label><input type="date" id="auFP" value="' + esc(a.fechaPlan) + '"' + (cerrada ? ' disabled' : '') + '></div>' +
+      '<div class="field"><label>Fecha de ejecución</label><input type="date" id="auFE" value="' + esc(a.fechaEjecucion || '') + '"' + (cerrada ? ' disabled' : '') + '></div></div>' +
+      '<div class="grid2"><div class="field"><label>Auditor líder</label><input type="text" id="auAud" value="' + esc(a.auditor.nombre) + '"' + (cerrada ? ' disabled' : '') + '></div>' +
+      '<div class="field"><label>Cargo / empresa</label><input type="text" id="auAudC" value="' + esc(a.auditor.cargo || '') + '"' + (cerrada ? ' disabled' : '') + '></div></div>' +
+      '<label class="check"><input type="checkbox" id="auInd"' + (a.auditor.independiente ? ' checked' : '') + (cerrada ? ' disabled' : '') + '> El auditor es independiente del proceso que audita (no audita su propio trabajo)</label>' +
+      '<div class="field"><label>Equipo auditor</label><input type="text" id="auEq" value="' + esc(a.equipo || '') + '"' + (cerrada ? ' disabled' : '') + '></div>' +
+      '<div class="field"><label>Objetivo</label><textarea id="auObj" style="min-height:56px;"' + (cerrada ? ' disabled' : '') + '>' + esc(a.objetivo || '') + '</textarea></div>' +
+      '<div class="field"><label>Alcance (procesos, sedes, obras)</label><textarea id="auAlc" style="min-height:56px;"' + (cerrada ? ' disabled' : '') + '>' + esc(a.alcance || '') + '</textarea></div>' +
+      '<div class="field"><label>Criterios</label><textarea id="auCri" style="min-height:56px;"' + (cerrada ? ' disabled' : '') + '>' + esc(a.criterios || '') + '</textarea></div>' +
+      '<label class="check"><input type="checkbox" id="auCop"' + (a.copasst && a.copasst.participo ? ' checked' : '') + (cerrada ? ' disabled' : '') + '> El COPASST participó en la planeación (Dec. 1072, art. 2.2.4.6.29)</label>' +
+      '<div class="field"><label>Quién del COPASST</label><input type="text" id="auCopN" value="' + esc((a.copasst && a.copasst.nombre) || '') + '"' + (cerrada ? ' disabled' : '') + '></div>' +
+      (cerrada ? '' : '<button type="button" class="btn ' + (programada ? 'amber' : 'ghost') + '" id="auGuardarPlan">' + (a.nuevo ? 'Guardar en el programa' : 'Guardar planeación') + '</button>') +
+      (programada && !a.nuevo ? '<button type="button" class="btn verde" id="auIniciar">▶ Iniciar la auditoría</button>' : '') + '</div>' +
+    (programada ? '' :
+    (es0312 ? '<div class="puntaje" id="auPuntaje"></div>' : '') +
+    '<div class="card"><h2>2. ' + (es0312 ? 'Estándares mínimos' : 'Lista de verificación') + '</h2>' + (es0312 ? '<p class="ayuda">Cumple: valor completo · No cumple: 0 · No aplica: valor completo, con justificación. Las pistas en azul salen de lo registrado en el portal.</p>' : '<p class="ayuda">C: conforme · NC: no conforme · OBS: observación · NA: no aplica. Cada NC u OBS se vuelve un hallazgo.</p>') +
+      '<div id="auItems"></div>' + (cerrada || es0312 ? '' : '<button type="button" class="btn ghost mini" id="auAddItem">+ Agregar pregunta</button><button type="button" class="btn ghost mini" id="auPegar">📋 Pegar lista (desde Excel)</button>') + '<div id="auPond"></div></div>' +
+    (es0312 ? '' : '<div class="card"><h2>Hallazgos</h2><div id="auHall"></div>' + (cerrada ? '' : '<button type="button" class="btn ghost" id="auAddHall">+ Hallazgo libre (con foto)</button>') + '</div>') +
+    '<div class="card"><h2>3. Cierre</h2>' +
+      '<div class="field"><label>Personas auditadas (una por línea: nombre — cargo)</label><textarea id="auAuditados" style="min-height:56px;"' + (cerrada ? ' disabled' : '') + '>' + esc(a.auditados || '') + '</textarea></div>' +
+      '<div class="field"><label>Fortalezas</label><textarea id="auFort"' + (cerrada ? ' disabled' : '') + '>' + esc(a.fortalezas || '') + '</textarea></div>' +
+      '<div class="field"><label>Conclusiones</label><textarea id="auConc"' + (cerrada ? ' disabled' : '') + '>' + esc(a.conclusiones || '') + '</textarea></div>' +
+      (cerrada ? '' : '<div class="field"><label>Firma del auditor</label>' + UI.padHTML('fAuditor') + '</div>' +
+        '<div class="field"><label>Responsable del proceso auditado</label><input type="text" id="auAuditado" value="' + esc(a.auditadoNombre || '') + '"></div>' +
+        '<div class="field"><label>Firma del responsable auditado</label>' + UI.padHTML('fAuditado') + '</div>' +
+        '<button type="button" class="btn ghost" id="auGuardar">Guardar avance</button><button type="button" class="btn verde" id="auCerrar">✅ Cerrar la auditoría y crear las acciones</button>') +
+      (a.acciones && a.acciones.length ? '<div class="aviso info u-mt10">' + a.acciones.length + ' acción(es) en el plan de acción. <a href="plan-accion.html">Ver plan</a></div>' : '') + '</div>') +
+    (a.nuevo ? '' : '<button type="button" class="btn ghost" id="auPdf">🖨️ Informe de auditoría (PDF)</button>') + '<div class="status-msg" id="auMsg"></div>' +
+    (a.nuevo ? '' : '<div class="card"><div id="auAdj"></div><div id="auHist"></div></div>');
+  const on = (id, f)=> { if ($(id)) $(id).addEventListener('click', f); };
+  UI.autocompletar($('auAud'), (p)=> { $('auAud').value = p.nombre; $('auAudC').value = p.cargo || ''; });
+  on('auGuardarPlan', ()=> guardar(a.nuevo ? '✓ Auditoría programada' : '✓ Planeación guardada'));
+  on('auIniciar', async ()=> { leer(); if (!aud.auditor.nombre) { $('auMsg').textContent = 'Falta el auditor líder.'; return; } if (!aud.copasst.participo && !await Dialogo.confirmar('El COPASST no figura en la planeación (estándar 6.1.4). ¿Iniciar de todas formas?')) return; aud.estado = 'EN EJECUCIÓN'; if (!aud.fechaEjecucion) aud.fechaEjecucion = UI.hoy(); await guardar('▶ Auditoría iniciada'); });
+  on('auPegar', pegarLista);
+  on('auAddItem', async ()=> { leer(); const t = await Dialogo.pedir('Pregunta o requisito a verificar:'); if (!t) return; aud.items.push({ id: 'P' + (aud.items.length + 1), grupo: 'Propias', ref: '', valor: 0, texto: t, r: '', just: '', evid: '', sev: 'ncMenor', hdesc: '' }); pintarItems(); });
+  on('auAddHall', hallazgoLibre);
+  on('auGuardar', ()=> guardar('✓ Avance guardado'));
+  on('auCerrar', cerrar);
+  on('auPdf', ()=> { if (!cerrada) leer(); pdfInforme(); });
+  if (!programada) { pintarItems(); if (!es0312) pintarHallazgos(); }
+  if (!programada && !cerrada) { UI.activarPad('fAuditor', a.firmaAuditor); UI.activarPad('fAuditado', a.firmaAuditado); }
+  // Evidencias revisadas, plan de auditoría firmado, informe de la ARL…
+  if (!a.nuevo) { UI.adjuntos($('auAdj'), { id: a.id, lista: a.adjuntos || [], titulo: 'Evidencias y soportes de la auditoría', alCambiar: (l)=> { a.adjuntos = l; } }); $('auHist').appendChild(UI.botonHistorial(a.id, a.titulo)); }
+  if (es0312 && !programada && !cerrada && !pistasCargadas) { pistasCargadas = true; cargarPistas().then(pintarItems); }
+  show('scrAud');
+}
+function pintarItems(){
+  const a = aud, P = PLANTILLAS_AUDITORIA[a.plantilla] || PLANTILLAS_AUDITORIA.LIBRE, es0312 = P.tipo === 'puntaje', cerrada = a.estado === 'CERRADA';
+  const cont = $('auItems'); if (!cont) return;
+  if (es0312 && !cerrada) aplicarGrupo(a, P);
+  const g0312 = es0312 ? grupoEmpresa() : null;
+  const opsDe = (it)=> !es0312 ? [['C', 'C'], ['NC', 'NC'], ['OBS', 'OBS'], ['NA', 'NA']]
+    : (g0312 && PUEDE_NA.indexOf(it.id) === -1 && it.r !== 'NA') ? [['C', 'Cumple'], ['NC', 'No cumple']] : [['C', 'Cumple'], ['NC', 'No cumple'], ['NA', 'No aplica']];
+  let grupo = '';
+  cont.innerHTML = (es0312 && !cerrada ? (g0312 ? '<div class="aviso info u-mb8">Le aplican <b>' + esc(UI.textoGrupo(g0312)) + '</b>. Esos son obligatorios: se califican <b>Cumple</b> o <b>No cumple</b>' + (P.grupo0312 === 60 && g0312 !== 60 ? '; los demás quedan bloqueados y no cuentan en el porcentaje' : '') + '.</div>'
+      : '<div class="aviso amar u-mb8">Sin el perfil de la empresa (trabajadores y clase de riesgo) no se sabe cuáles estándares le aplican; por eso aún se puede marcar «No aplica» con justificación.</div>') : '') +
+    a.items.map((it, i)=> {
+    if (it.bloq) { const g = it.grupo !== grupo ? '<div class="grupo-h">' + esc(it.grupo) + '</div>' : ''; grupo = it.grupo;
+      return g + '<div class="preg bloq" data-i="' + i + '"><div class="q"><span class="ref">' + esc(it.id) + '</span>' + esc(it.texto) + '</div><div class="no-aplica-g">' + esc(it.just) + '</div></div>'; }
+    const ops = opsDe(it);
+    const g = it.grupo !== grupo ? '<div class="grupo-h">' + esc(it.grupo) + '</div>' : ''; grupo = it.grupo;
+    const cls = it.r === 'NC' ? ' es-nc' : it.r === 'OBS' ? ' es-obs' : '';
+    return g + '<div class="preg' + cls + (es0312 && !it.r && !cerrada ? ' sin-resp' : '') + '" id="it-' + esc(it.id) + '" data-i="' + i + '"><div class="q">' + (es0312 || Number(it.valor) > 0 ? '<span class="peso">' + String(Math.round(it.valor * 100) / 100).replace('.', ',') + '</span>' : '') + '<span class="ref">' + esc(es0312 ? it.id : (it.ref || it.id)) + '</span>' + esc(it.texto) + '</div>' +
+      (es0312 && pistas[it.id] && !cerrada ? '<div class="pista">🔎 En el portal: ' + esc(pistas[it.id]) + '</div>' : '') +
+      '<div class="op" style="margin-top:7px;">' + ops.map((o)=> '<button type="button" data-v="' + o[0] + '" class="' + (it.r === o[0] ? 'on' : '') + '"' + (cerrada ? ' disabled' : '') + '>' + o[1] + '</button>').join('') + '</div>' +
+      '<div class="extra">' +
+        (it.r === 'NA' && es0312 ? '<input type="text" data-k="just" placeholder="Justificación del no aplica (obligatoria)" value="' + esc(it.just || '') + '"' + (cerrada ? ' disabled' : '') + '>' : '') +
+        (!es0312 && it.r === 'NC' ? '<select data-k="sev"' + (cerrada ? ' disabled' : '') + '><option value="ncMenor">No conformidad menor</option><option value="ncMayor">No conformidad mayor</option></select>' : '') +
+        (!es0312 && (it.r === 'NC' || it.r === 'OBS') ? '<textarea data-k="hdesc" placeholder="Hallazgo: qué se encontró y qué requisito no se cumple"' + (cerrada ? ' disabled' : '') + '>' + esc(it.hdesc || '') + '</textarea>' : '') +
+        (it.r ? '<input type="text" data-k="evid" placeholder="Evidencia revisada (documento, registro, entrevista)" value="' + esc(it.evid || '') + '"' + (cerrada ? ' disabled' : '') + '>' : '') +
+      '</div></div>';
+  }).join('') || '<div class="m u-nota">Agrega las preguntas de tu lista.</div>';
+  cont.querySelectorAll('.preg').forEach((el)=> { const it = a.items[+el.dataset.i]; const s = el.querySelector('[data-k="sev"]'); if (s) s.value = it.sev || 'ncMenor'; });
+  if (!cerrada) cont.querySelectorAll('.preg .op').forEach((op)=> op.addEventListener('click', (e)=> {
+    const b = e.target.closest('[data-v]'); if (!b) return;
+    leerItems(); const it = a.items[+op.parentElement.dataset.i]; it.r = it.r === b.dataset.v ? '' : b.dataset.v; pintarItems(); if (!es0312) pintarHallazgos();
+  }));
+  cont.querySelectorAll('[data-k]').forEach((x)=> x.addEventListener('change', ()=> { leerItems(); if (!es0312) pintarHallazgos(); else pintarPuntaje(); }));
+  pintarPuntaje();
+  const pd = $('auPond');
+  if (pd) { const w = es0312 ? null : ponderada(a.items);
+    pd.innerHTML = w && w.conPeso ? '<div class="aviso info u-mt8">Calificación ponderada: <b>' + (w.pct === null ? '—' : w.pct.toFixed(1).replace('.', ',') + ' %') + '</b> (' + String(Math.round(w.v * 100) / 100).replace('.', ',') + ' de ' + String(Math.round(w.max * 100) / 100).replace('.', ',') + ' puntos evaluados)</div>'
+      : (P.pegar && !a.items.length ? '<div class="aviso amar u-mt8">Esta lista viene vacía a propósito: pega los numerales de la guía vigente con «📋 Pegar lista».</div>' : ''); }
+}
+/* Pegar una lista de verificación (p. ej. la Guía RUC vigente) copiada de Excel.
+   Columnas: numeral · requisito · peso   o   numeral · grupo · requisito · peso. */
+function pegarLista(){
+  const m = UI.modal('<h3>Pegar lista de verificación</h3><p class="ayuda">Copia las filas desde Excel (o escríbelas separadas por tabulador, «|» o «;»): <b>numeral · requisito · peso</b>, o <b>numeral · capítulo · requisito · peso</b>. El peso es opcional; si lo hay, se calcula la calificación ponderada.</p>' +
+    '<div class="field"><textarea id="plTxt" style="min-height:180px;" placeholder="1.1	Liderazgo	La alta dirección ...	2"></textarea></div><button type="button" class="btn amber" id="plOk">Agregar a la lista</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="plMsg"></div>');
+  m.el.querySelector('#plOk').addEventListener('click', ()=> {
+    const filas = m.el.querySelector('#plTxt').value.split(/\r?\n/).map((l)=> l.split(/\t|\s\|\s|;/).map((x)=> x.trim())).filter((c)=> c.filter(Boolean).length >= 2);
+    if (!filas.length) { m.el.querySelector('#plMsg').textContent = 'No se encontraron filas con al menos numeral y requisito.'; return; }
+    leer(); leerItems();
+    const num = (x)=> x !== undefined && x !== '' && !isNaN(Number(String(x).replace(',', '.')));
+    filas.forEach((c)=> {
+      let ref = c[0], grupo = 'Lista', texto = c[1], peso = 0;
+      if (c.length >= 4) { grupo = c[1] || grupo; texto = c[2]; peso = num(c[3]) ? Number(String(c[3]).replace(',', '.')) : 0; }
+      else if (c.length === 3) { if (num(c[2])) peso = Number(String(c[2]).replace(',', '.')); else { grupo = c[1]; texto = c[2]; } }
+      aud.items.push({ id: 'L' + (aud.items.length + 1), grupo, ref, valor: peso, texto, r: '', just: '', evid: '', sev: 'ncMenor', hdesc: '' });
+    });
+    m.cerrar(); pintarItems(); UI.toast('✓ ' + filas.length + ' requisito(s) agregados.');
+  });
+}
+/** Calificación ponderada de una lista con pesos (C y OBS suman el peso; NC no; NA no cuenta). */
+function ponderada(items){
+  const ap = items.filter((i)=> Number(i.valor) > 0 && i.r && i.r !== 'NA');
+  const max = ap.reduce((a, i)=> a + Number(i.valor), 0), v = ap.filter((i)=> i.r === 'C' || i.r === 'OBS').reduce((a, i)=> a + Number(i.valor), 0);
+  return { max, v, pct: max ? v * 100 / max : null, conPeso: items.some((i)=> Number(i.valor) > 0) };
+}
+function leerItems(){
+  const cont = $('auItems'); if (!cont) return;
+  cont.querySelectorAll('.preg:not(.bloq)').forEach((el)=> { const it = aud.items[+el.dataset.i]; el.querySelectorAll('[data-k]').forEach((x)=> { it[x.dataset.k] = x.value.trim(); }); });
+}
+function pintarPuntaje(){
+  const el = $('auPuntaje'); if (!el) return;
+  const p = puntaje(aud.items), v = valoracion0312(p.total), aplican = aud.items.filter((i)=> !i.bloq), resp = aplican.filter((i)=> i.r).length, faltan = faltanItems();
+  el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span><b>' + p.total.toFixed(2).replace('.', ',') + ' %</b> · ' + esc(v.n) + '</span><span style="font-size:var(--fs-menor);color:var(--muted);">' + resp + ' de ' + aplican.length + ' respondidos</span></div>' +
+    (faltan.length && aud.estado !== 'CERRADA' ? '<div class="faltan-r"><span>Faltan ' + faltan.length + ' por contestar:</span>' + faltan.slice(0, 6).map((i)=> '<button type="button" data-ir="' + esc(i.id) + '">' + esc(i.id) + '</button>').join('') + (faltan.length > 6 ? '<span>y ' + (faltan.length - 6) + ' más</span>' : '') + '</div>' : aud.estado !== 'CERRADA' ? '<div class="faltan-r ok">Todos contestados ✓</div>' : '') +
+    '<div class="barra ' + v.c + '"><div style="width:' + Math.min(100, p.total) + '%"></div></div>' +
+    '<div class="ciclos">' + ['Planear', 'Hacer', 'Verificar', 'Actuar'].map((c)=> { const x = p.ciclo[c] || { v: 0, max: 0 }; return '<span>' + c + ': <b style="font-size:var(--fs-menor);color:var(--ink);">' + String(Math.round(x.v * 100) / 100).replace('.', ',') + '/' + String(Math.round(x.max * 100) / 100).replace('.', ',') + '</b></span>'; }).join('') + '</div>';
+  el.querySelectorAll('[data-ir]').forEach((b)=> b.addEventListener('click', ()=> { const t = document.getElementById('it-' + b.dataset.ir); if (t) { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.classList.add('resaltar'); setTimeout(()=> t.classList.remove('resaltar'), 1600); } }));
+}
+/* Hallazgos: los de la lista (NC/OBS) + los libres. Se conserva la acción ya creada. */
+function hallazgosDe(a){
+  const prev = {}; (a.hallazgos || []).forEach((h)=> { prev[h.uid] = h; });
+  const deItems = a.items.filter((i)=> i.r === 'NC' || i.r === 'OBS').map((i)=> Object.assign({}, prev['it-' + i.id] || {}, { uid: 'it-' + i.id, itemId: i.id, tipo: i.r === 'NC' ? (i.sev || 'ncMenor') : 'obs', requisito: i.ref || i.id, descripcion: i.hdesc || i.texto, evidencia: i.evid || '' }));
+  const libres = (a.hallazgos || []).filter((h)=> !h.itemId);
+  return deItems.concat(libres);
+}
+function pintarHallazgos(){
+  const el = $('auHall'); if (!el) return;
+  const l = hallazgosDe(aud), cerrada = aud.estado === 'CERRADA';
+  el.innerHTML = l.length ? l.map((h)=> '<div class="hall ' + esc(h.tipo) + '"><b>' + esc(TIPOS_HALLAZGO[h.tipo] || h.tipo) + '</b>' + (h.requisito ? ' · ' + esc(h.requisito) : '') + '<div>' + esc(h.descripcion) + '</div>' + (h.evidencia ? '<small>Evidencia: ' + esc(h.evidencia) + '</small>' : '') +
+    (h.fotos && h.fotos.length ? '<div class="fotos u-mt6">' + h.fotos.map(UI.src).filter(Boolean).map((f)=> '<div class="f"><img src="' + f + '" alt="Foto"></div>').join('') + '</div>' : '') +
+    (h.accionId ? '<small>Acción: <a href="plan-accion.html#' + encodeURIComponent(h.accionId) + '">' + esc(h.accionId) + '</a></small>' : '') +
+    (!h.itemId && !cerrada ? '<button type="button" class="btn mini ghost u-mt6" data-qh="' + esc(h.uid) + '">Quitar</button>' : '') + '</div>').join('') : '<div class="m" style="font-size:var(--fs-base);color:var(--muted);margin-bottom:8px;">Sin hallazgos.</div>';
+  el.querySelectorAll('[data-qh]').forEach((b)=> b.addEventListener('click', ()=> { aud.hallazgos = (aud.hallazgos || []).filter((h)=> h.uid !== b.dataset.qh); pintarHallazgos(); }));
+}
+function hallazgoLibre(){
+  const m = UI.modal('<h3>Hallazgo</h3><div class="field"><label>Tipo</label><select id="hlT">' + Object.keys(TIPOS_HALLAZGO).map((k)=> '<option value="' + k + '"' + (k === 'ncMenor' ? ' selected' : '') + '>' + esc(TIPOS_HALLAZGO[k]) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Requisito</label><input type="text" id="hlR" placeholder="Ej: Dec. 1072 art. 2.2.4.6.24 / numeral 8.1.2"></div>' +
+    '<div class="field"><label>Qué se encontró</label><textarea id="hlD"></textarea></div><div class="field"><label>Evidencia</label><input type="text" id="hlE"></div>' +
+    '<div class="field"><label>Fotos</label><div id="hlF"></div></div><button type="button" class="btn amber" id="hlOk">Agregar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  const fotos = UI.fotos(m.el.querySelector('#hlF'), { max: 3 });
+  m.el.querySelector('#hlOk').addEventListener('click', ()=> {
+    const v = (id)=> m.el.querySelector(id).value.trim();
+    if (!v('#hlD')) { UI.toast('Describe el hallazgo.', 'mal'); return; }
+    aud.hallazgos = (aud.hallazgos || []).concat({ uid: 'h-' + SGSST.nuevoOpId(), tipo: v('#hlT'), requisito: v('#hlR'), descripcion: v('#hlD'), evidencia: v('#hlE'), fotos: fotos.get() });
+    m.cerrar(); pintarHallazgos();
+  });
+}
+/** v148: busca al auditor en la matriz de auditores internos y compara su proceso con el alcance y las áreas. */
+async function independencia(a){
+  try {
+    const r = await SGSST.listar('auditorint', { sinPedir: true });
+    const n = UI.norm(a.auditor.nombre || ''); if (!n) return '';
+    const au = (r.rows || []).find((x)=> UI.norm(x.resumen.nombre || '') === n);
+    if (!au) return 'desconocido';
+    const proc = UI.norm(au.resumen.procesoPropio || ''), alc = UI.norm([a.alcance, a.areas, a.titulo].join(' '));
+    if (proc && proc.length > 2 && alc.indexOf(proc) !== -1) { $('auInd').checked = false; a.auditor.independiente = false; return 'no'; }
+    if (au.resumen.evaluacion && /no competente/i.test(au.resumen.evaluacion)) return 'no';
+    return 'ok';
+  } catch (e) { return ''; }
+}
+function leer(){
+  const a = aud, v = (id)=> ($(id) ? $(id).value.trim() : '');
+  if (a.estado === 'CERRADA') return;
+  a.titulo = v('auTit'); a.fechaPlan = v('auFP'); a.fechaEjecucion = v('auFE');
+  a.auditor = { nombre: v('auAud'), cargo: v('auAudC'), independiente: $('auInd').checked };
+  a.equipo = v('auEq'); a.objetivo = v('auObj'); a.alcance = v('auAlc'); a.criterios = v('auCri');
+  a.copasst = { participo: $('auCop').checked, nombre: v('auCopN') };
+  if ($('auItems')) leerItems();
+  if ($('auAuditados')) { a.auditados = $('auAuditados').value; a.fortalezas = v('auFort'); a.conclusiones = v('auConc'); a.auditadoNombre = v('auAuditado');
+    const f1 = UI.firma('fAuditor'), f2 = UI.firma('fAuditado'); if (f1) a.firmaAuditor = f1; if (f2) a.firmaAuditado = f2; }
+  const P = PLANTILLAS_AUDITORIA[a.plantilla] || {};
+  if (P.tipo === 'puntaje') { const p = puntaje(a.items); a.puntaje = p.total; a.valoracion = valoracion0312(p.total).n; a.hallazgos = a.items.filter((i)=> i.r === 'NC').map((i)=> Object.assign({}, (a.hallazgos || []).find((h)=> h.uid === 'it-' + i.id) || {}, { uid: 'it-' + i.id, itemId: i.id, tipo: 'ncMenor', requisito: 'Estándar ' + i.id, descripcion: i.texto, evidencia: i.evid || '' })); }
+  else { a.hallazgos = hallazgosDe(a); const w = ponderada(a.items); if (w.conPeso && w.pct !== null) { a.puntaje = Math.round(w.pct * 100) / 100; a.valoracion = 'Ponderada'; } }
+}
+async function guardar(ok){
+  leer();
+  const a = aud, msg = $('auMsg');
+  if (!a.titulo || !a.fechaPlan) { msg.textContent = 'Faltan el título y la fecha planeada.'; return false; }
+  const doc = {}; ['plantilla', 'tipoAuditoria', 'titulo', 'fechaPlan', 'fechaEjecucion', 'estado', 'auditor', 'equipo', 'alcance', 'objetivo', 'criterios', 'areas', 'copasst', 'items', 'hallazgos', 'auditados', 'conclusiones', 'fortalezas', 'firmaAuditor', 'firmaAuditado', 'auditadoNombre', 'acciones', 'puntaje', 'valoracion'].forEach((k)=> { if (a[k] !== undefined) doc[k] = a[k]; });
+  msg.textContent = 'Guardando…';
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'auditoria', id: a.id, doc, versionBase: a.nuevo ? 0 : a.version },
+    { estado: a.estado, fecha: a.fechaEjecucion || a.fechaPlan, titulo: a.titulo, responsable: a.auditor.nombre, vence: a.estado === 'PROGRAMADA' ? a.fechaPlan : '',
+      resumen: { tipoAuditoria: a.tipoAuditoria, plantilla: a.plantilla, titulo: a.titulo, fechaPlan: a.fechaPlan, fechaEjecucion: a.fechaEjecucion, auditor: a.auditor.nombre, estado: a.estado, puntaje: a.puntaje == null ? null : a.puntaje, valoracion: a.valoracion || '', hallazgos: {}, items: a.items.length, respondidos: a.items.filter((i)=> i.r).length } });
+  if (!r.ok) { msg.textContent = r.conflicto ? 'Otra persona cambió esta auditoría. Vuelve a abrirla.' : Errores.texto('guardó', r); return false; }
+  if (r.enCola) { UI.toast('⏳ Guardado en el equipo; se envía al volver la señal. Ábrela de nuevo después.'); show('scrLista'); await cargar(); return true; }
+  if (r.version) a.version = r.version;
+  a.nuevo = false;
+  await cargar(); pintarAud();
+  $('auMsg').textContent = ok;
+  return true;
+}
+async function cerrar(){
+  leer();
+  const a = aud, P = PLANTILLAS_AUDITORIA[a.plantilla] || PLANTILLAS_AUDITORIA.LIBRE, es0312 = P.tipo === 'puntaje', msg = $('auMsg');
+  const sin = a.items.filter((i)=> !i.bloq && !i.r);
+  if (sin.length) { msg.innerHTML = 'Faltan ' + sin.length + ' por contestar: <b>' + sin.slice(0, 15).map((i)=> esc(i.ref || i.id)).join(', ') + (sin.length > 15 ? '…' : '') + '</b>.'; const t = document.getElementById('it-' + sin[0].id); if (t) t.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  if (es0312 && a.items.some((i)=> i.r === 'NA' && !i.just)) { msg.textContent = 'Todo «no aplica» necesita justificación.'; return; }
+  if (!a.conclusiones) { msg.textContent = 'Escribe las conclusiones.'; return; }
+  if (!a.firmaAuditor) { msg.textContent = 'Falta la firma del auditor.'; return; }
+  // v148: ISO 19011 / 9.2 — independencia comprobada contra la matriz de auditores internos (Matrices ISO).
+  if (!es0312) {
+    const prob = await independencia(a);
+    if (prob === 'no') { msg.textContent = 'El auditor pertenece a un proceso que está en el alcance: no puede auditar su propio trabajo. Cambia el auditor o el alcance.'; return; }
+    if (!a.auditor.independiente) { msg.textContent = 'Marca que el auditor es independiente del proceso (o cambia el auditor).'; return; }
+  }
+  const porCrear = a.hallazgos.filter((h)=> !h.accionId && (es0312 || h.tipo === 'ncMayor' || h.tipo === 'ncMenor'));
+  const opcionales = es0312 ? [] : a.hallazgos.filter((h)=> !h.accionId && (h.tipo === 'obs' || h.tipo === 'om'));
+  const m = UI.modal('<h3>Acciones del plan de acción</h3><p class="ayuda">' + (es0312 ? 'Cada estándar que no se cumple es un punto del plan de mejoramiento (Res. 0312, art. 28).' : 'Cada no conformidad necesita una acción. Las observaciones y oportunidades de mejora son opcionales.') + '</p>' +
+    porCrear.concat(opcionales).map((h, i)=> '<div class="comp" data-i="' + i + '"><b>' + esc(es0312 ? h.requisito : TIPOS_HALLAZGO[h.tipo]) + '</b><div style="font-size:var(--fs-base);margin:4px 0 8px;">' + esc(h.descripcion) + '</div>' +
+      (i >= porCrear.length ? '<label class="check"><input type="checkbox" data-k="crear"> Crear acción</label>' : '') +
+      '<div class="field"><label>Acción</label><textarea data-k="accion" class="u-alto56" placeholder="Qué se va a hacer"></textarea></div>' +
+      '<div class="grid2"><div class="field"><label>Responsable</label><input type="text" data-k="resp"></div><div class="field"><label>Fecha</label><input type="date" data-k="fecha" value="' + Festivos.sumarDias(UI.hoy(), h.tipo === 'ncMayor' ? 30 : 60) + '"></div></div></div>').join('') +
+    (porCrear.length + opcionales.length ? '' : '<div class="aviso ok">No hay hallazgos que requieran acción.</div>') +
+    '<button type="button" class="btn verde" id="ciOk">Cerrar la auditoría</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  m.el.querySelectorAll('[data-k="resp"]').forEach((x)=> UI.autocompletar(x, (p)=> { x.value = p.nombre; }));
+  m.el.querySelector('#ciOk').addEventListener('click', async ()=> {
+    const lst = porCrear.concat(opcionales), planes = [];
+    for (const el of m.el.querySelectorAll('.comp')) {
+      const i = +el.dataset.i, h = lst[i], g = (k)=> { const x = el.querySelector('[data-k="' + k + '"]'); return x ? (x.type === 'checkbox' ? x.checked : x.value.trim()) : ''; };
+      if (i >= porCrear.length && !g('crear')) continue;
+      if (!g('accion') || !g('resp')) { UI.toast('Cada acción necesita qué hacer y responsable.', 'mal'); return; }
+      planes.push({ h, accion: g('accion'), resp: g('resp'), fecha: g('fecha') });
+    }
+    const b = m.el.querySelector('#ciOk'); b.disabled = true; b.textContent = 'Creando acciones…';
+    for (const pl of planes) {
+      const r = await UI.guardarAccion({ origen: P.origenAccion, origenRef: a.id, hallazgo: (es0312 ? pl.h.requisito + ' (no cumple): ' : TIPOS_HALLAZGO[pl.h.tipo] + (pl.h.requisito ? ' · ' + pl.h.requisito : '') + ': ') + pl.h.descripcion,
+        accion: pl.accion, responsable: pl.resp, fechaCompromiso: pl.fecha, tipoAccion: pl.h.tipo === 'om' ? 'De mejora' : pl.h.tipo === 'obs' ? 'Preventiva' : 'Correctiva', prioridad: pl.h.tipo === 'ncMayor' ? 'Alta' : 'Media', fotos: pl.h.fotos || [] });
+      if (!r.ok) { b.disabled = false; b.textContent = 'Cerrar la auditoría'; UI.toast(Errores.texto('creó una acción', r), 'mal'); return; }
+      pl.h.accionId = r.id; a.acciones = (a.acciones || []).concat(r.id);
+    }
+    m.cerrar();
+    // Los hallazgos ya tienen su acción (accionId): se guarda sin volver a leer el formulario.
+    a.estado = 'CERRADA'; if (!a.fechaEjecucion) a.fechaEjecucion = UI.hoy();
+    const ok = await guardarSinLeer('✅ Auditoría cerrada');
+    if (ok) UI.toast('✅ Auditoría cerrada' + (planes.length ? ' · ' + planes.length + ' acción(es) en el plan' : ''));
+  });
+}
+async function guardarSinLeer(ok){
+  const a = aud;
+  const doc = {}; ['plantilla', 'tipoAuditoria', 'titulo', 'fechaPlan', 'fechaEjecucion', 'estado', 'auditor', 'equipo', 'alcance', 'objetivo', 'criterios', 'areas', 'copasst', 'items', 'hallazgos', 'auditados', 'conclusiones', 'fortalezas', 'firmaAuditor', 'firmaAuditado', 'auditadoNombre', 'acciones', 'puntaje', 'valoracion'].forEach((k)=> { if (a[k] !== undefined) doc[k] = a[k]; });
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'auditoria', id: a.id, doc, versionBase: a.version },
+    { estado: a.estado, fecha: a.fechaEjecucion, titulo: a.titulo, responsable: a.auditor.nombre, resumen: { tipoAuditoria: a.tipoAuditoria, plantilla: a.plantilla, titulo: a.titulo, fechaPlan: a.fechaPlan, fechaEjecucion: a.fechaEjecucion, auditor: a.auditor.nombre, estado: a.estado, puntaje: a.puntaje == null ? null : a.puntaje, valoracion: a.valoracion || '', hallazgos: {}, items: a.items.length, respondidos: a.items.length } });
+  if (!r.ok) { $('auMsg').textContent = r.conflicto ? 'Otra persona cambió esta auditoría. Vuelve a abrirla (las acciones ya quedaron en el plan).' : Errores.texto('guardó', r); return false; }
+  if (r.enCola) { UI.toast('⏳ Cierre guardado en el equipo; se envía al volver la señal.'); show('scrLista'); await cargar(); return true; }
+  if (r.version) a.version = r.version;
+  await cargar(); pintarAud(); $('auMsg').textContent = ok;
+  return true;
+}
+
+/* ── PDF ── */
+function pdfInforme(){
+  const a = aud, P = PLANTILLAS_AUDITORIA[a.plantilla] || PLANTILLAS_AUDITORIA.LIBRE, es0312 = P.tipo === 'puntaje';
+  const datos = UI.tablaDatos([['Tipo', a.tipoAuditoria], ['Estado', a.estado], ['Fecha planeada', UI.corta(a.fechaPlan)], ['Fecha de ejecución', UI.corta(a.fechaEjecucion) || '—'],
+    ['Auditor líder', [a.auditor.nombre, a.auditor.cargo].filter(Boolean).join(' · ')], ['Independiente', a.auditor.independiente ? 'Sí' : 'No'], ['Equipo auditor', a.equipo || '—'], ['COPASST en la planeación', a.copasst && a.copasst.participo ? 'Sí · ' + (a.copasst.nombre || '') : 'No'],
+    ['Objetivo', a.objetivo || '—'], ['Alcance', a.alcance || '—'], ['Criterios', a.criterios || '—']]);
+  const hojas = [];
+  let cuerpo = UI.cabecera('SG-AUDITORIA', 'INFORME DE AUDITORÍA', a.titulo + ' · ' + a.id) + UI.seccion('DATOS DE LA AUDITORÍA', datos);
+  if (es0312) {
+    const p = puntaje(a.items), v = valoracion0312(p.total);
+    cuerpo += UI.seccion('RESULTADO', '<table><tr><td class="l" style="width:30%;">Calificación</td><td><b>' + p.total.toFixed(2).replace('.', ',') + ' %</b> — ' + esc(v.n) + '</td></tr>' +
+      ['Planear', 'Hacer', 'Verificar', 'Actuar'].map((c)=> { const x = p.ciclo[c] || { v: 0, max: 0 }; return '<tr><td class="l">' + c + '</td><td>' + String(Math.round(x.v * 100) / 100).replace('.', ',') + ' de ' + x.max + '</td></tr>'; }).join('') +
+      '<tr><td class="l">Qué sigue (art. 28)</td><td>' + esc(v.que) + '</td></tr></table>');
+    hojas.push(cuerpo);
+    const t = '<table><tr><th style="width:6%">N°</th><th>Estándar</th><th style="width:6%">Valor</th><th style="width:9%">Resultado</th><th style="width:7%">Obtenido</th><th style="width:24%">Evidencia / justificación</th></tr>' +
+      a.items.map((i)=> { const ok = i.r === 'C' || (i.r === 'NA' && i.just); return '<tr><td>' + esc(i.id) + '</td><td>' + esc(i.texto) + '</td><td class="a">' + String(i.valor).replace('.', ',') + '</td><td>' + esc(i.bloq ? 'No le corresponde' : ({ C: 'Cumple', NC: 'No cumple', NA: 'No aplica' }[i.r] || '—')) + '</td><td class="a">' + (i.bloq ? '—' : ok ? String(i.valor).replace('.', ',') : '0') + '</td><td>' + esc([i.just, i.evid].filter(Boolean).join(' · ')) + '</td></tr>'; }).join('') + '</table>';
+    hojas.push(UI.cabecera('SG-AUDITORIA', 'AUTOEVALUACIÓN DE ESTÁNDARES MÍNIMOS', 'Res. 0312 de 2019 · ' + UI.corta(a.fechaEjecucion)) + t);
+  } else {
+    const t = '<table><tr><th style="width:8%">Ref.</th><th>Pregunta</th><th style="width:8%">Resultado</th><th style="width:30%">Evidencia</th></tr>' + a.items.map((i)=> '<tr><td>' + esc(i.ref || i.id) + '</td><td>' + esc(i.texto) + '</td><td class="a">' + esc(i.r || '—') + '</td><td>' + esc(i.evid || '') + '</td></tr>').join('') + '</table>';
+    cuerpo += UI.seccion('LISTA DE VERIFICACIÓN', t);
+    hojas.push(cuerpo);
+  }
+  const hl = (a.hallazgos || []);
+  const th = hl.length ? '<table><tr><th style="width:4%">N°</th><th style="width:15%">Tipo</th><th style="width:14%">Requisito</th><th>Hallazgo</th><th style="width:16%">Acción</th></tr>' + hl.map((h, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(es0312 ? 'No cumple' : TIPOS_HALLAZGO[h.tipo] || h.tipo) + '</td><td>' + esc(h.requisito || '') + '</td><td>' + esc(h.descripcion) + (h.evidencia ? '<br><span class="nota">Evidencia: ' + esc(h.evidencia) + '</span>' : '') + '</td><td>' + esc(h.accionId || '—') + '</td></tr>').join('') + '</table>' : '<table><tr><td>Sin hallazgos.</td></tr></table>';
+  const fotosH = hl.filter((h)=> h.fotos && h.fotos.length).map((h)=> UI.fotosHoja(h.fotos)).join('');
+  hojas.push(UI.cabecera('SG-AUDITORIA', 'INFORME DE AUDITORÍA', a.titulo) + UI.seccion(es0312 ? 'PLAN DE MEJORAMIENTO (ESTÁNDARES QUE NO SE CUMPLEN)' : 'HALLAZGOS', th + fotosH) +
+    UI.seccion('PERSONAS AUDITADAS', UI.textoLargo(a.auditados)) + UI.seccion('FORTALEZAS', UI.textoLargo(a.fortalezas)) + UI.seccion('CONCLUSIONES', UI.textoLargo(a.conclusiones)) +
+    UI.seccion('FIRMAS', '<table><tr><td style="width:50%;height:60px;vertical-align:bottom;">' + UI.firmaHoja(a.firmaAuditor) + '<br><b>' + esc(a.auditor.nombre) + '</b><br>Auditor líder</td><td class="u-abajo">' + UI.firmaHoja(a.firmaAuditado) + '<br><b>' + esc(a.auditadoNombre || '') + '</b><br>Responsable auditado</td></tr></table>'));
+  UI.imprimir(hojas);
+}
+$('btnPrograma').addEventListener('click', ()=>{
+  const a = anio(), l = filas.filter((x)=> fechaDe(x).slice(0, 4) === a).sort((p, q)=> String(p.resumen.fechaPlan).localeCompare(String(q.resumen.fechaPlan)));
+  if (!l.length) { UI.toast('No hay auditorías en el programa de ' + a + '.'); return; }
+  const t = '<table><tr><th style="width:4%">N°</th><th style="width:20%">Auditoría</th><th>Alcance</th><th style="width:10%">Planeada</th><th style="width:14%">Auditor</th><th style="width:10%">Estado</th><th style="width:10%">Ejecutada</th><th style="width:14%">Resultado</th></tr>' +
+    l.map((x, i)=> { const s = x.resumen, hh = s.hallazgos || {}; return '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(s.titulo) + '<br><span class="nota">' + esc(s.tipoAuditoria) + '</span></td><td>' + esc(s.alcance || '') + '</td><td>' + esc(UI.corta(s.fechaPlan)) + '</td><td>' + esc(s.auditor || '') + '</td><td>' + esc(x.estado) + '</td><td>' + esc(UI.corta(s.fechaEjecucion)) + '</td><td>' +
+      esc(x.estado !== 'CERRADA' ? '' : /^RES0312/.test(s.plantilla) && s.puntaje != null ? String(s.puntaje.toFixed(1)).replace('.', ',') + ' % ' + s.valoracion : (hh.ncMayor || 0) + ' NC mayor, ' + (hh.ncMenor || 0) + ' NC menor, ' + (hh.obs || 0) + ' obs.') + '</td></tr>'; }).join('') + '</table>';
+  UI.imprimir([UI.cabecera('SG-AUDITORIA-PROGRAMA', 'PROGRAMA ANUAL DE AUDITORÍAS ' + a, 'Corte ' + UI.corta(UI.hoy()) + ' · ' + l.filter((x)=> x.estado === 'CERRADA').length + ' de ' + l.length + ' realizadas') + t], true);
+});
+
+$('btnNueva').addEventListener('click', nuevaAuditoria);
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+$('lista').addEventListener('click', (e)=>{ const b = e.target.closest('[data-id]'); if (b) abrir(b.dataset.id); });
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+/* Desde la carpeta de evidencias (evidencias.html): autoevaluación nueva con la evidencia ya escrita
+   y «cumple» sugerido en lo que está al día. Quien audita revisa y confirma cada estándar. */
+function desdeEvidencias(){
+  let sug = null; try { sug = JSON.parse(sessionStorage.getItem('ssta-autoeval-sugerida') || 'null'); sessionStorage.removeItem('ssta-autoeval-sugerida'); } catch (e) {}
+  const P = sug && PLANTILLAS_AUDITORIA[sug.plantilla]; if (!P) return false;
+  aud = { id: SGSST.nuevoId('AUD'), nuevo: true, plantilla: sug.plantilla, tipoAuditoria: P.corto, titulo: P.corto + ' ' + anio(), fechaPlan: UI.hoy(), fechaEjecucion: '',
+    estado: 'PROGRAMADA', auditor: { nombre: Sesion.nombre() || '', cargo: '', independiente: true }, equipo: '', alcance: 'Autoevaluación con la carpeta de evidencias del portal', objetivo: '', criterios: P.criterios, areas: '', copasst: { participo: false, nombre: '' },
+    items: P.items.map((i)=> { const x = (sug.items || {})[i[0]] || {}; return { id: i[0], grupo: i[1], ref: i[2], valor: i[3], texto: i[4], r: x.r === 'C' ? 'C' : '', just: '', evid: String(x.evid || '').slice(0, 900), sev: 'ncMenor', hdesc: '' }; }),
+    hallazgos: [], auditados: '', conclusiones: '', fortalezas: '', firmaAuditor: '', firmaAuditado: '', auditadoNombre: '', acciones: [] };
+  pintarAud();
+  UI.toast('Autoevaluación preparada con la carpeta de evidencias: revisa cada estándar y guarda.');
+  return true;
+}
+cargar().then(()=>{ if (/[?&]sugerida=1/.test(location.search) && desdeEvidencias()) return; if (location.hash.length > 1 && !/^#ir=/.test(location.hash)) abrir(decodeURIComponent(location.hash.slice(1))); });
+</script>
+</body>
+</html>

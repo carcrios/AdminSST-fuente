@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eJgfGUJRDDOa/MN9TnN7ZWXrX6wLnpRkVw9+ayM4Lp4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Gestión de la salud · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gestión de la salud · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+[hidden]{display:none !important;}
+.barras div{display:flex;align-items:center;gap:8px;font-size:var(--fs-menor);margin-bottom:5px;}
+.barras span{flex:0 0 150px;color:var(--muted);}
+.barras i{display:block;height:12px;border-radius:var(--r-xs);background:var(--azul);}
+.niv{display:inline-block;border-radius:var(--r-xs);padding:2px 7px;font-size:var(--fs-etiqueta);font-weight:700;}
+.niv.mal{background:var(--rojo-50);color:var(--mal);} .niv.pronto{background:var(--ambar-100);color:var(--ambar-700);} .niv.ok{background:var(--verde-50);color:var(--ok);}
+.fila-btn{margin-bottom:10px;}
+.sug{background:var(--azul-50);border:1.5px dashed var(--azul-200);border-radius:var(--r-m);padding:10px 12px;margin:-4px 0 12px;font-size:var(--fs-base);line-height:1.45;color:var(--azul-800);}
+.sug-t{font-weight:800;font-size:var(--fs-base);margin-bottom:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.sug-tag{font-size:var(--fs-etiqueta);font-weight:700;background:#fff;border:1px solid var(--azul-200);border-radius:var(--r-m);padding:2px 8px;color:var(--azul-700);}
+.sug-l{margin-top:5px;} .sug ul{margin:2px 0 0;padding-left:18px;} .sug .small{font-size:var(--fs-menor);color:var(--n-600);}
+.sug .btn.mini{margin-top:8px;min-height:44px;}
+.recs{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 12px;}
+.recs button{border:1px dashed var(--line);background:#fff;border-radius:var(--r-l);padding:6px 10px;font-size:var(--fs-menor);cursor:pointer;font-family:inherit;min-height:36px;}
+.miem{border-bottom:1px dashed var(--n-150);padding:8px 0;font-size:var(--fs-base);line-height:1.4;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+.miem small{display:block;color:var(--muted);font-size:var(--fs-menor);}
+.miem.fuera{opacity:.65;}
+details.norma{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:12px;font-size:var(--fs-base);line-height:1.45;}
+details.norma summary{font-weight:800;cursor:pointer;min-height:28px;}
+details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bottom:5px;}
+.rei{margin-bottom:10px;} .rei-acc{margin:-4px 0 4px;gap:6px;} .rei-acc .btn{min-height:38px;font-size:var(--fs-menor,13.5px);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión de la salud</div>
+    <h1>Salud en el trabajo</h1>
+    <p>Exámenes, restricciones, profesiograma, condiciones de salud, vigilancia, psicosocial y ausentismo</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="aviso info">🩺 Aquí NO se guardan diagnósticos. De cada examen solo va el concepto de aptitud, las restricciones o recomendaciones para el trabajo y el programa de vigilancia al que ingresa (Res. 1843 de 2025). La historia clínica la custodia el prestador de medicina del trabajo.</div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="examenes">Exámenes</button>
+    <button type="button" data-tab="restricciones">Restricciones <span class="n" id="nRes">0</span></button>
+    <button type="button" data-tab="cargos">Profesiograma</button>
+    <button type="button" data-tab="perfil">Condiciones de salud</button>
+    <button type="button" data-tab="sve">Vigilancia (PVE / SVE)</button>
+    <button type="button" data-tab="psico">Psicosocial</button>
+    <button type="button" data-tab="ausentismo">Ausentismo</button>
+    <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="valida.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const TIPOS_EX = ['Pre-ingreso', 'Periódico', 'Egreso', 'Post-incapacidad', 'Retorno laboral', 'Seguimiento o control', 'Cambio de ocupación'];
+/* Res. 1843 de 2025 (MinTrabajo): cuándo se hace cada evaluación. */
+const AYUDA_TIPO = {
+  'Pre-ingreso': 'Antes de empezar a trabajar: define si puede hacer las tareas del cargo sin riesgo para su salud (art. 9).',
+  'Periódico': 'Programado según la exposición del cargo; máximo cada 3 años (arts. 10 y 15).',
+  'Egreso': 'Al terminar la relación laboral; el empleador avisa al trabajador dentro de los 5 días hábiles siguientes al retiro (art. 11).',
+  'Post-incapacidad': 'Apenas termina una incapacidad de 30 días calendario o más, o antes si su salud lo hace necesario (art. 13).',
+  'Retorno laboral': 'Ausencia por causa NO médica de 90 días calendario o más; se hace antes de volver a la labor (art. 12).',
+  'Seguimiento o control': 'Para revisar una condición ya identificada o reconsiderar una restricción temporal (art. 14).',
+  'Cambio de ocupación': 'Cuando cambian las funciones, el ambiente o la exposición del trabajador (art. 10).' };
+const CONCEPTOS = ['Apto', 'Apto con restricciones', 'No apto', 'Aplazado'];
+/* Pruebas complementarias (sin comas en los nombres: el resumen las une con ", "). */
+const PRUEBAS = ['Examen médico ocupacional', 'Énfasis osteomuscular', 'Énfasis para trabajo en alturas', 'Énfasis para espacios confinados', 'Énfasis en riesgo químico', 'Énfasis respiratorio',
+  'Audiometría', 'Visiometría', 'Optometría', 'Visión de colores (Ishihara)', 'Espirometría', 'Electrocardiograma', 'Glicemia', 'Perfil lipídico', 'Cuadro hemático', 'Pruebas de función hepática y renal',
+  'Indicadores biológicos de exposición (BEI)', 'Rx de tórax con lectura OIT', 'Prueba de equilibrio (Romberg)', 'Prueba psicosensométrica', 'Valoración psicológica',
+  'Coprológico', 'KOH de uñas', 'Frotis de garganta', 'Vacunación y títulos de anticuerpos (hepatitis B y tétanos)', 'Laboratorios'];
+/* Exposiciones del cargo → evaluación sugerida. Es una SUGERENCIA de partida: la define el médico
+   especialista en SST con el perfil del cargo y la matriz de peligros (Res. 1843 de 2025, arts. 16 y 28). */
+const EXPOS = [
+  { n: 'Trabajo en alturas', pruebas: ['Énfasis para trabajo en alturas', 'Optometría', 'Audiometría', 'Prueba de equilibrio (Romberg)', 'Glicemia', 'Perfil lipídico', 'Electrocardiograma'],
+    enf: 'cardiovascular, neurológico, vestibular (equilibrio y vértigo) y osteomuscular; ECG según edad y factores de riesgo', meses: 12, pve: ['Riesgo cardiovascular'], norma: 'Res. 4272 de 2021 (alturas)' },
+  { n: 'Espacios confinados', pruebas: ['Énfasis para espacios confinados', 'Espirometría', 'Electrocardiograma', 'Optometría', 'Audiometría', 'Valoración psicológica'],
+    enf: 'capacidad cardiorrespiratoria, aptitud para usar respirador y tolerancia al encierro', meses: 12, pve: ['Protección respiratoria', 'Riesgo cardiovascular'], norma: 'Res. 0491 de 2020 (espacios confinados)' },
+  { n: 'Ruido', pruebas: ['Audiometría'], enf: 'otoscopia y audiometría tonal con reposo auditivo de 12 horas; anual si la exposición es de 85 dB(A) o más', meses: 12, pve: ['Conservación auditiva'], norma: '' },
+  { n: 'Químicos o solventes', pruebas: ['Énfasis en riesgo químico', 'Espirometría', 'Cuadro hemático', 'Pruebas de función hepática y renal', 'Indicadores biológicos de exposición (BEI)'],
+    enf: 'piel, vías respiratorias, sistema nervioso, hígado y riñón; indicadores biológicos según la sustancia', meses: 12, pve: ['Riesgo químico', 'Protección respiratoria'], norma: 'Res. 1843 de 2025 art. 28 (índices BEI de la ACGIH)' },
+  { n: 'Material particulado o sílice', pruebas: ['Énfasis respiratorio', 'Espirometría', 'Rx de tórax con lectura OIT'],
+    enf: 'sistema respiratorio; radiografía de tórax leída con la clasificación OIT de neumoconiosis según el tiempo de exposición', meses: 12, pve: ['Protección respiratoria'], norma: 'Res. 1843 de 2025 art. 28 (criterios OIT)' },
+  { n: 'Soldadura o humos metálicos', pruebas: ['Énfasis respiratorio', 'Espirometría', 'Optometría', 'Audiometría', 'Indicadores biológicos de exposición (BEI)'],
+    enf: 'vías respiratorias, ojos (radiación ultravioleta e infrarroja) y piel; metales en sangre u orina según el material', meses: 12, pve: ['Protección respiratoria', 'Visual'], norma: 'Res. 1843 de 2025 art. 28 (índices BEI de la ACGIH)' },
+  { n: 'Manipulación de cargas o posturas', pruebas: ['Énfasis osteomuscular'], enf: 'columna, miembros superiores e inferiores, fuerza y arcos de movimiento', meses: 12, pve: ['Osteomuscular'], norma: '' },
+  { n: 'Conducción de vehículos', pruebas: ['Prueba psicosensométrica', 'Optometría', 'Audiometría', 'Énfasis osteomuscular', 'Glicemia'],
+    enf: 'visión, audición, coordinación, tiempos de reacción y somnolencia', meses: 12, pve: ['Visual', 'Riesgo cardiovascular'], norma: 'PESV (Res. 40595 de 2022)' },
+  { n: 'Trabajo eléctrico', pruebas: ['Optometría', 'Visión de colores (Ishihara)', 'Audiometría', 'Electrocardiograma', 'Prueba de equilibrio (Romberg)'],
+    enf: 'visión de colores, cardiovascular y neurológico', meses: 12, pve: ['Riesgo cardiovascular'], norma: 'RETIE' },
+  { n: 'Manipulación de alimentos', pruebas: ['Coprológico', 'KOH de uñas', 'Frotis de garganta'], enf: 'certificado médico de manipulador de alimentos, por lo menos una vez al año', meses: 12, pve: [], norma: 'Res. 2674 de 2013 (manipuladores de alimentos)' },
+  { n: 'Riesgo biológico', pruebas: ['Vacunación y títulos de anticuerpos (hepatitis B y tétanos)'], enf: 'esquema de vacunación (hepatitis B, tétanos, influenza…) y títulos según la exposición', meses: 12, pve: ['Riesgo biológico'], norma: 'Res. 1843 de 2025 art. 28 (criterios CDC)' },
+  { n: 'Radiaciones ionizantes', pruebas: ['Cuadro hemático', 'Optometría'], enf: 'hemograma, valoración del cristalino y dosimetría personal al día', meses: 12, pve: ['Radiaciones ionizantes'], norma: 'Res. 482 de 2018 (MinSalud)' },
+  { n: 'Pantallas o trabajo de oficina', pruebas: ['Optometría', 'Énfasis osteomuscular'], enf: 'visual y osteomuscular (miembros superiores y columna)', meses: 24, pve: ['Visual', 'Osteomuscular'], norma: '' },
+  { n: 'Carga mental o atención al público', pruebas: ['Valoración psicológica'], enf: 'riesgo psicosocial (batería de la Res. 2764 de 2022)', meses: 24, pve: ['Riesgo psicosocial'], norma: 'Res. 2764 de 2022' }];
+const EXPO_N = EXPOS.map((e)=> e.n);
+/* Programas de vigilancia epidemiológica a los que remite el médico. */
+const PVES = ['Osteomuscular', 'Conservación auditiva', 'Protección respiratoria', 'Riesgo psicosocial', 'Visual', 'Riesgo cardiovascular', 'Riesgo químico', 'Riesgo biológico', 'Radiaciones ionizantes', 'Otro'];
+/* Palabras que delatan un diagnóstico (no se guardan). */
+const DIAG = /diagn[oó]stic|hipertensi|diabet|lumbalgia|hernia|depresi|vih|cáncer|cancer|epilep|asma|hipoacusia|obesidad|ansiedad|artrosis|t[uú]nel carpiano/i;
+/* Recomendaciones frecuentes (se agregan al texto con un toque). */
+const RECS = ['Uso permanente de protección auditiva', 'Uso de protección respiratoria', 'Uso de su corrección visual', 'Pausas activas cada 2 horas', 'No levantar más de 15 kg', 'Alternar posturas sentado y de pie', 'Control con su EPS', 'No trabajar en alturas hasta nueva valoración'];
+const CAUSAS = ['Enfermedad general', 'Accidente de trabajo', 'Enfermedad laboral', 'Licencia de maternidad o paternidad', 'Calamidad doméstica', 'Licencia no remunerada', 'Otra'];
+const MEDICAS = ['Enfermedad general', 'Accidente de trabajo', 'Enfermedad laboral'];
+const NIVELES = ['Sin riesgo', 'Riesgo bajo', 'Riesgo medio', 'Riesgo alto', 'Riesgo muy alto'];
+/* Días calendario de una ausencia que caen en un mes (AAAA-MM). */
+function diasEnMes(ini, fin, mes){ const a0 = mes + '-01', b0 = Festivos.sumarDias(Festivos.sumarMeses(a0, 1), -1), a = ini > a0 ? ini : a0, b = fin < b0 ? fin : b0;
+  return b >= a ? Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000) + 1 : 0; }
+const nivClase = (n)=> /muy alto|alto/i.test(n) ? 'mal' : /medio/i.test(n) ? 'pronto' : 'ok';
+const listaDe = (s)=> Array.isArray(s) ? s.filter(Boolean) : String(s == null ? '' : s).split(/\s*,\s*/).filter(Boolean);
+const unicos = (a)=> [...new Set(a)];
+let rows = [], tab = 'examenes';
+/* v109: filtro de cada lista (lo dejan las cifras de arriba). */
+const fSal = { examenes: '', restricciones: '', ausentismo: '', reintegro: '' };
+window.filtrarKpi = (v)=> { if (tab in fSal) fSal[tab] = v || ''; pintar(); };
+const chipsSal = (panel)=> panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function ultimoExamenPorPersona(){
+  const m = {};
+  de('examen').forEach((x)=> { const k = Habilitacion.clave(x.resumen.cedula) || x.resumen.nombre; if (!m[k] || String(x.resumen.fecha) > String(m[k].resumen.fecha)) m[k] = x; });
+  return Object.keys(m).map((k)=> m[k]);
+}
+
+/* ── Sugerencia de evaluaciones según la exposición del cargo ── */
+const PISTAS = [[/altura|andami|escalera|cubierta|techo/, 'Trabajo en alturas'], [/confinad|tanque|silo|alcantarill|pozo|camara subterr/, 'Espacios confinados'],
+  [/ruido|esmeril|pulidor|compresor|martillo/, 'Ruido'], [/quimic|solvente|vapor|gases|pintur|thinner|acido|disolvente/, 'Químicos o solventes'],
+  [/silice|polvo|particulad|fibra|cemento|arena|concreto|asbesto/, 'Material particulado o sílice'], [/soldad|humos? metalic|oxicorte|humos/, 'Soldadura o humos metálicos'],
+  [/manipulacion (manual )?de cargas|levantamiento|cargue|descargue|postura|repetitiv|esfuerzo|biomecanic|vibracion/, 'Manipulación de cargas o posturas'],
+  [/conduc(tor|cion)|vehicul|transito|montacarg|chofer|motocicl/, 'Conducción de vehículos'], [/electric|alta tension|tablero/, 'Trabajo eléctrico'],
+  [/aliment|cocin|manipulador/, 'Manipulación de alimentos'], [/biologic|virus|bacteria|hongo|fluido|parasit|mordedura|picadura|excremento/, 'Riesgo biológico'],
+  [/(^|[^o] )ionizante|rayos x|radiograf/, 'Radiaciones ionizantes'], [/pantalla|computador|oficina|administrativ|video ?terminal/, 'Pantallas o trabajo de oficina'],
+  [/psicosocial|atencion al publico|carga mental|jornada de trabajo/, 'Carga mental o atención al público']];
+function exposDeTexto(t){ const n = UI.norm(t || ''); return PISTAS.filter((p)=> p[0].test(n)).map((p)=> p[1]); }
+/** Exposiciones de un cargo: 1) las marcadas en el profesiograma, 2) los peligros de la matriz donde
+ *  figura el cargo, 3) los peligros escritos en el profesiograma o el nombre del cargo. */
+function exposicionesDelCargo(cargo, sinProfesiograma){
+  const n = UI.norm(cargo || '').trim(); if (!n) return { lista: [], fuente: '' };
+  const c = de('cargo').find((x)=> UI.norm(x.resumen.nombre).trim() === n);
+  const marcadas = c && !sinProfesiograma ? listaDe(c.resumen.exposiciones).filter((e)=> EXPO_N.indexOf(e) !== -1) : [];
+  if (marcadas.length) return { lista: marcadas, fuente: 'el profesiograma' };
+  const pel = de('peligro').filter((x)=> listaDe(x.resumen.cargos).some((k)=> UI.norm(k).trim() === n) || (x.resumen.cargos && UI.norm(x.resumen.cargos).includes(n)));
+  const mat = unicos([].concat(...pel.map((x)=> exposDeTexto([x.resumen.subtipo, x.resumen.clasificacion, x.resumen.peligro, x.resumen.actividad, x.resumen.tarea].join(' ')))));
+  if (mat.length) return { lista: mat, fuente: 'la matriz de peligros' };
+  const txt = exposDeTexto((c ? (c.resumen.peligros || '') + ' ' : '') + cargo);
+  if (txt.length) return { lista: txt, fuente: c && c.resumen.peligros ? 'los peligros del profesiograma' : 'el nombre del cargo' };
+  return { lista: [], fuente: '' };
+}
+function sugerir(expos){
+  const sel = EXPOS.filter((e)=> (expos || []).indexOf(e.n) !== -1);
+  return { expos: sel.map((e)=> e.n), pruebas: unicos(['Examen médico ocupacional'].concat(...sel.map((e)=> e.pruebas))), enfasis: sel.map((e)=> e.n + ': ' + e.enf),
+    meses: sel.length ? Math.min(...sel.map((e)=> e.meses)) : 24, pve: unicos([].concat(...sel.map((e)=> e.pve))), normas: unicos(sel.map((e)=> e.norma).filter(Boolean)) };
+}
+function htmlSugerencia(s, fuente, boton){
+  return '<div class="sug-t">Sugerencia según el cargo <span class="sug-tag">la define el médico del trabajo</span></div>' +
+    (s.expos.length ? '<div>Por: ' + esc(s.expos.join(', ')) + (fuente ? ' <span class="small">(tomado de ' + esc(fuente) + ')</span>' : '') + '</div>'
+      : '<div>Sin exposiciones marcadas: examen médico ocupacional general. Marca las exposiciones del cargo para afinar la sugerencia.</div>') +
+    '<div class="sug-l"><b>Pruebas:</b> ' + s.pruebas.map(esc).join(' · ') + '</div>' +
+    (s.enfasis.length ? '<div class="sug-l"><b>Énfasis:</b><ul>' + s.enfasis.map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '') +
+    '<div class="sug-l"><b>Periodicidad sugerida:</b> cada ' + s.meses + ' meses (máximo 36, Res. 1843 de 2025 art. 15).</div>' +
+    (s.pve.length ? '<div class="sug-l"><b>Vigilancia epidemiológica que aplica:</b> ' + esc(s.pve.join(', ')) + '</div>' : '') +
+    (s.normas.length ? '<div class="sug-l small">Referencias: ' + esc(s.normas.join(' · ')) + '</div>' : '') +
+    '<div class="sug-l small">Las pruebas complementarias necesitan el consentimiento informado y escrito del trabajador (art. 18).</div>' +
+    '<button type="button" class="btn ghost mini" data-usar>' + esc(boton) + '</button>';
+}
+/* Periodicidad del cargo (profesiograma); si no está, la sugerida por la exposición; si no, 12 meses. */
+function mesesDelCargo(cargo, expos){ const c = de('cargo').find((x)=> UI.norm(x.resumen.nombre) === UI.norm(cargo)); if (c && Number(c.resumen.periodicidad)) return Number(c.resumen.periodicidad);
+  return expos && expos.length ? sugerir(expos).meses : 12; }
+/* Programa de vigilancia → clave para cruzar exámenes con los programas creados. */
+function pveClave(t){ const n = UI.norm(t || ''); return /osteo|muscul/.test(n) ? 'osteo' : /audit|ruido/.test(n) ? 'audit' : /respirat|pulmon/.test(n) ? 'resp' : /psicosoc/.test(n) ? 'psico' :
+  /visual|ocular/.test(n) ? 'visual' : /cardio/.test(n) ? 'cardio' : /quimic/.test(n) ? 'quim' : /biologic/.test(n) ? 'bio' : /ionizante|radiacion/.test(n) ? 'rad' : n.trim(); }
+const nombreSve = (r)=> r.programa === 'Otro' && r.programaOtro ? r.programaOtro : r.programa;
+/** Personas que ingresaron a cada programa por examen: { clave: { nombre, personas: [...] } }. */
+function remitidos(){
+  const por = {}, out = {};
+  de('examen').forEach((x)=> { const k = Habilitacion.clave(x.resumen.cedula) || UI.norm(x.resumen.nombre); (por[k] = por[k] || []).push(x); });
+  Object.keys(por).forEach((k)=> {
+    const ex = por[k].sort((a, b)=> String(a.resumen.fecha).localeCompare(String(b.resumen.fecha))), ult = ex[ex.length - 1].resumen;
+    const enUlt = new Set(ult.pveIngresa === 'Sí' && ult.tipoExamen !== 'Egreso' ? listaDe(ult.pve).map(pveClave) : []);
+    ex.forEach((x)=> { const s = x.resumen; if (s.pveIngresa !== 'Sí') return;
+      listaDe(s.pve).forEach((p)=> { const c = pveClave(p); out[c] = out[c] || { nombre: p, personas: {} };
+        if (!out[c].personas[k]) out[c].personas[k] = { nombre: s.nombre, cedula: s.cedula, cargo: s.cargo, fecha: s.fecha, tipo: s.tipoExamen, id: x.id, activo: enUlt.has(c), ult: ult.fecha, egreso: ult.tipoExamen === 'Egreso' }; }); });
+  });
+  Object.keys(out).forEach((c)=> { out[c].personas = Object.keys(out[c].personas).map((k)=> out[c].personas[k]).sort((a, b)=> (b.activo - a.activo) || String(b.fecha).localeCompare(String(a.fecha))); });
+  return out;
+}
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  // Con usuarios: los datos de salud individuales los ven solo Administrador y SST.
+  const rol = Sesion.rol();
+  if (rol && rol !== 'admin' && rol !== 'sst') {
+    $('kpis').innerHTML = ''; if ($('tabs')) $('tabs').hidden = true;
+    $('panel').innerHTML = '<div class="aviso info">🔒 Los exámenes médicos, las restricciones, el ausentismo y la batería psicosocial son datos de salud: solo los ven el administrador y el área SST. Tu usuario tiene el rol <b>' + esc({ supervisor: 'Supervisor / campo', comite: 'Integrante de comité', consulta: 'Solo consulta' }[rol] || rol) + '</b>.<br>Para saber si una persona puede hacer una tarea, mira <a href="habilitacion.html">Personal habilitado</a>.</div>';
+    return;
+  }
+  const r = await SGSST.listar('examen,cargo,perfil,sve,psico,ausencia,trabajador,peligro,reintegro');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+function pintar(){
+  const h = UI.hoy(), ult = ultimoExamenPorPersona().filter((x)=> x.resumen.tipoExamen !== 'Egreso');
+  const venc = ult.filter((x)=> x.resumen.proxima && x.resumen.proxima < h), pronto = ult.filter((x)=> x.resumen.proxima && x.resumen.proxima >= h && x.resumen.proxima <= Festivos.sumarDias(h, 30));
+  const activos = de('trabajador').filter((x)=> x.resumen.activo !== false), conEx = new Set(ult.map((x)=> Habilitacion.clave(x.resumen.cedula)));
+  const sinEx = activos.filter((x)=> !conEx.has(Habilitacion.clave(x.resumen.cedula)));
+  const restr = ult.filter((x)=> x.resumen.tieneRestricciones);
+  const mes = h.slice(0, 7), ausMes = de('ausencia').filter((x)=> MEDICAS.indexOf(x.resumen.causa) !== -1).reduce((a, x)=> a + diasEnMes(x.resumen.inicio, x.resumen.fin, mes), 0);
+  const ps = de('psico').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)))[0];
+  $('nRes').textContent = restr.length;
+  $('kpis').innerHTML = '<div class="kpi ' + (venc.length ? 'mal' : 'ok') + '" data-ir="tab:examenes|filtro:' + (venc.length ? 'vencidos' : pronto.length ? 'pronto' : '') + '"><div class="v">' + venc.length + '</div><div class="n">exámenes periódicos vencidos</div>' + (pronto.length ? '<div class="f">' + pronto.length + ' vencen en 30 días</div>' : '') + '</div>' +
+    '<div class="kpi ' + (sinEx.length ? 'mal' : 'ok') + '" data-ir="tab:examenes|filtro:' + (sinEx.length ? 'sinexamen' : '') + '"><div class="v">' + sinEx.length + '</div><div class="n">personas activas sin examen registrado</div></div>' +
+    '<div class="kpi" data-ir="tab:restricciones|filtro:' + (restr.some((x)=> !x.resumen.comunicada) ? 'sincomunicar' : '') + '"><div class="v">' + restr.length + '</div><div class="n">con restricciones o recomendaciones</div></div>' +
+    '<div class="kpi" data-ir="tab:ausentismo|filtro:mes"><div class="v">' + ausMes + '</div><div class="n">días de ausencia por causa médica este mes</div></div>' +
+    '<div class="kpi ' + (!ps || (ps.resumen.proxima && ps.resumen.proxima < h) ? 'mal' : 'ok') + '" data-ir="tab:psico"><div class="v">' + (ps ? esc(UI.corta(ps.resumen.proxima)) : '—') + '</div><div class="n">próxima batería psicosocial</div></div>';
+  ({ examenes: pintarExamenes, restricciones: pintarRestricciones, cargos: pintarCargos, perfil: pintarPerfil, sve: pintarSve, psico: pintarPsico, ausentismo: pintarAusentismo, reintegro: pintarReintegro })[tab]($('panel'));
+  $('nRei').textContent = de('reintegro').filter((x)=> x.resumen.estado !== 'CERRADO').length;
+}
+function item(x, titulo, sub, chip, clase, data){ return '<button type="button" class="item ' + (clase || '') + '" data-' + (data || 'id') + '="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + titulo + '</div>' + (sub || []).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' + (chip ? '<span class="chip ' + (clase || '') + '">' + chip + '</span>' : '') + '</div></button>'; }
+function abrirCon(panel, campos, tipo, titulo, extra){ panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editar(tipo, titulo, campos, d, extra); })); }
+
+/* ── Reglas de datos de cada campo (v107): c.v = 'cedula' | 'nombre' | 'pasada';
+   los números son ≥ 0 salvo que digan otra cosa (c.min, c.max, c.entero). ── */
+function reglasCampos(campos, v, el, pref){
+  const R = [];
+  campos.forEach((c)=> { const inp = el.querySelector('#' + pref + c.k); if (!inp) return; const f = inp.closest('.field'); if (f && f.hidden) return; const val = v[c.k];
+    if (c.v === 'cedula' && (c.req || val)) R.push({ el: inp, etiqueta: c.l, error: Valida.cedula(val) });
+    else if (c.v === 'nombre' && (c.req || val)) R.push({ el: inp, etiqueta: c.l, error: Valida.nombre(val) });
+    else if (c.t === 'date' && val) R.push({ el: inp, etiqueta: c.l, error: c.v === 'pasada' ? Valida.pasada(val) : Valida.fecha(val) });
+    else if (c.t === 'number') R.push({ el: inp, etiqueta: c.l, error: Valida.numero(val, { min: c.min == null ? 0 : c.min, max: c.max, entero: c.entero, req: c.req }) });
+  });
+  return R;
+}
+function prepararCampos(campos, el, pref){
+  campos.forEach((c)=> { const inp = el.querySelector('#' + pref + c.k); if (!inp) return;
+    if (c.v === 'cedula') Valida.soloDigitos(inp, 10);
+    if (c.t === 'date' && c.v === 'pasada') Valida.hastaHoy(inp);
+    if (c.t === 'number') { inp.min = c.min == null ? 0 : c.min; if (c.max != null) inp.max = c.max; if (c.entero) { inp.step = 1; inp.setAttribute('inputmode', 'numeric'); } } });
+  // Al tocar Guardar: se marcan en rojo los obligatorios vacíos (el formulario dice cuáles faltan).
+  el.addEventListener('click', (e)=> { if (!e.target.closest('[data-guardar]')) return;
+    const v = Registros.leer(campos, el, pref); Valida.limpiar(el);
+    campos.filter((c)=> c.req && (v[c.k] === '' || v[c.k] == null || (Array.isArray(v[c.k]) && !v[c.k].length))).forEach((c)=> Valida.marcar(el.querySelector('#' + pref + c.k), 'falta')); }, true);
+}
+function editar(tipo, titulo, campos, d, extra){
+  extra = extra || {};
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + titulo, campos, datos: d, antes: extra.antes || '', despues: extra.despues ? extra.despues(d) : '', alElegirPersona: extra.persona,
+    alAbrir: (el, pref)=> { prepararCampos(campos, el, pref); if (extra.alAbrir) extra.alAbrir(el, pref, d); },
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Salud'); if (ok) cargar(); return ok; },
+    alGuardar: async (v, el, pref)=> {
+      campos.forEach((c)=> { if (c.v === 'cedula' && v[c.k]) { v[c.k] = Valida.limpiarCedula(v[c.k]); const i = el.querySelector('#' + pref + c.k); if (i) i.value = v[c.k]; } });
+      const prob = Valida.revisar(el, reglasCampos(campos, v, el, pref).concat(extra.validar ? extra.validar(v, el, pref, d) : []), null);
+      if (prob.length) return 'Revisa: ' + prob.join(' · ');
+      if (extra.antesDeGuardar) { const e = await extra.antesDeGuardar(v, d, el, pref); if (typeof e === 'string') return e; }
+      const r = await Registros.guardar(tipo, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      if (extra.despuesDeGuardar) await extra.despuesDeGuardar(v, d);
+      cargar(); return true;
+    } });
+}
+const llenarPersona = (i, p, el, pref)=> { const c = el.querySelector('#' + pref + 'cedula'), g = el.querySelector('#' + pref + 'cargo'); if (c) c.value = p.cedula || ''; if (g) g.value = p.cargo || ''; };
+const chipsOn = (box)=> [...box.querySelectorAll('button.on')].map((b)=> b.dataset.v);
+function datalistCargos(el, input){
+  const id = 'dl' + Math.random().toString(36).slice(2, 8);
+  const l = unicos(de('cargo').map((x)=> x.resumen.nombre).concat(de('trabajador').map((x)=> x.resumen.cargo)).filter(Boolean)).sort();
+  input.setAttribute('list', id); input.insertAdjacentHTML('afterend', '<datalist id="' + id + '">' + l.map((c)=> '<option value="' + esc(c) + '">').join('') + '</datalist>');
+}
+
+/* ── Exámenes médicos ocupacionales (Res. 1843 de 2025) ── */
+const C_EX = [{ k: 'nombre', l: 'Trabajador', t: 'persona', req: true, v: 'nombre' }, { k: 'cedula', l: 'Cédula', req: true, medio: true, v: 'cedula' }, { k: 'cargo', l: 'Cargo', req: true, medio: true },
+  { k: 'tipoExamen', l: 'Tipo de evaluación', t: 'select', op: TIPOS_EX, medio: true }, { k: 'fecha', l: 'Fecha del examen', t: 'date', req: true, medio: true, v: 'pasada' },
+  { k: 'ips', l: 'IPS / médico especialista en SST', req: true },
+  { k: 'exposiciones', l: 'Exposiciones del cargo (para sugerir las pruebas)', t: 'checks', op: EXPO_N },
+  { k: 'pruebas', l: 'Pruebas realizadas', t: 'checks', op: PRUEBAS },
+  { k: 'concepto', l: 'Concepto', t: 'select', op: CONCEPTOS },
+  { k: 'restricciones', l: 'Restricciones o recomendaciones para el trabajo (SIN diagnóstico)', t: 'textarea', ph: 'Ej: no levantar más de 15 kg; pausas activas cada 2 horas', ayuda: 'Escribe solo lo que el trabajador puede o no hacer. Nunca la enfermedad.' },
+  { k: 'restringePara', l: '¿Para qué trabajos tiene restricción?', t: 'checks', op: ['Trabajo en alturas', 'Espacios confinados', 'Trabajo en caliente', 'Riesgo eléctrico', 'Izaje de cargas', 'Manipulación manual de cargas', 'Conducción de vehículos'], ayuda: 'Lo marcado pasa a Personal habilitado: los permisos y ATS de esos trabajos no dejan incluir a la persona mientras la restricción esté vigente. Sin diagnóstico.' },
+  { k: 'temporalidad', l: 'Las restricciones son', t: 'select', op: ['—', 'Temporales', 'Permanentes'], medio: true }, { k: 'venceRestriccion', l: 'Hasta (si son temporales)', t: 'date', medio: true },
+  { k: 'proxima', l: 'Próximo examen periódico', t: 'date', ayuda: 'Se propone según la periodicidad del cargo en el profesiograma (máximo 3 años).' },
+  { k: 'fechaRetiro', l: 'Fecha de retiro (solo egreso)', t: 'date', ayuda: 'El empleador avisa al trabajador del examen de egreso dentro de los 5 días hábiles siguientes al retiro.' },
+  { k: 'pveIngresa', l: '¿Debe ingresar a un PVE / SVE?', t: 'select', op: ['No', 'Sí'], ayuda: 'Lo indica el médico en el concepto (remisión a vigilancia epidemiológica, Res. 1843 de 2025 art. 4). Aquí va solo el programa, nunca el diagnóstico.' },
+  { k: 'pveLista', l: 'Programa(s) de vigilancia a los que ingresa', t: 'checks', op: PVES },
+  { k: 'pveOtro', l: '¿Cuál otro programa?', ph: 'Ej: Dermatológico' },
+  { k: 'comunicada', l: 'Restricciones comunicadas al jefe y al trabajador el', t: 'date', v: 'pasada' }];
+function pintarExamenes(panel){
+  const h = UI.hoy(), l = de('examen').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  const ultL = ultimoExamenPorPersona(), ult = new Set(ultL.map((x)=> x.id)), vig = ultL.filter((x)=> x.resumen.tipoExamen !== 'Egreso');
+  const exVenc = (x)=> vig.includes(x) && x.resumen.proxima && x.resumen.proxima < h, exPronto = (x)=> vig.includes(x) && x.resumen.proxima && x.resumen.proxima >= h && x.resumen.proxima <= Festivos.sumarDias(h, 30);
+  const conEx = new Set(vig.map((x)=> Habilitacion.clave(x.resumen.cedula))), sinEx = de('trabajador').filter((x)=> x.resumen.activo !== false && !conEx.has(Habilitacion.clave(x.resumen.cedula)));
+  const fE = fSal.examenes;
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nEx">+ Registrar examen</button><button type="button" class="btn ghost" id="pEx">🖨️ Programación de exámenes (PDF)</button></div>' +
+    '<details class="norma"><summary>Qué pide la Resolución 1843 de 2025 (evaluaciones médicas ocupacionales)</summary><ul>' +
+    '<li><b>Evaluaciones mínimas (art. 8):</b> pre-ingreso, periódicas (programadas o por cambio de ocupación), egreso, post-incapacidad, retorno laboral y seguimiento o control.</li>' +
+    '<li><b>Plazos:</b> post-incapacidad al terminar una incapacidad de 30 días o más (art. 13); retorno laboral tras 90 días o más de ausencia por causa no médica, antes de volver (art. 12); egreso: aviso al trabajador dentro de los 5 días hábiles siguientes al retiro (art. 11).</li>' +
+    '<li><b>Periodicidad</b> según la exposición, justificada y de máximo 3 años (art. 15). La empresa entrega al médico el perfil del cargo, la matriz de peligros y las mediciones (art. 16).</li>' +
+    '<li><b>Concepto (art. 19):</b> recomendaciones o restricciones con su temporalidad y si requiere seguimiento. No se usa «no apto», salvo en las evaluaciones especiales (alturas, conducción, alimentos, eléctrico, espacios confinados, armas).</li>' +
+    '<li><b>Pruebas complementarias</b> con consentimiento informado, libre, previo y escrito (art. 18); énfasis según el riesgo con los criterios ACGIH (BEI), IARC, OIT y CDC (art. 28). No se pide prueba de embarazo, VIH ni VDRL para ingresar o permanecer (art. 21).</li>' +
+    '<li><b>Remisión a vigilancia epidemiológica</b> según los hallazgos (art. 4). El costo lo asume el empleador.</li>' +
+    '<li><b>Historia clínica:</b> la custodia el prestador de medicina del trabajo por lo menos 20 años; la empresa solo recibe el concepto (art. 30).</li></ul></details>' +
+    UI.chipsFiltro([['', 'Todos (' + l.length + ')'], ['vencidos', 'Periódicos vencidos (' + l.filter(exVenc).length + ')'], ['pronto', 'Vencen en 30 días (' + l.filter(exPronto).length + ')'], ['sinexamen', 'Personas sin examen (' + sinEx.length + ')']], fE) +
+    '<input type="search" class="buscar" id="bEx" placeholder="Buscar por nombre o cédula"><div id="lEx"></div>';
+  chipsSal(panel);
+  const lista = ()=> { const q = UI.norm($('bEx').value).trim();
+    if (fE === 'sinexamen') {   // personas activas sin examen: tocar una abre el registro del examen con sus datos
+      $('lEx').innerHTML = sinEx.filter((x)=> !q || UI.norm(x.resumen.nombre + ' ' + x.resumen.cedula).includes(q)).map((x)=> '<button type="button" class="item mal" data-sinex="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen.nombre) + '</div><div class="m">C.C. ' + esc(x.resumen.cedula) + (x.resumen.cargo ? ' · ' + esc(x.resumen.cargo) : '') + '</div><div class="m">Toca para registrar su examen</div></div><span class="chip mal">Sin examen</span></div></button>').join('') || '<div class="empty">Todas las personas activas tienen examen registrado ✓</div>';
+      $('lEx').querySelectorAll('[data-sinex]').forEach((b)=> b.addEventListener('click', ()=> { const t = sinEx.find((x)=> x.id === b.dataset.sinex).resumen;
+        editar('examen', 'Examen médico ocupacional', C_EX, { id: SGSST.nuevoId('EXA'), nuevo: true, fecha: h, tipoExamen: 'Periódico', concepto: 'Apto', temporalidad: '—', pveIngresa: 'No', nombre: t.nombre, cedula: t.cedula, cargo: t.cargo || '' }, exExtra); }));
+      return;
+    }
+    $('lEx').innerHTML = l.filter((x)=> fE === 'vencidos' ? exVenc(x) : fE === 'pronto' ? exPronto(x) : true).filter((x)=> !q || UI.norm(x.resumen.nombre + ' ' + x.resumen.cedula).includes(q)).map((x)=> { const s = x.resumen, vig = ult.has(x.id) && s.tipoExamen !== 'Egreso', c = !vig ? 'gris' : s.concepto === 'No apto' || s.concepto === 'Aplazado' ? 'mal' : UI.semaforo(s.proxima, 30);
+      return item(x, esc(s.nombre) + ' · ' + esc(s.tipoExamen), [esc(s.cargo || '') + ' · ' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.concepto), vig && s.proxima ? 'Próximo: ' + esc(UI.corta(s.proxima)) + ' (' + esc(UI.cuandoTexto(s.proxima)) + ')' : (vig ? '' : 'Examen anterior'),
+        s.pveIngresa === 'Sí' && s.pve ? 'Ingresa a vigilancia: ' + esc(s.pve) : ''], esc(s.concepto), c); }).join('') || '<div class="empty">' + (fE && l.length ? 'Ningún examen en este filtro ✓' : 'Sin exámenes registrados.') + '</div>';
+    abrirCon($('lEx'), C_EX, 'examen', 'Examen médico ocupacional', exExtra); };
+  $('bEx').addEventListener('input', lista); lista();
+  $('nEx').addEventListener('click', ()=> editar('examen', 'Examen médico ocupacional', C_EX, { id: SGSST.nuevoId('EXA'), nuevo: true, fecha: h, tipoExamen: 'Periódico', concepto: 'Apto', temporalidad: '—', pveIngresa: 'No' }, exExtra));
+  $('pEx').addEventListener('click', async ()=> {
+    // v148: versión «para el cliente» con la cédula enmascarada (Ley 1581: dato mínimo necesario)
+    const cliente = await Dialogo.confirmar('¿Es para entregar a un cliente o auditor externo?\n\nSí: la cédula sale con solo los 4 últimos dígitos.\nNo: sale completa (uso interno).');
+    const ced = (c)=> cliente ? '••••' + String(c || '').replace(/\D/g, '').slice(-4) : String(c || '');
+    const u = ultimoExamenPorPersona().filter((x)=> x.resumen.tipoExamen !== 'Egreso').sort((a, b)=> String(a.resumen.proxima).localeCompare(String(b.resumen.proxima)));
+    UI.imprimir([UI.cabecera('SG-EXAMENES', 'PROGRAMACIÓN DE EVALUACIONES MÉDICAS OCUPACIONALES', 'Corte ' + UI.corta(h) + ' · solo concepto de aptitud (sin diagnósticos)') +
+      '<table><tr><th>Trabajador</th><th>Cédula</th><th>Cargo</th><th>Último examen</th><th>IPS / médico</th><th>Tipo</th><th>Concepto</th><th>Restricciones</th><th>Vigilancia (PVE)</th><th>Próximo</th></tr>' + u.map((x)=> { const s = x.resumen, v = s.proxima && s.proxima < h;
+        return '<tr><td>' + esc(s.nombre) + '</td><td>' + esc(ced(s.cedula)) + '</td><td>' + esc(s.cargo || '') + '</td><td>' + esc(UI.corta(s.fecha)) + '</td><td>' + esc(s.ips || s.medico || '—') + '</td><td>' + esc(s.tipoExamen) + '</td><td>' + esc(s.concepto) + '</td><td>' + (s.tieneRestricciones ? 'Sí' : 'No') + '</td><td>' + esc(s.pveIngresa === 'Sí' ? s.pve || 'Sí' : 'No') + '</td><td' + (v ? ' style="background:var(--rojo-100);"' : '') + '>' + esc(UI.corta(s.proxima)) + (v ? ' (vencido)' : '') + '</td></tr>'; }).join('') + '</table>' +
+      '<table><tr><td style="font-size:9px;">Resolución 1843 de 2025 (MinTrabajo): la empresa recibe solo el concepto médico ocupacional (recomendaciones o restricciones, su temporalidad y la remisión a vigilancia epidemiológica). La historia clínica ocupacional la custodia el prestador de medicina del trabajo por lo menos 20 años. Periodicidad máxima: 3 años.</td></tr></table>' + UI.firmasAprobacion(null, ['Responsable del SG-SST', 'Médico o IPS que emite los conceptos'])], true); });
+}
+/* v110: Ley 1581 — el concepto médico es un dato sensible. Si la persona no ha
+   autorizado sus datos de salud (se firma con la inducción), se avisa al registrar
+   el examen. No bloquea: el examen es una obligación legal del empleador, pero
+   conviene tener la autorización o dejar constancia de por qué no está. */
+function avisoAutorizacionSalud(el, ced){
+  if (!ced) return;
+  const caja = document.createElement('div'); caja.className = 'aviso amar'; caja.hidden = true; caja.dataset.autSalud = '1';
+  ced.closest('.field').after(caja);
+  const revisar = ()=> {
+    const k = Habilitacion.clave(ced.value), t = k ? de('trabajador').find((x)=> Habilitacion.clave(x.resumen.cedula) === k) : null;
+    const a = t && t.resumen.autorizacion;
+    caja.hidden = !k || !!(a && a.sensibles);
+    caja.textContent = !t ? 'Esta persona no está en Personal habilitado: no hay registro de su autorización de datos de salud (Ley 1581). Pídela con su inducción.'
+      : !a ? 'No hay autorización de datos de salud registrada para esta persona (Ley 1581). Se firma con la inducción o reinducción.'
+      : 'Esta persona NO autorizó el tratamiento de sus datos de salud (lo marcó en su inducción del ' + UI.corta(a.fecha) + '). Registra solo lo que exige la ley y con acceso restringido.';
+  };
+  ced.addEventListener('input', revisar); ced.addEventListener('change', revisar); revisar();
+}
+const exExtra = {
+  persona: (i, p, el, pref)=> { llenarPersona(i, p, el, pref); el.querySelector('#' + pref + 'cargo').dispatchEvent(new Event('change')); },
+  alAbrir: (el, pref, d)=> {
+    const q = (k)=> el.querySelector('#' + pref + k), campo = (k)=> q(k).closest('.field');
+    const f = q('fecha'), p = q('proxima'), g = q('cargo'), tipo = q('tipoExamen'), expo = q('exposiciones'), pru = q('pruebas'), con = q('concepto');
+    datalistCargos(el, g);
+    avisoAutorizacionSalud(el, q('cedula'));
+    // Ayuda de cada tipo de evaluación y del concepto (Res. 1843 de 2025).
+    const ayTipo = document.createElement('div'); ayTipo.className = 'ayuda'; tipo.insertAdjacentElement('afterend', ayTipo);
+    const ayCon = document.createElement('div'); ayCon.className = 'ayuda'; con.insertAdjacentElement('afterend', ayCon);
+    const verTipo = ()=> { ayTipo.textContent = AYUDA_TIPO[tipo.value] || ''; const eg = tipo.value === 'Egreso'; campo('fechaRetiro').hidden = !eg; campo('proxima').hidden = eg; };
+    const verCon = ()=> { ayCon.innerHTML = con.value === 'No apto' ? '<b class="u-mal">Res. 1843 de 2025, art. 19:</b> «no apto» solo en evaluaciones especiales (alturas, conducción, manipulación de alimentos, eléctrico, espacios confinados, armas). En los demás casos el concepto lleva recomendaciones o restricciones con su temporalidad.' : ''; };
+    tipo.addEventListener('change', verTipo); con.addEventListener('change', verCon); verTipo(); verCon();
+    const verTemp = ()=> { campo('venceRestriccion').hidden = q('temporalidad').value !== 'Temporales'; };
+    q('temporalidad').addEventListener('change', verTemp); verTemp();
+    // Recomendaciones frecuentes: un toque las agrega.
+    const rt = q('restricciones'), recs = document.createElement('div'); recs.className = 'recs';
+    recs.innerHTML = RECS.map((r)=> '<button type="button" data-rec="' + esc(r) + '">+ ' + esc(r) + '</button>').join('');
+    campo('restricciones').insertAdjacentElement('afterend', recs);
+    recs.addEventListener('click', (e)=> { const b = e.target.closest('[data-rec]'); if (!b) return; const t = rt.value.trim(); if (t.includes(b.dataset.rec)) return; rt.value = (t ? t.replace(/[.;]?$/, '; ') : '') + b.dataset.rec; rt.dispatchEvent(new Event('input')); });
+    // Sugerencia de pruebas según la exposición del cargo.
+    const caja = document.createElement('div'); caja.className = 'sug'; caja.id = pref + 'sug'; campo('exposiciones').insertAdjacentElement('afterend', caja);
+    const pveSug = document.createElement('div'); pveSug.className = 'ayuda'; campo('pveLista').insertAdjacentElement('afterbegin', pveSug);
+    let exposAMano = !!(d.exposiciones && d.exposiciones.length), fuente = d.exposiciones && d.exposiciones.length ? 'lo guardado en este examen' : '', aMano = !d.nuevo && !!d.proxima;
+    const poner = (box, lista, sumar)=> box.querySelectorAll('button[data-v]').forEach((b)=> { const si = lista.indexOf(b.dataset.v) !== -1; b.classList.toggle('on', sumar ? (b.classList.contains('on') || si) : si); });
+    const calc = ()=> { if (!aMano && f.value && tipo.value !== 'Egreso') p.value = Festivos.sumarMeses(f.value, mesesDelCargo(g.value, chipsOn(expo))); };
+    const pintarSug = ()=> {
+      const s = sugerir(chipsOn(expo));
+      caja.innerHTML = htmlSugerencia(s, fuente, 'Usar esta sugerencia');
+      caja.querySelector('[data-usar]').addEventListener('click', ()=> { poner(pru, s.pruebas, true); aMano = false; calc(); UI.toast('Sugerencia aplicada: el médico del trabajo la confirma o ajusta.'); });
+      pveSug.innerHTML = s.pve.length ? 'Por la exposición del cargo aplican: <b>' + esc(s.pve.join(', ')) + '</b>. <button type="button" class="btn ghost mini" data-pvesug>Marcar estos</button>' : '';
+      const bp = pveSug.querySelector('[data-pvesug]'); if (bp) bp.addEventListener('click', ()=> { poner(q('pveLista'), s.pve, true); verPve(); });
+    };
+    const desdeCargo = ()=> { if (exposAMano) return; const r = exposicionesDelCargo(g.value); fuente = r.fuente; poner(expo, r.lista); };
+    expo.addEventListener('click', (e)=> { if (!e.target.closest('button[data-v]')) return; exposAMano = true; fuente = ''; pintarSug(); calc(); });
+    p.addEventListener('input', ()=> { aMano = true; });
+    g.addEventListener('change', ()=> { desdeCargo(); pintarSug(); calc(); }); f.addEventListener('change', calc);
+    if (!exposAMano) desdeCargo();
+    // ¿Ingresa a un programa de vigilancia? Sí → cuál(es); «Otro» → se escribe.
+    const pi = q('pveIngresa'), pl = q('pveLista');
+    const verPve = ()=> { const si = pi.value === 'Sí'; campo('pveLista').hidden = !si; campo('pveOtro').hidden = !(si && chipsOn(pl).indexOf('Otro') !== -1); };
+    pi.addEventListener('change', verPve); pl.addEventListener('click', verPve);
+    pintarSug(); calc(); verPve();
+  },
+  validar: (v, el, pref)=> {
+    const q = (k)=> el.querySelector('#' + pref + k), R = [], tieneTexto = !!String(v.restricciones || '').trim();
+    R.push({ el: q('cargo'), etiqueta: 'Cargo', error: v.cargo ? Valida.texto(v.cargo, 3) : '' });
+    R.push({ el: q('ips'), etiqueta: 'IPS', error: v.ips ? Valida.texto(v.ips, 3) : '' });
+    if (v.concepto === 'Apto con restricciones' && !tieneTexto) R.push({ el: q('restricciones'), etiqueta: 'Restricciones o recomendaciones', error: 'escríbelas (el concepto es «Apto con restricciones»)' });
+    if (DIAG.test(v.restricciones || '')) R.push({ el: q('restricciones'), etiqueta: 'Restricciones', error: 'Parece un diagnóstico. Escribe solo lo que la persona puede o no hacer en el trabajo.' });
+    if (tieneTexto && v.temporalidad === '—') R.push({ el: q('temporalidad'), etiqueta: 'Las restricciones son', error: 'elige si son temporales o permanentes (art. 19)' });
+    if (v.temporalidad === 'Temporales') R.push({ el: q('venceRestriccion'), etiqueta: 'Hasta', error: !v.venceRestriccion ? 'falta: las restricciones son temporales' : Valida.fecha(v.venceRestriccion) || Valida.orden(v.fecha, v.venceRestriccion, 'la fecha del examen') });
+    if (v.tipoExamen === 'Egreso') R.push({ el: q('fechaRetiro'), etiqueta: 'Fecha de retiro', error: v.fechaRetiro ? Valida.fecha(v.fechaRetiro) : 'falta (es un examen de egreso)' });
+    else R.push({ el: q('proxima'), etiqueta: 'Próximo examen', error: !v.proxima ? 'falta' : Valida.fecha(v.proxima) || (v.proxima <= v.fecha ? 'debe ser posterior a la fecha del examen' : '') });
+    if (v.comunicada) R.push({ el: q('comunicada'), etiqueta: 'Comunicadas el', error: Valida.orden(v.fecha, v.comunicada, 'la fecha del examen') });
+    if (v.pveIngresa === 'Sí') {
+      if (!(v.pveLista || []).length) R.push({ el: q('pveLista'), etiqueta: 'Programa de vigilancia', error: 'elige al menos uno' });
+      else if (v.pveLista.indexOf('Otro') !== -1) R.push({ el: q('pveOtro'), etiqueta: '¿Cuál otro programa?', error: Valida.texto(v.pveOtro, 3) || (DIAG.test(v.pveOtro) ? 'escribe el nombre del programa, no el diagnóstico' : '') });
+    }
+    return R;
+  },
+  antesDeGuardar: async (v)=> {
+    if (v.temporalidad !== 'Temporales') v.venceRestriccion = '';
+    if (v.tipoExamen !== 'Egreso') v.fechaRetiro = '';
+    v.tieneRestricciones = !!(v.restricciones && v.restricciones.trim()) || v.concepto === 'Apto con restricciones';
+    if (v.concepto === 'Apto con restricciones' && !v.restricciones) return 'Escribe las restricciones o recomendaciones.';
+    if (DIAG.test(v.restricciones || '')) return 'Parece un diagnóstico. Escribe solo lo que la persona puede o no hacer en el trabajo.';
+    // Programa de vigilancia: solo el nombre del programa (sin diagnóstico).
+    if (v.pveIngresa === 'Sí') { const otro = String(v.pveOtro || '').replace(/[,;|]/g, ' ').trim(); v.pve = (v.pveLista || []).map((x)=> x === 'Otro' ? otro : x).filter(Boolean); if ((v.pveLista || []).indexOf('Otro') === -1) v.pveOtro = ''; }
+    else { v.pveIngresa = 'No'; v.pveLista = []; v.pveOtro = ''; v.pve = []; }
+    if (v.tipoExamen === 'Egreso') { v.proxima = ''; if (v.fechaRetiro && v.fecha > Festivos.sumarHabiles(v.fechaRetiro, 5) && !await Dialogo.confirmar('El examen de egreso quedó después de los 5 días hábiles siguientes al retiro. ¿Guardar así?')) return 'Revisa las fechas.'; }
+    if (v.proxima && v.fecha && v.proxima > Festivos.sumarMeses(v.fecha, 36)) return 'La periodicidad no puede pasar de 3 años (Res. 1843 de 2025).';
+    return true;
+  },
+  // El concepto queda también en Personal habilitado (lo exigen los permisos).
+  despuesDeGuardar: async (v, d)=> {
+    if (!v.cedula || v.tipoExamen === 'Egreso') return;
+    // Solo el examen MÁS RECIENTE de la persona define si está habilitada.
+    const k = Habilitacion.clave(v.cedula);
+    const masNuevo = de('examen').some((x)=> x.id !== d.id && Habilitacion.clave(x.resumen.cedula) === k && x.resumen.tipoExamen !== 'Egreso' && String(x.resumen.fecha) > String(v.fecha));
+    if (masNuevo) { UI.toast('Guardado como examen anterior: Personal habilitado sigue con el examen más reciente.'); return; }
+    const id = 'TRB-' + Habilitacion.clave(v.cedula);
+    await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id, campos: { nombre: v.nombre, cedula: v.cedula, cargo: v.cargo, requisitos: { medico: { fecha: v.fecha, vence: v.proxima || Festivos.sumarMeses(v.fecha, 12), apto: v.concepto, restricciones: v.restricciones || '' } } } });
+  }
+};
+/* ── Restricciones y recomendaciones ── */
+function pintarRestricciones(panel){
+  const todas = ultimoExamenPorPersona().filter((x)=> x.resumen.tieneRestricciones && x.resumen.tipoExamen !== 'Egreso'), sinCom = (x)=> !x.resumen.comunicada;
+  const l = todas.filter((x)=> fSal.restricciones !== 'sincomunicar' || sinCom(x));
+  panel.innerHTML = '<p class="ayuda">Seguimiento a las restricciones y recomendaciones médico-laborales (estándar 3.1.6): se comunican al jefe y al trabajador y se verifica que se cumplan.</p>' +
+    (todas.length ? UI.chipsFiltro([['', 'Todas (' + todas.length + ')'], ['sincomunicar', 'Sin comunicar (' + todas.filter(sinCom).length + ')']], fSal.restricciones) : '') +
+    (l.length ? l.map((x)=> { const s = x.resumen; return item(x, esc(s.nombre), [esc(s.cargo || '') + ' · ' + esc(s.temporalidad || '') + ' · examen del ' + esc(UI.corta(s.fecha)), s.comunicada ? '✓ Comunicadas el ' + esc(UI.corta(s.comunicada)) : '<b class="u-mal">Sin comunicar</b>', s.seguimiento ? esc(s.seguimiento) + ' seguimiento(s)' : 'Sin seguimientos'], s.comunicada ? 'Comunicadas' : 'Pendiente', s.comunicada ? 'ok' : 'mal', 'res'); }).join('') : '<div class="empty">' + (todas.length ? 'Todas las restricciones están comunicadas ✓' : 'Nadie tiene restricciones vigentes.') + '</div>');
+  chipsSal(panel);
+  panel.querySelectorAll('[data-res]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.res); if (!d) return;
+    Registros.editar({ titulo: 'Seguimiento · ' + d.nombre, antes: '<div class="texto-largo u-mb10">' + esc(d.restricciones || '—') + '</div>' + (d.seguimientos || []).map((s)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:6px;">' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.texto) + '</div>').join(''),
+      campos: [{ k: 'comunicada', l: 'Comunicadas al jefe y al trabajador el', t: 'date' }, { k: 'nota', l: 'Seguimiento', t: 'textarea', ph: 'Ej: se verificó en campo que no levanta cargas; se ajustó el puesto' }], datos: { comunicada: d.comunicada || '' },
+      alAbrir: (el)=> { el.querySelectorAll('input[type=date]').forEach(Valida.hastaHoy); },
+      alGuardar: async (v, el)=> {
+        const prob = Valida.revisar(el, [{ el: el.querySelector('input[type=date]'), etiqueta: 'Comunicadas el', error: v.comunicada ? Valida.pasada(v.comunicada) || Valida.orden(d.fecha, v.comunicada, 'la fecha del examen') : '' },
+          { el: el.querySelector('textarea'), etiqueta: 'Seguimiento', error: v.nota ? (Valida.texto(v.nota, 5) || (DIAG.test(v.nota) ? 'Parece un diagnóstico: escribe lo que se verificó en el trabajo' : '')) : '' }], null);
+        if (prob.length) return 'Revisa: ' + prob.join(' · ');
+        const ag = v.nota ? { seguimientos: [{ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), texto: v.nota }] } : undefined;
+        const r = await SGSST.enviar({ action: 'parche', tipo: 'examen', id: d.id, campos: { comunicada: v.comunicada, seguimiento: ((d.seguimientos || []).length + (ag ? 1 : 0)) }, agregar: ag });
+        if (!r.ok) return Errores.texto('guardó', r); cargar(); return true; } }); }));
+}
+/* ── Profesiograma (perfil de cada cargo para el médico, Res. 1843 de 2025 art. 16) ── */
+const C_CARGO = [{ k: 'nombre', l: 'Cargo', req: true }, { k: 'area', l: 'Área' }, { k: 'peligros', l: 'Peligros principales del cargo', t: 'textarea' },
+  { k: 'exposiciones', l: 'Exposiciones del cargo', t: 'checks', op: EXPO_N, ayuda: 'Márcalas según la matriz de peligros: con ellas se sugieren las pruebas, el énfasis y la periodicidad.' },
+  { k: 'examenes', l: 'Evaluaciones y pruebas', t: 'checks', op: PRUEBAS }, { k: 'periodicidad', l: 'Periodicidad del examen periódico (meses)', t: 'number', def: 12, req: true, min: 1, max: 36, entero: true, ayuda: 'Máximo 36 meses, justificado según la exposición (Res. 1843 de 2025, art. 15).' },
+  { k: 'enfasis', l: 'Énfasis y observaciones para el médico', t: 'textarea' }];
+const cargoExtra = {
+  alAbrir: (el, pref, d)=> {
+    const q = (k)=> el.querySelector('#' + pref + k), expo = q('exposiciones');
+    datalistCargos(el, q('nombre'));
+    const caja = document.createElement('div'); caja.className = 'sug'; caja.id = pref + 'sug'; q('exposiciones').closest('.field').insertAdjacentElement('afterend', caja);
+    let fuente = '';
+    if (!listaDe(d.exposiciones).length && d.nombre) { const r = exposicionesDelCargo(d.nombre, true); fuente = r.fuente; expo.querySelectorAll('button[data-v]').forEach((b)=> b.classList.toggle('on', r.lista.indexOf(b.dataset.v) !== -1)); }
+    const pintarSug = ()=> { const s = sugerir(chipsOn(expo));
+      caja.innerHTML = htmlSugerencia(s, fuente, 'Aplicar al cargo');
+      caja.querySelector('[data-usar]').addEventListener('click', ()=> {
+        q('examenes').querySelectorAll('button[data-v]').forEach((b)=> { if (s.pruebas.indexOf(b.dataset.v) !== -1) b.classList.add('on'); });
+        q('periodicidad').value = s.meses;
+        const en = q('enfasis'), ya = en.value.trim(), nuevas = s.enfasis.filter((x)=> !ya.includes(x));
+        if (nuevas.length) en.value = (ya ? ya + '\n' : '') + nuevas.join('\n') + (s.pve.length && !ya.includes('Vigilancia') ? '\nVigilancia epidemiológica que aplica: ' + s.pve.join(', ') : '');
+        UI.toast('Sugerencia aplicada al cargo: revísala con el médico del trabajo.'); }); };
+    expo.addEventListener('click', (e)=> { if (e.target.closest('button[data-v]')) { fuente = ''; pintarSug(); } });
+    q('nombre').addEventListener('change', ()=> { if (chipsOn(expo).length) return; const r = exposicionesDelCargo(q('nombre').value, true); fuente = r.fuente; expo.querySelectorAll('button[data-v]').forEach((b)=> b.classList.toggle('on', r.lista.indexOf(b.dataset.v) !== -1)); pintarSug(); });
+    pintarSug();
+  },
+  validar: (v, el, pref, d)=> { const q = (k)=> el.querySelector('#' + pref + k);
+    return [{ el: q('nombre'), etiqueta: 'Cargo', error: Valida.texto(v.nombre, 3) || (de('cargo').some((x)=> x.id !== d.id && UI.norm(x.resumen.nombre).trim() === UI.norm(v.nombre).trim()) ? 'ya está en el profesiograma: ábrelo en la lista' : '') },
+      { el: q('examenes'), etiqueta: 'Evaluaciones y pruebas', error: (v.examenes || []).length ? '' : 'marca por lo menos una' }]; }
+};
+function pintarCargos(panel){
+  const l = de('cargo').sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nCargo">+ Cargo</button><button type="button" class="btn ghost" id="pCargos">🖨️ Profesiograma (PDF)</button></div>' +
+    '<button type="button" class="btn ghost" id="impCargos" style="margin:0 0 10px;">⬇️ Traer los cargos de Personal habilitado</button>' +
+    '<p class="ayuda">Perfil de cada cargo para el médico que hace las evaluaciones (estándar 3.1.3; Res. 1843 de 2025, art. 16): exposiciones, pruebas sugeridas y periodicidad. La sugerencia es un punto de partida: la define el médico del trabajo.</p>' +
+    (l.length ? l.map((x)=> { const r = x.resumen, ex = listaDe(r.exposiciones), s = sugerir(ex), tiene = listaDe(r.examenes), faltan = ex.length ? s.pruebas.filter((p)=> tiene.indexOf(p) === -1) : [];
+      return item(x, esc(r.nombre), [esc(r.examenes || 'Sin pruebas definidas'), 'Cada ' + esc(r.periodicidad || '—') + ' meses' + (ex.length ? ' · expuesto a: ' + esc(ex.join(', ')) : ''),
+        faltan.length ? '<span style="color:var(--ambar-700);">Sugeridas sin incluir: ' + esc(faltan.join(', ')) + '</span>' : ''], faltan.length ? 'Revisar' : '', faltan.length ? 'pronto' : ''); }).join('') : '<div class="empty">Sin cargos.</div>');
+  abrirCon(panel, C_CARGO, 'cargo', 'Cargo', cargoExtra);
+  $('nCargo').addEventListener('click', ()=> editar('cargo', 'Cargo', C_CARGO, { id: SGSST.nuevoId('CAR'), nuevo: true, periodicidad: 12, examenes: ['Examen médico ocupacional'] }, cargoExtra));
+  $('impCargos').addEventListener('click', async ()=> { const ya = new Set(l.map((x)=> UI.norm(x.resumen.nombre))); const nuevos = [...new Set(de('trabajador').map((x)=> x.resumen.cargo).filter(Boolean))].filter((c)=> !ya.has(UI.norm(c)));
+    if (!nuevos.length) { UI.toast('No hay cargos nuevos.'); return; }
+    if (!await Dialogo.confirmar('Se crearán ' + nuevos.length + ' cargo(s): ' + nuevos.join(', ') + '. ¿Seguir?')) return;
+    for (const c of nuevos) await Registros.guardar('cargo', SGSST.nuevoId('CAR'), { nombre: c, periodicidad: 12, examenes: ['Examen médico ocupacional'] }, 0);
+    cargar(); });
+  $('pCargos').addEventListener('click', async ()=> { const docs = (await Promise.all(l.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+    UI.imprimir([UI.cabecera('SG-PROFESIOGRAMA', 'PROFESIOGRAMA', 'Evaluaciones médicas ocupacionales por cargo · Res. 1843 de 2025') + '<table><tr><th>Cargo</th><th>Área</th><th>Peligros y exposiciones</th><th>Evaluaciones y pruebas</th><th>Periodicidad</th><th>Énfasis</th><th>Vigilancia que aplica</th></tr>' +
+      docs.map((d)=> { const ex = listaDe(d.exposiciones), s = sugerir(ex);
+        return '<tr><td>' + esc(d.nombre) + '</td><td>' + esc(d.area || '') + '</td><td>' + esc(d.peligros || '') + (ex.length ? '<br><small>' + esc(ex.join(', ')) + '</small>' : '') + '</td><td>' + esc((d.examenes || []).join(', ')) + '</td><td class="a">' + esc(d.periodicidad || '') + ' meses</td><td>' + esc(d.enfasis || '').replace(/\n/g, '<br>') + '</td><td>' + esc(s.pve.join(', ')) + '</td></tr>'; }).join('') + '</table>' +
+      '<table><tr><td style="font-size:9px;">Pruebas sugeridas según la exposición del cargo: las define y ajusta el médico especialista en SST con licencia vigente (Res. 1843 de 2025, arts. 16, 17 y 28). Las pruebas complementarias requieren consentimiento informado y escrito del trabajador (art. 18). No se piden prueba de embarazo, VIH ni VDRL (art. 21). Periodicidad máxima: 3 años (art. 15).</td></tr></table>'], true); });
+}
+/* ── Condiciones de salud y perfil sociodemográfico ── */
+const C_PERFIL = [{ k: 'anio', l: 'Año', req: true, medio: true }, { k: 'fecha', l: 'Fecha del informe', t: 'date', medio: true, v: 'pasada' }, { k: 'ips', l: 'IPS que entregó el diagnóstico' },
+  { k: 'trabajadores', l: 'Trabajadores evaluados', t: 'number', medio: true, entero: true }, { k: 'edadPromedio', l: 'Edad promedio', t: 'number', medio: true, min: 15, max: 80 },
+  { k: 'hombres', l: 'Hombres', t: 'number', medio: true, entero: true }, { k: 'mujeres', l: 'Mujeres', t: 'number', medio: true, entero: true },
+  { k: 'fumadores', l: '% fumadores', t: 'number', medio: true, max: 100 }, { k: 'sedentarismo', l: '% sedentarismo', t: 'number', medio: true, max: 100 },
+  { k: 'sobrepeso', l: '% sobrepeso u obesidad', t: 'number', medio: true, max: 100 }, { k: 'alcohol', l: '% consumo de riesgo de alcohol', t: 'number', medio: true, max: 100 },
+  { k: 'hallazgos', l: 'Principales hallazgos del diagnóstico (agregados, sin nombres)', t: 'textarea' }, { k: 'recomendaciones', l: 'Recomendaciones de la IPS', t: 'textarea' }];
+function pintarPerfil(panel){
+  const l = de('perfil').sort((a, b)=> String(b.resumen.anio).localeCompare(String(a.resumen.anio)));
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nPerf">+ Diagnóstico del año</button></div>' +
+    '<p class="ayuda">Descripción sociodemográfica y diagnóstico de condiciones de salud (estándares 3.1.1 y 3.1.2; Res. 1843 de 2025, art. 20), con las actividades de promoción, prevención y estilos de vida saludable (3.1.7). Solo datos agregados.</p>' +
+    (l.length ? l.map((x)=> item(x, 'Diagnóstico ' + esc(x.resumen.anio), [esc(x.resumen.trabajadores || 0) + ' trabajadores evaluados · ' + esc(x.resumen.ips || ''), esc(x.resumen.actividades || 0) + ' actividad(es) de promoción y prevención'])).join('') : '<div class="empty">Sin diagnóstico registrado.</div>');
+  const extra = { despues: (d)=> d.nuevo ? '' : '<div class="card u-mt8"><h2>Actividades de promoción y prevención</h2>' + (d.actividadesPyP || []).map((a)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:5px;">' + esc(UI.corta(a.fecha)) + ' · ' + esc(a.tipo) + ' · ' + esc(a.actividad) + ' (' + esc(a.participantes || 0) + ')</div>').join('') + '<button type="button" class="btn ghost mini" id="addPyP">+ Actividad</button></div>',
+    validar: (v, el, pref)=> { const q = (k)=> el.querySelector('#' + pref + k), a = Number(v.anio);
+      return [{ el: q('anio'), etiqueta: 'Año', error: /^\d{4}$/.test(String(v.anio)) && a >= 2000 && a <= Number(UI.hoy().slice(0, 4)) ? '' : 'escribe el año con 4 dígitos (no futuro)' },
+        { el: q('mujeres'), etiqueta: 'Hombres + mujeres', error: v.trabajadores !== '' && (Number(v.hombres) || 0) + (Number(v.mujeres) || 0) > Number(v.trabajadores) ? 'no pueden ser más que los trabajadores evaluados' : '' }]; },
+    alAbrir: (el, pref, d)=> { const b = el.querySelector('#addPyP'); if (b) b.addEventListener('click', ()=> Registros.editar({ titulo: 'Actividad de PyP', campos: [{ k: 'fecha', l: 'Fecha', t: 'date', medio: true, def: UI.hoy() }, { k: 'participantes', l: 'Participantes', t: 'number', medio: true }, { k: 'tipo', l: 'Tipo', t: 'select', op: ['Promoción y prevención', 'Estilos de vida saludable', 'Campaña', 'Pausas activas', 'Otra'] }, { k: 'actividad', l: 'Actividad', req: true }],
+      alAbrir: (e2)=> { e2.querySelectorAll('input[type=date]').forEach(Valida.hastaHoy); e2.querySelectorAll('input[type=number]').forEach((i)=> { i.min = 0; i.step = 1; }); },
+      alGuardar: async (v, e2)=> {
+        const prob = Valida.revisar(e2, [{ el: e2.querySelector('input[type=date]'), etiqueta: 'Fecha', error: Valida.pasada(v.fecha) }, { el: e2.querySelector('input[type=number]'), etiqueta: 'Participantes', error: Valida.numero(v.participantes, { min: 0, entero: true }) },
+          { el: e2.querySelectorAll('input[type=text]')[0], etiqueta: 'Actividad', error: Valida.texto(v.actividad, 4) }], null);
+        if (prob.length) return 'Revisa: ' + prob.join(' · ');
+        const r = await SGSST.enviar({ action: 'parche', tipo: 'perfil', id: d.id, campos: { actividades: (d.actividadesPyP || []).length + 1 }, agregar: { actividadesPyP: [Object.assign({ uid: SGSST.nuevoOpId() }, v)] } }); if (!r.ok) return r.error; UI.toast('✓ Actividad registrada.'); cargar(); document.querySelectorAll('.modal-fondo').forEach((m)=> m.remove()); return true; } })); } };
+  abrirCon(panel, C_PERFIL, 'perfil', 'Diagnóstico de condiciones de salud', extra);
+  $('nPerf').addEventListener('click', async ()=> { const id = 'PER-' + UI.hoy().slice(0, 4);
+    if (l.some((x)=> x.id === id)) { const d = await Registros.abrir(id); if (d) editar('perfil', 'Diagnóstico de condiciones de salud', C_PERFIL, d, extra); return; }
+    editar('perfil', 'Diagnóstico de condiciones de salud', C_PERFIL, { id, nuevo: true, anio: UI.hoy().slice(0, 4), fecha: UI.hoy() }, extra); });
+}
+/* ── Programas de vigilancia epidemiológica (PVE / SVE): el programa, su cobertura y las personas
+   que ingresaron por examen (solo nombre, fecha y examen de origen: el caso lo maneja el médico) ── */
+const PROGRAMAS_SVE = ['Osteomuscular (desórdenes musculoesqueléticos)', 'Conservación auditiva', 'Riesgo psicosocial', 'Protección respiratoria', 'Riesgo cardiovascular', 'Visual', 'Riesgo químico', 'Riesgo biológico', 'Radiaciones ionizantes', 'Otro'];
+const C_SVE = [{ k: 'programa', l: 'Programa', t: 'select', op: PROGRAMAS_SVE }, { k: 'programaOtro', l: '¿Cuál otro programa?', ph: 'Ej: Dermatológico' },
+  { k: 'responsable', l: 'Responsable', t: 'persona', medio: true, v: 'nombre' }, { k: 'fechaInicio', l: 'Inicio', t: 'date', medio: true },
+  { k: 'poblacion', l: 'Población expuesta (número)', t: 'number', medio: true, entero: true }, { k: 'intervenidos', l: 'Personas intervenidas', t: 'number', medio: true, entero: true },
+  { k: 'objetivo', l: 'Objetivo', t: 'textarea' }, { k: 'actividadesTexto', l: 'Actividades del programa (una por línea)', t: 'textarea' }, { k: 'estado', l: 'Estado', t: 'select', op: ['Activo', 'Cerrado'] }];
+function htmlMiembros(m, titulo){
+  if (!m || !m.personas.length) return '<div class="ayuda">Nadie ha ingresado a este programa por examen médico. Cuando el médico remita a alguien, regístralo en el examen («¿Debe ingresar a un PVE / SVE?»).</div>';
+  const act = m.personas.filter((p)=> p.activo).length;
+  return '<div class="m" style="margin-bottom:4px;"><b>' + act + '</b> en el programa · ' + (m.personas.length - act) + ' que ya no figuran en su último examen</div>' +
+    m.personas.map((p)=> '<div class="miem' + (p.activo ? '' : ' fuera') + '"><div><b>' + esc(p.nombre) + '</b> · CC ' + esc(p.cedula || '—') + (p.cargo ? ' · ' + esc(p.cargo) : '') +
+      '<small>Ingresó el ' + esc(UI.corta(p.fecha)) + ' por examen ' + esc(String(p.tipo || '').toLowerCase()) + (p.activo ? '' : p.egreso ? ' · egresó (' + esc(UI.corta(p.ult)) + ')' : ' · no figura en su examen del ' + esc(UI.corta(p.ult))) + '</small></div>' +
+      '<span class="chip ' + (p.activo ? 'ok' : 'gris') + '">' + (p.activo ? 'En el programa' : 'Fuera') + '</span></div>').join('') +
+    '<button type="button" class="btn ghost mini u-mt8" data-pdfmiem>🖨️ Personas del programa (PDF)</button>';
+}
+function pintarSve(panel){
+  // v155: la vigilancia epidemiológica pasó a su propio módulo (personas, seguimientos e indicadores).
+  { const l = de('sve'), rem = remitidos(); const n = Object.keys(rem).reduce((t, c)=> t + rem[c].personas.filter((p)=> p.activo).length, 0);
+    panel.innerHTML = '<div class="card"><h2>Vigilancia epidemiológica (PVE)</h2><p class="ayuda">Los programas, las personas de cada uno (por examen médico, por cargo expuesto o a mano), sus seguimientos y los indicadores (prevalencia, incidencia, cobertura y cumplimiento) están en su propio módulo.</p>' +
+      '<div class="m">' + l.length + ' programa(s) · ' + n + ' persona(s) remitidas por examen</div><a class="btn amber u-mt8" href="pve.html">Abrir Vigilancia epidemiológica →</a></div>';
+    return; }
+  // v162: el código que seguía aquí no se ejecutaba nunca (el PVE vive en pve.html desde v155): se quitó.
+}
+/* ── Batería de riesgo psicosocial (Res. 2764 de 2022): solo resultados agregados ── */
+const C_PSI = [{ k: 'fecha', l: 'Fecha de aplicación', t: 'date', req: true, medio: true, v: 'pasada' }, { k: 'profesional', l: 'Psicólogo especialista (licencia en SST)', medio: true, v: 'nombre' },
+  { k: 'participantes', l: 'Trabajadores evaluados', t: 'number', medio: true, entero: true, req: true }, { k: 'totalTrabajadores', l: 'Total de trabajadores', t: 'number', medio: true, entero: true, req: true },
+  { k: 'intralaboralA', l: 'Intralaboral forma A (jefes)', t: 'select', op: NIVELES, medio: true }, { k: 'intralaboralB', l: 'Intralaboral forma B (operativos)', t: 'select', op: NIVELES, medio: true },
+  { k: 'extralaboral', l: 'Extralaboral', t: 'select', op: NIVELES, medio: true }, { k: 'estres', l: 'Estrés', t: 'select', op: NIVELES, medio: true },
+  { k: 'dominios', l: 'Dominios o dimensiones con riesgo alto (agregado)', t: 'textarea' }, { k: 'intervencionesTexto', l: 'Plan de intervención (una acción por línea)', t: 'textarea' }];
+function pintarPsico(panel){
+  const l = de('psico').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nPsi">+ Aplicación de la batería</button></div>' +
+    '<p class="ayuda">Riesgo alto o muy alto: se vuelve a aplicar cada año; medio o bajo: cada 2 años (Res. 2764 de 2022). Los resultados individuales son confidenciales: aquí van solo los generales.</p>' +
+    (l.length ? l.map((x)=> { const s = x.resumen; return item(x, 'Aplicación del ' + esc(UI.corta(s.fecha)), ['<span class="niv ' + nivClase(s.nivelGeneral) + '">' + esc(s.nivelGeneral) + '</span> · cobertura ' + esc(s.cobertura === '' ? '—' : s.cobertura + ' %'), 'Próxima: ' + esc(UI.corta(s.proxima))], '', ''); }).join('') : '<div class="empty">Sin aplicaciones registradas.</div>');
+  const extra = {
+    validar: (v, el, pref)=> [{ el: el.querySelector('#' + pref + 'participantes'), etiqueta: 'Trabajadores evaluados', error: v.participantes !== '' && v.totalTrabajadores !== '' && Number(v.participantes) > Number(v.totalTrabajadores) ? 'no pueden ser más que el total de trabajadores' : '' }],
+    antesDeGuardar: async (v, d)=> {
+    const orden = (n)=> NIVELES.indexOf(n); v.nivelGeneral = [v.intralaboralA, v.intralaboralB, v.extralaboral, v.estres].sort((a, b)=> orden(b) - orden(a))[0];
+    v.proxima = Festivos.sumarMeses(v.fecha, /alto/i.test(v.nivelGeneral) ? 12 : 24);
+    v.cobertura = v.totalTrabajadores ? Math.round((Number(v.participantes) || 0) * 100 / Number(v.totalTrabajadores)) : '';
+    const lin = String(v.intervencionesTexto || '').split('\n').map((x)=> x.trim()).filter(Boolean); v.intervenciones = lin.length;
+    v.accionesCreadas = Number(d.accionesCreadas) || 0;
+    return true; },
+    despuesDeGuardar: async (v, d)=> { const lin = String(v.intervencionesTexto || '').split('\n').map((x)=> x.trim()).filter(Boolean);
+      await Registros.accionesPorLinea(lin, v.accionesCreadas, 'psico', d.id, (t)=> ({ origen: 'Batería psicosocial', origenRef: d.id, hallazgo: 'Riesgo psicosocial ' + v.nivelGeneral.toLowerCase(), accion: t, tipoAccion: 'Preventiva' }), '¿Crear las acciones del plan de intervención en el plan de acción?'); } };
+  abrirCon(panel, C_PSI, 'psico', 'Batería de riesgo psicosocial', extra);
+  $('nPsi').addEventListener('click', ()=> editar('psico', 'Batería de riesgo psicosocial', C_PSI, { id: SGSST.nuevoId('PSI'), nuevo: true, fecha: UI.hoy(), intralaboralA: 'Riesgo medio', intralaboralB: 'Riesgo medio', extralaboral: 'Riesgo bajo', estres: 'Riesgo medio' }, extra));
+}
+/* ── Ausentismo ── */
+const C_AUS = [{ k: 'nombre', l: 'Trabajador', t: 'persona', req: true, v: 'nombre' }, { k: 'cedula', l: 'Cédula', req: true, medio: true, v: 'cedula' }, { k: 'cargo', l: 'Cargo', medio: true },
+  { k: 'inicio', l: 'Desde', t: 'date', req: true, medio: true }, { k: 'fin', l: 'Hasta', t: 'date', req: true, medio: true },
+  { k: 'causa', l: 'Causa', t: 'select', op: CAUSAS }, { k: 'prorroga', l: 'Es prórroga de una incapacidad anterior', t: 'check' }, { k: 'observacion', l: 'Observación (sin diagnóstico)', t: 'textarea' }];
+function pintarAusentismo(panel){
+  const anio = UI.hoy().slice(0, 4), l = de('ausencia').filter((x)=> String(x.resumen.inicio).slice(0, 4) <= anio && String(x.resumen.fin).slice(0, 4) >= anio).sort((a, b)=> String(b.resumen.inicio).localeCompare(String(a.resumen.inicio)));
+  const MESES12 = Array.from({ length: 12 }, (_, i)=> anio + '-' + ('0' + (i + 1)).slice(-2));
+  const porCausa = {}; l.forEach((x)=> { const d = MESES12.reduce((a, m)=> a + diasEnMes(x.resumen.inicio, x.resumen.fin, m), 0); porCausa[x.resumen.causa] = (porCausa[x.resumen.causa] || 0) + d; });
+  const max = Math.max(1, ...Object.values(porCausa)), mesA = UI.hoy().slice(0, 7);
+  const ausMesMed = (x)=> MEDICAS.indexOf(x.resumen.causa) !== -1 && diasEnMes(x.resumen.inicio, x.resumen.fin, mesA) > 0, lf = l.filter((x)=> fSal.ausentismo !== 'mes' || ausMesMed(x));
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nAus">+ Registrar ausencia</button><button type="button" class="btn ghost" id="pAus">🖨️ Informe de ausentismo ' + anio + ' (PDF)</button></div>' +
+    '<div class="card"><h2>Días de ausencia ' + anio + ' por causa</h2><div class="barras">' + (Object.keys(porCausa).length ? Object.keys(porCausa).sort((a, b)=> porCausa[b] - porCausa[a]).map((k)=> '<div><span>' + esc(k) + '</span><i style="width:' + Math.round(porCausa[k] * 100 / max) + '%"></i><b>' + porCausa[k] + '</b></div>').join('') : '<div class="m">Sin registros.</div>') + '</div>' +
+    '<p class="ayuda">Las de enfermedad general, accidente y enfermedad laboral cuentan para el indicador de ausentismo por causa médica (Indicadores → datos del mes → «Traer del registro de ausentismo»). Una incapacidad de 30 días o más exige la evaluación post-incapacidad al volver (Res. 1843 de 2025, art. 13).</p></div>' +
+    UI.chipsFiltro([['', 'Todas de ' + anio + ' (' + l.length + ')'], ['mes', 'Por causa médica este mes (' + l.filter(ausMesMed).length + ')']], fSal.ausentismo) +
+    (lf.length ? lf.map((x)=> { const s = x.resumen; return item(x, esc(s.nombre) + ' · ' + esc(s.dias) + ' día(s)', [esc(s.causa) + (s.prorroga ? ' (prórroga)' : ''), esc(UI.corta(s.inicio)) + ' a ' + esc(UI.corta(s.fin))], '', MEDICAS.indexOf(s.causa) !== -1 ? 'pronto' : 'gris'); }).join('') : '');
+  const extra = { persona: llenarPersona,
+    validar: (v, el, pref)=> [{ el: el.querySelector('#' + pref + 'fin'), etiqueta: 'Hasta', error: Valida.orden(v.inicio, v.fin, 'la fecha «Desde»') },
+      { el: el.querySelector('#' + pref + 'observacion'), etiqueta: 'Observación', error: DIAG.test(v.observacion || '') || /covid|gripa/i.test(v.observacion || '') ? 'No escribas el diagnóstico en la observación.' : '' }],
+    antesDeGuardar: (v)=> { if (v.fin < v.inicio) return 'La fecha final es anterior a la inicial.'; v.dias = Math.round((new Date(v.fin + 'T12:00:00') - new Date(v.inicio + 'T12:00:00')) / 86400000) + 1; v.mes = v.inicio.slice(0, 7);
+      if (/diagn[oó]stic|hipertensi|diabet|lumbalgia|hernia|depresi|vih|cáncer|cancer|covid|gripa/i.test(v.observacion || '')) return 'No escribas el diagnóstico en la observación.';
+      if (MEDICAS.indexOf(v.causa) !== -1 && v.dias >= 30) UI.toast('Incapacidad de ' + v.dias + ' días: al volver necesita la evaluación post-incapacidad (Res. 1843 de 2025, art. 13).');
+      return true; } };
+  abrirCon(panel, C_AUS, 'ausencia', 'Ausencia', extra); chipsSal(panel);
+  // v169: desde una incapacidad médica, iniciar su reintegro con los datos ya puestos
+  panel.querySelectorAll('[data-id]').forEach((b)=> { const x = l.find((y)=> y.id === b.dataset.id); if (!x || MEDICAS.indexOf(x.resumen.causa) === -1 || de('reintegro').some((r)=> r.resumen.ausenciaId === x.id)) return;
+    const k = document.createElement('button'); k.type = 'button'; k.className = 'btn ghost'; k.textContent = '↩ Iniciar su reintegro'; k.addEventListener('click', ()=> { tab = 'reintegro'; document.querySelectorAll('#tabs button').forEach((y)=> y.classList.toggle('on', y.dataset.tab === 'reintegro')); pintar();
+      const s = x.resumen; editar('reintegro', 'Reintegro laboral', C_REI, { id: SGSST.nuevoId('REI'), nuevo: true, nombre: s.nombre, cedula: s.cedula, cargo: s.cargo, origen: MEDICAS.indexOf(s.causa) !== -1 ? s.causa : 'Enfermedad general', diasIncapacidad: s.dias, ausenciaId: x.id, fechaRetorno: Festivos.sumarDias(s.fin, 1), tipoReintegro: 'Con modificaciones al puesto', frecuencia: '30' }, extraRei || { persona: llenarPersona }); });
+    b.insertAdjacentElement('afterend', k); });
+  $('nAus').addEventListener('click', ()=> editar('ausencia', 'Ausencia', C_AUS, { id: SGSST.nuevoId('AUS'), nuevo: true, inicio: UI.hoy(), fin: UI.hoy(), causa: 'Enfermedad general' }, extra));
+  $('pAus').addEventListener('click', ()=> { const meses = {}; l.forEach((x)=> MESES12.forEach((m)=> { const d = diasEnMes(x.resumen.inicio, x.resumen.fin, m); if (!d) return; meses[m] = meses[m] || {}; meses[m][x.resumen.causa] = (meses[m][x.resumen.causa] || 0) + d; }));
+    UI.imprimir([UI.cabecera('SG-AUSENTISMO', 'INFORME DE AUSENTISMO ' + anio, 'Días por mes y causa (sin diagnósticos)') + '<table><tr><th>Mes</th>' + CAUSAS.map((c)=> '<th>' + esc(c) + '</th>').join('') + '<th>Total</th></tr>' +
+      Object.keys(meses).sort().map((m)=> { const t = CAUSAS.reduce((a, c)=> a + (meses[m][c] || 0), 0); return '<tr><td>' + esc(m) + '</td>' + CAUSAS.map((c)=> '<td class="a">' + (meses[m][c] || '') + '</td>').join('') + '<td class="a"><b>' + t + '</b></td></tr>'; }).join('') + '</table>'], true); });
+}
+
+/* ── v169 · Reintegro laboral y seguimiento a las restricciones ──────────────────────────────
+   Después de una incapacidad, la empresa debe reincorporar a la persona en su cargo o en uno compatible, con las
+   restricciones del médico, y verificar que se cumplan (Ley 776 de 2002, arts. 4 y 8; Res. 0312 de 2019, estándar
+   3.1.6). Mientras tenga restricciones tiene estabilidad laboral reforzada (Ley 361 de 1997, art. 26): para terminar
+   su contrato hace falta autorización del inspector del trabajo. Aquí NO se escribe el diagnóstico. */
+const TIPOS_REI = [
+  'Sin modificaciones',
+  'Con modificaciones al puesto',
+  'Reubicación temporal',
+  'Reubicación definitiva',
+  'Reconversión de mano de obra',
+];
+const ORIGEN_REI = ['Enfermedad general', 'Accidente de trabajo', 'Enfermedad laboral'];
+const MOTIVOS_CIERRE = ['Restricciones levantadas por concepto médico', 'Reubicación definitiva consolidada', 'Retiro de la empresa', 'Otro'];
+const C_REI = [
+  { k: 'nombre', l: 'Trabajador', t: 'persona', req: true, v: 'nombre' },
+  { k: 'cedula', l: 'Cédula', req: true, medio: true, v: 'cedula' },
+  { k: 'cargo', l: 'Cargo', medio: true },
+  { k: 'area', l: 'Área', medio: true },
+  { k: 'jefe', l: 'Jefe inmediato', medio: true },
+  { k: 'origen', l: 'Origen de la incapacidad', t: 'select', op: ORIGEN_REI, medio: true, ayuda: 'Solo el origen. Nunca el diagnóstico.' },
+  { k: 'diasIncapacidad', l: 'Días de incapacidad', t: 'number', medio: true, entero: true },
+  { k: 'fechaRetorno', l: 'Fecha de regreso al trabajo', t: 'date', req: true, medio: true },
+  {
+    k: 'evaluacionPost',
+    l: 'Evaluación médica post-incapacidad',
+    t: 'date',
+    medio: true,
+    v: 'pasada',
+    ayuda: 'Obligatoria si la incapacidad fue de 30 días o más (Res. 1843 de 2025, art. 13).',
+  },
+  { k: 'tipoReintegro', l: 'Tipo de reintegro', t: 'select', op: TIPOS_REI, medio: true },
+  { k: 'cargoAsignado', l: 'Cargo o tareas asignadas', medio: true, ayuda: 'Si lo reubican: el cargo o las tareas compatibles.' },
+  {
+    k: 'restricciones',
+    l: 'Restricciones o recomendaciones para el trabajo (SIN diagnóstico)',
+    t: 'textarea',
+    ph: 'Ej: no levantar más de 10 kg; pausas cada 2 horas; no turnos nocturnos',
+  },
+  {
+    k: 'restringePara',
+    l: '¿Para qué trabajos tiene restricción?',
+    t: 'checks',
+    op: [
+      'Trabajo en alturas',
+      'Espacios confinados',
+      'Trabajo en caliente',
+      'Riesgo eléctrico',
+      'Izaje de cargas',
+      'Manipulación manual de cargas',
+      'Conducción de vehículos',
+    ],
+    ayuda: 'Lo marcado pasa a Personal habilitado: los permisos y ATS de esos trabajos no dejan incluir a la persona mientras el caso esté abierto.',
+  },
+  { k: 'temporalidad', l: 'Las restricciones son', t: 'select', op: ['—', 'Temporales', 'Permanentes'], medio: true },
+  { k: 'venceRestriccion', l: 'Hasta', t: 'date', medio: true },
+  { k: 'comunicadoJefe', l: 'Comunicadas al jefe el', t: 'date', medio: true, v: 'pasada' },
+  { k: 'comunicadoTrabajador', l: 'Comunicadas al trabajador el', t: 'date', medio: true, v: 'pasada' },
+  { k: 'frecuencia', l: 'Seguimiento cada (días)', t: 'select', op: ['15', '30', '60', '90'], medio: true },
+  { k: 'proximoSeguimiento', l: 'Próximo seguimiento', t: 'date', medio: true },
+];
+let extraRei = null;
+const reiVencido = (s) => s.estado !== 'CERRADO' && s.proximoSeguimiento && s.proximoSeguimiento < UI.hoy();
+const reiSinComunicar = (s) => s.estado !== 'CERRADO' && (!s.comunicadoJefe || !s.comunicadoTrabajador);
+function pintarReintegro(panel) {
+  const todos = de('reintegro').sort((a, b) => String(b.resumen.fechaRetorno).localeCompare(String(a.resumen.fechaRetorno)));
+  const abiertos = todos.filter((x) => x.resumen.estado !== 'CERRADO'),
+    f = fSal.reintegro;
+  const l = todos.filter((x) =>
+    f === 'cerrados'
+      ? x.resumen.estado === 'CERRADO'
+      : f === 'vencidos'
+        ? reiVencido(x.resumen)
+        : f === 'sincomunicar'
+          ? reiSinComunicar(x.resumen)
+          : x.resumen.estado !== 'CERRADO',
+  );
+  panel.innerHTML =
+    '<div class="fila-btn"><button type="button" class="btn amber" id="nRei2">+ Registrar reintegro</button></div>' +
+    '<p class="ayuda">Al volver de una incapacidad, la persona se reincorpora a su cargo o a uno compatible con sus restricciones, y se verifica que se cumplan (Ley 776 de 2002, arts. 4 y 8; estándar 3.1.6). Mientras tenga restricciones tiene <b>estabilidad laboral reforzada</b> (Ley 361 de 1997, art. 26). Aquí no se escribe el diagnóstico.</p>' +
+    UI.chipsFiltro(
+      [
+        ['', 'En seguimiento (' + abiertos.length + ')'],
+        ['vencidos', 'Seguimiento vencido (' + todos.filter((x) => reiVencido(x.resumen)).length + ')'],
+        ['sincomunicar', 'Sin comunicar (' + todos.filter((x) => reiSinComunicar(x.resumen)).length + ')'],
+        ['cerrados', 'Cerrados (' + (todos.length - abiertos.length) + ')'],
+      ],
+      f,
+    ) +
+    (l.length
+      ? l
+          .map((x) => {
+            const s = x.resumen;
+            const chip =
+              s.estado === 'CERRADO' ? 'Cerrado' : reiVencido(s) ? 'Seguimiento vencido' : reiSinComunicar(s) ? 'Sin comunicar' : 'En seguimiento';
+            return (
+              '<div class="rei">' +
+              item(
+                x,
+                esc(s.nombre),
+                [
+                  esc(s.tipoReintegro || 'Reintegro') + ' · regresó el ' + esc(UI.corta(s.fechaRetorno)),
+                  (s.nSeguimientos
+                    ? s.nSeguimientos +
+                      ' seguimiento(s), último ' +
+                      esc(UI.corta(s.ultimoSeguimiento)) +
+                      (s.ultimoCumple ? ': ' + esc(s.ultimoCumple) : '')
+                    : 'Sin seguimientos todavía') +
+                    (s.estado !== 'CERRADO' && s.proximoSeguimiento ? ' · próximo ' + esc(UI.corta(s.proximoSeguimiento)) : ''),
+                ],
+                esc(chip),
+                s.estado === 'CERRADO' ? '' : reiVencido(s) || reiSinComunicar(s) ? 'mal' : 'ok',
+              ) +
+              '<div class="fila-btn rei-acc">' +
+              (s.estado !== 'CERRADO'
+                ? '<button type="button" class="btn ghost" data-reiseg="' +
+                  esc(x.id) +
+                  '">+ Seguimiento</button><button type="button" class="btn ghost" data-reicierra="' +
+                  esc(x.id) +
+                  '">Cerrar caso</button>'
+                : '') +
+              '<button type="button" class="btn ghost" data-reiacta="' +
+              esc(x.id) +
+              '">🖨️ Acta de reintegro</button></div></div>'
+            );
+          })
+          .join('')
+      : '<div class="empty">' + (f ? 'Nada en este filtro.' : 'No hay reintegros en seguimiento.') + '</div>');
+  const extra = {
+    persona: llenarPersona,
+    validar: (v, el, pref) => [
+      {
+        el: el.querySelector('#' + pref + 'restricciones'),
+        etiqueta: 'Restricciones',
+        error: DIAG.test(v.restricciones || '') ? 'Parece un diagnóstico. Escribe solo lo que la persona puede o no hacer en el trabajo.' : '',
+      },
+      {
+        el: el.querySelector('#' + pref + 'venceRestriccion'),
+        etiqueta: 'Hasta',
+        error:
+          v.temporalidad === 'Temporales'
+            ? !v.venceRestriccion
+              ? 'falta: las restricciones son temporales'
+              : Valida.orden(v.fechaRetorno, v.venceRestriccion, 'la fecha de regreso')
+            : '',
+      },
+      {
+        el: el.querySelector('#' + pref + 'evaluacionPost'),
+        etiqueta: 'Evaluación post-incapacidad',
+        error: Number(v.diasIncapacidad) >= 30 && !v.evaluacionPost ? 'falta: con 30 días o más de incapacidad es obligatoria' : '',
+      },
+      {
+        el: el.querySelector('#' + pref + 'temporalidad'),
+        etiqueta: 'Las restricciones son',
+        error: String(v.restricciones || '').trim() && v.temporalidad === '—' ? 'elige si son temporales o permanentes' : '',
+      },
+    ],
+    antesDeGuardar: (v, d) => {
+      v.estado = d.estado || 'EN SEGUIMIENTO';
+      v.estabilidad = String(v.restricciones || '').trim() || listaDe(v.restringePara).length || v.origen !== 'Enfermedad general' ? 'Sí' : 'No';
+      if (!v.proximoSeguimiento && v.estado !== 'CERRADO')
+        v.proximoSeguimiento = Festivos.sumarDias(v.fechaRetorno || UI.hoy(), Number(v.frecuencia) || 30);
+      return true;
+    },
+  };
+  extraRei = extra;
+  abrirCon(panel, C_REI, 'reintegro', 'Reintegro', extra);
+  chipsSal(panel);
+  $('nRei2').addEventListener('click', () =>
+    editar(
+      'reintegro',
+      'Reintegro laboral',
+      C_REI,
+      {
+        id: SGSST.nuevoId('REI'),
+        nuevo: true,
+        fechaRetorno: UI.hoy(),
+        origen: 'Enfermedad general',
+        tipoReintegro: 'Con modificaciones al puesto',
+        frecuencia: '30',
+      },
+      extra,
+    ),
+  );
+  panel.querySelectorAll('[data-reiseg]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const d = await Registros.abrir(b.dataset.reiseg);
+      if (!d) return;
+      Registros.editar({
+        titulo: 'Seguimiento · ' + d.nombre,
+        antes:
+          '<div class="texto-largo u-mb10"><b>Restricciones:</b> ' +
+          esc(d.restricciones || '—') +
+          '</div>' +
+          (d.seguimientos || [])
+            .slice(-5)
+            .map((s) => '<div class="m">' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.cumple || '') + ' — ' + esc(s.texto || '') + '</div>')
+            .join(''),
+        campos: [
+          { k: 'fecha', l: 'Fecha del seguimiento', t: 'date', req: true },
+          { k: 'cumple', l: '¿Se cumplen las restricciones en el trabajo?', t: 'select', op: ['Sí', 'Parcialmente', 'No'] },
+          {
+            k: 'nota',
+            l: 'Qué se verificó',
+            t: 'textarea',
+            req: true,
+            ph: 'Ej: se verificó en campo que no levanta cargas; el jefe ajustó los turnos',
+          },
+          { k: 'ajuste', l: 'Ajuste que se acordó (si hace falta)', t: 'textarea' },
+        ],
+        datos: { fecha: UI.hoy(), cumple: 'Sí' },
+        alAbrir: (el) => {
+          el.querySelectorAll('input[type=date]').forEach(Valida.hastaHoy);
+        },
+        alGuardar: async (v, el) => {
+          const prob = Valida.revisar(
+            el,
+            [
+              {
+                el: el.querySelector('input[type=date]'),
+                etiqueta: 'Fecha',
+                error: Valida.pasada(v.fecha) || Valida.orden(d.fechaRetorno, v.fecha, 'la fecha de regreso'),
+              },
+              {
+                el: el.querySelectorAll('textarea')[0],
+                etiqueta: 'Qué se verificó',
+                error:
+                  Valida.texto(v.nota, 5) ||
+                  (DIAG.test(v.nota + ' ' + (v.ajuste || '')) ? 'Parece un diagnóstico: escribe lo que se verificó en el trabajo' : ''),
+              },
+            ],
+            null,
+          );
+          if (prob.length) return 'Revisa: ' + prob.join(' · ');
+          const prox = Festivos.sumarDias(v.fecha, Number(d.frecuencia) || 30);
+          const r = await SGSST.enviar({
+            action: 'parche',
+            tipo: 'reintegro',
+            id: d.id,
+            campos: {
+              ultimoSeguimiento: v.fecha,
+              ultimoCumple: v.cumple,
+              nSeguimientos: (d.seguimientos || []).length + 1,
+              proximoSeguimiento: prox,
+            },
+            agregar: { seguimientos: [{ uid: SGSST.nuevoOpId(), fecha: v.fecha, cumple: v.cumple, texto: v.nota, ajuste: v.ajuste || '' }] },
+          });
+          if (!r.ok) return Errores.texto('guardó', r);
+          if (v.cumple !== 'Sí')
+            UI.toast(
+              'Las restricciones no se están cumpliendo del todo: acuerda el ajuste con el jefe y vuelve a verificar antes de ' +
+                UI.corta(prox) +
+                '.',
+            );
+          cargar();
+          return true;
+        },
+      });
+    }),
+  );
+  panel.querySelectorAll('[data-reicierra]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const d = await Registros.abrir(b.dataset.reicierra);
+      if (!d) return;
+      Registros.editar({
+        titulo: 'Cerrar el caso · ' + d.nombre,
+        antes:
+          d.estabilidad === 'Sí'
+            ? '<div class="aviso alerta">⚖️ <b>Estabilidad laboral reforzada.</b> Mientras tenga restricciones, para terminar el contrato de esta persona hace falta autorización del inspector del trabajo (Ley 361 de 1997, art. 26). Un despido sin esa autorización puede ser ineficaz y genera indemnización.</div>'
+            : '',
+        campos: [
+          { k: 'fechaCierre', l: 'Fecha de cierre', t: 'date', req: true },
+          { k: 'motivoCierre', l: 'Motivo', t: 'select', op: MOTIVOS_CIERRE },
+          {
+            k: 'soporte',
+            l: 'Soporte',
+            t: 'textarea',
+            ph: 'Ej: concepto médico de control del 15/03 sin restricciones; o: autorización del Ministerio de Trabajo n.º…',
+          },
+        ],
+        datos: { fechaCierre: UI.hoy(), motivoCierre: MOTIVOS_CIERRE[0] },
+        alGuardar: async (v) => {
+          if (!v.soporte || v.soporte.trim().length < 5)
+            return 'Escribe el soporte del cierre (el concepto médico, la autorización o lo que corresponda).';
+          if (DIAG.test(v.soporte)) return 'Parece un diagnóstico: escribe solo el soporte (concepto, autorización, fecha).';
+          if (v.motivoCierre === 'Retiro de la empresa' && d.estabilidad === 'Sí' && !/autorizaci|ministerio|inspector|renuncia/i.test(v.soporte)) {
+            if (
+              !(await Dialogo.confirmar(
+                '¿Cerrar por retiro sin anotar la autorización del inspector del trabajo ni una renuncia?\n\nCon estabilidad laboral reforzada, el retiro sin esa autorización es un riesgo legal para la empresa.',
+              ))
+            )
+              return false;
+          }
+          const r = await SGSST.enviar({
+            action: 'parche',
+            tipo: 'reintegro',
+            id: d.id,
+            campos: { estado: 'CERRADO', fechaCierre: v.fechaCierre, motivoCierre: v.motivoCierre, soporteCierre: v.soporte },
+          });
+          if (!r.ok) return Errores.texto('guardó', r);
+          UI.toast('✓ Caso cerrado. Si tenía restricciones en Personal habilitado, se quitaron.');
+          cargar();
+          return true;
+        },
+      });
+    }),
+  );
+  panel.querySelectorAll('[data-reiacta]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const d = await Registros.abrir(b.dataset.reiacta);
+      if (!d) return;
+      const fila = (a, v) => '<tr><th style="width:38%">' + esc(a) + '</th><td>' + esc(v || '—') + '</td></tr>';
+      UI.imprimir([
+        UI.cabecera('SG-REINTEGRO', 'ACTA DE REINTEGRO LABORAL', 'Compromiso de cumplimiento de restricciones y recomendaciones (sin diagnóstico)') +
+          '<table>' +
+          fila('Trabajador', d.nombre + ' · CC ' + (d.cedula || '')) +
+          fila('Cargo / área', (d.cargo || '') + (d.area ? ' · ' + d.area : '')) +
+          fila('Jefe inmediato', d.jefe) +
+          fila('Origen de la incapacidad', d.origen) +
+          fila('Días de incapacidad', d.diasIncapacidad) +
+          fila('Regreso al trabajo', UI.corta(d.fechaRetorno)) +
+          fila('Evaluación post-incapacidad', UI.corta(d.evaluacionPost)) +
+          fila('Tipo de reintegro', d.tipoReintegro) +
+          fila('Cargo o tareas asignadas', d.cargoAsignado) +
+          fila('Restricciones o recomendaciones', d.restricciones) +
+          fila('Trabajos restringidos', listaDe(d.restringePara).join(', ')) +
+          fila('Vigencia', d.temporalidad === 'Temporales' ? 'Temporales, hasta ' + UI.corta(d.venceRestriccion) : d.temporalidad) +
+          fila('Seguimiento', 'Cada ' + (d.frecuencia || 30) + ' días') +
+          '</table>' +
+          '<p style="font-size:10px;margin:10px 0">El jefe inmediato se compromete a asignar solo tareas compatibles con estas restricciones y a avisar a SST cualquier cambio. El trabajador se compromete a cumplirlas y a informar si sus condiciones cambian. Ley 776 de 2002, arts. 4 y 8; Ley 361 de 1997, art. 26; Res. 0312 de 2019, estándar 3.1.6.</p>' +
+          (d.seguimientos && d.seguimientos.length
+            ? '<h3>Seguimientos</h3><table><tr><th>Fecha</th><th>¿Se cumplen?</th><th>Qué se verificó</th></tr>' +
+              d.seguimientos
+                .map(
+                  (s) =>
+                    '<tr><td>' +
+                    esc(UI.corta(s.fecha)) +
+                    '</td><td>' +
+                    esc(s.cumple || '') +
+                    '</td><td>' +
+                    esc(s.texto || '') +
+                    (s.ajuste ? ' · Ajuste: ' + esc(s.ajuste) : '') +
+                    '</td></tr>',
+                )
+                .join('') +
+              '</table>'
+            : '') +
+          '<table style="margin-top:28px"><tr><td style="height:60px;vertical-align:bottom">_________________________<br>Trabajador</td><td style="vertical-align:bottom">_________________________<br>Jefe inmediato</td><td style="vertical-align:bottom">_________________________<br>Responsable SST</td></tr></table>',
+      ]);
+    }),
+  );
+}
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+{ const h = (location.hash || '').slice(1); const b = h && document.querySelector('#tabs [data-tab="' + h.replace(/[^a-z]/g, '') + '"]'); if (b) { tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); } }
+cargar();
+</script>
+</body>
+</html>

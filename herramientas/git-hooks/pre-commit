@@ -1,0 +1,6 @@
+#!/bin/sh
+# v165 · Revisión rápida antes de cada commit (unos segundos; las pruebas en navegador las corre GitHub).
+# Activar una vez:  git config core.hooksPath herramientas/git-hooks
+node herramientas/armar-common.js --check || exit 1
+node herramientas/csp.js --check || { echo "✗ CSP desactualizada: corre node herramientas/csp.js"; exit 1; }
+node herramientas/verificar-release.js --rapido --sin-guia || exit 1

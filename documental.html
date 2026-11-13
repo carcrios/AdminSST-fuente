@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-v+F+WGnSbY4QuDXw++lleV1rf7WKsIkBa/YAitGkTDE='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Documental y legal · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Documental y legal · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.politica{white-space:pre-wrap;font-size:var(--fs-base);line-height:1.55;background:var(--n-0);border:1px solid var(--ambar-200);border-radius:var(--r-m);padding:14px;}
+.crit{display:flex;align-items:center;gap:8px;border-bottom:1px dashed var(--n-150);padding:7px 0;font-size:var(--fs-base);}
+.crit > span{flex:1;min-width:0;}
+.nov{border-bottom:1px dashed var(--n-150);padding:9px 0;}
+.nov a{font-weight:600;color:var(--azul-700);text-decoration:none;font-size:var(--fs-base);line-height:1.35;}
+.nov small{display:block;color:var(--muted);font-size:var(--fs-menor);margin-top:2px;}
+.nov-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.btn-mini.gris{background:var(--bg);color:var(--n-600);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
+    <h1>Documental y legal</h1>
+    <p>Política y objetivos · matriz legal · listado maestro · gestión del cambio · proveedores y contratistas</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="politica">Política y objetivos</button>
+    <button type="button" data-tab="legal">Matriz legal <span class="n" id="nLeg">0</span></button>
+    <button type="button" data-tab="docs">Listado maestro <span class="n" id="nDoc">0</span></button>
+    <button type="button" data-tab="cambios">Gestión del cambio <span class="n" id="nCam">0</span></button>
+    <button type="button" data-tab="prov">Proveedores y contratistas <span class="n" id="nPrv">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrPol"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="importar.js"></script>
+<script src="normas-base.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+let rows = [], tab = 'politica';
+/* v109: filtro de cada lista (lo dejan las cifras de arriba). */
+const fDoc = { legal: '', docs: '', prov: '' };
+window.filtrarKpi = (v)=> { fDoc[tab] = v || ''; pintar(); };
+const chipsDoc = (panel, ops)=> { panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f))); };
+const legalPend = (x)=> x.resumen.vigente !== 'No' && x.resumen.cumple !== 'No aplica' && x.resumen.cumple !== 'Cumple';
+const legalSinEv = (x)=> x.resumen.vigente !== 'No' && (!x.resumen.cumple || x.resumen.cumple === 'Sin evaluar');
+const legalNo = (x)=> x.resumen.vigente !== 'No' && /^(No cumple|Cumple parcialmente)$/.test(x.resumen.cumple);
+const docVenc = (x)=> x.resumen.estado === 'Vigente' && x.resumen.proximaRevision && x.resumen.proximaRevision < UI.hoy();
+const prvVencido = (x)=> x.resumen.activo !== false && (!x.resumen.proximaEvaluacion || x.resumen.proximaEvaluacion < UI.hoy());
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('politica,legal,documento,cambio,proveedor');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+function vigentePol(){ return de('politica').sort((a, b)=> String(b.resumen.fechaFirma).localeCompare(String(a.resumen.fechaFirma)))[0]; }
+function pintar(){
+  const h = UI.hoy(), pol = vigentePol(), leg = de('legal').filter((x)=> x.resumen.vigente !== 'No');
+  // Los «No aplica» no cuentan; el verde solo si TODO lo que aplica está evaluado y cumple.
+  const aplica = leg.filter((x)=> x.resumen.cumple !== 'No aplica'), ev = aplica.filter((x)=> x.resumen.cumple && x.resumen.cumple !== 'Sin evaluar'), cumple = ev.filter((x)=> x.resumen.cumple === 'Cumple').length;
+  const docsVenc = de('documento').filter((x)=> x.resumen.estado === 'Vigente' && x.resumen.proximaRevision && x.resumen.proximaRevision < h);
+  const prv = de('proveedor').filter((x)=> x.resumen.activo !== false), prvVenc = prv.filter((x)=> !x.resumen.proximaEvaluacion || x.resumen.proximaEvaluacion < h);
+  $('nLeg').textContent = leg.length; $('nDoc').textContent = de('documento').length; $('nCam').textContent = de('cambio').length; $('nPrv').textContent = prv.length;
+  $('kpis').innerHTML = '<div class="kpi ' + (pol && (!pol.resumen.proximaRevision || pol.resumen.proximaRevision >= h) ? 'ok' : 'mal') + '" data-ir="tab:politica"><div class="v">' + (pol ? 'v' + esc(pol.resumen.versionDoc) : '—') + '</div><div class="n">política de SST</div>' + (pol ? '<div class="f">revisar ' + esc(UI.corta(pol.resumen.proximaRevision)) + '</div>' : '') + '</div>' +
+    '<div class="kpi ' + (ev.length && cumple === ev.length && ev.length === aplica.length ? 'ok' : ev.length ? '' : 'mal') + '" data-ir="tab:legal|filtro:' + (leg.some(legalPend) ? 'pendientes' : '') + '"><div class="v">' + (ev.length ? Math.round(cumple * 100 / ev.length) + '%' : '—') + '</div><div class="n">cumplimiento legal</div><div class="f">' + ev.length + ' de ' + aplica.length + ' normas que aplican, evaluadas</div></div>' +
+    '<div class="kpi ' + (docsVenc.length ? 'mal' : 'ok') + '" data-ir="tab:docs|filtro:' + (docsVenc.length ? 'vencidos' : '') + '"><div class="v">' + docsVenc.length + '</div><div class="n">documentos con revisión vencida</div></div>' +
+    '<div class="kpi ' + (prvVenc.length ? 'mal' : 'ok') + '" data-ir="tab:prov|filtro:' + (prvVenc.length ? 'vencidos' : '') + '"><div class="v">' + (prv.length - prvVenc.length) + ' / ' + prv.length + '</div><div class="n">proveedores y contratistas evaluados al día</div></div>';
+  ({ politica: pintarPolitica, legal: pintarLegal, docs: pintarDocs, cambios: pintarCambios, prov: pintarProv })[tab]($('panel'));
+}
+function item(x, titulo, sub, chip, clase){ return '<button type="button" class="item ' + (clase || '') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + titulo + '</div>' + (sub || []).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' + (chip ? '<span class="chip ' + (clase || '') + '">' + chip + '</span>' : '') + '</div></button>'; }
+function simple(tipo, titulo, campos, d, extra){
+  extra = extra || {};
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + titulo, campos, datos: d, alElegirPersona: extra.persona, despues: extra.despues ? extra.despues(d) : '', alAbrir: extra.alAbrir ? (el, pref)=> extra.alAbrir(el, d, pref) : null,
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Documental'); if (ok) cargar(); return ok; },
+    alGuardar: async (v)=> { if (extra.antes) { const e = await extra.antes(v, d); if (typeof e === 'string') return e; } const r = await Registros.guardar(tipo, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      if (extra.luego && !r.enCola) await extra.luego(v, d); cargar(); return true; } });
+}
+function abrir(panel, tipo, titulo, campos, extra){ panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) simple(tipo, titulo, campos, d, extra); })); }
+
+/* ── Política y objetivos (Dec. 1072, arts. 2.2.4.6.5 a 2.2.4.6.7; estándares 2.1.1 y 2.2.1) ── */
+const INDICADORES = ['Frecuencia de accidentalidad', 'Severidad de accidentalidad', 'Ausentismo por causa médica', 'Cumplimiento del plan anual de trabajo', 'Cobertura de capacitación', 'Cierre de acciones a tiempo', 'Cumplimiento de inspecciones', 'Cumplimiento legal', 'Calificación de estándares mínimos', 'Otro'];
+/* v148: política integrada (ISO 9001, 14001 y 45001, 5.2) para las empresas que gestionan los tres sistemas. */
+function textoPoliticaIntegrada(){ const n = EMPRESA.nombre || 'La empresa';
+  return n + ' se compromete a satisfacer a sus clientes con servicios conformes, a proteger la seguridad y la salud de sus trabajadores, contratistas y visitantes, y a proteger el ambiente en todas sus actividades.\n\n' +
+    'Para lograrlo nos comprometemos a:\n• Identificar los peligros y aspectos ambientales, evaluar los riesgos e impactos y establecer los controles necesarios.\n• Prevenir lesiones, enfermedades laborales y la contaminación, y usar de forma eficiente el agua, la energía y los materiales.\n' +
+    '• Cumplir los requisitos legales, los de nuestros clientes y los demás que suscribamos.\n• Consultar y hacer participar a los trabajadores y al COPASST.\n• Mejorar continuamente el sistema de gestión integrado y asignar los recursos humanos, técnicos y financieros necesarios.\n\n' +
+    'Esta política es conocida por todos los trabajadores y partes interesadas pertinentes, está disponible en los centros de trabajo y se revisa como mínimo una vez al año.'; }
+function textoPolitica(){ const n = EMPRESA.nombre || 'La empresa';
+  return n + ' se compromete con la seguridad y la salud de sus trabajadores, contratistas y visitantes en todas sus actividades y centros de trabajo.\n\n' +
+    'Para lograrlo nos comprometemos a:\n• Identificar los peligros, evaluar y valorar los riesgos, y establecer los controles necesarios.\n• Proteger la seguridad y la salud de todos los trabajadores mediante la mejora continua del Sistema de Gestión de Seguridad y Salud en el Trabajo.\n' +
+    '• Cumplir la normatividad nacional vigente en riesgos laborales y los demás requisitos que suscribamos.\n• Promover la participación de los trabajadores y del COPASST.\n• Asignar los recursos humanos, técnicos y financieros necesarios.\n\n' +
+    'Esta política es conocida por todos los trabajadores, está disponible en los centros de trabajo, se comunicó al COPASST y se revisa como mínimo una vez al año.'; }
+function pintarPolitica(panel){
+  const pol = vigentePol(), otras = de('politica').filter((x)=> !pol || x.id !== pol.id);
+  panel.innerHTML = (pol ? '<div class="card" id="cPol"><div class="status-msg">Cargando…</div></div>' : '<div class="empty">No hay política registrada.</div>') +
+    '<button type="button" class="btn ' + (pol ? 'ghost' : 'amber') + '" id="nPol">' + (pol ? '📝 Nueva versión de la política' : '+ Registrar la política (con plantilla)') + '</button>' +
+    (pol ? '' : '<button type="button" class="btn ghost" id="nPolInt">+ Política integrada (calidad, ambiente y SST)</button>') +
+    (otras.length ? '<p class="ayuda u-mt12">Versiones anteriores: ' + otras.map((x)=> 'v' + esc(x.resumen.versionDoc) + ' (' + esc(UI.corta(x.resumen.fechaFirma)) + ')').join(', ') + '</p>' : '');
+  if ($('nPolInt')) $('nPolInt').addEventListener('click', ()=> { $('nPol').dataset.integrada = '1'; $('nPol').click(); });
+  $('nPol').addEventListener('click', async ()=> { const ant = pol ? await SGSST.doc(pol.id) : null;
+    editarPolitica({ id: SGSST.nuevoId('POL'), nuevo: true, versionDoc: ant ? String((Number(ant.versionDoc) || 1) + 1) : '1', texto: ant ? ant.texto : ($('nPol').dataset.integrada ? textoPoliticaIntegrada() : textoPolitica()), objetivosLista: ant ? (ant.objetivosLista || []) : [
+      { objetivo: 'Disminuir la accidentalidad', indicador: 'Frecuencia de accidentalidad', meta: 'Menor que el año anterior' }, { objetivo: 'Cumplir el plan anual de trabajo', indicador: 'Cumplimiento del plan anual de trabajo', meta: '≥ 90 %' },
+      { objetivo: 'Cumplir los requisitos legales', indicador: 'Cumplimiento legal', meta: '100 %' }, { objetivo: 'Fortalecer las competencias en SST', indicador: 'Cobertura de capacitación', meta: '≥ 95 %' }],
+      fechaFirma: UI.hoy(), proximaRevision: Festivos.sumarMeses(UI.hoy(), 12), firmante: ant ? ant.firmante : '', divulgacionesLista: [] }); });
+  if (pol) SGSST.doc(pol.id).then((d)=> { if (!d || !$('cPol')) return;
+    $('cPol').innerHTML = '<h2>Política de SST · versión ' + esc(d.versionDoc) + '</h2><div class="politica">' + esc(d.texto) + '</div>' +
+      '<div class="dato u-mt10"><span>Firmada por</span><b>' + esc(d.firmante || '—') + ' · ' + esc(UI.corta(d.fechaFirma)) + '</b></div><div class="dato"><span>Comunicada al COPASST</span><b>' + esc(UI.corta(d.comunicadaCopasst) || '—') + '</b></div>' +
+      '<div class="dato"><span>Próxima revisión</span><b>' + esc(UI.corta(d.proximaRevision)) + '</b></div>' +
+      '<h3>Objetivos</h3><table class="tabla"><tr><th>Objetivo</th><th>Indicador</th><th>Meta</th></tr>' + (d.objetivosLista || []).map((o)=> '<tr><td>' + esc(o.objetivo) + '</td><td>' + esc(o.indicador) + '</td><td>' + esc(o.meta) + '</td></tr>').join('') + '</table>' +
+      '<h3>Divulgación</h3>' + ((d.divulgacionesLista || []).map((v)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:4px;">' + esc(UI.corta(v.fecha)) + ' · ' + esc(v.medio) + ' · ' + esc(v.personas || 0) + ' personas</div>').join('') || '<div class="m" style="font-size:var(--fs-menor);color:var(--muted);">Sin registros.</div>') +
+      '<div class="fila-btn"><button type="button" class="btn ghost" id="divPol">+ Divulgación</button><button type="button" class="btn ghost" id="edPol">✏️ Corregir</button></div><button type="button" class="btn ghost" id="pdfPol">🖨️ Política y objetivos (PDF)</button>';
+    $('edPol').addEventListener('click', ()=> editarPolitica(d));
+    $('pdfPol').addEventListener('click', ()=> pdfPolitica(d));
+    $('divPol').addEventListener('click', ()=> Registros.editar({ titulo: 'Divulgación de la política', campos: [{ k: 'fecha', l: 'Fecha', t: 'date', def: UI.hoy(), medio: true }, { k: 'personas', l: 'Personas', t: 'number', medio: true }, { k: 'medio', l: 'Medio', t: 'select', op: ['Charla', 'Inducción', 'Cartelera', 'Correo', 'Reunión', 'Otro'] }],
+      alGuardar: async (v)=> { const r = await SGSST.enviar({ action: 'parche', tipo: 'politica', id: d.id, campos: { divulgaciones: (d.divulgacionesLista || []).length + 1 }, agregar: { divulgacionesLista: [Object.assign({ uid: SGSST.nuevoOpId() }, v)] } }); if (!r.ok) return r.error; cargar(); return true; } }));
+  });
+}
+function editarPolitica(d){
+  const s = $('scrPol');
+  const C = [{ k: 'versionDoc', l: 'Versión', medio: true }, { k: 'fechaFirma', l: 'Fecha de firma', t: 'date', medio: true }, { k: 'firmante', l: 'Firma (representante legal)', t: 'persona', req: true }, { k: 'comunicadaCopasst', l: 'Comunicada al COPASST el', t: 'date', medio: true }, { k: 'proximaRevision', l: 'Próxima revisión', t: 'date', medio: true }];
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Política de SST</div><h1>Versión ' + esc(d.versionDoc) + '</h1><p>Dec. 1072, arts. 2.2.4.6.5 a 2.2.4.6.7</p></div>' +
+    '<div class="card"><div class="field"><label>Texto de la política</label><textarea id="polTxt" style="min-height:280px;">' + esc(d.texto || '') + '</textarea><div class="ayuda">Debe ser específica de la empresa, incluir los compromisos de identificar peligros, proteger la seguridad y salud, cumplir la norma y mejorar continuamente; firmada, comunicada al COPASST, disponible y revisada cada año.</div></div>' +
+    Registros.form(C, d, 'po_') + '<div class="field"><label>Firma</label>' + UI.padHTML('fPol') + '</div></div>' +
+    '<div class="card"><h2>Objetivos</h2><div id="polObj"></div><button type="button" class="btn ghost" id="polObjAdd">+ Objetivo</button></div>' +
+    '<button type="button" class="btn amber" id="polOk">Guardar</button><div class="status-msg" id="polMsg"></div>';
+  Registros.activar(s); UI.activarPad('fPol', d.firma);
+  d.objetivosLista = d.objetivosLista || [];
+  const pintarO = ()=> { $('polObj').innerHTML = d.objetivosLista.map((o, i)=> '<div class="miembro" data-i="' + i + '"><div class="field"><label>Objetivo</label><input type="text" data-k="objetivo" value="' + esc(o.objetivo) + '"></div><div class="grid2"><div class="field"><label>Indicador</label><select data-k="indicador">' + INDICADORES.map((x)=> '<option' + (x === o.indicador ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Meta</label><input type="text" data-k="meta" value="' + esc(o.meta || '') + '"></div></div><button type="button" class="btn mini ghost" data-q="' + i + '">Quitar</button></div>').join(''); $('polObj').querySelectorAll('[data-q]').forEach((b)=> b.addEventListener('click', ()=> { leerO(); d.objetivosLista.splice(+b.dataset.q, 1); pintarO(); })); };
+  const leerO = ()=> { d.objetivosLista = [...$('polObj').querySelectorAll('.miembro')].map((el)=> ({ objetivo: el.querySelector('[data-k="objetivo"]').value.trim(), indicador: el.querySelector('[data-k="indicador"]').value, meta: el.querySelector('[data-k="meta"]').value.trim() })).filter((o)=> o.objetivo); };
+  pintarO();
+  $('polObjAdd').addEventListener('click', ()=> { leerO(); d.objetivosLista.push({ objetivo: '', indicador: INDICADORES[0], meta: '' }); pintarO(); });
+  $('polOk').addEventListener('click', async ()=> { leerO();
+    const v = Object.assign({}, d, Registros.leer(C, s, 'po_'), { texto: $('polTxt').value.trim(), firma: UI.firma('fPol') || d.firma || '', estado: 'VIGENTE' });
+    v.objetivos = v.objetivosLista.length; v.divulgaciones = (v.divulgacionesLista || []).length;
+    if (!v.texto || !v.firmante) { $('polMsg').textContent = 'Faltan el texto o quién firma.'; return; }
+    if (!v.objetivosLista.length) { $('polMsg').textContent = 'Agrega al menos un objetivo medible.'; return; }
+    const r = await Registros.guardar('politica', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') { $('polMsg').textContent = r; return; }
+    UI.toast('✓ Política guardada.'); show('scrLista'); cargar(); });
+  show('scrPol');
+}
+function pdfPolitica(d){
+  UI.imprimir([UI.cabecera('SG-POLITICA', 'POLÍTICA DE SEGURIDAD Y SALUD EN EL TRABAJO', 'Versión ' + d.versionDoc + ' · ' + UI.corta(d.fechaFirma)) + UI.textoLargo(d.texto) +
+    UI.seccion('OBJETIVOS DEL SG-SST', '<table><tr><th>Objetivo</th><th style="width:30%">Indicador</th><th style="width:20%">Meta</th></tr>' + (d.objetivosLista || []).map((o)=> '<tr><td>' + esc(o.objetivo) + '</td><td>' + esc(o.indicador) + '</td><td>' + esc(o.meta) + '</td></tr>').join('') + '</table>') +
+    '<table style="margin-top:14px;"><tr><td style="height:70px;vertical-align:bottom;width:50%;">' + UI.firmaHoja(d.firma) + '<br><b>' + esc(d.firmante || '') + '</b><br>Representante legal</td><td class="u-abajo">Comunicada al COPASST: ' + esc(UI.corta(d.comunicadaCopasst) || '—') + '<br>Próxima revisión: ' + esc(UI.corta(d.proximaRevision)) + '</td></tr></table>']);
+}
+
+/* ── Matriz legal (estándar 2.7.1) ── */
+/* v148: ISO 9.1.2 — cada evaluación del cumplimiento queda en el historial de la norma (antes se sobrescribía). */
+const EXTRA_LEG = { antes: (v, d)=> {
+  if (v.cumple && v.cumple !== 'Sin evaluar' && (v.cumple !== d.cumple || v.fechaRevision !== d.fechaRevision)) {
+    if (!v.fechaRevision) return 'Escribe la fecha de la evaluación.';
+    v.evaluaciones = (d.evaluaciones || []).concat([{ fecha: v.fechaRevision, cumple: v.cumple, evaluo: v.evaluo || '', evidencia: v.evidencia || '' }]).slice(-40);
+  } else v.evaluaciones = d.evaluaciones || [];
+  return true; } };
+const C_LEG = [{ k: 'tipoRequisito', l: 'Tipo de requisito', t: 'select', op: ['Legal', 'Otro requisito (cliente, ARL, norma técnica, corporativo)'], medio: true }, { k: 'sistema', l: 'Sistema', t: 'select', op: ['SST', 'Ambiental', 'Calidad', 'Integrado'], medio: true },
+  { k: 'norma', l: 'Norma o requisito', req: true, ph: 'Ej: Resolución 4272 de 2021 · contrato con el cliente X' }, { k: 'anio', l: 'Año', medio: true }, { k: 'emisor', l: 'Emisor', medio: true },
+  { k: 'tema', l: 'Tema', medio: true }, { k: 'articulos', l: 'Artículos que aplican', medio: true }, { k: 'requisito', l: 'Requisito (qué exige)', t: 'textarea' },
+  { k: 'evidencia', l: 'Evidencia de cumplimiento', t: 'textarea', ph: 'Ej: programa de alturas, certificados vigentes en Personal habilitado' },
+  { k: 'cumple', l: 'Cumplimiento', t: 'select', op: ['Sin evaluar', 'Cumple', 'Cumple parcialmente', 'No cumple', 'No aplica'], medio: true }, { k: 'responsable', l: 'Responsable', t: 'persona', medio: true },
+  { k: 'fechaRevision', l: 'Evaluada el', t: 'date', medio: true }, { k: 'proximaRevision', l: 'Próxima evaluación', t: 'date', medio: true }, { k: 'vigente', l: '¿Sigue vigente?', t: 'select', op: ['Sí', 'No'] },
+  { k: 'evaluo', l: 'Quién evaluó el cumplimiento', t: 'persona', medio: true }, { k: 'accionLegal', l: 'Si no cumple: qué se hará', t: 'textarea' }];
+function pintarLegal(panel){
+  const l = de('legal').sort((a, b)=> String(a.resumen.tema).localeCompare(String(b.resumen.tema)) || String(a.resumen.norma).localeCompare(String(b.resumen.norma)));
+  const clase = (c)=> ({ 'Cumple': 'ok', 'No aplica': 'gris', 'Cumple parcialmente': 'pronto', 'No cumple': 'mal' }[c] || '');
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nLegB">+ Norma</button><button type="button" class="btn ghost" id="novLeg">Novedades normativas</button><button type="button" class="btn ghost" id="xLeg">Cargar matriz legal desde Excel</button>' + (l.length ? '' : '<button type="button" class="btn ghost" id="baseLeg">Cargar normas base (' + NORMAS_BASE.length + ')</button>') + '<button type="button" class="btn ghost" id="pLeg">Matriz legal (PDF)</button></div>' +
+    '<div id="novedades"></div>' +
+    '<p class="ayuda">Normas de SST que aplican a la empresa, con su evaluación de cumplimiento. Se actualiza cuando sale una norma nueva y se evalúa por lo menos una vez al año. «Cargar normas base» trae una lista para empezar: revisa que apliquen y que sigan vigentes.</p>' +
+    (l.length ? UI.chipsFiltro([['', 'Todas (' + l.length + ')'], ['pendientes', 'Pendientes (' + l.filter(legalPend).length + ')'], ['sinevaluar', 'Sin evaluar (' + l.filter(legalSinEv).length + ')'], ['nocumple', 'No cumple o parcial (' + l.filter(legalNo).length + ')']], fDoc.legal) : '') +
+    '<input type="search" class="buscar" id="bLeg" placeholder="Buscar norma o tema"><div id="lLeg"></div>';
+  chipsDoc(panel);
+  const fL = { pendientes: legalPend, sinevaluar: legalSinEv, nocumple: legalNo }[fDoc.legal] || (()=> true);
+  const lista = ()=> { const q = UI.norm($('bLeg').value).trim();
+    $('lLeg').innerHTML = l.filter(fL).filter((x)=> !q || UI.norm(x.resumen.norma + ' ' + x.resumen.tema + ' ' + x.resumen.requisito).includes(q)).map((x)=> { const s = x.resumen;
+      return item(x, esc(s.norma), [esc(s.tema) + ' · ' + esc(s.emisor || ''), esc(s.requisito)], esc(s.vigente === 'No' ? 'Derogada' : s.cumple || 'Sin evaluar'), s.vigente === 'No' ? 'gris' : clase(s.cumple)); }).join('') || '<div class="empty">' + (fDoc.legal && l.length ? 'Ninguna norma en este filtro ✓' : 'Sin normas.') + '</div>';
+    abrir($('lLeg'), 'legal', 'Norma', C_LEG, EXTRA_LEG); };
+  $('bLeg').addEventListener('input', lista); lista();
+  $('novLeg').addEventListener('click', ()=> novedades(false));
+  $('nLegB').addEventListener('click', ()=> simple('legal', 'Norma', C_LEG, { id: SGSST.nuevoId('LEG'), nuevo: true, cumple: 'Sin evaluar', vigente: 'Sí' }, EXTRA_LEG));
+  $('xLeg').addEventListener('click', ()=> {
+    const cols = C_LEG.map((c)=> ({ k: c.k, l: c.l, req: !!c.req, tipo: c.t === 'select' ? 'lista' : c.t === 'date' ? 'fecha' : 'texto', op: c.op, vista: ['norma', 'tema', 'cumple'].indexOf(c.k) !== -1,
+      def: c.k === 'cumple' ? 'Sin evaluar' : c.k === 'vigente' ? 'Sí' : undefined, ej: { norma: 'Resolución 4272 de 2021', anio: '2021', emisor: 'Ministerio del Trabajo', tema: 'Trabajo en alturas', articulos: 'Todo', requisito: 'Programa de protección contra caídas', cumple: 'Cumple', vigente: 'Sí' }[c.k] || '' }));
+    const ya = (f)=> de('legal').find((x)=> Importar.norm(x.resumen.norma) === Importar.norm(f.norma) && Importar.norm(x.resumen.articulos) === Importar.norm(f.articulos));
+    Importar.abrir({ titulo: 'Matriz legal desde Excel', archivo: 'matriz-legal', columnas: cols, tipoDoc: 'legal',
+      id: (f)=> { const e = ya(f); return e ? e.id : Importar.idDe('LEG', f.norma, f.articulos); }, existe: (id)=> de('legal').some((x)=> x.id === id),
+      armar: (f)=> { const c = {}; cols.forEach((x)=> { if (f[x.k] !== '' && f[x.k] != null) c[x.k] = f[x.k]; }); return c; }, alTerminar: ()=> cargar() });
+  });
+  if ($('baseLeg')) $('baseLeg').addEventListener('click', async ()=> { if (!await Dialogo.confirmar('Se cargarán ' + NORMAS_BASE.length + ' normas para que las evalúes. ¿Seguir?')) return;
+    $('baseLeg').disabled = true; let i = 0;
+    for (const n of NORMAS_BASE) { $('baseLeg').textContent = 'Cargando ' + (++i) + ' de ' + NORMAS_BASE.length + '…'; await Registros.guardar('legal', 'LEG-BASE-' + String(i).padStart(3, '0'), { norma: n[0], anio: n[1], emisor: n[2], tema: n[3], articulos: n[4], requisito: n[5], cumple: 'Sin evaluar', vigente: 'Sí', evidencia: '', responsable: '', fechaRevision: '', proximaRevision: '' }, 0); }
+    cargar(); });
+  $('pLeg').addEventListener('click', async ()=> { const docs = (await Promise.all(l.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+    UI.imprimir([UI.cabecera('SG-MATRIZ-LEGAL', 'MATRIZ DE REQUISITOS LEGALES EN SST', 'Corte ' + UI.corta(UI.hoy())) + '<table style="font-size:7pt;"><tr><th>Tema</th><th>Norma</th><th>Emisor</th><th>Artículos</th><th>Requisito</th><th>Evidencia</th><th>Cumplimiento</th><th>Responsable</th><th>Evaluada</th></tr>' +
+      docs.map((d)=> '<tr><td>' + esc(d.tema) + '</td><td>' + esc(d.norma) + (d.vigente === 'No' ? ' (derogada)' : '') + '</td><td>' + esc(d.emisor || '') + '</td><td>' + esc(d.articulos || '') + '</td><td>' + esc(d.requisito || '') + '</td><td>' + esc(d.evidencia || '') + '</td><td>' + esc(d.cumple || '') + '</td><td>' + esc(d.responsable || '') + '</td><td>' + esc(UI.corta(d.fechaRevision)) + '</td></tr>').join('') + '</table>' + UI.firmasAprobacion()], true); });
+}
+
+/* ── Novedades normativas: el servidor consulta fuentes públicas (SafetYA, ANLA, noticias)
+   y aquí se decide si aplican. Son avisos para revisar, no un análisis jurídico. ── */
+const DESC_KEY = 'ssta-novedades-descartadas';
+const descartadas = ()=> { try { return JSON.parse(localStorage.getItem(DESC_KEY) || '[]'); } catch (e) { return []; } };
+async function novedades(forzar){
+  const box = $('novedades'); if (!box) return;
+  if (!navigator.onLine) { box.innerHTML = '<div class="aviso amar">Se necesita conexión para consultar las novedades.</div>'; return; }
+  box.innerHTML = '<div class="card"><div class="status-msg">Consultando las fuentes… (puede tardar unos segundos)</div></div>';
+  let j; try { j = await SGSST.consultar({ action: 'novedadesNormas', forzar: forzar ? '1' : '' }); } catch (e) { j = { ok: false, error: 'Sin conexión con el servidor.' }; }
+  if (!j || !j.ok) { box.innerHTML = '<div class="aviso">' + esc((j && j.error) || 'No se pudo consultar.') + ' Si el servidor es de una versión anterior, actualízalo.</div>'; return; }
+  const des = descartadas(), l = (j.novedades || []).filter((n)=> des.indexOf(n.enlace) === -1);
+  box.innerHTML = '<div class="card"><h2>Novedades normativas</h2><p class="ayuda u-mtn4">Normas y noticias recientes de SST, ambiente, seguridad vial y calidad, leídas de fuentes públicas (consulta del ' + esc(new Date(j.consultado).toLocaleString('es-CO')) + '). Revisa la fuente oficial antes de incluirlas: esto es un aviso, no un concepto jurídico.</p>' +
+    (l.length ? l.map((n, i)=> '<div class="nov"><a href="' + esc(n.enlace) + '" target="_blank" rel="noopener">' + esc(n.titulo) + '</a><small>' + esc([n.fuente, n.fecha ? UI.corta(n.fecha) : ''].filter(Boolean).join(' · ')) + '</small>' +
+      '<div class="nov-b">' + (n.enMatriz ? '<span class="chip ok">Ya está en la matriz</span>' : '<button type="button" class="btn-mini" data-agr="' + i + '">¿Aplica? Agregar a la matriz</button>') + '<button type="button" class="btn-mini gris" data-des="' + i + '">Descartar</button></div></div>').join('') : '<div class="empty">Sin novedades nuevas.</div>') +
+    '<details class="u-mt8"><summary class="ayuda">Fuentes consultadas</summary>' + (j.fuentes || []).map((f)=> '<div class="m" style="font-size:var(--fs-menor);">' + esc(f.nombre) + ': ' + esc(f.estado === 'ok' ? f.items + ' aviso(s)' : 'no respondió (' + f.estado + ')') + '</div>').join('') + '</details>' +
+    '<button type="button" class="btn ghost mini" id="novOtra">Consultar otra vez</button></div>';
+  box.querySelectorAll('[data-agr]').forEach((b)=> b.addEventListener('click', ()=> { const n = l[+b.dataset.agr], m = /^(\S+) (\d+) (\d{4})$/.exec(n.clave || '');
+    const tipoN = m ? m[1].replace('resolucion', 'Resolución').replace(/^\w/, (c)=> c.toUpperCase()) : '';
+    simple('legal', 'Norma', C_LEG, { id: SGSST.nuevoId('LEG'), nuevo: true, norma: m ? tipoN + ' ' + m[2] + ' de ' + m[3] : n.titulo.slice(0, 120), anio: m ? m[3] : (n.fecha || '').slice(0, 4), emisor: /anla/i.test(n.fuente) ? 'ANLA' : '', requisito: n.titulo, evidencia: '', cumple: 'Sin evaluar', vigente: 'Sí', tema: '' }); }));
+  box.querySelectorAll('[data-des]').forEach((b)=> b.addEventListener('click', ()=> { const n = l[+b.dataset.des]; try { localStorage.setItem(DESC_KEY, JSON.stringify(descartadas().concat([n.enlace]).slice(-300))); } catch (e) {} b.closest('.nov').remove(); }));
+  box.querySelector('#novOtra').addEventListener('click', ()=> novedades(true));
+}
+
+/* ── Listado maestro de documentos (estándar 2.5.1) ── */
+const C_DOC = [{ k: 'codigo', l: 'Código', medio: true }, { k: 'tipoDoc', l: 'Tipo', t: 'select', op: ['Política', 'Manual', 'Procedimiento', 'Programa', 'Plan', 'Instructivo', 'Formato', 'Matriz', 'Registro', 'Otro'], medio: true },
+  { k: 'nombre', l: 'Nombre', req: true }, { k: 'versionDoc', l: 'Versión', medio: true }, { k: 'fechaAprobacion', l: 'Aprobado el', t: 'date', medio: true },
+  { k: 'aprobo', l: 'Aprobó', t: 'persona', medio: true }, { k: 'proximaRevision', l: 'Próxima revisión', t: 'date', medio: true },
+  { k: 'retencion', l: 'Años de retención', t: 'number', def: 20, ayuda: 'Los registros de exámenes, mediciones, capacitaciones y entrega de EPP se conservan mínimo 20 años desde el retiro del trabajador (Dec. 1072, art. 2.2.4.6.13).' },
+  { k: 'ubicacion', l: 'Dónde está (carpeta o enlace)' }, { k: 'estado', l: 'Estado', t: 'select', op: ['Vigente', 'En revisión', 'Obsoleto'] }];
+/* Código automático: prefijo del tipo + sistema + consecutivo libre (PR-SST-001, FO-SST-014…).
+   El patrón se cambia en empresa.js → codigoDocs: { patron: '{T}-SST-{N}', digitos: 3, prefijos: { Procedimiento: 'PR', … } }. */
+const CFG_COD = Object.assign({ patron: '{T}-SST-{N}', digitos: 3, prefijos: {} }, (typeof EMPRESA !== 'undefined' && EMPRESA.codigoDocs) || {});
+const PREFIJO_DOC = Object.assign({ 'Política': 'PO', 'Manual': 'MA', 'Procedimiento': 'PR', 'Programa': 'PG', 'Plan': 'PL', 'Instructivo': 'IN', 'Formato': 'FO', 'Matriz': 'MT', 'Registro': 'RG', 'Otro': 'DO' }, CFG_COD.prefijos);
+function codigoSiguiente(tipoDoc, excepto){
+  const T = PREFIJO_DOC[tipoDoc] || 'DO', base = CFG_COD.patron.replace('{T}', T);
+  const re = new RegExp('^' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('\\{N\\}', '(\\d+)') + '$', 'i');
+  let max = 0; de('documento').forEach((x)=> { if (x.id === excepto) return; const m = re.exec(String(x.resumen.codigo || '').trim()); if (m) max = Math.max(max, Number(m[1])); });
+  return base.replace('{N}', String(max + 1).padStart(CFG_COD.digitos, '0'));
+}
+const codigoRepetido = (cod, id)=> !!cod && de('documento').some((x)=> x.id !== id && UI.norm(x.resumen.codigo) === UI.norm(cod));
+const extraDoc = {
+  alAbrir: (el, d, pref)=> {
+    const cod = el.querySelector('#' + pref + 'codigo'), tipo = el.querySelector('#' + pref + 'tipoDoc');
+    let auto = !d.codigo;
+    if (auto) cod.value = codigoSiguiente(tipo.value, d.id);
+    cod.insertAdjacentHTML('afterend', '<div class="ayuda" data-codaviso>' + (auto ? 'Código asignado solo según el tipo. Puedes cambiarlo.' : '') + '</div>');
+    const av = el.querySelector('[data-codaviso]');
+    cod.addEventListener('input', ()=> { auto = false; av.textContent = codigoRepetido(cod.value.trim(), d.id) ? 'Ese código ya lo tiene otro documento.' : ''; av.style.color = av.textContent ? 'var(--mal)' : ''; });
+    tipo.addEventListener('change', ()=> { if (auto || !cod.value.trim()) { cod.value = codigoSiguiente(tipo.value, d.id); auto = true; av.textContent = 'Código asignado solo según el tipo. Puedes cambiarlo.'; av.style.color = ''; } });
+  },
+  antes: async (v, d)=> { v.codigo = String(v.codigo || '').trim().toUpperCase(); if (!v.codigo) v.codigo = codigoSiguiente(v.tipoDoc, d.id);
+    if (codigoRepetido(v.codigo, d.id)) return 'El código ' + v.codigo + ' ya lo tiene otro documento. Usa ' + codigoSiguiente(v.tipoDoc, d.id) + '.';
+    if (v.fechaAprobacion && v.proximaRevision && v.proximaRevision < v.fechaAprobacion) return 'La próxima revisión no puede ser antes de la aprobación.';
+    // v137: control de cambios. Cada versión nueva queda anotada (versión, fecha, quién y por qué); nada se sobrescribe.
+    const lista = Array.isArray(d.controlCambios) ? d.controlCambios.slice() : [];
+    const autor = (typeof Sesion !== 'undefined' && Sesion.nombre && Sesion.nombre()) || '';
+    const vNueva = String(v.versionDoc || '').trim(), vAnt = String(d.versionDoc || '').trim();
+    if (d.nuevo || !lista.length && !vAnt) { if (!lista.length) lista.push({ version: vNueva || '1', anterior: '', fecha: UI.hoy(), autor, motivo: 'Creación del documento' }); }
+    else if (vNueva !== vAnt) {
+      const motivo = await Dialogo.pedir('El documento pasa de la versión ' + (vAnt || '—') + ' a la ' + (vNueva || '—') + '. ¿Qué cambió y por qué? (queda en el control de cambios)', '');
+      if (motivo === null || !String(motivo).trim()) return 'Para cambiar de versión escribe el motivo del cambio.';
+      lista.push({ version: vNueva, anterior: vAnt, fecha: UI.hoy(), autor, motivo: String(motivo).trim().slice(0, 500) });
+    }
+    v.controlCambios = lista;
+    return true; },
+  despues: (d)=> { const l = Array.isArray(d.controlCambios) ? d.controlCambios : [];
+    return '<h3 style="margin:16px 0 6px;">Control de cambios</h3>' + (l.length ? '<table class="tabla-cc" style="width:100%;border-collapse:collapse;font-size:var(--fs-base);"><tr><th style="text-align:left;">Versión</th><th style="text-align:left;">Fecha</th><th style="text-align:left;">Quién</th><th style="text-align:left;">Motivo</th></tr>' +
+      l.map((x)=> '<tr><td>v' + esc(x.version) + (x.anterior ? ' <small>(antes v' + esc(x.anterior) + ')</small>' : '') + '</td><td>' + esc(UI.corta(x.fecha)) + '</td><td>' + esc(x.autor || '') + '</td><td>' + esc(x.motivo) + '</td></tr>').join('') + '</table>'
+      : '<p class="ayuda">Aún sin cambios registrados. Al subir la versión, el portal pide el motivo y lo anota aquí.</p>'); }
+};
+function pintarDocs(panel){
+  const l = de('documento').sort((a, b)=> String(a.resumen.codigo).localeCompare(String(b.resumen.codigo)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nDocB">+ Documento</button><button type="button" class="btn ghost" id="impDoc">Traer los formatos del portal</button><button type="button" class="btn ghost" id="xDoc">Cargar listado maestro desde Excel</button><button type="button" class="btn ghost" id="pDoc">Listado maestro (PDF)</button></div>' +
+    (l.length ? UI.chipsFiltro([['', 'Todos (' + l.length + ')'], ['vencidos', 'Revisión vencida (' + l.filter(docVenc).length + ')']], fDoc.docs) : '') +
+    '<input type="search" class="buscar" id="bDoc" placeholder="Buscar código o nombre"><div id="lDoc"></div>';
+  chipsDoc(panel);
+  const h = UI.hoy();
+  const lista = ()=> { const q = UI.norm($('bDoc').value).trim();
+    $('lDoc').innerHTML = l.filter((x)=> fDoc.docs !== 'vencidos' || docVenc(x)).filter((x)=> !q || UI.norm(x.resumen.codigo + ' ' + x.resumen.nombre).includes(q)).map((x)=> { const s = x.resumen, c = s.estado === 'Obsoleto' ? 'gris' : UI.semaforo(s.proximaRevision, 30);
+      return item(x, esc(s.codigo ? s.codigo + ' · ' : '') + esc(s.nombre), [esc(s.tipoDoc) + ' · v' + esc(s.versionDoc || '—') + ' · ' + esc(UI.corta(s.fechaAprobacion) || 'sin fecha'), s.proximaRevision ? 'Revisar: ' + esc(UI.corta(s.proximaRevision)) : ''], esc(s.estado), c); }).join('') || '<div class="empty">' + (fDoc.docs && l.length ? 'Ningún documento con la revisión vencida ✓' : 'Sin documentos.') + '</div>';
+    abrir($('lDoc'), 'documento', 'Documento', C_DOC, extraDoc); };
+  $('bDoc').addEventListener('input', lista); lista();
+  // v174 · El listado maestro de documentos desde Excel: con la plantilla o con el formato propio de la empresa (se emparejan las columnas).
+  $('xDoc').addEventListener('click', ()=> {
+    const SIN_DOC = { codigo: ['cod', 'codigo del documento', 'id'], tipoDoc: ['tipo de documento', 'clase'], nombre: ['nombre del documento', 'titulo', 'documento', 'descripcion'],
+      versionDoc: ['version', 'ver', 'v', 'edicion'], fechaAprobacion: ['fecha', 'fecha de aprobacion', 'fecha aprobacion', 'fecha de emision', 'vigente desde'], aprobo: ['aprobado por', 'aprueba', 'responsable'],
+      proximaRevision: ['proxima revision', 'fecha de revision', 'revision'], retencion: ['retencion', 'tiempo de retencion', 'anos de retencion'], ubicacion: ['ubicacion', 'lugar', 'ruta', 'enlace', 'archivo'],
+      estado: ['estado', 'vigencia'] };
+    const EJ = { codigo: 'PR-SST-001', tipoDoc: 'Procedimiento', nombre: 'Procedimiento de trabajo en alturas', versionDoc: '2', fechaAprobacion: '15/01/2026', aprobo: 'Gerente general',
+      proximaRevision: '15/01/2027', retencion: '20', ubicacion: 'Drive / SG-SST / Procedimientos', estado: 'Vigente' };
+    const cols = C_DOC.map((c)=> ({ k: c.k, l: c.l, req: !!c.req, tipo: c.t === 'select' ? 'lista' : c.t === 'date' ? 'fecha' : c.t === 'number' ? 'numero' : 'texto', op: c.op,
+      vista: ['codigo', 'nombre', 'versionDoc'].indexOf(c.k) !== -1, sin: SIN_DOC[c.k] || [], def: c.k === 'estado' ? 'Vigente' : c.k === 'retencion' ? 20 : c.k === 'tipoDoc' ? 'Otro' : undefined, ej: EJ[c.k] || '' }));
+    const ya = (f)=> f.codigo ? de('documento').find((x)=> Importar.norm(x.resumen.codigo) === Importar.norm(f.codigo)) : de('documento').find((x)=> Importar.norm(x.resumen.nombre) === Importar.norm(f.nombre));
+    Importar.abrir({ titulo: 'Listado maestro de documentos desde Excel', archivo: 'listado-maestro', columnas: cols, tipoDoc: 'documento',
+      id: (f)=> { const e = ya(f); return e ? e.id : Importar.idDe('DOC', f.codigo || '', f.nombre); }, existe: (id)=> de('documento').some((x)=> x.id === id),
+      armar: (f)=> { const c = {}; cols.forEach((x)=> { if (f[x.k] !== '' && f[x.k] != null) c[x.k] = f[x.k]; }); return c; }, alTerminar: ()=> cargar() });
+  });
+  $('nDocB').addEventListener('click', ()=> simple('documento', 'Documento', C_DOC, { id: SGSST.nuevoId('DOC'), nuevo: true, estado: 'Vigente', retencion: 20, tipoDoc: 'Procedimiento' }, extraDoc));
+  $('impDoc').addEventListener('click', async ()=> { const ya = new Set(l.map((x)=> x.resumen.codigo || x.resumen.nombre));
+    const F = EMPRESA.formatos || {}, nuevos = Object.keys(F).filter((k)=> { const f = F[k]; const cod = /^SG-/.test(f.codigo || '') ? '' : f.codigo; return !ya.has(cod || f.titulo); });
+    if (!nuevos.length) { UI.toast('Ya están todos.'); return; }
+    if (!await Dialogo.confirmar('Se agregarán ' + nuevos.length + ' formato(s) del portal al listado maestro. ¿Seguir?')) return;
+    const fecha = (t)=> { const m = /^(\d{2})[\/-](\d{2})[\/-](\d{4})$/.exec(String(t || '').trim()); return m ? m[3] + '-' + m[2] + '-' + m[1] : ''; };
+    for (const k of nuevos) { const f = F[k], cod = /^SG-/.test(f.codigo || '') ? '' : (f.codigo || ''), id = SGSST.nuevoId('DOC'), c2 = cod || codigoSiguiente('Formato');
+      rows.push({ id, tipo: 'documento', resumen: { codigo: c2 } });
+      await Registros.guardar('documento', id, { codigo: c2, nombre: f.titulo || k, tipoDoc: 'Formato', versionDoc: f.version || '', fechaAprobacion: fecha(f.actualizacion) || fecha(f.fecha), retencion: 20, estado: 'Vigente', ubicacion: 'Portal SSTA', aprobo: '', proximaRevision: '' }, 0); }
+    cargar(); });
+  $('pDoc').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-LISTADO-MAESTRO', 'LISTADO MAESTRO DE DOCUMENTOS DEL SG-SST', 'Corte ' + UI.corta(h)) + '<table><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Versión</th><th>Aprobado</th><th>Aprobó</th><th>Próx. revisión</th><th>Retención</th><th>Ubicación</th><th>Estado</th></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(s.codigo) + '</td><td>' + esc(s.nombre) + '</td><td>' + esc(s.tipoDoc) + '</td><td class="a">' + esc(s.versionDoc) + '</td><td>' + esc(UI.corta(s.fechaAprobacion)) + '</td><td>' + esc(s.aprobo) + '</td><td>' + esc(UI.corta(s.proximaRevision)) + '</td><td class="a">' + esc(s.retencion) + ' años</td><td>' + esc(s.ubicacion) + '</td><td>' + esc(s.estado) + '</td></tr>'; }).join('') + '</table>'], true));
+}
+
+/* ── Gestión del cambio (estándar 2.11.1) ── */
+const C_CAM = [{ k: 'descripcion', l: 'Qué cambia', req: true, t: 'textarea' }, { k: 'tipoCambio', l: 'Tipo de cambio', t: 'select', op: ['Proceso o método de trabajo', 'Instalaciones', 'Equipos o maquinaria', 'Sustancias o materiales', 'Personal o estructura', 'Requisito legal', 'Proveedor o contratista', 'Otro'], medio: true },
+  { k: 'fecha', l: 'Fecha de la solicitud', t: 'date', medio: true }, { k: 'solicitante', l: 'Solicita', t: 'persona', medio: true }, { k: 'fechaImplementacion', l: 'Implementar antes de', t: 'date', medio: true },
+  { k: 'riesgos', l: 'Peligros y riesgos que trae el cambio', t: 'textarea' }, { k: 'actualizarMatriz', l: 'Hay que actualizar la matriz de peligros', t: 'check' }, { k: 'capacitacion', l: 'Requiere capacitación o comunicación a los trabajadores', t: 'check' },
+  // v148: ISO 45001 6.1.4 / 8.1.3, ISO 9001 6.3, ISO 14001 6.1 — alcance del cambio, consulta y revisión después
+  { k: 'sistemas', l: 'Sistemas que afecta', t: 'select', op: ['SST', 'SST y ambiental', 'SST y calidad', 'Integrado (SST, ambiental y calidad)', 'Calidad', 'Ambiental'], medio: true },
+  { k: 'temporal', l: 'Cambio', t: 'select', op: ['Permanente', 'Temporal (con fecha de retorno)'], medio: true },
+  { k: 'aspectosAmb', l: 'Aspectos e impactos ambientales del cambio', t: 'textarea' }, { k: 'impactoCalidad', l: 'Impacto en el producto o servicio al cliente', t: 'textarea' },
+  { k: 'requisitosLeg', l: 'Requisitos legales que toca (normas de la matriz legal)', t: 'textarea' },
+  { k: 'consulta', l: 'Consulta a los trabajadores o al COPASST (quién y cuándo)', medio: true },
+  { k: 'accionesTexto', l: 'Medidas antes de implementar (una por línea: van al plan de acción)', t: 'textarea' }, { k: 'aprobo', l: 'Aprueba', t: 'persona', medio: true },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['En evaluación', 'Aprobado', 'Implementado', 'Rechazado'], medio: true },
+  { k: 'revisionPost', l: 'Revisión después de implementar: ¿los controles funcionan?', t: 'textarea' }];
+function pintarCambios(panel){
+  const l = de('cambio').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nCamB">+ Registrar un cambio</button><button type="button" class="btn ghost" id="pCamL">Registro de cambios (PDF)</button></div>' +
+    '<p class="ayuda">Antes de un cambio interno (proceso, equipos, instalaciones, personal) o externo (norma, proveedor) se evalúan sus peligros y se definen las medidas (Dec. 1072, art. 2.2.4.6.26).</p>' +
+    (l.length ? l.map((x)=> { const s = x.resumen, c = s.estado === 'Implementado' ? 'ok' : s.estado === 'Rechazado' ? 'gris' : UI.semaforo(s.fechaImplementacion, 7);
+      return item(x, esc(s.descripcion), [esc(s.tipoCambio) + ' · ' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.solicitante || ''), s.actualizarMatriz === true ? '⚠ Actualizar la matriz de peligros' : ''], esc(s.estado), c); }).join('') : '<div class="empty">Sin cambios registrados.</div>');
+  const lineas = (v)=> String(v.accionesTexto || '').split('\n').map((x)=> x.trim()).filter(Boolean);
+  const extra = { antes: (v, d)=> {
+      // v148: no se implementa sin quién aprueba ni sin evaluar riesgos; «Implementado» pide la revisión posterior en 30 días.
+      if ((v.estado === 'Aprobado' || v.estado === 'Implementado') && (!String(v.aprobo || '').trim() || !String(v.riesgos || '').trim())) return 'Para aprobar o implementar faltan: quién aprueba y los peligros y riesgos evaluados.';
+      if (v.estado === 'Implementado' && !String(v.revisionPost || '').trim() && v.fechaImplementacion && v.fechaImplementacion < Festivos.sumarDias(UI.hoy(), -30)) return 'Lleva más de 30 días implementado: registra la revisión posterior (¿los controles funcionan?).';
+      v.acciones = lineas(v).length; v.accionesCreadas = Number(d.accionesCreadas) || 0; return true; },
+    luego: (v, d)=> Registros.accionesPorLinea(lineas(v), v.accionesCreadas, 'cambio', d.id, (t)=> ({ origen: 'Gestión del cambio', origenRef: d.id, hallazgo: 'Cambio: ' + v.descripcion, accion: t, fechaCompromiso: v.fechaImplementacion || undefined, tipoAccion: 'Preventiva' })) };
+  extra.alAbrir = (el, d, pref)=> { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.textContent = 'Formato de gestión del cambio (PDF)';
+    el.querySelector('[data-guardar]').insertAdjacentElement('beforebegin', b);
+    b.addEventListener('click', ()=> pdfCambio(Object.assign({}, d, Registros.leer(C_CAM, el, pref)))); };
+  abrir(panel, 'cambio', 'Gestión del cambio', C_CAM, extra);
+  $('nCamB').addEventListener('click', ()=> simple('cambio', 'Gestión del cambio', C_CAM, { id: SGSST.nuevoId('CAM'), nuevo: true, fecha: UI.hoy(), estado: 'En evaluación' }, extra));
+  $('pCamL').addEventListener('click', async ()=> { const docs = (await Promise.all(l.map((x)=> SGSST.doc(x.id)))).filter(Boolean); if (!docs.length) { UI.toast('No hay cambios registrados.'); return; }
+    UI.imprimir([UI.cabecera('SG-GESTION-CAMBIO', 'REGISTRO DE GESTIÓN DEL CAMBIO', 'Corte ' + UI.corta(UI.hoy())) + '<table><tr><td class="l">Fecha</td><td class="l">Qué cambia</td><td class="l">Tipo</td><td class="l">Peligros y riesgos</td><td class="l">Matriz</td><td class="l">Capacitación</td><td class="l">Medidas</td><td class="l">Aprobó</td><td class="l">Estado</td></tr>' +
+      docs.map((d)=> '<tr><td>' + esc(UI.corta(d.fecha)) + '</td><td>' + esc(d.descripcion) + '</td><td>' + esc(d.tipoCambio || '') + '</td><td>' + esc(d.riesgos || '') + '</td><td class="a">' + (d.actualizarMatriz ? 'Sí' : 'No') + '</td><td class="a">' + (d.capacitacion ? 'Sí' : 'No') + '</td><td style="white-space:pre-wrap;">' + esc(d.accionesTexto || '') + '</td><td>' + esc(d.aprobo || '') + '</td><td>' + esc(d.estado || '') + '</td></tr>').join('') + '</table>'], true); });
+}
+
+/* Formato del cambio (Dec. 1072, art. 2.2.4.6.26): identificación, peligros, requisitos, controles, aprobación y firmas. */
+function pdfCambio(d){
+  const lin = String(d.accionesTexto || '').split('\n').map((x)=> x.trim()).filter(Boolean);
+  UI.imprimir([UI.cabecera('SG-GESTION-CAMBIO', 'GESTIÓN DEL CAMBIO', (d.id || '') + ' · ' + UI.corta(d.fecha)) +
+    UI.seccion('1. IDENTIFICACIÓN DEL CAMBIO', UI.tablaDatos([['Qué cambia', d.descripcion || ''], ['Tipo de cambio', d.tipoCambio || ''], ['Fecha de la solicitud', UI.corta(d.fecha) || '—'], ['Solicita', d.solicitante || '—'], ['Implementar antes de', UI.corta(d.fechaImplementacion) || '—'], ['Estado', d.estado || '']])) +
+    UI.seccion('2. PELIGROS Y RIESGOS QUE TRAE EL CAMBIO', UI.textoLargo(d.riesgos)) +
+    UI.seccion('3. IMPACTO EN EL SG-SST', UI.tablaDatos([['Actualizar la matriz de peligros', d.actualizarMatriz ? 'Sí' : 'No'], ['Capacitación o comunicación a los trabajadores', d.capacitacion ? 'Sí' : 'No'], ['Requisitos legales asociados', 'Revisar en la matriz legal'], ['Acciones en el plan de acción', String(d.acciones || lin.length)]])) +
+    UI.seccion('4. MEDIDAS DE CONTROL ANTES DE IMPLEMENTAR', '<table><tr><td class="l a" style="width:6%;">N.º</td><td class="l">Medida</td><td class="l" style="width:22%;">Responsable</td><td class="l" style="width:14%;">Fecha</td></tr>' + (lin.length ? lin.map((t, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(t) + '</td><td></td><td></td></tr>').join('') : '<tr><td colspan="4">—</td></tr>') + '</table>') +
+    UI.seccion('5. APROBACIÓN Y FIRMAS', '<table><tr><td style="height:60px;vertical-align:bottom;width:33%;"><div style="border-top:1px solid #000;padding-top:2px;"><b>' + esc(d.solicitante || '') + '</b><br>Solicita</div></td><td style="vertical-align:bottom;width:33%;"><div style="border-top:1px solid #000;padding-top:2px;"><b></b><br>Responsable del SG-SST</div></td><td class="u-abajo"><div style="border-top:1px solid #000;padding-top:2px;"><b>' + esc(d.aprobo || '') + '</b><br>Aprueba</div></td></tr></table>') +
+    '<p style="font-size:7.5px;">Decreto 1072 de 2015, art. 2.2.4.6.26: el empleador evalúa el impacto sobre la SST de los cambios internos y externos, y adopta las medidas de prevención y control antes de su implementación.</p>']);
+}
+
+/* ── Evaluación de proveedores y contratistas (estándares 2.9.1 y 2.10.1) ── */
+const CRITERIOS = ['Personal afiliado a seguridad social (EPS, AFP, ARL) y pagos al día', 'SG-SST implementado (autoevaluación de estándares mínimos)', 'Matriz de peligros de la actividad contratada', 'Personal competente y certificado para tareas de alto riesgo',
+  'Entrega, uso y reposición de EPP', 'ATS y permisos de trabajo', 'Reporte e investigación de incidentes y accidentes', 'Indicadores de accidentalidad del último año', 'Plan de emergencias y brigada', 'Exámenes médicos ocupacionales de su personal',
+  'Fichas técnicas y hojas de seguridad (proveedores de bienes)', 'Especificaciones de SST en lo que compramos (equipos, herramientas, EPP certificados)'];
+const C_PRV = [{ k: 'nombre', l: 'Razón social', req: true }, { k: 'nit', l: 'NIT', medio: true }, { k: 'tipoProveedor', l: 'Tipo', t: 'select', op: ['Contratista', 'Proveedor de servicios', 'Proveedor de bienes'], medio: true },
+  { k: 'servicio', l: 'Qué nos suministra o hace', medio: true }, { k: 'contacto', l: 'Contacto', medio: true }, { k: 'calificacion0312', l: 'Su calificación de estándares mínimos (%)', t: 'number', medio: true },
+  { k: 'fechaEvaluacion', l: 'Evaluado el', t: 'date', medio: true }, { k: 'evaluador', l: 'Evaluó', t: 'persona' }, { k: 'observaciones', l: 'Observaciones', t: 'textarea' }, { k: 'activo', l: 'Proveedor activo', t: 'check', def: true }];
+function resultadoPrv(p){ return p >= 80 ? 'Aprobado' : p >= 60 ? 'Aprobado con plan de mejora' : 'No aprobado'; }
+function pintarProv(panel){
+  const h = UI.hoy(), l = de('proveedor').sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  panel.innerHTML = '<div class="aviso"><b>Nuevo:</b> la evaluación completa de proveedores (matriz de requisitos por categoría, evaluación inicial, reevaluación, homologación y cronograma) está en <a href="proveedores.html">Proveedores y contratistas →</a>. Aquí se ven los mismos registros en forma resumida.</div><p class="ayuda">Se evalúan sus requisitos de SST antes de contratar y cada año. Criterio del portal: 80 % o más aprobado, 60–79 % aprobado con plan de mejora, menos de 60 % no aprobado (ajústalo a tu procedimiento).</p>' +
+    (l.length ? UI.chipsFiltro([['', 'Todos (' + l.length + ')'], ['vencidos', 'Evaluación vencida o sin evaluar (' + l.filter(prvVencido).length + ')']], fDoc.prov) : '') +
+    (l.filter((x)=> fDoc.prov !== 'vencidos' || prvVencido(x)).length ? l.filter((x)=> fDoc.prov !== 'vencidos' || prvVencido(x)).map((x)=> { const s = x.resumen, c = s.activo === false ? 'gris' : s.resultado === 'Aprobado' ? UI.semaforo(s.proximaEvaluacion, 30) : s.resultado === 'No aprobado' ? 'mal' : 'pronto';
+      return item(x, esc(s.nombre), [esc(s.tipoProveedor) + ' · ' + esc(s.servicio || ''), 'Puntaje ' + esc(s.puntaje === '' ? '—' : s.puntaje + ' %') + ' · reevaluar ' + esc(UI.corta(s.proximaEvaluacion))], esc(s.resultado || 'Sin evaluar'), c); }).join('') : '<div class="empty">' + (l.length ? 'Todos evaluados al día ✓' : 'Sin proveedores ni contratistas evaluados.') + '</div>') +
+    '<button type="button" class="btn amber" id="nPrvB">+ Evaluar proveedor o contratista</button><button type="button" class="btn ghost" id="pPrv">🖨️ Proveedores y contratistas (PDF)</button>';
+  const extra = {
+    despues: (d)=> '<div class="field"><label>Criterios de SST</label>' + CRITERIOS.map((c, i)=> '<div class="crit"><span>' + esc(c) + '</span><div class="seg-btn" data-cr="' + i + '">' + ['Sí', 'No', 'N/A'].map((v)=> '<button type="button" data-v="' + v + '" class="' + (((d.criterios || {})[i]) === v ? 'on' : '') + '">' + v + '</button>').join('') + '</div></div>').join('') + '</div>',
+    alAbrir: (el)=> el.querySelectorAll('.seg-btn[data-cr]').forEach((g)=> g.addEventListener('click', (e)=> { const b = e.target.closest('[data-v]'); if (b) g.querySelectorAll('button').forEach((x)=> x.classList.toggle('on', x === b)); })),
+    antes: async (v, d)=> {
+      v.criterios = {}; document.querySelectorAll('.modal .seg-btn[data-cr]').forEach((g)=> { const b = g.querySelector('button.on'); if (b) v.criterios[g.dataset.cr] = b.dataset.v; });
+      const ap = Object.values(v.criterios).filter((x)=> x !== 'N/A'), si = ap.filter((x)=> x === 'Sí').length;
+      if (Object.keys(v.criterios).length < CRITERIOS.length) return 'Responde todos los criterios (Sí, No o N/A).';
+      v.puntaje = ap.length ? Math.round(si * 100 / ap.length) : 100; v.resultado = resultadoPrv(v.puntaje);
+      v.proximaEvaluacion = Festivos.sumarMeses(v.fechaEvaluacion || UI.hoy(), 12);
+      return true; },
+    luego: async (v, d)=> { if (v.resultado !== 'Aprobado' && await Dialogo.confirmar(v.resultado + ' (' + v.puntaje + ' %). ¿Crear una acción para el plan de mejora?')) UI.nuevaAccion({ origen: 'Evaluación de proveedores', origenRef: d.id, hallazgo: v.nombre + ': ' + v.resultado + ' (' + v.puntaje + ' %)' }); } };
+  abrir(panel, 'proveedor', 'Proveedor o contratista', C_PRV, extra); chipsDoc(panel);
+  $('nPrvB').addEventListener('click', ()=> simple('proveedor', 'Proveedor o contratista', C_PRV, { id: SGSST.nuevoId('PRV'), nuevo: true, fechaEvaluacion: h, activo: true, tipoProveedor: 'Contratista' }, extra));
+  $('pPrv').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-PROVEEDORES', 'EVALUACIÓN DE PROVEEDORES Y CONTRATISTAS EN SST', 'Corte ' + UI.corta(h)) + '<table><tr><th>Razón social</th><th>NIT</th><th>Tipo</th><th>Servicio</th><th>Calif. 0312</th><th>Puntaje</th><th>Resultado</th><th>Evaluado</th><th>Reevaluar</th></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(s.nombre) + '</td><td>' + esc(s.nit) + '</td><td>' + esc(s.tipoProveedor) + '</td><td>' + esc(s.servicio) + '</td><td class="a">' + esc(s.calificacion0312 === '' ? '' : s.calificacion0312 + ' %') + '</td><td class="a">' + esc(s.puntaje === '' ? '' : s.puntaje + ' %') + '</td><td>' + esc(s.resultado) + '</td><td>' + esc(UI.corta(s.fechaEvaluacion)) + '</td><td>' + esc(UI.corta(s.proximaEvaluacion)) + '</td></tr>'; }).join('') + '</table>'], true));
+}
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

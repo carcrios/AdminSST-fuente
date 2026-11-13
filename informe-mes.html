@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Informe mensual de actividades · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Informe mensual de actividades · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.im-t{width:100%;border-collapse:collapse;font-size:var(--fs-menor);}
+.im-t th,.im-t td{padding:7px 6px;border-bottom:1px solid var(--n-150);text-align:left;vertical-align:top;}
+.im-t td.n,.im-t th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.im-dest{margin:0;padding-left:18px;line-height:1.5;}
+.im-dest li{margin-bottom:3px;}
+.im-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;padding:0;list-style:none;}
+.im-chips li{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-pill);padding:4px 10px;font-size:var(--fs-menor);}
+.im-hz{margin:4px 0 0;padding-left:18px;font-size:var(--fs-menor);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Verificar</div>
+    <h1>Informe mensual de actividades</h1>
+    <p>Lo que se hizo en el mes: permisos, accidentes, inspecciones, charlas, EPP y más</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="avisoCopia"></div>
+  <div class="card">
+    <div class="field"><label for="selMes">Mes</label><select id="selMes"></select></div>
+    <div class="fila-btn"><button type="button" class="btn amber" id="btnPdf" disabled>🖨️ Sacar el PDF con firma</button><button type="button" class="btn ghost" id="btnAct">Actualizar datos</button></div>
+  </div>
+  <div id="contenido"><div class="empty">Juntando lo del mes…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="informe-mes-reglas.js"></script>
+<script src="informe-mes.app.js"></script>
+</body>
+</html>

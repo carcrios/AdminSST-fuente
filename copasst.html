@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bU6Iqg8v398EJAweFZ/VbBA8Do8HJkuevHUqeicfneI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>COPASST · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="COPASST · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+</head>
+<body>
+<div class="wrap" id="raizComite"></div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="qr.js"></script>
+<script src="comites.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const NOMBRE_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/* Lo que el COPASST revisa cada mes, traído de los demás módulos (Res. 2013 de 1986,
+   art. 11: analizar las causas de los accidentes, visitar los lugares de trabajo…). */
+async function datosMes(fechaActa) {
+  const d = new Date(fechaActa + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() - 1);
+  const mes = d.toISOString().slice(0, 7), nombre = NOMBRE_MES[d.getMonth()] + ' de ' + d.getFullYear();
+  const [rr, ri, ra] = await Promise.all([SGSST.listar('reporte'), SGSST.listar('inspeccion'), SGSST.listar('accion')]);
+  const rep = rr.rows.filter((x) => String(x.resumen.fecha).slice(0, 7) === mes);
+  const porClase = {}; rep.forEach((x) => { porClase[x.resumen.clase] = (porClase[x.resumen.clase] || 0) + 1; });
+  const at = rep.filter((x) => x.resumen.clase === 'Accidente de trabajo');
+  const ins = ri.rows.filter((x) => String(x.resumen.fecha).slice(0, 7) === mes);
+  const nc = ins.filter((x) => x.resumen.nc > 0);
+  const venc = ra.rows.filter((x) => x.estado !== 'CERRADA' && x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < fechaActa);
+  const invPend = rr.rows.filter((x) => /Accidente|Incidente/.test(x.resumen.clase) && x.resumen.investigacion && x.resumen.investigacion.estado !== 'CERRADA');
+  const l = ['DATOS DEL MES (' + nombre.toUpperCase() + ', traídos del portal):'];
+  l.push('• Reportes: ' + (rep.length ? Object.keys(porClase).map((k) => porClase[k] + ' ' + k.toLowerCase()).join(', ') : 'ninguno') + '.');
+  at.forEach((x) => l.push('  – ' + x.id + ' (' + UI.corta(x.resumen.fecha) + '): ' + x.resumen.descripcion + (x.resumen.diasIncapacidad ? ' · ' + x.resumen.diasIncapacidad + ' días de incapacidad' : '') + (x.resumen.furat && x.resumen.furat.radicado ? ' · FURAT radicado' : ' · FURAT pendiente')));
+  if (invPend.length) l.push('• Investigaciones sin cerrar: ' + invPend.map((x) => x.id).join(', ') + '.');
+  l.push('• Inspecciones planeadas: ' + ins.length + (nc.length ? ', ' + nc.length + ' con no conformidades (' + nc.map((x) => x.resumen.equipo || x.resumen.categoria).slice(0, 6).join(', ') + ')' : ', todas conformes') + '.');
+  l.push('• Acciones del plan de acción vencidas: ' + venc.length + '.');
+  return l.join('\n');
+}
+
+/* Accidente grave o mortal → reunión extraordinaria dentro de los 5 días (Res. 2013, art. 7). */
+let graves = [];
+function alertas(ctx) {
+  const out = [];
+  graves.forEach((g) => {
+    const hecha = ctx.reuniones.some((r) => r.resumen.tipo === 'Extraordinaria' && r.resumen.fecha >= g.resumen.fecha);
+    if (!hecha) {
+      const lim = Festivos.sumarDias(g.resumen.fecha, 5);
+      out.push('<div class="aviso">⚠ Accidente ' + (g.resumen.mortal ? 'MORTAL' : 'grave') + ' del ' + esc(UI.corta(g.resumen.fecha)) + ' (' + esc(g.id) + '): el COPASST debe reunirse de forma extraordinaria, con el responsable del área, a más tardar el ' + esc(UI.corta(lim)) + ' (Res. 2013 de 1986, art. 7).</div>');
+    }
+  });
+  return out;
+}
+
+Comite.iniciar({
+  clave: 'copasst', id: 'CMT-COPASST', nombre: 'COPASST', corto: 'COPASST', origen: 'COPASST',
+  subtitulo: 'Comité Paritario de Seguridad y Salud en el Trabajo',
+  norma: 'Res. 2013 de 1986 · Dec. 1072 de 2015 · Dec. 1295 de 1994 (art. 63)',
+  formatoActa: 'SG-COPASST-ACTA', formatoConformacion: 'SG-COMITE-CONFORMACION',
+  ayudaReuniones: 'El COPASST se reúne por lo menos una vez al mes, en horario de trabajo, y de forma extraordinaria dentro de los 5 días siguientes a un accidente grave o riesgo inminente. Quórum: la mitad más uno de sus integrantes (Res. 2013 de 1986, arts. 7 y 8).',
+  ayudaConformacion: 'El empleador designa directamente a sus representantes y al presidente; los trabajadores eligen a los suyos por votación. El comité elige al secretario entre sus integrantes. Cada integrante tiene derecho a 4 horas semanales para las funciones del comité.',
+  ayudaCapacitacion: 'Estándar 1.1.7 de la Res. 0312: el COPASST debe estar capacitado para cumplir sus funciones (identificación de peligros, investigación de incidentes, inspecciones…).',
+  ejemploCapacitacion: 'Ej: Investigación de incidentes y accidentes',
+  ejemploMotivo: 'Ej: accidente grave del 14/10 en la bodega (REP-…)',
+  ordenOrdinaria: ['Verificación del quórum', 'Lectura y aprobación del acta anterior', 'Seguimiento a compromisos', 'Accidentes e incidentes del mes', 'Inspecciones y condiciones reportadas', 'Propuestas e inquietudes de los trabajadores', 'Compromisos y varios'],
+  ordenExtraordinaria: ['Verificación del quórum', 'Descripción del evento', 'Análisis de causas con el responsable del área', 'Medidas inmediatas', 'Compromisos'],
+  botonDatosMes: '📥 Traer los datos del mes anterior (reportes, inspecciones, acciones)',
+  datosMes,
+  alertas,
+  alCargar: async () => {
+    if (!SGSST.url()) return;
+    const r = await SGSST.listar('reporte');
+    const hace = Festivos.sumarDias(UI.hoy(), -30);
+    graves = r.rows.filter((x) => x.resumen.clase === 'Accidente de trabajo' && (x.resumen.grave || x.resumen.mortal) && x.resumen.fecha >= hace);
+  }
+});
+</script>
+</body>
+</html>

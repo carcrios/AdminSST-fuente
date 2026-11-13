@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LsJ3D0Cr5GIXAW0ueiz5NG9xO0hriEgjz6CzISbKz0U='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Departamentos y áreas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Departamentos y áreas · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.ar-it{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1.5px solid var(--n-300);border-radius:var(--r-m,10px);padding:10px 12px;margin:6px 0;background:var(--paper);}
+.ar-it .t{font-weight:700;}.ar-it .m{font-size:var(--fs-menor);color:var(--n-600);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Estructura de la empresa</div>
+    <h1>Departamentos y áreas</h1>
+    <p>Los nombres que se usan en todo el portal</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div class="card">
+    <p class="ayuda">Escribe cada departamento o área de la empresa una sola vez. Al llenar «Área» en el personal, los equipos, los reportes, los ATS o la matriz de peligros, el portal los ofrece para que se escriban igual y los informes por área cuadren.</p>
+    <div class="grid2"><div class="field"><label for="arNom">Departamento o área *</label><input type="text" id="arNom" maxlength="60" placeholder="Ej: Producción"></div>
+    <div class="field"><label for="arResp">Responsable (opcional)</label><input type="text" id="arResp" maxlength="60" placeholder="Ej: Jefe de planta"></div></div>
+    <button type="button" class="btn amber" id="arAdd">+ Agregar</button>
+    <div class="fila-btn u-mt8"><button type="button" class="btn ghost mini" id="arSug">Sugerir los típicos</button><button type="button" class="btn ghost mini" id="arUsados">Traer las áreas ya escritas en el personal</button></div>
+    <div id="arMsg" class="status-msg"></div>
+  </div>
+  <div class="card"><h2>Departamentos y áreas <span id="arCuenta" class="chip gris"></span></h2><div id="arLista"><div class="empty">Cargando…</div></div></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$, ID = 'EMPRESA-PERFIL';
+/* v154 · Departamentos y áreas: quedan en el perfil de la empresa (campo areasTexto: «Nombre | Responsable» por línea). */
+let perfil = null, areas = [];
+const TIPICOS = ['Gerencia', 'Administrativa y financiera', 'Talento humano', 'SST', 'Calidad', 'Producción', 'Mantenimiento', 'Logística y bodega', 'Compras', 'Comercial', 'Operaciones en obra'];
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('arLista').innerHTML = ''; return; }
+  perfil = await SGSST.doc(ID);
+  areas = String((perfil && perfil.areasTexto) || '').split('\n').map((l)=> { const p = l.split('|'); return { nombre: p[0].trim(), resp: (p[1] || '').trim() }; }).filter((x)=> x.nombre);
+  pintar();
+}
+function pintar(){
+  $('arCuenta').textContent = areas.length;
+  $('arLista').innerHTML = areas.length ? areas.map((a, i)=> '<div class="ar-it"><div><div class="t">' + esc(a.nombre) + '</div>' + (a.resp ? '<div class="m">Responsable: ' + esc(a.resp) + '</div>' : '') + '</div><div><button type="button" class="btn-mini" data-ed="' + i + '">✏️</button> <button type="button" class="btn-mini rojo" data-del="' + i + '">Quitar</button></div></div>').join('')
+    : '<div class="empty">Aún no hay departamentos. Agrégalos arriba o pulsa «Sugerir los típicos».</div>';
+}
+async function guardar(){
+  const msg = $('arMsg'); msg.textContent = 'Guardando…';
+  const texto = areas.map((a)=> a.nombre + (a.resp ? ' | ' + a.resp : '')).join('\n');
+  const base = perfil || Object.assign({ nombre: (typeof EMPRESA !== 'undefined' && EMPRESA.nombre) || '' }, UI.perfilInstalacion() || {});
+  const r = await Registros.guardar('empresa', ID, Object.assign({}, base, { areasTexto: texto }), perfil ? perfil.version : 0);
+  if (typeof r === 'string') { msg.textContent = r; return false; }
+  Areas.guardarLocal(areas.map((a)=> a.nombre));
+  msg.textContent = '✓ Guardado'; await cargar(); return true;
+}
+function agregar(nombre, resp){
+  nombre = String(nombre || '').trim().replace(/\s+/g, ' '); if (!nombre) return false;
+  if (areas.some((a)=> UI.norm(a.nombre) === UI.norm(nombre))) return false;
+  areas.push({ nombre: nombre.slice(0, 60), resp: String(resp || '').trim().slice(0, 60) }); return true;
+}
+$('arAdd').addEventListener('click', async ()=> {
+  const n = $('arNom').value.trim(); if (!n) { $('arMsg').textContent = 'Escribe el nombre del departamento o área.'; $('arNom').focus(); return; }
+  if (!agregar(n, $('arResp').value)) { $('arMsg').textContent = 'Ese departamento ya está.'; return; }
+  $('arNom').value = ''; $('arResp').value = ''; pintar(); await guardar(); $('arNom').focus();
+});
+$('arNom').addEventListener('keydown', (e)=> { if (e.key === 'Enter') { e.preventDefault(); $('arAdd').click(); } });
+$('arSug').addEventListener('click', async ()=> { let n = 0; TIPICOS.forEach((t)=> { if (agregar(t)) n++; }); if (!n) { $('arMsg').textContent = 'Ya están todos los típicos.'; return; } pintar(); await guardar(); UI.toast(n + ' departamento(s) agregados. Quita los que no apliquen.'); });
+$('arUsados').addEventListener('click', async ()=> {
+  const r = await SGSST.listar('trabajador,equipo'); let n = 0;
+  [...new Set((r.rows || []).map((x)=> String(x.resumen.area || '').trim()).filter(Boolean))].forEach((a)=> { if (agregar(a)) n++; });
+  if (!n) { $('arMsg').textContent = 'No hay áreas nuevas escritas en el personal ni en los equipos.'; return; } pintar(); await guardar(); UI.toast(n + ' área(s) traídas.');
+});
+$('arLista').addEventListener('click', async (e)=> {
+  const d = e.target.closest('[data-del]'), ed = e.target.closest('[data-ed]');
+  if (d) { const a = areas[+d.dataset.del]; if (!await Dialogo.confirmar('¿Quitar «' + a.nombre + '»? Los registros que ya la tienen no cambian.')) return; areas.splice(+d.dataset.del, 1); pintar(); await guardar(); }
+  if (ed) { const a = areas[+ed.dataset.ed]; const n = await Dialogo.pedir('Nombre del departamento o área:', a.nombre); if (n === null || !n.trim()) return; const r = await Dialogo.pedir('Responsable (opcional):', a.resp); a.nombre = n.trim().slice(0, 60); a.resp = String(r || '').trim().slice(0, 60); pintar(); await guardar(); }
+});
+cargar();
+</script>
+</body>
+</html>

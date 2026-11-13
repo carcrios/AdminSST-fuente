@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-H742D4pRbO8PfkT9WF+xIg18khNV4hBVI2WE1/Tpo28='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Análisis y alertas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Análisis y alertas · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.an-l{margin:0;padding:0;list-style:none;}.an-l li{border-bottom:1px solid var(--n-150);padding:9px 0;font-size:var(--fs-menor);}.an-l li:last-child{border-bottom:0;}
+.an-l .t{font-weight:700;font-size:var(--fs-base);}
+.an-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:8px 0;}
+.an-k{background:var(--paper);border-left:4px solid var(--n-300);border-radius:var(--r-m);padding:8px 10px;box-shadow:var(--sombra-1,0 1px 3px rgba(0,0,0,.08));}
+.an-k .v{font-size:1.4rem;font-weight:800;}.an-k .n{font-size:var(--fs-menor);font-weight:700;}.an-k .f{font-size:.78rem;color:var(--n-600);}
+.an-k.mal{border-color:var(--mal);}.an-k.mal .v{color:var(--mal);}.an-k.ok{border-color:var(--ok);}.an-k.ok .v{color:var(--ok);}.an-k.amar{border-color:var(--ambar-500);}.an-k.amar .v{color:var(--ambar-500);}
+.an-mes{margin:10px 0 4px;font-weight:800;text-transform:capitalize;}
+.tabs.an-tabs{flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Revisar y mejorar</div>
+    <h1>Análisis y alertas</h1>
+    <p>Lo que los datos del portal dicen cuando se miran juntos</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="card"><div class="tabs an-tabs" id="tabs"></div></div>
+  <div id="panel"><div class="empty">Analizando…</div></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="evidencias-reglas.js"></script>
+<script src="informe-reglas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$, G = INFORME.graf, C = G.COLOR;
+/* v158 · Análisis y alertas: cruces de los datos del portal que no se ven registro por registro.
+   Alertas de patrón, controles de la matriz sin evidencia, costo de la accidentalidad, calificación de
+   contratistas, tendencia de la Res. 0312, charlas sugeridas por lo que pasa, personas sin actividad,
+   vencimientos del mes y eficacia de las acciones. */
+const TIPOS = 'aprobrec,evid0312,custodiahc,empresa,documento,comite,reunion,plananual,trabajador,induccion,politica,auditoria,rendicion,legal,reporte,proveedor,contratista,cambio,perfil,sve,cargo,examen,inspeccion,residuo,aspecto,mes,peligro,revmatriz,sustancia,medicion,programa,equipo,eppcargo,entrega,emergencia,simulacro,revision,accion,solrepo,pvecaso,dotacion';
+const TABS = [['alertas', '⚠ Alertas'], ['controles', 'Controles'], ['costos', 'Costos'], ['contratistas', 'Contratistas'], ['r0312', 'Res. 0312'], ['charlas', 'Charlas sugeridas'], ['personas', 'Sin actividad'], ['vence', 'Vencimientos'], ['eficacia', 'Eficacia'], ['datos', 'Datos por depurar']];
+let rows = [], tab = 'alertas', esSst = false, perfil = {}, evHoy = null, ev30 = null, plantilla = '';
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const hoy = UI.hoy(), menos = (d)=> Festivos.sumarDias(hoy, -d), mas = (d)=> Festivos.sumarDias(hoy, d);
+const cedK = (c)=> String(c || '').replace(/\D/g, '');
+const norm = (t)=> String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+const kpi = (v, n, f, c)=> '<div class="an-k ' + (c || '') + '"><div class="n">' + esc(n) + '</div><div class="v">' + esc(v) + '</div>' + (f ? '<div class="f">' + esc(f) + '</div>' : '') + '</div>';
+const li = (t, m, c)=> '<li><div class="t">' + t + (c ? ' <span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>' : '') + '</div>' + (m ? '<div>' + m + '</div>' : '') + '</li>';
+const card = (h, cuerpo, ayuda)=> '<div class="card"><h2>' + h + '</h2>' + (ayuda ? '<p class="ayuda u-mtn4">' + ayuda + '</p>' : '') + cuerpo + '</div>';
+const lista = (items, vacio)=> items.length ? '<ul class="an-l">' + items.join('') + '</ul>' : '<div class="empty">' + vacio + '</div>';
+const areaDeTrab = ()=> { const m = {}; de('trabajador').forEach((x)=> { m[cedK(x.resumen.cedula)] = x.resumen; }); return m; };
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const rol = Sesion.rol(); esSst = !Sesion.modo() || !Sesion.yo() || ['admin', 'sst'].includes(rol);
+  const r = await SGSST.listar(TIPOS);
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || [];
+  try { await Habilitacion.cargar(); } catch (e) {}
+  const pf = rows.find((x)=> x.id === 'EMPRESA-PERFIL');
+  perfil = (pf && await SGSST.doc('EMPRESA-PERFIL')) || UI.perfilInstalacion() || {};
+  const grupo = Number(perfil.grupo0312) || 60; plantilla = grupo === 60 ? 'RES0312' : 'RES0312_' + grupo;
+  try { const items = PLANTILLAS_AUDITORIA[plantilla].items, ctx = (h)=> ({ rows, perfil, hoy: h, esSst, docDe: (id)=> SGSST.doc(id) });
+    evHoy = await EVIDENCIAS.evaluar(items, ctx(hoy)); ev30 = await EVIDENCIAS.evaluar(items, ctx(mas(30))); } catch (e) { evHoy = ev30 = null; }
+  pintarTabs(); pintar();
+}
+function pintarTabs(){
+  const n = { alertas: alertas().length, controles: controles().filter((x)=> x.falta.length).length, personas: sinActividad().length, eficacia: eficacia().filter((x)=> x.volvio).length, datos: datosSucios().total };
+  $('tabs').innerHTML = TABS.map(([k, t])=> '<button type="button" data-t="' + k + '" class="' + (tab === k ? 'on' : '') + '">' + t + (n[k] ? ' <span class="n">' + n[k] + '</span>' : '') + '</button>').join('');
+}
+$('tabs').addEventListener('click', (e)=> { const b = e.target.closest('[data-t]'); if (!b) return; tab = b.dataset.t; pintarTabs(); pintar(); });
+function pintar(){ $('panel').innerHTML = ({ alertas: pAlertas, controles: pControles, costos: pCostos, contratistas: pContratistas, r0312: p0312, charlas: pCharlas, personas: pPersonas, vence: pVence, eficacia: pEficacia, datos: pDatos })[tab](); enlazar(); }
+function enlazar(){
+  $('panel').querySelectorAll('[data-reabrir]').forEach((b)=> b.addEventListener('click', async ()=> {
+    const id = b.dataset.reabrir, x = eficacia().find((y)=> y.a.id === id); if (!x) return;
+    if (!await Dialogo.confirmar('¿Reabrir la acción? El problema volvió a reportarse ' + x.nuevos.length + ' vez(veces) después de cerrarla.')) return;
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'accion', id, campos: { estado: 'ABIERTA', fechaCompromiso: Festivos.sumarHabiles(hoy, 10) }, agregar: { seguimiento: { fecha: hoy, texto: 'Reabierta: no fue eficaz (el problema se volvió a reportar: ' + x.nuevos.map((n)=> n.id).join(', ') + ').', uid: 'efi-' + Date.now() } } });
+    UI.toast(r.ok ? '✓ Acción reabierta' : Errores.texto('guardó', r), r.ok ? '' : 'mal'); if (r.ok) cargar(); }));
+  if ($('cSal')) ['cSal', 'cInd'].forEach((id)=> $(id).addEventListener('change', ()=> { try { localStorage.setItem('ssta-an-' + id, $(id).value); } catch (e) {} pintar(); }));
+}
+
+/* ── 1 · Alertas de patrón ── */
+function alertas(){
+  const out = [], rep = de('reporte').filter((x)=> String(x.resumen.fecha) >= menos(30) && /Acto|Condici|Incidente|Accidente/.test(x.resumen.clase || ''));
+  const g = {}; rep.forEach((x)=> { const k = norm(x.resumen.categoria || x.resumen.clase) + '|' + norm(x.resumen.lugar || x.resumen.centro); (g[k] = g[k] || []).push(x); });
+  Object.keys(g).forEach((k)=> { const l = g[k]; if (l.length >= 3) out.push({ n: 'mal', t: l.length + ' reportes de «' + (l[0].resumen.categoria || l[0].resumen.clase) + '» en ' + (l[0].resumen.lugar || l[0].resumen.centro || 'el mismo lugar') + ' en 30 días', m: 'Ya no es un hecho aislado: revisa la causa común y el control en la matriz de peligros. ' + l.map((x)=> x.id).join(', '), href: 'reportes.html' }); });
+  const insp = {}; de('inspeccion').filter((x)=> x.resumen.equipoId).sort((a, b)=> String(a.resumen.fecha).localeCompare(String(b.resumen.fecha))).forEach((x)=> { (insp[x.resumen.equipoId] = insp[x.resumen.equipoId] || []).push(x); });
+  Object.keys(insp).forEach((id)=> { const l = insp[id].slice(-2); if (l.length === 2 && l.every((x)=> x.resumen.resultado === 'NO CONFORME')) { const eq = de('equipo').find((e)=> e.id === id);
+    out.push({ n: 'mal', t: 'Equipo no conforme dos veces seguidas: ' + ((eq && (eq.resumen.codigo || eq.resumen.nombre)) || l[1].resumen.equipo || id), m: 'Lo que se corrigió no funcionó o no se corrigió. Considera sacarlo de uso o cambiarlo.', href: 'inspecciones.html' }); } });
+  const sr = {}; de('solrepo').filter((x)=> String(x.resumen.fecha) >= menos(90)).forEach((x)=> { const k = cedK(x.resumen.cedula); (sr[k] = sr[k] || []).push(x); });
+  Object.keys(sr).forEach((k)=> { const l = sr[k]; if (l.length >= 2) out.push({ n: 'amar', t: (l[0].resumen.nombre) + ': EPP dañado ' + l.length + ' veces en 90 días', m: 'Revisa si el EPP es el adecuado para la tarea, la talla o el uso. ' + l.map((x)=> x.resumen.elementosTexto).join(' · '), href: 'persona.html?ced=' + k }); });
+  const ats = areaDeTrab(), les = {}; de('reporte').filter((x)=> x.resumen.lesionadoCc && String(x.resumen.fecha) >= menos(365)).forEach((x)=> { const k = cedK(x.resumen.lesionadoCc); (les[k] = les[k] || []).push(x); });
+  Object.keys(les).forEach((k)=> { if (les[k].length >= 2) out.push({ n: 'mal', t: ((ats[k] || {}).nombre || les[k][0].resumen.lesionado || k) + ': ' + les[k].length + ' eventos con lesión en el año', m: 'Revisa su puesto, su capacitación y si entra a un programa de vigilancia.', href: 'persona.html?ced=' + k }); });
+  const acc = de('accion').filter((x)=> x.estado !== 'CERRADA' && x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < menos(30));
+  if (acc.length >= 3) out.push({ n: 'amar', t: acc.length + ' acciones con más de 30 días de vencidas', m: 'El plan de acción se está quedando: reprograma con responsables o escálalo a la gerencia.', href: 'plan-accion.html' });
+  return out;
+}
+function pAlertas(){ const l = alertas();
+  return card('Alertas de patrón', lista(l.map((x)=> li(esc(x.t), esc(x.m) + (x.href ? ' <a href="' + esc(x.href) + '">Ver →</a>' : ''), [x.n === 'mal' ? 'mal' : 'pronto', x.n === 'mal' ? 'Atender' : 'Revisar'])), 'Sin patrones raros en los datos. 👍'),
+    'Lo que se repite: el mismo reporte en el mismo lugar, el mismo equipo no conforme, la misma persona con EPP dañado o lesionada, acciones que se quedan.'); }
+
+/* ── 3 · Controles de la matriz sin evidencia ── */
+function controles(){
+  const insp = de('inspeccion').filter((x)=> String(x.resumen.fecha) >= menos(60)), cats = insp.map((x)=> norm([x.resumen.categoria, x.resumen.equipo, x.resumen.lugar].join(' ')));
+  const mant = de('equipo').filter((x)=> x.resumen.mantTipo && x.resumen.mantTipo !== 'No aplica');
+  const matriz = de('eppcargo').map((x)=> ({ c: norm(x.resumen.cargo), e: norm(x.resumen.elementosTexto) }));
+  return de('peligro').filter((x)=> /^(I|II)$/.test(String(x.resumen.nivel || '')) || /no acept/i.test(x.resumen.aceptabilidad || '') || x.resumen.controlesTexto).map((x)=> {
+    const s = x.resumen, t = norm(s.controlesTexto + ' ' + (s.ctrlIndividuo || '')), falta = [], ok = [];
+    if (/inspecci/.test(t)) { const pal = t.match(/inspecci[oó]n (?:de |del |a )?(?:la |los |las |el )?([a-z]{4,})/); const p = pal && pal[1];
+      (p ? cats.some((c)=> c.includes(p.slice(0, 5))) : insp.length) ? ok.push('inspección' + (p ? ' de ' + p : '')) : falta.push('no hay inspecciones' + (p ? ' de «' + p + '»' : '') + ' en 60 días'); }
+    if (/mantenimiento/.test(t)) (mant.some((e)=> !e.resumen.mantProximo || e.resumen.mantProximo >= hoy) ? ok.push('mantenimiento al día') : falta.push('no hay equipos con mantenimiento programado al día'));
+    if (s.ctrlIndividuo) { const cs = String(s.cargos || '').split(/\s*[,;]\s*/).map(norm).filter(Boolean), el = norm(s.ctrlIndividuo).split(/[,;y]+/).map((w)=> w.trim().split(' ')[0]).filter((w)=> w.length > 3);
+      const sinEpp = cs.filter((c)=> { const m = matriz.find((y)=> y.c === c); return !m || !el.every((w)=> m.e.includes(w.slice(0, 5))); });
+      sinEpp.length ? falta.push('la matriz de EPP de ' + sinEpp.join(', ') + ' no incluye: ' + s.ctrlIndividuo) : cs.length && ok.push('EPP en la matriz de los cargos'); }
+    return { x, falta, ok };
+  }).filter((y)=> y.falta.length || y.ok.length);
+}
+function pControles(){ const l = controles(), f = l.filter((y)=> y.falta.length);
+  return card('Controles de la matriz que no se evidencian', '<div class="an-kpis">' + kpi(String(f.length), 'Peligros con control sin evidencia', '', f.length ? 'mal' : 'ok') + kpi(String(l.length - f.length), 'Con controles evidenciados', '', 'ok') + '</div>' +
+    lista(f.map((y)=> li(esc(y.x.resumen.peligro || y.x.titulo) + ' · ' + esc(y.x.resumen.proceso || ''), '<b>Falta:</b> ' + esc(y.falta.join('; ')) + (y.ok.length ? '<br>Sí hay: ' + esc(y.ok.join(', ')) : '') + ' <a href="peligros.html#' + esc(y.x.id) + '">Abrir →</a>', ['mal', 'Control no evidenciado'])), 'Todos los controles que el portal puede revisar tienen evidencia.'),
+    'El portal lee los controles escritos en la matriz (inspecciones, mantenimiento y EPP) y busca su registro: inspecciones de los últimos 60 días, mantenimientos al día y el EPP en la matriz de EPP de los cargos expuestos.'); }
+
+/* ── 4 · Costo de la accidentalidad ── */
+function pCostos(){
+  let sal = 0, ind = 4; try { sal = Number(localStorage.getItem('ssta-an-cSal')) || 0; ind = Number(localStorage.getItem('ssta-an-cInd')) || 4; } catch (e) {}
+  const SMMLV = 1750905; if (!sal) sal = SMMLV * 1.5;
+  const anio = hoy.slice(0, 4), at = de('reporte').filter((x)=> x.resumen.clase === 'Accidente de trabajo' && String(x.resumen.fecha).slice(0, 4) === anio);
+  const dias = at.reduce((a, x)=> a + (Number(x.resumen.diasIncapacidad) || 0), 0), diario = sal / 30;
+  // Los 2 primeros días de incapacidad los paga el empleador; desde el 3.º la ARL. Igual se pierde la producción de cada día.
+  const directo = at.reduce((a, x)=> a + Math.min(2, Number(x.resumen.diasIncapacidad) || 0) * diario, 0), produccion = dias * diario, repo = de('solrepo').filter((x)=> String(x.resumen.fecha).slice(0, 4) === anio).length;
+  const total = directo + produccion * ind;
+  const $f = (v)=> '$' + Math.round(v).toLocaleString('es-CO');
+  const porMes = Array.from({ length: 12 }, (_, i)=> anio + '-' + ('0' + (i + 1)).slice(-2)).map((m)=> { const l = at.filter((x)=> String(x.resumen.fecha).slice(0, 7) === m); return { et: INFORME.etiquetaMes(m), v: Math.round(l.reduce((a, x)=> a + (Number(x.resumen.diasIncapacidad) || 0), 0) * diario * (1 + ind) / 1000000 * 10) / 10 }; });
+  return card('Costo estimado de la accidentalidad ' + anio,
+    '<div class="grid2"><div class="field"><label for="cSal">Salario base promedio (mensual)</label><input type="number" id="cSal" value="' + Math.round(sal) + '"></div><div class="field"><label for="cInd">Costos ocultos por cada peso visible</label><select id="cInd">' + [2, 3, 4, 5].map((n)=> '<option' + (n === ind ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></div></div>' +
+    '<div class="an-kpis">' + kpi(String(at.length), 'Accidentes de trabajo', dias + ' días de incapacidad', at.length ? 'mal' : 'ok') + kpi($f(directo), 'Lo que paga la empresa', 'los 2 primeros días de cada incapacidad') + kpi($f(produccion), 'Producción perdida', dias + ' días × salario diario') + kpi($f(total), 'Costo total estimado', 'directo + ocultos (reemplazos, investigación, daños, tiempo)', total ? 'mal' : 'ok') + '</div>' +
+    '<div class="pv-g">' + G.barras(porMes, { dec: 1, titulo: 'Millones por mes' }) + '<p class="ayuda">Millones de pesos por mes (incluye los costos ocultos).</p></div>' +
+    '<p class="ayuda">Además, ' + repo + ' reposición(es) de EPP por daño este año. Es una estimación para la gerencia: el salario y el factor de costos ocultos los pones tú (Heinrich y Bird usan de 4 a 1 hasta 10 a 1). No se usan los salarios reales de nadie.</p>'); }
+
+/* ── 5 · Calificación por contratista ── */
+function pContratistas(){
+  const trab = de('trabajador').filter((x)=> x.resumen.activo !== false), porEmp = {}, empresaDe = areaDeTrab();
+  trab.forEach((x)=> { const e = String(x.resumen.empresa || '').trim(); if (!e) return; (porEmp[norm(e)] = porEmp[norm(e)] || { n: e, t: [] }).t.push(x); });
+  const reps = de('reporte').filter((x)=> String(x.resumen.fecha) >= menos(365));
+  const filas = de('contratista').map((c)=> {
+    const k = norm(c.resumen.nombre), g = porEmp[k] || { t: [] }, hab = g.t.filter((x)=> Habilitacion.revisar(x.resumen.cedula, 'general').estado === 'ok').length;
+    const at = reps.filter((x)=> x.resumen.clase === 'Accidente de trabajo' && norm((empresaDe[cedK(x.resumen.lesionadoCc)] || {}).empresa) === k).length;
+    const docs = c.resumen.docsVencidos ? 0 : c.resumen.docsFaltan ? 50 : 100, pHab = g.t.length ? Math.round(hab * 100 / g.t.length) : null, ev = Number(c.resumen.evalPuntaje) || null;
+    const nota = Math.round(((pHab === null ? 70 : pHab) * 0.4 + docs * 0.3 + Math.max(0, 100 - at * 25) * 0.2 + (ev === null ? 70 : ev) * 0.1));
+    return { c, n: g.t.length, pHab, docs, at, ev, nota };
+  }).sort((a, b)=> a.nota - b.nota);
+  return card('Calificación de contratistas', filas.length ? '<table class="tabla"><tr><th>Contratista</th><th>Personal habilitado</th><th>Documentos</th><th>AT (año)</th><th>Nota</th></tr>' + filas.map((f)=> '<tr><td><b>' + esc(f.c.resumen.nombre) + '</b><br><small>' + esc(f.c.resumen.servicio || '') + '</small></td><td>' + (f.pHab === null ? '—' : f.pHab + ' % de ' + f.n) + '</td><td>' + (f.docs === 100 ? 'Al día' : f.docs === 50 ? 'Faltan' : '<b class="u-mal">Vencidos</b>') + '</td><td>' + f.at + '</td><td><span class="chip ' + (f.nota >= 85 ? 'ok' : f.nota >= 70 ? 'pronto' : 'mal') + '">' + f.nota + '</span></td></tr>').join('') + '</table>' : '<div class="empty">No hay contratistas registrados.</div>',
+    'Nota de 0 a 100: personal habilitado (40 %), documentos (30 %), accidentes del último año (20 %) y su última evaluación de desempeño (10 %). El personal se cruza por el nombre de la empresa en Personal habilitado.'); }
+
+/* ── 6 · Res. 0312: hoy y en 30 días ── */
+function p0312(){
+  if (!evHoy) return card('Res. 0312', '<div class="empty">No se pudo calcular (¿sin señal?).</div>');
+  const a = EVIDENCIAS.resumen(evHoy), b = EVIDENCIAS.resumen(ev30), baja = evHoy.filter((x, i)=> x.e === 'ok' && ev30[i] && ev30[i].e !== 'ok');
+  const hist = de('mes').filter((x)=> x.resumen.pct0312 !== undefined && x.resumen.pct0312 !== '').sort((p, q)=> String(p.resumen.mes).localeCompare(String(q.resumen.mes))).slice(-12);
+  return card('Estándares mínimos: hoy y en 30 días', '<div class="an-kpis">' + kpi(String(a.pct).replace('.', ',') + ' %', 'Hoy (estimado)', a.ok + ' de ' + a.total + ' con evidencia', a.pct >= 85 ? 'ok' : a.pct >= 60 ? 'amar' : 'mal') + kpi(String(b.pct).replace('.', ',') + ' %', 'En 30 días si no se hace nada', baja.length + ' estándar(es) bajarían', b.pct < a.pct ? 'mal' : 'ok') + '</div>' +
+    (hist.length > 1 ? '<div class="pv-g">' + G.linea(hist.map((x)=> ({ et: INFORME.etiquetaMes(x.resumen.mes), v: Number(x.resumen.pct0312), sel: true })), { unidad: ' %' }) + '</div>' : '') +
+    '<h3>Lo que bajaría en los próximos 30 días</h3>' + lista(baja.map((x, i)=> li(esc(x.id) + ' · ' + esc(x.texto), esc((ev30.find((y)=> y.id === x.id) || {}).que || 'Se vence la evidencia.') + (x.href ? ' <a href="' + esc(x.href) + '">Ir →</a>' : ''), ['pronto', 'Se vence'])), 'Nada se vence en los próximos 30 días.'),
+    'Estimación con la evidencia del portal (no es la calificación oficial). La tendencia mensual se arma con los cierres de mes.'); }
+
+/* ── 7 · Charlas sugeridas por lo que pasa ── */
+function sugerencias(){
+  const ta = areaDeTrab(), g = {};
+  de('reporte').filter((x)=> String(x.resumen.fecha) >= menos(60) && /Acto|Condici|Incidente/.test(x.resumen.clase || '')).forEach((x)=> { const s = x.resumen, area = (ta[cedK(s.lesionadoCc)] || {}).area || s.area || s.centro || s.lugar || 'General';
+    const k = norm(s.categoria || s.clase) + '|' + norm(area); (g[k] = g[k] || { cat: s.categoria || s.clase, area, l: [] }).l.push(x); });
+  return Object.values(g).filter((x)=> x.l.length >= 2).sort((a, b)=> b.l.length - a.l.length).map((x)=> ({ ...x, personas: de('trabajador').filter((t)=> t.resumen.activo !== false && norm(t.resumen.area) === norm(x.area)).length }));
+}
+function pCharlas(){ const l = sugerencias();
+  return card('Charlas sugeridas por lo que está pasando', lista(l.map((x)=> li('Charla: «' + esc(x.cat) + '» para ' + esc(x.area), x.l.length + ' reportes en 60 días' + (x.personas ? ' · ' + x.personas + ' persona(s) del área' : '') + '. Tema sugerido: qué se está viendo, por qué es peligroso y cómo se hace bien. <a href="asistencia.html">Programar en Charlas →</a>', ['pronto', 'Sugerida'])), 'Ningún tema se repite lo suficiente para sugerir una charla.'),
+    'Cuando el mismo tipo de acto o condición se reporta 2 o más veces en un área en 60 días, conviene una charla corta sobre eso, con la gente de esa área.'); }
+
+/* ── 8 · Personas sin actividad reciente ── */
+function sinActividad(){
+  const ent = new Set(de('entrega').map((x)=> cedK(x.resumen.cedula))), ind = new Set(de('induccion').filter((x)=> !x.resumen.vence || x.resumen.vence >= hoy).map((x)=> cedK(x.resumen.cedula)));
+  const exa = new Set(de('examen').filter((x)=> String(x.resumen.fecha) >= menos(395)).map((x)=> cedK(x.resumen.cedula)));
+  return de('trabajador').filter((x)=> x.resumen.activo !== false).map((x)=> { const k = cedK(x.resumen.cedula), s = x.resumen, f = [];
+    if (!ind.has(k) && !(s.req && s.req.induccion && (!s.req.induccion.vence || s.req.induccion.vence >= hoy))) f.push('sin inducción vigente');
+    if (!ent.has(k)) f.push('sin entrega de EPP registrada');
+    if (esSst ? !exa.has(k) && !(s.req && s.req.medico && s.req.medico.fecha >= menos(395)) : !(s.req && s.req.medico && s.req.medico.fecha)) f.push('sin examen médico en el último año');
+    return { x, f }; }).filter((y)=> y.f.length);
+}
+function pPersonas(){ const l = sinActividad();
+  return card('Personas que se le escapan al sistema', '<div class="an-kpis">' + kpi(String(l.length), 'Personas con algo pendiente', 'de ' + de('trabajador').filter((x)=> x.resumen.activo !== false).length + ' activas', l.length ? 'amar' : 'ok') + '</div>' +
+    lista(l.map((y)=> li('<a href="persona.html?ced=' + esc(cedK(y.x.resumen.cedula)) + '">' + esc(y.x.resumen.nombre) + '</a> · ' + esc(y.x.resumen.cargo || '') + (y.x.resumen.empresa ? ' · ' + esc(y.x.resumen.empresa) : ''), esc(y.f.join(' · ')))), 'Todas las personas activas tienen inducción, EPP y examen. 👍'),
+    'Personal activo sin inducción vigente, sin ninguna entrega de EPP o sin examen médico en el último año. Suele ser gente nueva de contratistas.'); }
+
+/* ── 9 · Vencimientos agrupados por mes ── */
+function pVence(){
+  const fin = mas(92), items = [], add = (f, que, quien, tipo, href, ced)=> { f = String(f || '').slice(0, 10); if (f && f >= menos(31) && f <= fin) items.push({ f, que, quien, tipo, href, ced: cedK(ced) }); };
+  const tr = areaDeTrab();
+  const cfg = Habilitacion.config();
+  de('trabajador').filter((x)=> x.resumen.activo !== false).forEach((x)=> Object.keys(x.resumen.req || {}).forEach((k)=> add(x.resumen.req[k].vence, (cfg.requisitos[k] || {}).nombre || k, x.resumen.nombre, 'Cursos y requisitos', 'habilitacion.html', x.resumen.cedula)));
+  de('equipo').filter((x)=> x.resumen.activo !== false).forEach((x)=> { Object.keys(x.resumen.vencimientos || {}).forEach((k)=> add(x.resumen.vencimientos[k], k, x.resumen.codigo || x.resumen.nombre, 'Equipos (recargas y fechas)', 'inspecciones.html')); if (x.resumen.mantTipo && x.resumen.mantTipo !== 'No aplica') add(x.resumen.mantProximo, 'Mantenimiento ' + String(x.resumen.mantTipo).toLowerCase(), x.resumen.codigo || x.resumen.nombre, 'Mantenimientos', 'inspecciones.html'); });
+  de('entrega').forEach((x)=> String(x.resumen.vencimientos || '').split(/\s*;\s*/).forEach((v)=> { const p = v.split('|'); if (p[1]) add(p[1], 'Reponer ' + p[0], x.resumen.nombre, 'EPP por vida útil', 'entrega-epp.html', x.resumen.cedula); }));
+  if (esSst) { de('examen').forEach((x)=> add(x.resumen.proxima, 'Examen periódico', x.resumen.nombre, 'Exámenes médicos', 'salud.html', x.resumen.cedula)); de('pvecaso').filter((x)=> x.resumen.estado !== 'Egresado').forEach((x)=> add(x.resumen.proximaEvaluacion, 'Evaluación PVE ' + x.resumen.programa, x.resumen.nombre, 'Seguimientos PVE', 'pve.html')); }
+  items.sort((a, b)=> a.f.localeCompare(b.f));
+  const meses = [...new Set(items.map((x)=> x.f.slice(0, 7)))];
+  return card('Vencimientos de los próximos 3 meses, agrupados', meses.length ? meses.map((m)=> { const l = items.filter((x)=> x.f.slice(0, 7) === m), tipos = [...new Set(l.map((x)=> x.tipo))];
+    return '<div class="an-mes">' + esc(INFORME.nombreMes(m)) + ' · ' + l.length + '</div>' + tipos.map((t)=> { const lt = l.filter((x)=> x.tipo === t);
+      return '<details><summary><b>' + esc(t) + '</b> (' + lt.length + ')' + (lt.length >= 3 ? ' · <span class="chip pronto">Programar en lote</span>' : '') + '</summary><ul class="an-l">' + lt.map((x)=> li(esc(x.quien) + ' · ' + esc(x.que), esc(UI.corta(x.f)) + (x.f < hoy ? ' · <b class="u-mal">vencido</b>' : '') + ' <a href="' + x.href + '">Ir →</a>' + avisar(x, tr))).join('') + '</ul></details>'; }).join(''); }).join('') : '<div class="empty">Nada vence en los próximos 3 meses.</div>',
+    'Lo que vence, junto por mes y por tipo, para programar en lote: un solo día de exámenes, una jornada de recarga, una compra de EPP. Incluye lo vencido del último mes.') +
+    (esSst ? '<div class="card"><h2>📅 En tu calendario</h2><p class="ayuda u-mtn4">Suscribe Google Calendar u Outlook a estos vencimientos: se actualizan solos y avisan 7 días antes. No incluye datos de salud.</p><button type="button" class="btn ghost" id="btnIcs">Suscribirme</button><div id="icsBox"></div></div>' : ''); }
+/* v162 · Suscripción ICS del calendario de vencimientos */
+document.addEventListener('click', async (e)=> {
+  const b = e.target.closest('#btnIcs, #btnIcsNuevo'); if (!b) return;
+  if (b.id === 'btnIcsNuevo' && !await Dialogo.confirmar('¿Cambiar el enlace? Los calendarios suscritos con el enlace anterior dejan de recibir los vencimientos.')) return;
+  let r; try { r = await SGSST.consultar({ action: 'icsEnlace', nuevo: b.id === 'btnIcsNuevo' ? '1' : '0' }); } catch (x) { r = { ok: false, error: 'Necesita señal.' }; }
+  if (!r.ok) { $('icsBox').innerHTML = '<div class="aviso mal">' + esc(r.error || 'No se pudo.') + '</div>'; return; }
+  const url = SGSST.url() + (SGSST.url().indexOf('?') === -1 ? '?' : '&') + 'action=ics&k=' + encodeURIComponent(r.llave) + '&token=' + encodeURIComponent(SGSST.token());
+  const web = url.replace(/^https:/, 'webcal:');
+  $('icsBox').innerHTML = '<div class="fila-btn u-mt8"><a class="btn" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(web) + '">Abrir en Google Calendar</a>' +
+    '<a class="btn ghost" href="' + esc(web) + '">Outlook / iPhone</a><button type="button" class="btn ghost" id="btnIcsCopiar">📋 Copiar enlace</button></div>' +
+    '<p class="ayuda">Quien tenga el enlace ve los vencimientos: compártelo solo con SST y la gerencia. <button type="button" class="btn-mini" id="btnIcsNuevo">Cambiar el enlace</button></p>';
+  $('btnIcsCopiar').addEventListener('click', async ()=> { try { await navigator.clipboard.writeText(url); $('btnIcsCopiar').textContent = '✓ Copiado'; } catch (x) { $('btnIcsCopiar').textContent = 'No se pudo copiar'; } });
+});
+
+/* v159 · Recordatorio por WhatsApp a la persona (si tiene celular en Personal habilitado; si no, se elige el contacto). */
+function avisar(x, tr){
+  if (!x.ced || x.tipo === 'Exámenes médicos' && !esSst) return '';
+  const t = tr[x.ced] || {}, cel = String(t.celular || '').replace(/\D/g, ''), num = cel.length === 10 ? '57' + cel : cel;
+  const txt = 'Hola ' + String(x.quien || '').split(' ')[0] + ', te recordamos de SST de ' + (EMPRESA.nombre || 'la empresa') + ': ' + x.que + (x.f < hoy ? ' venció el ' : ' vence el ') + UI.corta(x.f) + '. Por favor gestiónalo a tiempo.';
+  return ' <a class="btn-mini" target="_blank" rel="noopener" href="https://wa.me/' + (num ? num : '') + '?text=' + encodeURIComponent(txt) + '" title="' + (num ? 'Enviar por WhatsApp' : 'Sin celular registrado: eliges el contacto') + '">📲 Avisar</a>';
+}
+
+/* ── 10 · Eficacia de las acciones ── */
+function eficacia(){
+  return de('accion').filter((a)=> a.estado === 'CERRADA' && a.resumen.fechaCierre && a.resumen.origenRef && /Reporte|reporte|Inspecci/.test(a.resumen.origen || '')).map((a)=> {
+    const ori = rows.find((x)=> x.id === a.resumen.origenRef); if (!ori) return null;
+    const s = ori.resumen, cierre = a.resumen.fechaCierre;
+    const nuevos = ori.tipo === 'reporte' ? de('reporte').filter((x)=> x.id !== ori.id && String(x.resumen.fecha) > cierre && norm(x.resumen.categoria) === norm(s.categoria) && norm(x.resumen.lugar || x.resumen.centro) === norm(s.lugar || s.centro))
+      : de('inspeccion').filter((x)=> x.id !== ori.id && String(x.resumen.fecha) > cierre && x.resumen.equipoId && x.resumen.equipoId === s.equipoId && x.resumen.resultado === 'NO CONFORME');
+    const madura = cierre <= menos(90);
+    return { a, ori, nuevos, volvio: nuevos.length > 0, madura };
+  }).filter(Boolean);
+}
+function pEficacia(){ const l = eficacia(), no = l.filter((x)=> x.volvio), si = l.filter((x)=> !x.volvio && x.madura), esp = l.filter((x)=> !x.volvio && !x.madura);
+  return card('¿Las acciones cerradas funcionaron?', '<div class="an-kpis">' + kpi(String(no.length), 'No eficaces', 'el problema volvió', no.length ? 'mal' : 'ok') + kpi(String(si.length), 'Eficaces', '3 meses sin repetirse', 'ok') + kpi(String(esp.length), 'En observación', 'cerradas hace menos de 3 meses') + '</div>' +
+    lista(no.map((x)=> li(esc(x.a.resumen.accion || x.a.titulo), 'Cerrada el ' + esc(UI.corta(x.a.resumen.fechaCierre)) + '. El problema volvió: ' + esc(x.nuevos.map((n)=> n.id + ' (' + UI.corta(n.resumen.fecha) + ')').join(', ')) + ' <button type="button" class="btn-mini" data-reabrir="' + esc(x.a.id) + '">Reabrir</button>', ['mal', 'No eficaz'])), 'Ninguna acción cerrada ha visto repetirse su problema. 👍'),
+    'Después de cerrar una acción, el portal mira si el mismo problema se volvió a reportar (misma categoría y lugar, o el mismo equipo no conforme). A los 3 meses sin repetirse se considera eficaz (ISO 45001, 10.2; Dec. 1072, 2.2.4.6.33).'); }
+/* ── v159 · 12 · Datos por depurar ── */
+const nk = (t)=> norm(t).replace(/[^a-z0-9ñ]/g, '');
+function datosSucios(){
+  const trab = de('trabajador'), out = { dup: [], nombres: [], inact: [], equipos: [], areas: [], total: 0 };
+  const porCed = {}; trab.forEach((x)=> { const k = cedK(x.resumen.cedula); if (k) (porCed[k] = porCed[k] || []).push(x); });
+  out.dup = Object.keys(porCed).filter((k)=> porCed[k].length > 1).map((k)=> porCed[k]);
+  const porNom = {}; trab.forEach((x)=> { const k = nk(x.resumen.nombre); if (k.length > 8) (porNom[k] = porNom[k] || []).push(x); });
+  out.nombres = Object.keys(porNom).filter((k)=> new Set(porNom[k].map((x)=> cedK(x.resumen.cedula))).size > 1).map((k)=> porNom[k]);
+  const recientes = new Set(); ['entrega', 'induccion', 'solrepo', 'dotacion'].forEach((t)=> de(t).filter((x)=> String(x.resumen.fecha || x.fecha) >= menos(30)).forEach((x)=> recientes.add(cedK(x.resumen.cedula))));
+  de('reporte').filter((x)=> String(x.resumen.fecha) >= menos(30)).forEach((x)=> recientes.add(cedK(x.resumen.lesionadoCc)));
+  out.inact = trab.filter((x)=> x.resumen.activo === false && recientes.has(cedK(x.resumen.cedula)));
+  out.equipos = de('equipo').filter((x)=> x.resumen.activo !== false && (!x.resumen.ultimaInspeccion || x.resumen.ultimaInspeccion < menos(90)));
+  // Áreas escritas de varias formas: se agrupan por cómo se leen (sin tildes, mayúsculas ni espacios)
+  const oficiales = (typeof Areas !== 'undefined' ? Areas.lista() : []), usos = {};
+  trab.concat(de('equipo')).forEach((x)=> { const a = String(x.resumen.area || '').trim(); if (!a) return; const k = nk(a); (usos[k] = usos[k] || {})[a] = (usos[k][a] || []).concat(x); });
+  out.areas = Object.keys(usos).map((k)=> { const formas = Object.keys(usos[k]); const of = oficiales.find((o)=> nk(o) === k); return { k, formas, of, regs: [].concat(...formas.map((f)=> usos[k][f])) }; })
+    .filter((g)=> g.formas.length > 1 || (g.of && g.formas[0] !== g.of) || (!g.of && oficiales.length && !oficiales.some((o)=> nk(o) === g.k)));
+  out.total = out.dup.length + out.nombres.length + out.inact.length + out.areas.length;
+  return out;
+}
+function pDatos(){
+  const d = datosSucios(), nomT = (x)=> '<a href="persona.html?ced=' + esc(cedK(x.resumen.cedula)) + '">' + esc(x.resumen.nombre) + '</a> (CC ' + esc(x.resumen.cedula) + ')';
+  const areas = d.areas.map((g)=> { const dest = g.of || g.formas.sort((a, b)=> (g.regs.filter((r)=> r.resumen.area === b).length - g.regs.filter((r)=> r.resumen.area === a).length))[0];
+    return li('Área: ' + g.formas.map((f)=> '«' + esc(f) + '»').join(', '), g.regs.length + ' registro(s).' + (g.of ? '' : ' No está en la lista oficial de áreas.') + (g.formas.length > 1 || g.of ? ' <button type="button" class="btn-mini" data-unificar="' + esc(g.k) + '" data-a="' + esc(dest) + '">Unificar como «' + esc(dest) + '»</button>' : ' <a href="areas.html">Agregarla a las áreas →</a>'), ['pronto', 'Revisar']); });
+  return card('Datos por depurar',
+    '<div class="an-kpis">' + kpi(String(d.dup.length + d.nombres.length), 'Personas duplicadas', '', d.dup.length + d.nombres.length ? 'amar' : 'ok') + kpi(String(d.inact.length), 'Inactivas con movimiento', 'últimos 30 días', d.inact.length ? 'mal' : 'ok') + kpi(String(d.equipos.length), 'Equipos sin inspección', 'más de 90 días') + kpi(String(d.areas.length), 'Áreas mal escritas', '', d.areas.length ? 'amar' : 'ok') + '</div>' +
+    '<h3>Personas</h3>' + lista(d.dup.map((l)=> li('Misma cédula registrada ' + l.length + ' veces', l.map(nomT).join(' · ') + ' <button type="button" class="btn-mini" data-fusionar="' + esc(cedK(l[0].resumen.cedula)) + '">Unificar en una</button>', ['mal', 'Duplicada'])).concat(
+      d.nombres.map((l)=> li('Mismo nombre con cédulas distintas', l.map(nomT).join(' · ') + ' — revisa si es la misma persona con la cédula mal escrita.', ['pronto', 'Posible duplicado'])),
+      d.inact.map((x)=> li(nomT(x), 'Está INACTIVA pero tuvo entregas, inducción o reportes en los últimos 30 días. Actívala o corrige el registro.', ['mal', 'Inactiva']))), 'Sin personas duplicadas ni inactivas con movimiento.') +
+    '<h3>Áreas</h3>' + lista(areas, 'Las áreas están bien escritas.') +
+    '<h3>Equipos sin inspección</h3>' + lista(d.equipos.slice(0, 30).map((x)=> li('<a href="equipo.html?id=' + esc(x.id) + '">' + esc((x.resumen.codigo ? x.resumen.codigo + ' · ' : '') + (x.resumen.nombre || '')) + '</a>', x.resumen.ultimaInspeccion ? 'Última inspección ' + esc(UI.corta(x.resumen.ultimaInspeccion)) : 'Nunca inspeccionado', ['pronto', 'Inspeccionar o dar de baja'])), 'Todos los equipos activos tienen inspección reciente.'),
+    'Lo que ensucia los informes: personas repetidas, gente inactiva que sigue apareciendo, áreas escritas de varias formas y equipos que nadie inspecciona.');
+}
+/* v162 · Fusión de duplicados con historial: se deja la ficha con más datos, se le pasan los requisitos que le falten
+   y las demás quedan INACTIVAS con «fusionada con …» (nada se borra; el historial de cada una sigue ahí). */
+document.addEventListener('click', async (e)=> {
+  const b = e.target.closest('[data-fusionar]'); if (!b) return;
+  const l = datosSucios().dup.find((g)=> cedK(g[0].resumen.cedula) === b.dataset.fusionar); if (!l) return;
+  const peso = (x)=> Object.keys(x.resumen.req || {}).length * 10 + (x.resumen.cargo ? 1 : 0) + (x.resumen.area ? 1 : 0);
+  const orden = l.slice().sort((a, c)=> peso(c) - peso(a)), queda = orden[0], van = orden.slice(1);
+  if (!await Dialogo.confirmar('Queda «' + queda.resumen.nombre + '» (' + queda.id + ') con los requisitos de todas. ' + van.length + ' ficha(s) quedan inactivas y marcadas como fusionadas (no se borra nada). ¿Unificar?')) return;
+  b.disabled = true;
+  const req = Object.assign({}, ...van.map((x)=> x.resumen.req || {}), queda.resumen.req || {});
+  const r1 = await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id: queda.id, campos: { req }, agregar: { historial: { fecha: UI.hoy(), texto: 'Fusionada con ' + van.map((x)=> x.id).join(', ') } } });
+  let ok = r1.ok ? 1 : 0;
+  for (const x of van) { const r = await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id: x.id, campos: { activo: false, fusionadoCon: queda.id } }); if (r.ok) { ok++; x.resumen.activo = false; } }
+  UI.toast(ok === l.length ? '✓ Unificadas en ' + queda.id : 'Se unificaron ' + ok + ' de ' + l.length, ok === l.length ? '' : 'mal'); cargar();
+});
+document.addEventListener('click', async (e)=> {
+  const b = e.target.closest('[data-unificar]'); if (!b) return;
+  const g = datosSucios().areas.find((x)=> x.k === b.dataset.unificar), a = b.dataset.a; if (!g) return;
+  const cambiar = g.regs.filter((r)=> r.resumen.area !== a);
+  if (!await Dialogo.confirmar('¿Cambiar el área de ' + cambiar.length + ' registro(s) a «' + a + '»?')) return;
+  b.disabled = true; let ok = 0;
+  for (const r of cambiar) { const res = await SGSST.enviar({ action: 'parche', tipo: r.tipo, id: r.id, campos: { area: a } }); if (res.ok) { ok++; r.resumen.area = a; } }
+  UI.toast('✓ ' + ok + ' registro(s) unificados'); pintarTabs(); pintar();
+});
+cargar();
+</script>
+</body>
+</html>

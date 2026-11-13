@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-nqw6sQwcOmKZUONROTiON9TpjGA5YAzszLeFQYanOXI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Contratistas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Contratistas · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.docrow{border-bottom:1px dashed var(--n-150);padding:9px 0;}
+.docrow .dt{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-base);font-weight:600;line-height:1.35;}
+.docrow .dt span:first-child{flex:1;min-width:0;}
+.docrow .dt .chip{flex:0 0 auto;}
+/* ¿Aplica? (v107): dos botones iguales, el texto centrado en cualquier ancho */
+.docrow .doc-ap{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.docrow .doc-ap button{min-width:0;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 8px;margin:0;line-height:1.2;}
+.docrow .doc-fechas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;}
+.docrow.no-aplica .doc-fechas{display:none;}
+.docrow input[type=date]{width:100%;min-width:0;min-height:44px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px;font-size:var(--fs-base);font-family:inherit;box-sizing:border-box;background:var(--n-0);}
+.docrow label{font-size:var(--fs-etiqueta);color:var(--muted);display:block;margin-bottom:2px;font-weight:700;text-transform:uppercase;}
+.docrow .doc-av{font-size:var(--fs-menor);font-weight:700;line-height:1.35;margin-top:5px;}
+.docrow .doc-av:empty{display:none;}
+.docrow .doc-av.mal{color:var(--mal);} .docrow .doc-av.pronto{color:var(--ambar-700);} .docrow .doc-av.gris{color:var(--muted);font-weight:600;}
+@media (max-width:380px){ .docrow .doc-fechas{grid-template-columns:1fr;} }
+.nit-dv{font-size:var(--fs-menor);font-weight:700;color:var(--ok);margin-top:4px;}
+.barra-ctr{position:sticky;bottom:0;z-index:5;background:linear-gradient(transparent,var(--bg,var(--bg)) 22%);padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px));}
+.barra-ctr .btn{margin:0;}
+.persona{display:flex;gap:10px;align-items:flex-start;border-bottom:1px dashed var(--n-150);padding:8px 0;font-size:var(--fs-base);}
+.persona > div{flex:1;min-width:0;}
+.persona small{display:block;color:var(--muted);font-size:var(--fs-menor);line-height:1.35;}
+.persona input{margin-top:3px;width:20px;height:20px;}
+.res{font-weight:800;font-size:var(--fs-campo);text-align:center;border-radius:var(--r-m);padding:12px;margin:10px 0;}
+.res.ok{background:var(--verde-50);color:var(--ok);} .res.pronto{background:var(--ambar-100);color:var(--ambar-700);} .res.mal{background:var(--rojo-50);color:var(--mal);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Contratistas</h1>
+    <p>Documentos de cada empresa contratista y control de ingreso a obra (Dec. 1072, art. 2.2.4.6.28)</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="acciones-top">
+    <button type="button" class="btn amber" id="btnNuevoCtr">+ Nuevo contratista</button>
+    <button type="button" class="btn ghost" id="btnNuevoIng">🚧 Registrar un ingreso a obra</button>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="empresas">Contratistas <span class="n" id="nEmp">0</span></button>
+    <button type="button" data-tab="ingresos">Ingresos a obra <span class="n" id="nIng">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<div class="screen" id="scrCtr">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Volver a contratistas</a>
+    <div class="eyebrow" id="cCodigo">Contratista</div>
+    <h1 id="cTitulo">—</h1>
+    <p id="cSub"></p>
+  </div>
+  <div class="acciones-top"><button type="button" class="btn ghost" id="btnPdfCtr">🖨️ Ficha del contratista (PDF)</button><button type="button" class="btn ghost" id="btnIngresoCtr">🚧 Registrar un ingreso</button><button type="button" class="btn ghost" id="btnEnlaceCtr">🔗 Enlace para el contratista</button></div><div id="enlaceCtr"></div>
+  <div class="card"><h2>Datos de la empresa</h2><div id="cDatos"></div></div>
+  <div class="card"><h2>Documentos</h2><p class="ayuda">Fecha de expedición y vencimiento de cada uno. Adjunta el soporte (PDF o foto) para que quede la evidencia.</p><div id="cDocs"></div><div id="cAdj"></div></div>
+  <div class="card"><h2>Personal del contratista</h2><div id="cPersonal"></div>
+    <a class="btn ghost" href="habilitacion.html" style="display:block;text-align:center;margin-top:8px;">Registrar o actualizar personas en Personal habilitado →</a>
+    <p class="ayuda">Se toman de <b>Personal habilitado</b> las personas cuya empresa es este contratista (seguridad social, inducción, concepto médico, cursos).</p></div>
+  <div class="card" id="cEval" hidden></div>
+  <div id="cHist"></div>
+  <div class="barra-guardar barra-ctr"><div class="status-msg" id="msgCtr"></div><button type="button" class="btn amber" id="btnGuardarCtr">Guardar contratista</button></div>
+</div>
+
+<div class="screen" id="scrIng">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Volver a contratistas</a>
+    <div class="eyebrow" id="iCodigo">Ingreso a obra</div>
+    <h1>Control de ingreso</h1>
+    <p>Verificación antes de que el personal del contratista empiece a trabajar</p>
+  </div>
+  <div id="iCuerpo"></div>
+</div>
+
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="qr.js"></script>
+<script src="contratistas-docs.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* Documentos que se piden a cada contratista (empresa.js → contratistas.documentos los reemplaza).
+   meses: vigencia desde la expedición (0 = no vence). opcional: no bloquea el ingreso. */
+const DOCS = (typeof EMPRESA !== 'undefined' && EMPRESA.contratistas && EMPRESA.contratistas.documentos) || DOCS_BASE;
+const TAREAS = [['alturas', 'Trabajo en alturas'], ['confinados', 'Espacios confinados'], ['caliente', 'Trabajo en caliente'], ['electrico', 'Riesgo eléctrico'], ['izajes', 'Izaje de cargas']];
+const CAMPOS_CTR = [
+  { k: 'nombre', l: 'Razón social', req: true }, { k: 'nit', l: 'NIT', medio: true, ph: 'Ej: 900123456-7' }, { k: 'arl', l: 'ARL', medio: true },
+  { k: 'servicio', l: 'Servicio que presta', ph: 'Ej: montaje de andamios, mantenimiento eléctrico' },
+  { k: 'contacto', l: 'Contacto', medio: true }, { k: 'telefono', l: 'Teléfono', medio: true, ph: 'Celular o fijo' },
+  { k: 'responsableSst', l: 'Responsable de SST del contratista' },
+  // v148: selección con criterios SSTA ponderados y evaluación periódica del desempeño (RUC 3.2.1)
+  { k: 'seleccionPuntaje', l: 'Puntaje de selección SSTA (0-100)', t: 'number', medio: true, ayuda: 'Ponderado: estándares mínimos 30 %, accidentalidad 25 %, competencias 20 %, EPP y equipos 15 %, ambiental 10 %.' },
+  { k: 'evalFecha', l: 'Última evaluación de desempeño SSTA', t: 'date', medio: true },
+  { k: 'evalPuntaje', l: 'Puntaje de desempeño (0-100)', t: 'number', medio: true, ayuda: 'Accidentes, hallazgos de inspección, cumplimiento de permisos y documentos durante el servicio.' },
+  { k: 'evalResultado', l: 'Resultado', t: 'select', op: ['', 'Satisfactorio', 'Con plan de mejora', 'No satisfactorio'], medio: true },
+  { k: 'evalPlan', l: 'Plan de acción acordado con el contratista', t: 'textarea' },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['ACTIVO', 'INACTIVO'], def: 'ACTIVO' }
+];
+let rows = [], tab = 'empresas', actual = null, trabajadores = [];
+/* v109: filtro de cada lista (lo dejan las cifras de arriba). */
+const fCtr = { empresas: '', ingresos: '' };
+window.filtrarKpi = (v)=> { fCtr[tab] = v || ''; pintar(); };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const norm = (s)=> UI.norm(s).replace(/\b(s\.?a\.?s\.?|ltda\.?|s\.?a\.?)\b/g, '').replace(/[^a-z0-9]/g, '');
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('contratista,ingreso,proveedor');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows;
+  try { const m = await Habilitacion.cargar(); trabajadores = Object.keys(m || {}).map((k)=> m[k]); } catch (e) { trabajadores = []; }
+  pintar();
+}
+/** Estado de los documentos de un contratista hoy: faltan (obligatorios sin registrar), vencidos y el que vence primero. */
+function estadoDocs(documentos){
+  const h = UI.hoy(), pronto = Festivos.sumarDias(h, 15), out = { faltan: [], vencidos: [], pronto: [], vence: '' };
+  DOCS.forEach((d)=>{
+    let x = (documentos || {})[d.k] || {};
+    if (x.noAplica) return;
+    if (!x.fecha && !x.vence) { if (!d.opcional) out.faltan.push(d.n); return; }
+    // Sin vencimiento escrito pero con vigencia: se calcula desde la expedición.
+    if (!x.vence && d.meses && x.fecha) x = Object.assign({}, x, { vence: Festivos.sumarDias(Registros.sumarMeses(x.fecha, d.meses), -1) });
+    if (x.vence) { if (!out.vence || x.vence < out.vence) out.vence = x.vence; if (x.vence < h) out.vencidos.push(d.n); else if (x.vence <= pronto) out.pronto.push(d.n); }
+  });
+  out.clase = out.faltan.length || out.vencidos.length ? 'mal' : out.pronto.length ? 'pronto' : 'ok';
+  out.texto = out.faltan.length ? 'Faltan ' + out.faltan.length : out.vencidos.length ? out.vencidos.length + ' vencido(s)' : out.pronto.length ? 'Por vencer' : 'Al día';
+  return out;
+}
+/** Igual, desde la fila de la lista (resumen guardado). */
+function estadoFila(x){
+  const s = x.resumen || {}, h = UI.hoy();
+  if (Number(s.docsFaltan) > 0) return { clase: 'mal', texto: 'Faltan ' + s.docsFaltan };
+  if (s.venceDocs && s.venceDocs < h) return { clase: 'mal', texto: 'Vencido' };
+  if (s.venceDocs && s.venceDocs <= Festivos.sumarDias(h, 15)) return { clase: 'pronto', texto: 'Por vencer' };
+  return { clase: 'ok', texto: 'Al día' };
+}
+function personasDe(nombre){ const n = norm(nombre); return n ? trabajadores.filter((t)=> norm(t.empresa) === n) : []; }
+function evaluacionDe(c){ const nit = String(c.nit || '').replace(/\D/g, ''), n = norm(c.nombre);
+  return de('proveedor').filter((p)=> (nit && String(p.resumen.nit || '').replace(/\D/g, '') === nit) || norm(p.resumen.nombre) === n).sort((a, b)=> String(b.resumen.fechaEvaluacion).localeCompare(String(a.resumen.fechaEvaluacion)))[0]; }
+
+function pintar(){
+  const act = de('contratista').filter((x)=> x.estado !== 'INACTIVO'), mes = UI.hoy().slice(0, 7);
+  const ingMes = de('ingreso').filter((x)=> String(x.fecha).slice(0, 7) === mes);
+  const alDia = act.filter((x)=> estadoFila(x).clase !== 'mal').length;
+  $('nEmp').textContent = act.length; $('nIng').textContent = de('ingreso').length;
+  const noAutMes = ingMes.filter((x)=> Number(x.resumen.noAutorizadas) > 0);
+  $('kpis').innerHTML = '<div class="kpi ' + (alDia === act.length ? 'ok' : 'mal') + '" data-ir="tab:empresas|filtro:' + (alDia < act.length ? 'mal' : '') + '"><div class="v">' + alDia + ' / ' + act.length + '</div><div class="n">contratistas con documentos al día</div></div>' +
+    '<div class="kpi" data-ir="tab:ingresos|filtro:mes"><div class="v">' + ingMes.length + '</div><div class="n">ingresos este mes</div></div>' +
+    '<div class="kpi ' + (noAutMes.length ? 'pronto' : 'ok') + '" data-ir="tab:ingresos|filtro:' + (noAutMes.length ? 'noaut' : 'mes') + '"><div class="v">' + ingMes.reduce((n, x)=> n + (Number(x.resumen.noAutorizadas) || 0), 0) + '</div><div class="n">personas no autorizadas este mes</div></div>';
+  const p = $('panel');
+  if (tab === 'empresas') {
+    const todos = de('contratista'), malC = (x)=> x.estado !== 'INACTIVO' && estadoFila(x).clase === 'mal', prontoC = (x)=> x.estado !== 'INACTIVO' && estadoFila(x).clase === 'pronto';
+    const l = todos.filter((x)=> fCtr.empresas === 'mal' ? malC(x) : fCtr.empresas === 'pronto' ? prontoC(x) : true).sort((a, b)=> (a.estado === 'INACTIVO') - (b.estado === 'INACTIVO') || String(a.titulo).localeCompare(String(b.titulo)));
+    p.innerHTML = (todos.length ? UI.chipsFiltro([['', 'Todos (' + todos.length + ')'], ['mal', 'Documentos vencidos o faltantes (' + todos.filter(malC).length + ')'], ['pronto', 'Por vencer (' + todos.filter(prontoC).length + ')']], fCtr.empresas) : '') + (l.length ? l.map((x)=> {
+      const e = x.estado === 'INACTIVO' ? { clase: 'gris', texto: 'Inactivo' } : estadoFila(x), gente = personasDe(x.titulo);
+      return '<button type="button" class="item ' + e.clase + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.titulo) + '</div>' +
+        '<div class="m">' + esc([x.resumen.nit && 'NIT ' + x.resumen.nit, x.resumen.servicio].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="m">' + gente.length + ' persona(s) en Personal habilitado' + (x.resumen.venceDocs ? ' · próximo vencimiento ' + esc(UI.corta(x.resumen.venceDocs)) : '') + (x.resumen._adj ? ' · 📎 ' + (Number(x.resumen._adj) || 0) : '') + '</div>' +
+        (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div><span class="chip ' + e.clase + '">' + esc(e.texto) + '</span></div></button>';
+    }).join('') : '<div class="empty">' + (todos.length ? 'Ningún contratista en este filtro ✓' : 'Todavía no hay contratistas registrados.') + '</div>');
+  } else {
+    const todos = de('ingreso'), l = (fCtr.ingresos === 'mes' ? ingMes : fCtr.ingresos === 'noaut' ? noAutMes : todos).slice().sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha)));
+    p.innerHTML = (todos.length ? UI.chipsFiltro([['', 'Todos (' + todos.length + ')'], ['mes', 'Este mes (' + ingMes.length + ')'], ['noaut', 'Con personas no autorizadas este mes (' + noAutMes.length + ')']], fCtr.ingresos) : '') + (l.length ? l.map((x)=> {
+      const c = /^NO/.test(x.estado) ? 'mal' : /OBSERV|PARCIAL/.test(x.estado) ? 'pronto' : 'ok';
+      return '<button type="button" class="item ' + c + '" data-ing="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.titulo) + '</div>' +
+        '<div class="m">' + esc(UI.corta(x.fecha)) + (x.resumen.sitio ? ' · ' + esc(x.resumen.sitio) : '') + ' · ' + (Number(x.resumen.autorizadas) || 0) + ' de ' + (Number(x.resumen.personas) || 0) + ' persona(s) autorizadas</div>' +
+        (x.resumen.trabajo ? '<div class="m">' + esc(x.resumen.trabajo) + '</div>' : '') + '</div><span class="chip ' + c + '">' + esc(x.estado) + '</span></div></button>';
+    }).join('') : '<div class="empty">' + (todos.length ? 'Ningún ingreso en este filtro ✓' : 'Sin ingresos registrados.') + '</div>');
+  }
+}
+$('btnNuevoCtr').addEventListener('click', ()=> abrirCtr(null));
+$('btnNuevoIng').addEventListener('click', ()=> nuevoIngreso(''));
+$('panel').addEventListener('click', (e)=>{
+  const f = e.target.closest('.filtro-kpi [data-f]'); if (f) { window.filtrarKpi(f.dataset.f); return; }
+  const b = e.target.closest('[data-id]'); if (b) { abrirCtr(b.dataset.id); return; }
+  const g = e.target.closest('[data-ing]'); if (g) verIngreso(g.dataset.ing);
+});
+
+/* ── Ficha del contratista ── */
+let prefC = '';
+async function abrirCtr(id){
+  if (id) { const d = await Registros.abrir(id); if (!d) return; actual = d; }
+  else actual = { nuevo: true, estado: 'ACTIVO', documentos: {} };
+  actual.documentos = actual.documentos || {};
+  prefC = 'ctr_' + Date.now() + '_';
+  $('cCodigo').textContent = actual.nuevo ? 'Nuevo contratista' : actual.id;
+  $('cTitulo').textContent = actual.nombre || 'Nuevo contratista';
+  $('cDatos').innerHTML = Registros.form(CAMPOS_CTR, actual, prefC);
+  Registros.activar($('cDatos'));
+  const nitEl = document.getElementById(prefC + 'nit'); nitEl.addEventListener('input', ayudaNit); ayudaNit();
+  pintarDocs(); pintarPersonal();
+  const ev = actual.nuevo ? null : evaluacionDe(actual);
+  $('cEval').hidden = !ev;
+  if (ev) $('cEval').innerHTML = '<h2>Evaluación como proveedor</h2><div class="m">' + esc(UI.corta(ev.resumen.fechaEvaluacion)) + ' · ' + esc(String(ev.resumen.puntaje)) + ' puntos · <b>' + esc(ev.resumen.resultado) + '</b>' +
+    (ev.resumen.proximaEvaluacion ? ' · próxima ' + esc(UI.corta(ev.resumen.proximaEvaluacion)) : '') + '</div><a href="documental.html" class="ayuda">Ver en Documental → Proveedores y contratistas</a>';
+  if (actual.nuevo) { $('cAdj').innerHTML = ''; UI.adjuntos($('cAdj'), {}); $('cHist').innerHTML = ''; }
+  else {
+    const refs = {}; DOCS.forEach((d)=> { refs[d.k] = d.n; }); refs.otro = 'Otro soporte';
+    UI.adjuntos($('cAdj'), { id: actual.id, lista: actual.adjuntos || [], refs, titulo: 'Soportes de los documentos', alCambiar: (l)=> { actual.adjuntos = l; pintarDocs(); } });
+    $('cHist').innerHTML = ''; $('cHist').appendChild(UI.botonHistorial(actual.id, actual.nombre));
+  }
+  $('msgCtr').textContent = ''; $('enlaceCtr').innerHTML = ''; $('btnEnlaceCtr').hidden = !!actual.nuevo;
+  show('scrCtr');
+}
+function leerDocs(){
+  const out = {};
+  DOCS.forEach((d)=>{
+    const f = $('dF_' + d.k).value, v = $('dV_' + d.k).value, na = $('dN_' + d.k).classList.contains('on');
+    if (f || v || na) out[d.k] = { fecha: na ? '' : f, vence: na ? '' : v, noAplica: na };
+  });
+  return out;
+}
+/** Error de las fechas de un documento ('' si están bien): expedición no futura y vencimiento después de la expedición. */
+function errorDoc(k){
+  if ($('dN_' + k).classList.contains('on')) return {};
+  const f = $('dF_' + k).value, v = $('dV_' + k).value, h = UI.hoy();
+  if (f && Valida.fecha(f)) return { el: $('dF_' + k), e: 'Expedido: ' + Valida.fecha(f) };
+  if (f && f > h) return { el: $('dF_' + k), e: 'Expedido: no puede ser posterior a hoy' };
+  if (v && Valida.fecha(v)) return { el: $('dV_' + k), e: 'Vence: ' + Valida.fecha(v) };
+  if (f && v && v < f) return { el: $('dV_' + k), e: 'Vence: no puede ser antes de la expedición' };
+  return {};
+}
+/** Aviso debajo de cada documento: vencido, por vencer, error de fechas o marcado como no aplica. */
+function avisoDoc(d){
+  const fila = $('cDocs').querySelector('[data-doc="' + d.k + '"]'), av = fila.querySelector('[data-av]'), na = $('dN_' + d.k).classList.contains('on');
+  const v = $('dV_' + d.k).value, h = UI.hoy(), err = errorDoc(d.k);
+  fila.classList.toggle('no-aplica', na);
+  let t = '', c = '';
+  if (na) { t = 'Marcado como «No aplica» para este contratista.'; c = 'gris'; }
+  else if (err.e) { t = err.e; c = 'mal'; }
+  else if (v && v < h) { t = 'Vencido desde el ' + UI.corta(v) + ': no puede ingresar hasta renovarlo.'; c = 'mal'; }
+  else if (v && v <= Festivos.sumarDias(h, 15)) { t = 'Vence el ' + UI.corta(v) + ' (en ' + UI.cuandoTexto(v) + ').'; c = 'pronto'; }
+  else if (!v && !$('dF_' + d.k).value && !d.opcional) { t = 'Falta: escribe la fecha de expedición.'; c = 'pronto'; }
+  av.textContent = t; av.className = 'doc-av ' + c;
+}
+function pintarDocs(){
+  const docs = actual.documentos || {}, adj = (actual.adjuntos || []).filter((a)=> !a.retirado), e = estadoDocs(docs);
+  $('cSub').textContent = (actual.nuevo ? 'Escribe los datos y guarda; luego adjunta los soportes.' : e.texto + (e.vencidos.length ? ': ' + e.vencidos.join(', ') : ''));
+  $('cDocs').innerHTML = DOCS.map((d)=>{
+    const x = docs[d.k] || {}, c = x.noAplica ? 'gris' : !x.fecha && !x.vence ? (d.opcional ? 'gris' : 'mal') : UI.semaforo(x.vence, 15), n = adj.filter((a)=> a.ref === d.k).length;
+    return '<div class="docrow' + (x.noAplica ? ' no-aplica' : '') + '" data-doc="' + d.k + '"><div class="dt"><span>' + esc(d.n) + (d.opcional ? ' <small style="color:var(--muted);font-weight:500;">(si aplica)</small>' : '') + '</span><span class="chip ' + c + '">' +
+      (x.noAplica ? 'No aplica' : !x.fecha && !x.vence ? 'Falta' : !x.vence ? 'Registrado' : x.vence < UI.hoy() ? 'Vencido' : c === 'pronto' ? 'Por vencer' : 'Vigente') + (n ? ' · 📎' + n : '') + '</span></div>' +
+      '<div class="seg-btn doc-ap" role="group" aria-label="¿Aplica a este contratista?"><button type="button" data-ap="1" class="' + (x.noAplica ? '' : 'on') + '" aria-pressed="' + !x.noAplica + '">Aplica</button>' +
+        '<button type="button" data-ap="0" data-v="No aplica" id="dN_' + d.k + '" class="' + (x.noAplica ? 'on' : '') + '" aria-pressed="' + !!x.noAplica + '">No aplica</button></div>' +
+      '<div class="doc-fechas"><div><label for="dF_' + d.k + '">Expedido</label><input type="date" id="dF_' + d.k + '" data-meses="' + (d.meses || 0) + '" data-k="' + d.k + '" max="' + UI.hoy() + '" value="' + esc(x.fecha || '') + '"></div>' +
+      '<div><label for="dV_' + d.k + '">Vence' + (d.meses ? ' (' + d.meses + (d.meses === 1 ? ' mes' : ' meses') + ')' : '') + '</label><input type="date" id="dV_' + d.k + '" data-k="' + d.k + '" value="' + esc(x.vence || '') + '"></div></div>' +
+      (x.porRevisar ? '<div class="aviso amar u-mt8">Lo subió el contratista el ' + esc(UI.corta(x.subido || '')) + ': revisa el soporte y apruébalo. <button type="button" class="btn-mini" data-aprobar="' + d.k + '">Aprobar</button></div>' : '') +
+      '<div class="doc-av" data-av role="status"></div></div>';
+  }).join('');
+  $('cDocs').querySelectorAll('[data-aprobar]').forEach((b)=> b.addEventListener('click', async ()=> { const k = b.dataset.aprobar, docs = Object.assign({}, actual.documentos); docs[k] = Object.assign({}, docs[k], { porRevisar: false, revisado: UI.hoy() });
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'contratista', id: actual.id, campos: { documentos: docs } }); if (r.ok) { actual.documentos = docs; pintarDocs(); UI.toast('✓ Documento aprobado'); } else UI.toast(Errores.texto('guardó', r), 'mal'); }));
+  DOCS.forEach(avisoDoc);
+  // Al poner la expedición, el vencimiento se calcula (si no se escribió a mano).
+  $('cDocs').querySelectorAll('input[data-meses]').forEach((i)=> i.addEventListener('change', ()=>{
+    const m = Number(i.dataset.meses), v = $('dV_' + i.dataset.k);
+    if (m && i.value && (!v.value || v.dataset.auto === '1')) { v.value = Festivos.sumarDias(Registros.sumarMeses(i.value, m), -1); v.dataset.auto = '1'; }
+  }));
+}
+$('cDocs').addEventListener('change', (e)=> { const k = e.target.dataset && e.target.dataset.k; const d = k && DOCS.find((x)=> x.k === k); if (d) avisoDoc(d); });
+$('cDocs').addEventListener('click', (e)=> {
+  const b = e.target.closest('[data-ap]'); if (!b) return;
+  const fila = b.closest('[data-doc]'), d = DOCS.find((x)=> x.k === fila.dataset.doc);
+  fila.querySelectorAll('[data-ap]').forEach((x)=> { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
+  avisoDoc(d);
+});
+/* NIT: dígito de verificación de la DIAN (pesos 3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71
+   de derecha a izquierda; residuo módulo 11: 0 y 1 quedan igual, si no 11 − residuo). */
+function nitDV(base){
+  const P = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71], d = String(base).split('').reverse();
+  const r = d.reduce((s, x, i)=> s + Number(x) * P[i], 0) % 11;
+  return r > 1 ? 11 - r : r;
+}
+/** «900.123.456-7» → { nit: '900123456-7' } o { e: motivo }. Sin dígito de verificación, se calcula. */
+function revisarNit(v){
+  const t = String(v || '').replace(/[\s.,]/g, ''); if (!t) return { nit: '' };
+  const m = /^(\d+)(?:-(\d))?$/.exec(t);
+  if (!m) return { e: 'solo números y, al final, guion y el dígito de verificación (ej. 900123456-7)' };
+  if (m[1].length < 6 || m[1].length > 10) return { e: 'el número va de 6 a 10 dígitos antes del guion (tiene ' + m[1].length + ')' };
+  const dv = nitDV(m[1]);
+  if (m[2] != null && Number(m[2]) !== dv) return { e: 'el dígito de verificación no coincide: para ' + m[1] + ' es ' + dv + ' (revisa el RUT)' };
+  return { nit: m[1] + '-' + dv, calculado: m[2] == null };
+}
+const baseNit = (n)=> { const m = /^(\d+)(?:-\d)?$/.exec(String(n || '').replace(/[\s.,]/g, '')); return m ? m[1] : ''; };
+function ayudaNit(){
+  const el = document.getElementById(prefC + 'nit'); if (!el) return;
+  const f = el.closest('.field'); let a = f.querySelector('.nit-dv'); const r = revisarNit(el.value);
+  if (!a) { a = document.createElement('div'); a.className = 'nit-dv'; f.appendChild(a); }
+  a.textContent = r.nit && r.calculado ? 'Dígito de verificación: ' + r.nit.slice(-1) + ' → se guarda ' + r.nit : r.nit ? '✓ Dígito de verificación correcto' : '';
+}
+function pintarPersonal(){
+  const gente = actual.nuevo ? [] : personasDe(actual.nombre);
+  $('cPersonal').innerHTML = gente.length ? gente.map((t)=>{
+    const r = Habilitacion.revisar(t.cedula, []), c = r.estado === 'ok' ? 'ok' : r.estado === 'pronto' ? 'pronto' : 'mal';
+    return '<div class="persona"><div><b>' + esc(t.nombre) + '</b><small>C.C. ' + esc(t.cedula) + (t.cargo ? ' · ' + esc(t.cargo) : '') + '</small>' +
+      (r.problemas.length || r.avisos.length ? '<small>' + esc(r.problemas.concat(r.avisos).join(' · ')) + '</small>' : '') + '</div><span class="chip ' + c + '">' + (c === 'ok' ? 'Habilitado' : c === 'pronto' ? 'Por vencer' : 'No habilitado') + '</span></div>';
+  }).join('') : '<div class="ayuda">' + (actual.nuevo ? 'Guarda primero el contratista.' : 'No hay personas con la empresa «' + esc(actual.nombre) + '» en Personal habilitado. En su ficha, escribe el nombre de la empresa igual que aquí.') + '</div>';
+}
+$('btnGuardarCtr').addEventListener('click', async ()=>{
+  const v = Object.assign({}, actual, Registros.leer(CAMPOS_CTR, $('cDatos'), prefC)), el = (k)=> document.getElementById(prefC + k);
+  // Qué falta o está mal: cada campo se marca y se nombra en el resumen.
+  const rn = revisarNit(v.nit), tel = String(v.telefono || '').replace(/\D/g, '');
+  const otro = rn.nit && de('contratista').find((x)=> x.id !== actual.id && baseNit(x.resumen.nit) === baseNit(rn.nit));
+  const reglas = [{ el: el('nombre'), etiqueta: 'Razón social', error: ()=> !v.nombre ? 'falta' : Valida.texto(v.nombre) },
+    { el: el('nit'), etiqueta: 'NIT', error: ()=> rn.e || (otro ? 'ya está registrado para ' + otro.titulo : '') },
+    { el: el('telefono'), etiqueta: 'Teléfono', error: ()=> tel && (tel.length < 7 || tel.length > 10) ? 'escribe un teléfono de 7 a 10 dígitos' : '' }];
+  DOCS.forEach((d)=> { const x = errorDoc(d.k); if (x.e) reglas.push({ el: x.el, etiqueta: d.n.split(/[(:]/)[0].trim(), error: x.e.replace(/^(Expedido|Vence): /, (m0)=> m0.toLowerCase()) }); });
+  if (Valida.revisar($('scrCtr'), reglas, $('msgCtr')).length) { DOCS.forEach(avisoDoc); return; }
+  if (rn.nit) { v.nit = rn.nit; el('nit').value = rn.nit; }
+  v.documentos = leerDocs();
+  const e = estadoDocs(v.documentos);
+  Object.assign(v, { docsFaltan: e.faltan.length, docsVencidos: e.vencidos.length, venceDocs: e.vence, fechaRevision: UI.hoy() });
+  const id = actual.nuevo ? SGSST.nuevoId('CTR') : actual.id;
+  $('btnGuardarCtr').disabled = true; $('msgCtr').textContent = 'Guardando…';
+  const r = await Registros.guardar('contratista', id, v, actual.nuevo ? 0 : actual.version);
+  $('btnGuardarCtr').disabled = false;
+  if (typeof r === 'string') { $('msgCtr').textContent = r; return; }
+  const pend = e.faltan.length || e.vencidos.length ? ' Para autorizar ingresos ' + (e.faltan.length ? 'falta: ' + e.faltan.join(' · ') : '') + (e.faltan.length && e.vencidos.length ? '; y ' : '') + (e.vencidos.length ? 'está vencido: ' + e.vencidos.join(' · ') : '') + '.' : '';
+  const txt = (r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : '✓ Guardado.') + pend;
+  await cargar();
+  if (!r.enCola) await abrirCtr(id); else { actual = Object.assign(v, { id }); }
+  $('msgCtr').innerHTML = pend ? '<div class="aviso amar" style="text-align:left;margin:0 0 8px;">' + esc(txt) + '</div>' : esc(txt);
+});
+/* v162 · Enlace o QR para que el contratista suba sus documentos y su personal (queda «por revisar»). */
+async function enlaceCtr(nuevo){
+  let r; try { r = await SGSST.consultar({ action: 'enlaceContratista', id: actual.id, nuevo: nuevo ? '1' : '0' }); } catch (e) { r = { ok: false, error: 'Necesita señal.' }; }
+  if (!r.ok) { $('enlaceCtr').innerHTML = '<div class="aviso mal">' + esc(r.error || 'No se pudo.') + '</div>'; return; }
+  const e = new URLSearchParams(location.search).get('e'), url = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '') + 'contratista-portal.html?' + (e ? 'e=' + encodeURIComponent(e) + '&' : '') + 'id=' + encodeURIComponent(actual.id) + '&k=' + encodeURIComponent(r.k);
+  $('enlaceCtr').innerHTML = '<div class="card"><h2>Enlace de ' + esc(actual.nombre) + '</h2><p class="ayuda">Con él, el contratista ve sus documentos y vencimientos, sube los soportes y registra a su personal. Todo queda «por revisar» hasta que lo apruebes aquí.</p>' +
+    '<canvas id="qrCtr" width="160" height="160"></canvas><div class="fila-btn u-mt8"><button type="button" class="btn ghost" id="ctrCopiar">📋 Copiar enlace</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent('Hola, este es el enlace para subir los documentos de ' + actual.nombre + ' a ' + (EMPRESA.nombre || '') + ': ' + url) + '">WhatsApp</a>' +
+    '<button type="button" class="btn ghost" id="ctrNuevo">Cambiar el enlace</button></div></div>';
+  try { QR.dibujar($('qrCtr'), url, { px: 160, margen: 2 }); } catch (x) { $('qrCtr').remove(); }
+  $('ctrCopiar').addEventListener('click', async ()=> { try { await navigator.clipboard.writeText(url); $('ctrCopiar').textContent = '✓ Copiado'; } catch (x) {} });
+  $('ctrNuevo').addEventListener('click', async ()=> { if (await Dialogo.confirmar('¿Cambiar el enlace? El anterior deja de funcionar.')) enlaceCtr(true); });
+}
+$('btnEnlaceCtr').addEventListener('click', ()=> enlaceCtr(false));
+$('btnPdfCtr').addEventListener('click', ()=>{
+  const v = Object.assign({}, actual, Registros.leer(CAMPOS_CTR, $('cDatos'), prefC)); v.documentos = leerDocs();
+  const adj = (actual.adjuntos || []).filter((a)=> !a.retirado), gente = actual.nuevo ? [] : personasDe(v.nombre);
+  const docs = '<table><tr><td class="l">Documento</td><td class="l">Expedido</td><td class="l">Vence</td><td class="l">Estado</td><td class="l">Soporte</td></tr>' + DOCS.map((d)=>{
+    const x = v.documentos[d.k] || {}; const est = x.noAplica ? 'No aplica' : !x.fecha && !x.vence ? (d.opcional ? '—' : 'FALTA') : x.vence && x.vence < UI.hoy() ? 'VENCIDO' : 'Vigente';
+    return '<tr><td>' + esc(d.n) + '</td><td>' + esc(UI.corta(x.fecha)) + '</td><td>' + esc(UI.corta(x.vence)) + '</td><td>' + esc(est) + '</td><td>' + esc(adj.filter((a)=> a.ref === d.k).map((a)=> a.nombre).join(', ') || '—') + '</td></tr>';
+  }).join('') + '</table>';
+  const per = gente.length ? '<table><tr><td class="l">Nombre</td><td class="l">Cédula</td><td class="l">Cargo</td><td class="l">Habilitación</td></tr>' + gente.map((t)=> { const r = Habilitacion.revisar(t.cedula, []);
+    return '<tr><td>' + esc(t.nombre) + '</td><td>' + esc(t.cedula) + '</td><td>' + esc(t.cargo || '') + '</td><td>' + esc(r.estado === 'ok' ? 'Habilitado' : r.problemas.concat(r.avisos).join('; ') || r.estado) + '</td></tr>'; }).join('') + '</table>' : '<table><tr><td>Sin personas registradas.</td></tr></table>';
+  UI.imprimir([UI.cabecera('SG-CONTRATISTA', 'FICHA DEL CONTRATISTA', v.nombre || '') +
+    UI.seccion('DATOS', UI.tablaDatos([['Razón social', v.nombre || ''], ['NIT', v.nit || ''], ['Servicio', v.servicio || ''], ['ARL', v.arl || ''], ['Contacto', v.contacto || ''], ['Teléfono', v.telefono || ''], ['Responsable SST', v.responsableSst || ''], ['Estado', v.estado || '']])) +
+    UI.seccion('DOCUMENTOS', docs) + UI.seccion('PERSONAL (PERSONAL HABILITADO)', per)]);
+});
+$('btnIngresoCtr').addEventListener('click', ()=> { if (actual.nuevo) { UI.toast('Guarda primero el contratista.', 'mal'); return; } nuevoIngreso(actual.id); });
+
+/* ── Ingreso a obra ── */
+let ing = null;
+function nuevoIngreso(ctrId){
+  const ctrs = de('contratista').filter((x)=> x.estado !== 'INACTIVO');
+  if (!ctrs.length) { UI.toast('Primero registra el contratista.', 'mal'); return; }
+  ing = { fecha: UI.hoy(), contratistaId: ctrId || '', tareas: [], personas: [], checks: {} };
+  docCtr = null;   // los documentos se vuelven a leer (pudieron cambiar)
+  $('iCodigo').textContent = 'Nuevo ingreso';
+  $('iCuerpo').innerHTML = '<div class="card"><h2>Trabajo</h2>' +
+    '<div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="iFecha" value="' + esc(ing.fecha) + '"></div>' +
+    '<div class="field"><label>Contratista</label><select id="iCtr"><option value="">—</option>' + ctrs.map((x)=> '<option value="' + esc(x.id) + '"' + (x.id === ctrId ? ' selected' : '') + '>' + esc(x.titulo) + '</option>').join('') + '</select></div></div>' +
+    '<div class="field"><label>Sitio / cliente</label><input type="text" id="iSitio" placeholder="Ej: Planta del cliente · PTAR"></div>' +
+    '<div class="field"><label>Trabajo a realizar</label><textarea id="iTrabajo" placeholder="Qué van a hacer"></textarea></div>' +
+    '<div class="field"><label>Tareas de alto riesgo</label><div class="chips" id="iTareas">' + TAREAS.map((t)=> '<button type="button" data-v="' + t[0] + '">' + esc(t[1]) + '</button>').join('') + '</div><div class="ayuda">Exigen además el curso o la certificación de cada persona.</div></div></div>' +
+    '<div class="card"><h2>Documentos de la empresa</h2><div id="iDocs"></div></div>' +
+    '<div class="card"><h2>Personas que ingresan</h2><div id="iPersonas"></div>' +
+    '<div class="grid2"><div class="field"><label>Agregar por cédula</label><input type="text" id="iCed" inputmode="numeric" placeholder="Cédula"></div><div class="field"><label>&nbsp;</label><button type="button" class="btn ghost u-m0" id="iAgregar">Agregar</button></div></div></div>' +
+    '<div class="card"><h2>Verificación en sitio</h2>' +
+    '<label class="check"><input type="checkbox" id="chInd"> Se les dio la inducción del sitio: peligros, emergencias, punto de encuentro y normas</label>' +
+    '<label class="check"><input type="checkbox" id="chEpp"> Llegaron con el EPP adecuado y en buen estado</label>' +
+    '<label class="check"><input type="checkbox" id="chPer"> Las tareas de alto riesgo tienen su ATS y permiso de trabajo</label>' +
+    '<div class="field"><label>Observaciones</label><textarea id="iObs"></textarea></div></div>' +
+    '<div class="card"><h2>Resultado</h2><div id="iRes"></div>' +
+    '<div class="field"><label>Autoriza</label><input type="text" id="iAut" value="' + esc(quienSoy()) + '" placeholder="Nombre de quien autoriza"></div>' +
+    '<div class="field"><label>Firma</label>' + UI.padHTML('fIng') + '</div>' +
+    '<button type="button" class="btn amber" id="iGuardar">Guardar el ingreso</button><div class="status-msg" id="iMsg"></div></div>';
+  UI.activarPad('fIng');
+  UI.autocompletar($('iAut'), (p)=> { $('iAut').value = p.nombre; });
+  $('iCtr').addEventListener('change', ()=> { ing.contratistaId = $('iCtr').value; ing.personas = []; evaluar(); });
+  $('iTareas').addEventListener('click', (e)=>{ const b = e.target.closest('button[data-v]'); if (!b) return; b.classList.toggle('on'); ing.tareas = [...$('iTareas').querySelectorAll('button.on')].map((x)=> x.dataset.v); evaluar(); });
+  $('iAgregar').addEventListener('click', ()=>{
+    const ced = Valida.limpiarCedula($('iCed').value), ec = Valida.cedula(ced);
+    if (ec) { Valida.revisar($('iCuerpo'), [{ el: $('iCed'), etiqueta: 'Cédula', error: ec === 'falta' ? 'escribe la cédula de la persona' : ec }]); return; }
+    if (!ing.personas.some((p)=> Habilitacion.clave(p.cedula) === Habilitacion.clave(ced))) { const t = trabajadores.find((x)=> Habilitacion.clave(x.cedula) === Habilitacion.clave(ced)); ing.personas.push({ cedula: ced, nombre: t ? t.nombre : '', va: true }); }
+    $('iCed').value = ''; evaluar();
+  });
+  ['chInd', 'chEpp', 'chPer'].forEach((k)=> $(k).addEventListener('change', evaluar));
+  $('iGuardar').addEventListener('click', guardarIngreso);
+  ing.contratistaId = $('iCtr').value;
+  evaluar();
+  show('scrIng');
+}
+function quienSoy(){ try { return Sesion.nombre() || localStorage.getItem('ssta-reporta') || ''; } catch (e) { return ''; } }
+function ctrDe(id){ return de('contratista').find((x)=> x.id === id); }
+let docCtr = null;
+async function evaluar(){
+  const c = ctrDe(ing.contratistaId);
+  if (!c) { $('iDocs').innerHTML = '<div class="ayuda">Elige el contratista.</div>'; $('iPersonas').innerHTML = ''; $('iRes').innerHTML = ''; return; }
+  if (!docCtr || docCtr.id !== c.id) { docCtr = { id: c.id, d: null }; SGSST.doc(c.id).then((d)=> { if (docCtr && docCtr.id === c.id) { docCtr.d = d || {}; evaluar(); } }); }
+  const e = docCtr.d ? estadoDocs(docCtr.d.documentos) : null;
+  $('iDocs').innerHTML = !e ? '<div class="ayuda">Revisando los documentos…</div>' :
+    (e.faltan.length || e.vencidos.length ? '<div class="aviso">' + (e.faltan.length ? '<b>Faltan:</b> ' + esc(e.faltan.join(' · ')) + '<br>' : '') + (e.vencidos.length ? '<b>Vencidos:</b> ' + esc(e.vencidos.join(' · ')) : '') + '</div>' :
+      '<div class="aviso ok">✓ Documentos de la empresa al día' + (e.pronto.length ? ' (por vencer: ' + esc(e.pronto.join(', ')) + ')' : '') + '.</div>');
+  // Personas: las del contratista en Personal habilitado (marcadas) + las agregadas por cédula.
+  personasDe(c.titulo).forEach((t)=>{ if (!ing.personas.some((p)=> Habilitacion.clave(p.cedula) === Habilitacion.clave(t.cedula))) ing.personas.push({ cedula: t.cedula, nombre: t.nombre, va: false }); });
+  ing.personas.forEach((p)=>{ const r = Habilitacion.revisar(p.cedula, ing.tareas); p.estado = r.estado; p.problemas = r.problemas; p.avisos = r.avisos; if (!p.nombre && r.trabajador) p.nombre = r.trabajador.nombre; });
+  $('iPersonas').innerHTML = ing.personas.length ? ing.personas.map((p, i)=>{
+    const c2 = p.estado === 'ok' ? 'ok' : p.estado === 'pronto' ? 'pronto' : 'mal';
+    return '<label class="persona"><input type="checkbox" data-p="' + i + '"' + (p.va ? ' checked' : '') + '><div><b>' + esc(p.nombre || 'C.C. ' + p.cedula) + '</b><small>C.C. ' + esc(p.cedula) + '</small>' +
+      (p.problemas.length || p.avisos.length ? '<small>' + esc(p.problemas.concat(p.avisos).join(' · ')) + '</small>' : '') + '</div><span class="chip ' + c2 + '">' + (c2 === 'ok' ? 'Habilitado' : c2 === 'pronto' ? 'Por vencer' : p.estado === 'sin-registro' ? 'Sin registro' : 'No habilitado') + '</span></label>';
+  }).join('') : '<div class="ayuda">Este contratista no tiene personas en Personal habilitado: agrégalas por cédula (si no están registradas, no quedan autorizadas).</div>';
+  $('iPersonas').querySelectorAll('[data-p]').forEach((x)=> x.addEventListener('change', ()=> { ing.personas[+x.dataset.p].va = x.checked; resultado(); }));
+  resultado();
+}
+/** Quién queda autorizado: personas habilitadas, empresa al día y verificación en sitio completa. */
+function resultado(){
+  const e = docCtr && docCtr.d ? estadoDocs(docCtr.d.documentos) : null, van = ing.personas.filter((p)=> p.va);
+  const okP = van.filter((p)=> p.estado === 'ok' || p.estado === 'pronto'), noP = van.filter((p)=> !(p.estado === 'ok' || p.estado === 'pronto'));
+  const checks = $('chInd').checked && $('chEpp').checked && (!ing.tareas.length || $('chPer').checked);
+  const empresaMal = !e || e.faltan.length || e.vencidos.length;
+  let r;
+  if (!van.length) r = { c: 'mal', t: 'Marca quién ingresa' };
+  else if (empresaMal) r = { c: 'mal', t: 'NO AUTORIZADO', d: 'La empresa tiene documentos faltantes o vencidos.' };
+  else if (!checks) r = { c: 'mal', t: 'NO AUTORIZADO', d: 'Falta completar la verificación en sitio.' };
+  else if (!okP.length) r = { c: 'mal', t: 'NO AUTORIZADO', d: 'Ninguna de las personas está habilitada.' };
+  else if (noP.length) r = { c: 'pronto', t: 'AUTORIZADO PARCIAL', d: 'Ingresan solo: ' + okP.map((p)=> p.nombre || p.cedula).join(', ') + '. No ingresan: ' + noP.map((p)=> p.nombre || p.cedula).join(', ') + '.' };
+  else r = { c: 'ok', t: 'AUTORIZADO', d: okP.length + ' persona(s) habilitadas.' };
+  ing.res = r; ing.okP = okP; ing.noP = noP;
+  $('iRes').innerHTML = '<div class="res ' + r.c + '">' + esc(r.t) + '</div>' + (r.d ? '<div class="ayuda u-centro">' + esc(r.d) + '</div>' : '');
+}
+async function guardarIngreso(){
+  resultado();
+  const c = ctrDe(ing.contratistaId), van = ing.personas.filter((p)=> p.va);
+  if (Valida.revisar($('iCuerpo'), [{ el: $('iFecha'), etiqueta: 'Fecha', error: ()=> Valida.fecha($('iFecha').value) },
+    { el: $('iCtr'), etiqueta: 'Contratista', error: ()=> c ? '' : 'elige el contratista' },
+    { el: $('iPersonas'), etiqueta: 'Personas que ingresan', error: ()=> !c || van.length ? '' : 'marca quién ingresa' },
+    { el: $('iAut'), etiqueta: 'Autoriza', error: ()=> $('iAut').value.trim() ? '' : 'falta quién autoriza' }], $('iMsg')).length) return;
+  if (!$('iAut').value.trim()) { $('iMsg').textContent = 'Falta quién autoriza.'; return; }
+  const firma = UI.firma('fIng'); if (!firma) { $('iMsg').textContent = 'Falta la firma de quien autoriza.'; return; }
+  const e = estadoDocs(docCtr && docCtr.d ? docCtr.d.documentos : {});
+  const doc = { fecha: $('iFecha').value, contratistaId: c.id, contratista: c.titulo, nit: c.resumen.nit || '', sitio: $('iSitio').value.trim(), trabajo: $('iTrabajo').value.trim(),
+    tareas: ing.tareas.map((t)=> (TAREAS.find((x)=> x[0] === t) || [t, t])[1]),
+    personas: van.length, autorizadas: ing.res.c === 'mal' ? 0 : ing.okP.length, noAutorizadas: ing.res.c === 'mal' ? van.length : ing.noP.length,
+    resultado: ing.res.t, motivo: ing.res.d || '', docsFaltan: e.faltan, docsVencidos: e.vencidos,
+    lista: van.map((p)=> ({ nombre: p.nombre, cedula: p.cedula, estado: p.estado, problemas: p.problemas, avisos: p.avisos, autorizada: ing.res.c !== 'mal' && (p.estado === 'ok' || p.estado === 'pronto') })),
+    induccion: $('chInd').checked, epp: $('chEpp').checked, permisos: $('chPer').checked, observaciones: $('iObs').value.trim(), autorizo: $('iAut').value.trim(), firma };
+  $('iGuardar').disabled = true; $('iMsg').textContent = 'Guardando…';
+  const id = SGSST.nuevoId('ING');
+  const r = await Registros.guardar('ingreso', id, doc, 0);
+  $('iGuardar').disabled = false;
+  if (typeof r === 'string') { $('iMsg').textContent = r; return; }
+  UI.toast(r.enCola ? '⏳ Ingreso guardado en el equipo; se envía al volver la señal.' : '✓ Ingreso registrado: ' + doc.resultado);
+  tab = 'ingresos'; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x.dataset.tab === tab));
+  await cargar(); show('scrLista');
+}
+async function verIngreso(id){
+  const d = await Registros.abrir(id); if (!d) return;
+  $('iCodigo').textContent = d.id;
+  const c = /^NO/.test(d.resultado) ? 'mal' : /PARCIAL|OBSERV/.test(d.resultado) ? 'pronto' : 'ok';
+  $('iCuerpo').innerHTML = '<div class="card"><div class="res ' + c + '">' + esc(d.resultado) + '</div>' + (d.motivo ? '<div class="ayuda u-centro">' + esc(d.motivo) + '</div>' : '') +
+    '<div class="dato"><span>Fecha</span><b>' + esc(UI.corta(d.fecha)) + '</b></div><div class="dato"><span>Contratista</span><b>' + esc(d.contratista) + '</b></div>' +
+    (d.sitio ? '<div class="dato"><span>Sitio</span><b>' + esc(d.sitio) + '</b></div>' : '') + (d.trabajo ? '<div class="dato"><span>Trabajo</span><b>' + esc(d.trabajo) + '</b></div>' : '') +
+    (d.tareas && d.tareas.length ? '<div class="dato"><span>Alto riesgo</span><b>' + esc(d.tareas.join(', ')) + '</b></div>' : '') +
+    '<div class="dato"><span>Autorizó</span><b>' + esc(d.autorizo) + '</b></div></div>' +
+    '<div class="card"><h2>Personas</h2>' + (d.lista || []).map((p)=> '<div class="persona"><div><b>' + esc(p.nombre || 'C.C. ' + p.cedula) + '</b><small>C.C. ' + esc(p.cedula) + '</small>' +
+      ((p.problemas || []).length ? '<small>' + esc(p.problemas.join(' · ')) + '</small>' : '') + '</div><span class="chip ' + (p.autorizada ? 'ok' : 'mal') + '">' + (p.autorizada ? 'Ingresa' : 'No ingresa') + '</span></div>').join('') + '</div>' +
+    '<div class="card" id="iAdj"></div><button type="button" class="btn ghost" id="iPdf">🖨️ PDF del control de ingreso</button><div id="iHist"></div>';
+  UI.adjuntos($('iAdj'), { id: d.id, lista: d.adjuntos || [], titulo: 'Soportes (planillas, listas, fotos)' });
+  $('iHist').appendChild(UI.botonHistorial(d.id, 'Ingreso ' + d.contratista));
+  $('iPdf').addEventListener('click', ()=> pdfIngreso(d));
+  show('scrIng');
+}
+function pdfIngreso(d){
+  const per = '<table><tr><td class="l">Nombre</td><td class="l">Cédula</td><td class="l">Verificación</td><td class="l">Ingresa</td></tr>' + (d.lista || []).map((p)=> '<tr><td>' + esc(p.nombre || '') + '</td><td>' + esc(p.cedula) + '</td><td>' +
+    esc((p.problemas || []).concat(p.avisos || []).join('; ') || 'Habilitado') + '</td><td>' + (p.autorizada ? 'SÍ' : 'NO') + '</td></tr>').join('') + '</table>';
+  UI.imprimir([UI.cabecera('SG-INGRESO-CONTRATISTA', 'CONTROL DE INGRESO DE CONTRATISTAS', d.contratista + ' · ' + UI.corta(d.fecha)) +
+    UI.seccion('DATOS', UI.tablaDatos([['Fecha', UI.corta(d.fecha)], ['Contratista', d.contratista], ['NIT', d.nit || ''], ['Sitio', d.sitio || ''], ['Trabajo', d.trabajo || ''], ['Alto riesgo', (d.tareas || []).join(', ') || 'No']])) +
+    UI.seccion('DOCUMENTOS DE LA EMPRESA', '<table><tr><td>' + ((d.docsFaltan || []).length || (d.docsVencidos || []).length ? esc(['Faltan: ' + (d.docsFaltan || []).join(', '), 'Vencidos: ' + (d.docsVencidos || []).join(', ')].join(' · ')) : 'Al día') + '</td></tr></table>') +
+    UI.seccion('PERSONAS', per) +
+    UI.seccion('VERIFICACIÓN EN SITIO', UI.tablaDatos([['Inducción del sitio', d.induccion ? 'Sí' : 'No'], ['EPP verificado', d.epp ? 'Sí' : 'No'], ['ATS y permisos', d.permisos ? 'Sí' : (d.tareas || []).length ? 'No' : 'No aplica'], ['Observaciones', d.observaciones || '—']])) +
+    UI.seccion('RESULTADO', UI.tablaDatos([['Resultado', d.resultado + (d.motivo ? ' — ' + d.motivo : '')], ['Autorizó', d.autorizo], ['Firma', UI.firmaHoja(d.firma), true]]))]);
+}
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

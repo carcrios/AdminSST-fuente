@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-HXQtrJIrhJ0bXzQlAMuquD7KpjhCruzITQIZv2xjyAA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Vigilancia epidemiológica (PVE) · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vigilancia epidemiológica (PVE) · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.pv-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0;}
+.pv-k{border-left:4px solid var(--n-300);background:var(--paper);border-radius:var(--r-m);padding:8px 10px;box-shadow:var(--sombra-1,0 1px 3px rgba(0,0,0,.08));}
+.pv-k .v{font-size:1.5rem;font-weight:800;line-height:1.1;}.pv-k .n{font-size:var(--fs-menor);font-weight:700;}.pv-k .f{font-size:.78rem;color:var(--n-600);}
+.pv-k.ok{border-color:var(--ok);}.pv-k.ok .v{color:var(--ok);}.pv-k.amar{border-color:var(--ambar-500);}.pv-k.amar .v{color:var(--ambar-500);}.pv-k.mal{border-color:var(--mal);}.pv-k.mal .v{color:var(--mal);}
+.pv-grafs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;}
+.pv-g{background:var(--paper);border:1px solid var(--n-200,#e5e7eb);border-radius:var(--r-m);padding:10px;}.pv-g h3{font-size:var(--fs-base);margin:0 0 4px;}
+.pv-per{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1.5px solid var(--n-300);border-radius:var(--r-m);padding:8px 10px;margin:6px 0;background:var(--paper);cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;}
+.pv-per .t{font-weight:700;}.pv-per .m{font-size:var(--fs-menor);color:var(--n-600);}
+.pv-act{display:grid;grid-template-columns:1fr 70px 70px 34px;gap:6px;align-items:center;margin:4px 0;}
+.pv-act input{min-height:40px;}
+.seg-l{border-left:3px solid var(--azul-600);padding:4px 8px;margin:4px 0;font-size:var(--fs-menor);background:var(--n-50);border-radius:0 var(--r-xs) var(--r-xs) 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Hacer · Salud en el trabajo</div>
+    <h1>Vigilancia epidemiológica (PVE)</h1>
+    <p>Programas, personas, seguimiento e indicadores</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+</div>
+<div class="screen" id="scrProg">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Programas</a>
+    <div><div class="eyebrow">Programa de vigilancia</div><h1 id="pTitulo">—</h1><p id="pSub">—</p></div>
+  </div>
+  <div id="prog"></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="informe-reglas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$, G = INFORME.graf, C = G.COLOR;
+/* v155 · Programas de vigilancia epidemiológica (PVE / SVE), módulo propio.
+   - El programa (tipo «sve»): objetivo, responsable, metas y actividades programadas / ejecutadas.
+   - Las personas (tipo «pvecaso»): entran por examen médico (el médico las remite: «¿Debe ingresar a un PVE?»),
+     por exposición del cargo o a mano; cada una con su clasificación, seguimientos y próxima evaluación.
+   - Indicadores: población, prevalencia, incidencia, cobertura de evaluación, seguimientos vencidos y cumplimiento.
+   Nunca se escribe el diagnóstico: eso es de la historia clínica (Res. 1843 de 2025). Solo SST y administrador. */
+const PROGRAMAS = ['Osteomuscular (desórdenes musculoesqueléticos)', 'Conservación auditiva', 'Riesgo psicosocial', 'Protección respiratoria', 'Riesgo cardiovascular', 'Visual', 'Riesgo químico', 'Riesgo biológico', 'Radiaciones ionizantes', 'Otro'];
+const CLASES = ['Expuesto sin alteraciones', 'Sospechoso / sintomático', 'Caso (lo confirmó el médico)'];
+const ACT_TIPICAS = { osteo: ['Encuesta de síntomas osteomusculares', 'Inspección de puestos de trabajo', 'Escuela de espalda', 'Pausas activas'], audit: ['Audiometrías', 'Sonometría / dosimetría', 'Entrega y uso de protectores auditivos', 'Capacitación en conservación auditiva'],
+  psico: ['Aplicación de la batería', 'Talleres de manejo del estrés', 'Intervención de dominios en riesgo alto'], resp: ['Espirometrías', 'Mediciones de material particulado', 'Pruebas de ajuste del respirador'], visual: ['Optometrías / visiometrías', 'Inspección de iluminación', 'Pausas visuales'],
+  cardio: ['Tamizaje de riesgo cardiovascular', 'Actividad física', 'Charlas de hábitos saludables'], quim: ['Monitoreo biológico', 'Inspección de almacenamiento químico', 'Capacitación SGA'], bio: ['Esquema de vacunación', 'Inspección de bioseguridad'], rad: ['Dosimetría personal', 'Revisión de blindajes'] };
+let rows = [], actual = null;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function pveClave(t){ const n = UI.norm(t || ''); return /osteo|muscul/.test(n) ? 'osteo' : /audit|ruido/.test(n) ? 'audit' : /respirat|pulmon/.test(n) ? 'resp' : /psicosoc/.test(n) ? 'psico' :
+  /visual|ocular/.test(n) ? 'visual' : /cardio/.test(n) ? 'cardio' : /quimic/.test(n) ? 'quim' : /biologic/.test(n) ? 'bio' : /ionizante|radiacion/.test(n) ? 'rad' : n.trim(); }
+const nombreProg = (r)=> r.programa === 'Otro' && r.programaOtro ? r.programaOtro : (r.programa || 'Programa');
+const listaDe = (v)=> Array.isArray(v) ? v : String(v || '').split(/[,;|]/).map((x)=> x.trim()).filter(Boolean);
+const cedK = (c)=> String(c || '').replace(/\D/g, '');
+const personasDe = (sveId)=> de('pvecaso').filter((x)=> x.resumen.sveId === sveId);
+const anio = UI.hoy().slice(0, 4);
+
+/** Indicadores de un programa. */
+function indicadores(prog){
+  const r = prog.resumen || prog, ps = personasDe(prog.id), act = ps.filter((x)=> x.resumen.estado !== 'Egresado'), h = UI.hoy();
+  const casos = act.filter((x)=> x.resumen.clasificacion && x.resumen.clasificacion !== CLASES[0]);
+  const nuevos = ps.filter((x)=> x.resumen.clasificacion !== CLASES[0] && String(x.resumen.fechaIngreso || '').slice(0, 4) === anio);
+  const evaluados = act.filter((x)=> String(x.resumen.ultimoSeguimiento || '').slice(0, 4) === anio);
+  const vencidos = act.filter((x)=> x.resumen.proximaEvaluacion && x.resumen.proximaEvaluacion < h);
+  const pc = (a, b)=> b ? Math.round(a * 1000 / b) / 10 : null;
+  const ap = Number(r.actProgramadas) || 0, ae = Number(r.actEjecutadas) || 0;
+  return { expuestos: act.length, casos: casos.length, confirmados: act.filter((x)=> x.resumen.clasificacion === CLASES[2]).length, sospechosos: act.filter((x)=> x.resumen.clasificacion === CLASES[1]).length,
+    prevalencia: pc(casos.length, act.length), incidencia: pc(nuevos.length, act.length), nuevos: nuevos.length, cobertura: pc(evaluados.length, act.length), evaluados: evaluados.length,
+    vencidos: vencidos.length, egresados: ps.length - act.length, cumplimiento: ap ? Math.round(ae * 100 / ap) : null, ap, ae,
+    metaPrev: r.metaPrevalencia === '' || r.metaPrevalencia == null ? null : Number(r.metaPrevalencia), metaCob: r.metaCobertura === '' || r.metaCobertura == null ? 90 : Number(r.metaCobertura) };
+}
+const fmt1 = (v)=> v === null || v === undefined ? '—' : String(v).replace('.', ',') + ' %';
+function tiles(I){
+  const sem = (v, bien, mal, alReves)=> v === null ? '' : alReves ? (v <= bien ? 'ok' : v >= mal ? 'mal' : 'amar') : (v >= bien ? 'ok' : v <= mal ? 'mal' : 'amar');
+  return [
+    ['Población en el programa', String(I.expuestos), I.egresados ? I.egresados + ' egresados' : 'personas activas', ''],
+    ['Prevalencia', fmt1(I.prevalencia), I.casos + ' casos (' + I.sospechosos + ' sospechosos, ' + I.confirmados + ' confirmados)' + (I.metaPrev !== null ? ' · meta ≤ ' + I.metaPrev + ' %' : ''), I.metaPrev !== null ? sem(I.prevalencia, I.metaPrev, I.metaPrev * 1.5, true) : ''],
+    ['Incidencia ' + anio, fmt1(I.incidencia), I.nuevos + ' casos nuevos en el año', I.nuevos ? 'amar' : 'ok'],
+    ['Cobertura de evaluación ' + anio, fmt1(I.cobertura), I.evaluados + ' de ' + I.expuestos + ' con seguimiento en el año · meta ' + I.metaCob + ' %', sem(I.cobertura, I.metaCob, I.metaCob * 0.7)],
+    ['Seguimientos vencidos', String(I.vencidos), 'próxima evaluación pasada', I.vencidos ? 'mal' : 'ok'],
+    ['Cumplimiento de actividades', I.cumplimiento === null ? '—' : I.cumplimiento + ' %', I.ap ? I.ae + ' de ' + I.ap + ' ejecutadas' : 'sin actividades programadas', sem(I.cumplimiento, 90, 70)]];
+}
+const tilesHtml = (I)=> '<div class="pv-kpis">' + tiles(I).map((t)=> '<div class="pv-k ' + t[3] + '"><div class="n">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="f">' + esc(t[2]) + '</div></div>').join('') + '</div>';
+
+/* v157 · Del peligro al programa: los cargos expuestos según la matriz de peligros (GTC 45) son la población
+   del programa, y el profesiograma de esos cargos debe pedir la prueba de vigilancia. */
+const PELIGRO_PVE = { audit: /ruido/, osteo: /biomec|postura|movimiento repetitivo|manipulaci[oó]n (manual )?de cargas|esfuerzo/, psico: /psicosocial/, resp: /material particulado|polvo|humo|gases|vapores|neblina|fibras/,
+  quim: /qu[ií]mico/, bio: /biol[oó]gico|virus|bacteria|hongo/, visual: /iluminaci|pantalla|deslumbr|radiaci[oó]n no ionizante/, rad: /radiaci[oó]n ionizante|rayos x|gamma/, cardio: /^$/ };
+const PRUEBA_PVE = { audit: /audiometr/i, osteo: /osteomuscular/i, resp: /espirometr/i, visual: /visiometr|optometr/i, quim: /qu[ií]mico|bei|indicadores biol/i, psico: /psicol[oó]g/i };
+function cargosExpuestos(prog){
+  const re = PELIGRO_PVE[pveClave(nombreProg(prog.resumen))]; if (!re) return [];
+  const out = new Set();
+  de('peligro').forEach((x)=> { const r = x.resumen, t = UI.norm([r.clasificacion, r.subtipo, r.peligro].join(' '));
+    if (!re.test(t)) return; String(r.cargos || '').split(/\s*[,;]\s*/).map((c)=> c.trim()).filter(Boolean).forEach((c)=> out.add(c)); });
+  return [...out];
+}
+function expuestosSinIncluir(prog){
+  const cs = cargosExpuestos(prog).map(UI.norm), ya = new Set(personasDe(prog.id).map((x)=> cedK(x.resumen.cedula)));
+  return de('trabajador').filter((t)=> t.resumen.activo !== false && cs.includes(UI.norm(t.resumen.cargo)) && !ya.has(cedK(t.resumen.cedula)));
+}
+function profesiogramaSinPrueba(prog){
+  const re = PRUEBA_PVE[pveClave(nombreProg(prog.resumen))]; if (!re) return [];
+  return cargosExpuestos(prog).filter((c)=> { const p = de('cargo').find((x)=> UI.norm(x.resumen.nombre) === UI.norm(c)); return !p || !re.test(String(p.resumen.examenes || '') + ' ' + JSON.stringify(p.resumen.enfasis || '')); });
+}
+/** Personas remitidas por examen médico a un programa que aún no están en él. */
+function remitidosSinIncluir(prog){
+  const clave = pveClave(nombreProg(prog.resumen)), ya = new Set(personasDe(prog.id).map((x)=> cedK(x.resumen.cedula))), out = {};
+  de('examen').sort((a, b)=> String(a.resumen.fecha).localeCompare(String(b.resumen.fecha))).forEach((x)=> { const s = x.resumen;
+    if (s.pveIngresa !== 'Sí' || s.tipoExamen === 'Egreso' || !listaDe(s.pve).some((p)=> pveClave(p) === clave)) return;
+    const k = cedK(s.cedula) || UI.norm(s.nombre); if (ya.has(k)) return; out[k] = { nombre: s.nombre, cedula: s.cedula, cargo: s.cargo, fecha: s.fecha, examenId: x.id, tipo: s.tipoExamen }; });
+  return Object.values(out);
+}
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; return; }
+  const rol = Sesion.rol();
+  if (rol && rol !== 'admin' && rol !== 'sst') { $('lista').innerHTML = '<div class="aviso info">🔒 La vigilancia epidemiológica tiene datos de salud: solo la ven el administrador y el área SST.</div>'; return; }
+  const r = await SGSST.listar('sve,pvecaso,examen,trabajador,peligro,cargo');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows || []; pintarLista();
+  if (actual) { const p = de('sve').find((x)=> x.id === actual.id); if (p) { try { p.doc = await Registros.abrir(p.id); } catch (e) {} actual = p; pintarProg(); } }
+}
+function pintarLista(){
+  const progs = de('sve').sort((a, b)=> (a.resumen.estado === 'Cerrado') - (b.resumen.estado === 'Cerrado') || nombreProg(a.resumen).localeCompare(nombreProg(b.resumen)));
+  const todos = progs.filter((p)=> p.resumen.estado !== 'Cerrado').map((p)=> ({ p, I: indicadores(p) }));
+  const pend = progs.reduce((a, p)=> a + remitidosSinIncluir(p).length, 0);
+  const huerf = (()=> { const claves = new Set(progs.map((p)=> pveClave(nombreProg(p.resumen)))), out = {};
+    de('examen').forEach((x)=> { if (x.resumen.pveIngresa !== 'Sí') return; listaDe(x.resumen.pve).forEach((n)=> { const c = pveClave(n); if (!claves.has(c)) out[c] = n; }); }); return out; })();
+  $('lista').innerHTML =
+    '<div class="fila-btn"><button type="button" class="btn amber" id="nProg">+ Programa de vigilancia</button><button type="button" class="btn ghost" id="pdfGen">🖨️ Informe de los PVE (PDF)</button></div>' +
+    (pend ? '<div class="aviso amar">Hay <b>' + pend + '</b> persona(s) remitidas por examen médico que aún no están en su programa. Ábrelo y pulsa «Agregar» en «Remitidos por examen».</div>' : '') +
+    (Object.keys(huerf).length ? '<div class="aviso amar">Exámenes remiten a programas que aún no existen: ' + Object.keys(huerf).map((c)=> '<button type="button" class="btn ghost mini" data-crear="' + esc(huerf[c]) + '">Crear «' + esc(huerf[c]) + '»</button>').join(' ') + '</div>' : '') +
+    (todos.length ? '<div class="card"><h2>Indicadores de los programas</h2><div class="pv-grafs">' +
+      '<div class="pv-g"><h3>Prevalencia por programa (%)</h3>' + G.barrasH(todos.map((x)=> ({ n: nombreProg(x.p.resumen), v: x.I.prevalencia || 0 }))) + '</div>' +
+      '<div class="pv-g"><h3>Personas por clasificación</h3>' + G.anillo([{ n: 'Expuestos sin alteraciones', v: todos.reduce((a, x)=> a + x.I.expuestos - x.I.casos, 0), color: C.ok }, { n: 'Sospechosos', v: todos.reduce((a, x)=> a + x.I.sospechosos, 0), color: C.alerta }, { n: 'Casos confirmados', v: todos.reduce((a, x)=> a + x.I.confirmados, 0), color: C.mal }], { sub: 'personas' }) + '</div>' +
+      '<div class="pv-g"><h3>Cobertura de evaluación ' + anio + ' (%)</h3>' + G.barrasH(todos.map((x)=> ({ n: nombreProg(x.p.resumen), v: x.I.cobertura || 0 }))) + '</div>' +
+      '<div class="pv-g"><h3>Cumplimiento de actividades (%)</h3>' + G.barrasH(todos.map((x)=> ({ n: nombreProg(x.p.resumen), v: x.I.cumplimiento || 0 }))) + '</div></div></div>' : '') +
+    '<div class="card"><h2>Programas</h2>' + (progs.length ? progs.map((p)=> { const I = indicadores(p), rem = remitidosSinIncluir(p).length;
+      return '<button type="button" class="pv-per" data-prog="' + esc(p.id) + '"><div><div class="t">' + esc(nombreProg(p.resumen)) + '</div><div class="m">' + I.expuestos + ' persona(s) · prevalencia ' + fmt1(I.prevalencia) + ' · cobertura ' + fmt1(I.cobertura) + (I.vencidos ? ' · <b class="u-mal">' + I.vencidos + ' seguimiento(s) vencido(s)</b>' : '') + (rem ? ' · <b>' + rem + ' remitido(s) por incluir</b>' : '') + '</div></div><span class="chip ' + (p.resumen.estado === 'Cerrado' ? 'gris' : 'ok') + '">' + esc(p.resumen.estado || 'Activo') + '</span></button>'; }).join('')
+      : '<div class="empty">Aún no hay programas. Crea uno por cada peligro prioritario (ruido, cargas, psicosocial…).</div>') + '</div>' +
+    '<p class="ayuda">Aquí no se escriben diagnósticos: la persona entra al programa con su clasificación (expuesto, sospechoso o caso) y el diagnóstico queda en la historia clínica del médico (Res. 1843 de 2025).</p>';
+  $('nProg').addEventListener('click', ()=> editarProg({ id: SGSST.nuevoId('SVE'), nuevo: true, programa: PROGRAMAS[0], estado: 'Activo', fechaInicio: UI.hoy(), metaCobertura: 90, actividadesPlan: [] }));
+  $('pdfGen').addEventListener('click', pdfGeneral);
+  $('lista').querySelectorAll('[data-prog]').forEach((b)=> b.addEventListener('click', ()=> abrirProg(b.dataset.prog)));
+  $('lista').querySelectorAll('[data-crear]').forEach((b)=> b.addEventListener('click', ()=> { const n = b.dataset.crear, p = PROGRAMAS.find((x)=> x !== 'Otro' && pveClave(x) === pveClave(n));
+    editarProg({ id: SGSST.nuevoId('SVE'), nuevo: true, programa: p || 'Otro', programaOtro: p ? '' : n, estado: 'Activo', fechaInicio: UI.hoy(), metaCobertura: 90, actividadesPlan: [] }); }));
+}
+function mostrar(id){ document.querySelectorAll('.screen').forEach((s)=> s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+document.addEventListener('click', (e)=> { if (e.target.closest('[data-volver]')) { e.preventDefault(); actual = null; mostrar('scrLista'); pintarLista(); } });
+async function abrirProg(id){ actual = de('sve').find((x)=> x.id === id); if (!actual) return; try { actual.doc = await Registros.abrir(id); } catch (e) {} pintarProg(); mostrar('scrProg'); }
+let tabP = 'personas';
+function pintarProg(){
+  const p = actual, r = p.resumen, I = indicadores(p), ps = personasDe(p.id).sort((a, b)=> (a.resumen.estado === 'Egresado') - (b.resumen.estado === 'Egresado') || CLASES.indexOf(b.resumen.clasificacion) - CLASES.indexOf(a.resumen.clasificacion) || String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  const rem = remitidosSinIncluir(p);
+  $('pTitulo').textContent = nombreProg(r); $('pSub').textContent = (r.responsable ? 'Responsable: ' + r.responsable + ' · ' : '') + 'desde ' + UI.corta(r.fechaInicio || '') + ' · ' + (r.estado || 'Activo');
+  const porClase = CLASES.map((c, i)=> ({ n: c.replace(/ \(.*/, ''), v: ps.filter((x)=> x.resumen.estado !== 'Egresado' && x.resumen.clasificacion === c).length, color: [C.ok, C.alerta, C.mal][i] }));
+  const meses = Array.from({ length: 12 }, (_, i)=> anio + '-' + ('0' + (i + 1)).slice(-2));
+  $('prog').innerHTML =
+    '<div class="card">' + tilesHtml(I) + '<div class="pv-grafs">' +
+      '<div class="pv-g"><h3>Personas por clasificación</h3>' + G.anillo(porClase, { sub: 'personas' }) + '</div>' +
+      '<div class="pv-g"><h3>Ingresos al programa ' + anio + '</h3>' + G.barras(meses.map((m)=> ({ et: INFORME.etiquetaMes(m), v: ps.filter((x)=> String(x.resumen.fechaIngreso || '').slice(0, 7) === m).length })), { dec: 0 }) + '</div>' +
+      (I.ap ? '<div class="pv-g"><h3>Actividades: programadas y ejecutadas</h3>' + G.barrasPar(((p.doc && p.doc.actividadesPlan) || []).map((a)=> ({ et: String(a.actividad).slice(0, 10), a: Number(a.programadas) || 0, b: Number(a.ejecutadas) || 0 })), { na: 'programadas', nb: 'ejecutadas' }) + '</div>' : '') +
+    '</div><div class="fila-btn u-mt8"><button type="button" class="btn ghost" id="eProg">✏️ Programa, metas y actividades</button><button type="button" class="btn ghost" id="pdfProg">🖨️ Informe del programa (PDF)</button></div></div>' +
+    (()=> { const ex = expuestosSinIncluir(p), cs = cargosExpuestos(p), sp = profesiogramaSinPrueba(p);
+      if (!cs.length) return '<div class="card"><h2>Según la matriz de peligros</h2><p class="ayuda">Ningún peligro de la matriz se relaciona con este programa (o no tiene cargos expuestos). Escribe los cargos en cada peligro de la matriz para que la población salga sola.</p></div>';
+      return '<div class="card"><h2>Según la matriz de peligros</h2><p class="ayuda">Cargos expuestos: <b>' + esc(cs.join(', ')) + '</b>.</p>' +
+        (ex.length ? '<div class="aviso amar">' + ex.length + ' persona(s) de esos cargos aún no están en el programa. <button type="button" class="btn ghost mini" id="addMatriz">Agregarlas como expuestas</button></div>' : '<div class="aviso ok">Toda la población expuesta según la matriz ya está en el programa.</div>') +
+        (sp.length ? '<div class="aviso amar u-mt6">El profesiograma no pide la prueba de vigilancia para: <b>' + esc(sp.join(', ')) + '</b>. <a href="salud.html">Revisar el profesiograma →</a></div>' : '') + '</div>'; })() +
+    '<div class="card"><div class="tabs" id="tabsP">' + [['personas', 'Personas (' + ps.filter((x)=> x.resumen.estado !== 'Egresado').length + ')'], ['remitidos', 'Remitidos por examen (' + rem.length + ')'], ['egresados', 'Egresados (' + I.egresados + ')']].map(([k, t])=> '<button type="button" data-tp="' + k + '" class="' + (tabP === k ? 'on' : '') + '">' + t + '</button>').join('') + '</div><div id="panelP"></div></div>';
+  $('eProg').addEventListener('click', async ()=> { const d = await Registros.abrir(p.id); if (d) editarProg(d); });
+  $('pdfProg').addEventListener('click', ()=> pdfPrograma(p));
+  if ($('addMatriz')) $('addMatriz').addEventListener('click', async ()=> { const ex = expuestosSinIncluir(p); if (!await Dialogo.confirmar('¿Agregar ' + ex.length + ' persona(s) como «Expuesto sin alteraciones»?')) return;
+    for (const t of ex) { const d = nuevaPersona({ nombre: t.resumen.nombre, cedula: t.resumen.cedula, cargo: t.resumen.cargo }, 'Exposición del cargo'); await Registros.guardar('pvecaso', d.id, d, 0); }
+    await recalcularProg(); UI.toast('✓ ' + ex.length + ' persona(s) agregadas.'); await cargar(); });
+  $('tabsP').addEventListener('click', (e)=> { const b = e.target.closest('[data-tp]'); if (!b) return; tabP = b.dataset.tp; pintarProg(); });
+  const pn = $('panelP');
+  if (tabP === 'remitidos') {
+    pn.innerHTML = '<p class="ayuda">Personas que el médico remitió a este programa en su examen («¿Debe ingresar a un PVE?» en Salud → Exámenes) y que todavía no están incluidas.</p>' +
+      (rem.length ? '<button type="button" class="btn amber" id="addTodos">Agregar los ' + rem.length + '</button>' + rem.map((x, i)=> '<div class="pv-per"><div><div class="t">' + esc(x.nombre) + '</div><div class="m">CC ' + esc(x.cedula || '—') + (x.cargo ? ' · ' + esc(x.cargo) : '') + ' · examen ' + esc(String(x.tipo || '').toLowerCase()) + ' del ' + esc(UI.corta(x.fecha)) + '</div></div><button type="button" class="btn-mini" data-addrem="' + i + '">Agregar</button></div>').join('')
+        : '<div class="empty">Nadie pendiente: todos los remitidos por examen ya están en el programa.</div>');
+    pn.querySelectorAll('[data-addrem]').forEach((b)=> b.addEventListener('click', ()=> { const x = rem[+b.dataset.addrem]; editarPersona(nuevaPersona(x, 'Examen médico')); }));
+    if ($('addTodos')) $('addTodos').addEventListener('click', async ()=> { if (!await Dialogo.confirmar('¿Agregar las ' + rem.length + ' personas como «Sospechoso / sintomático»? Luego puedes ajustar la clasificación de cada una.')) return;
+      for (const x of rem) { const d = nuevaPersona(x, 'Examen médico'); await Registros.guardar('pvecaso', d.id, d, 0); } await recalcularProg(); UI.toast('✓ ' + rem.length + ' persona(s) agregadas.'); await cargar(); });
+    return;
+  }
+  const lista = ps.filter((x)=> tabP === 'egresados' ? x.resumen.estado === 'Egresado' : x.resumen.estado !== 'Egresado');
+  pn.innerHTML = (tabP === 'personas' ? '<div class="fila-btn"><button type="button" class="btn amber" id="addPer">+ Agregar persona</button><button type="button" class="btn ghost" id="addCargo">+ Agregar por cargo (expuestos)</button></div>' : '') +
+    (lista.length ? lista.map((x)=> { const s = x.resumen, venc = s.proximaEvaluacion && s.proximaEvaluacion < UI.hoy(), cl = CLASES.indexOf(s.clasificacion);
+      return '<button type="button" class="pv-per" data-per="' + esc(x.id) + '"><div><div class="t">' + esc(s.nombre) + '</div><div class="m">CC ' + esc(s.cedula || '—') + (s.cargo ? ' · ' + esc(s.cargo) : '') + (s.area ? ' · ' + esc(s.area) : '') + '<br>' + esc(s.origen || '') + ' · ingresó ' + esc(UI.corta(s.fechaIngreso || '')) + (s.ultimoSeguimiento ? ' · último seguimiento ' + esc(UI.corta(s.ultimoSeguimiento)) : ' · sin seguimientos') + (s.proximaEvaluacion ? ' · <b class="' + (venc ? 'u-mal' : '') + '">próxima ' + esc(UI.corta(s.proximaEvaluacion)) + (venc ? ' (vencida)' : '') + '</b>' : '') + '</div></div>' +
+        '<span class="chip ' + (s.estado === 'Egresado' ? 'gris' : cl === 2 ? 'mal' : cl === 1 ? 'pronto' : 'ok') + '">' + esc(s.estado === 'Egresado' ? 'Egresado' : String(s.clasificacion || '').replace(/ \(.*/, '')) + '</span></button>'; }).join('')
+      : '<div class="empty">' + (tabP === 'egresados' ? 'Nadie ha egresado del programa.' : 'Aún no hay personas. Agrégalas a mano, por cargo expuesto, o desde «Remitidos por examen».') + '</div>');
+  pn.querySelectorAll('[data-per]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.per); if (d) editarPersona(d); }));
+  if ($('addPer')) $('addPer').addEventListener('click', ()=> editarPersona(nuevaPersona({}, 'Agregada a mano')));
+  if ($('addCargo')) $('addCargo').addEventListener('click', agregarPorCargo);
+}
+function nuevaPersona(x, origen){
+  const t = de('trabajador').find((w)=> cedK(w.resumen.cedula) && cedK(w.resumen.cedula) === cedK(x.cedula));
+  return { id: SGSST.nuevoId('PVC'), nuevo: true, sveId: actual.id, programa: nombreProg(actual.resumen), nombre: x.nombre || '', cedula: x.cedula || '', cargo: x.cargo || (t && t.resumen.cargo) || '', area: (t && t.resumen.area) || '',
+    clasificacion: origen === 'Examen médico' ? CLASES[1] : CLASES[0], origen, examenId: x.examenId || '', fechaIngreso: x.fecha || UI.hoy(), estado: 'Activo', proximaEvaluacion: Festivos.sumarMeses(UI.hoy(), origen === 'Examen médico' ? 3 : 12), seguimientos: [] };
+}
+async function agregarPorCargo(){
+  const cargos = [...new Set(de('trabajador').filter((x)=> x.resumen.activo !== false).map((x)=> String(x.resumen.cargo || '').trim()).filter(Boolean))].sort();
+  if (!cargos.length) { UI.toast('No hay cargos en Personal habilitado.', 'mal'); return; }
+  const m = UI.modal('<h3>Agregar por cargo</h3><p class="ayuda">Las personas activas de los cargos expuestos al peligro entran como «Expuesto sin alteraciones» (población del programa). Quien ya está, no se repite.</p><div class="chips" id="cgs">' + cargos.map((c)=> '<button type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>').join('') + '</div><button type="button" class="btn amber u-mt8" id="cgOk">Agregar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="cgMsg"></div>', true);
+  m.el.querySelector('#cgs').addEventListener('click', (e)=> { const b = e.target.closest('[data-v]'); if (b) b.classList.toggle('on'); });
+  m.el.querySelector('#cgOk').addEventListener('click', async ()=> {
+    const sel = [...m.el.querySelectorAll('#cgs .on')].map((b)=> b.dataset.v); if (!sel.length) { m.el.querySelector('#cgMsg').textContent = 'Marca al menos un cargo.'; return; }
+    const ya = new Set(personasDe(actual.id).map((x)=> cedK(x.resumen.cedula))), nuevos = de('trabajador').filter((x)=> x.resumen.activo !== false && sel.includes(String(x.resumen.cargo || '').trim()) && !ya.has(cedK(x.resumen.cedula)));
+    m.el.querySelector('#cgMsg').textContent = 'Agregando ' + nuevos.length + '…';
+    for (const t of nuevos) { const d = nuevaPersona({ nombre: t.resumen.nombre, cedula: t.resumen.cedula, cargo: t.resumen.cargo }, 'Exposición del cargo'); await Registros.guardar('pvecaso', d.id, d, 0); }
+    m.cerrar(); await recalcularProg(); UI.toast('✓ ' + nuevos.length + ' persona(s) agregadas.'); await cargar(); });
+}
+/** Ficha de la persona en el programa: clasificación, seguimientos y próxima evaluación. */
+function editarPersona(d){
+  const segs = (d.seguimientos || []).slice();
+  const m = UI.modal('<h3>' + (d.nuevo ? 'Agregar al programa' : esc(d.nombre)) + '</h3><p class="ayuda">' + esc(d.programa || nombreProg(actual.resumen)) + ' · sin diagnósticos (quedan en la historia clínica).</p>' +
+    '<div class="field"><label for="ppNom">Trabajador *</label><input type="text" id="ppNom" value="' + esc(d.nombre || '') + '" placeholder="Escribe y elige"></div>' +
+    '<div class="grid2"><div class="field"><label for="ppCed">Cédula *</label><input type="text" id="ppCed" inputmode="numeric" value="' + esc(d.cedula || '') + '"></div><div class="field"><label for="ppCar">Cargo</label><input type="text" id="ppCar" value="' + esc(d.cargo || '') + '"></div></div>' +
+    '<div class="grid2"><div class="field"><label for="ppArea">Área</label><input type="text" id="ppArea" data-areas value="' + esc(d.area || '') + '"></div><div class="field"><label for="ppIng">Fecha de ingreso</label><input type="date" id="ppIng" value="' + esc(d.fechaIngreso || UI.hoy()) + '"></div></div>' +
+    '<div class="field"><label>Clasificación en el programa</label><div class="chips" id="ppCl">' + CLASES.map((c)=> '<button type="button" data-v="' + esc(c) + '" class="' + (c === d.clasificacion ? 'on' : '') + '">' + esc(c) + '</button>').join('') + '</div><div class="ayuda">Expuesto: está en contacto con el peligro, sin hallazgos. Sospechoso: tiene síntomas o un hallazgo en la evaluación. Caso: el médico confirmó la alteración (sin escribir cuál).</div></div>' +
+    '<div class="grid2"><div class="field"><label for="ppOri">Cómo ingresó</label><select id="ppOri">' + ['Examen médico', 'Encuesta de síntomas', 'Exposición del cargo', 'Reporte del trabajador', 'Agregada a mano'].map((o)=> '<option' + (o === d.origen ? ' selected' : '') + '>' + o + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label for="ppProx">Próxima evaluación</label><input type="date" id="ppProx" value="' + esc(d.proximaEvaluacion || '') + '"></div></div>' +
+    '<div class="field"><label for="ppRec">Recomendaciones para el trabajo (sin diagnóstico)</label><textarea id="ppRec" rows="2" placeholder="Ej: pausas activas cada 2 horas; uso de protector tipo copa">' + esc(d.recomendaciones || '') + '</textarea></div>' +
+    '<div class="card u-mt8"><h3>Seguimientos</h3><div id="ppSegs"></div><div class="grid2"><div class="field"><label for="sgF">Fecha</label><input type="date" id="sgF" value="' + UI.hoy() + '"></div><div class="field"><label for="sgA">Actividad</label><input type="text" id="sgA" list="sgAct" placeholder="Ej: Audiometría de control"></div></div>' +
+    '<datalist id="sgAct">' + (ACT_TIPICAS[pveClave(d.programa || nombreProg(actual.resumen))] || []).concat(['Valoración médica de control', 'Encuesta de síntomas', 'Capacitación', 'Inspección del puesto', 'Llamada de seguimiento']).map((a)=> '<option value="' + esc(a) + '">').join('') + '</datalist>' +
+    '<div class="field"><label for="sgR">Resultado (sin diagnóstico)</label><input type="text" id="sgR" placeholder="Ej: sin cambios; continúa en el programa"></div><button type="button" class="btn ghost mini" id="sgAdd">+ Anotar seguimiento</button></div>' +
+    (d.nuevo ? '' : '<div class="field u-mt8"><label for="ppEst">Estado</label><select id="ppEst"><option' + (d.estado !== 'Egresado' ? ' selected' : '') + '>Activo</option><option' + (d.estado === 'Egresado' ? ' selected' : '') + '>Egresado</option></select><div class="ayuda">Egresado: ya no está expuesto, se retiró de la empresa o el médico indicó que sale del programa.</div></div>') +
+    '<button type="button" class="btn amber" id="ppOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="ppMsg"></div>', true);
+  const q = (id)=> m.el.querySelector('#' + id);
+  UI.autocompletar(q('ppNom'), (x)=> { q('ppNom').value = x.nombre; q('ppCed').value = x.cedula || ''; const t = de('trabajador').find((w)=> cedK(w.resumen.cedula) === cedK(x.cedula)); if (t) { q('ppCar').value = t.resumen.cargo || ''; q('ppArea').value = t.resumen.area || ''; } });
+  q('ppCl').addEventListener('click', (e)=> { const b = e.target.closest('[data-v]'); if (!b) return; q('ppCl').querySelectorAll('button').forEach((x)=> x.classList.toggle('on', x === b)); });
+  const pintarSegs = ()=> { q('ppSegs').innerHTML = segs.length ? segs.slice().reverse().map((s)=> '<div class="seg-l"><b>' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.actividad) + '</b>' + (s.resultado ? '<br>' + esc(s.resultado) : '') + '</div>').join('') : '<div class="ayuda">Sin seguimientos todavía.</div>'; };
+  pintarSegs();
+  q('sgAdd').addEventListener('click', ()=> { const a = q('sgA').value.trim(); if (!a) { q('ppMsg').textContent = 'Escribe la actividad del seguimiento.'; return; }
+    if (/diagn|hipoacus|lumbalg|tendin|cancer|vih|depresi|ansiedad|diabet|hipertens/i.test(q('sgR').value)) { q('ppMsg').textContent = 'No escribas el diagnóstico en el resultado: va en la historia clínica.'; return; }
+    segs.push({ fecha: q('sgF').value || UI.hoy(), actividad: a.slice(0, 120), resultado: q('sgR').value.trim().slice(0, 200) }); q('sgA').value = ''; q('sgR').value = ''; q('ppMsg').textContent = ''; pintarSegs(); });
+  q('ppOk').addEventListener('click', async ()=> {
+    const msg = q('ppMsg'), nom = q('ppNom').value.trim(), ced = q('ppCed').value.trim(), cl = (q('ppCl').querySelector('.on') || {}).dataset;
+    if (!nom || !ced) { msg.textContent = 'Faltan el nombre y la cédula.'; return; }
+    if (!cl) { msg.textContent = 'Elige la clasificación.'; return; }
+    if (d.nuevo && personasDe(actual.id).some((x)=> cedK(x.resumen.cedula) === cedK(ced))) { msg.textContent = 'Esa persona ya está en el programa.'; return; }
+    if (/diagn|hipoacus|lumbalg|tendin|cancer|vih|depresi|diabet|hipertens/i.test(q('ppRec').value)) { msg.textContent = 'No escribas el diagnóstico en las recomendaciones.'; return; }
+    const est = q('ppEst') ? q('ppEst').value : 'Activo', ult = segs.map((s)=> s.fecha).sort().pop() || '';
+    const v = Object.assign({}, d, { nombre: nom, cedula: ced, cargo: q('ppCar').value.trim(), area: q('ppArea').value.trim(), fechaIngreso: q('ppIng').value || UI.hoy(), clasificacion: cl.v, origen: q('ppOri').value,
+      proximaEvaluacion: q('ppProx').value, recomendaciones: q('ppRec').value.trim(), seguimientos: segs, nSeguimientos: segs.length, ultimoSeguimiento: ult, estado: est,
+      fechaEgreso: est === 'Egresado' ? (d.fechaEgreso || UI.hoy()) : '', sveId: actual.id, programa: nombreProg(actual.resumen) });
+    delete v.nuevo; msg.textContent = 'Guardando…';
+    const r = await Registros.guardar('pvecaso', d.id, v, d.nuevo ? 0 : d.version);
+    if (typeof r === 'string') { msg.textContent = r; return; }
+    m.cerrar(); UI.toast('✓ Guardado'); await cargar(); await recalcularProg();
+  });
+}
+/** El programa guarda sus cifras (las usan el informe, la carpeta de evidencias y el paquete para el cliente). */
+async function recalcularProg(){
+  if (!actual) return; const I = indicadores(actual);
+  await SGSST.enviar({ action: 'parche', tipo: 'sve', id: actual.id, campos: { poblacion: I.expuestos, intervenidos: I.evaluados, cobertura: I.cobertura === null ? '' : Math.round(I.cobertura) } });
+}
+/** Programa: nombre, responsable, metas y actividades (programadas / ejecutadas). */
+function editarProg(d){
+  const acts = (d.actividadesPlan || []).map((a)=> Object.assign({}, a));
+  const m = UI.modal('<h3>' + (d.nuevo ? 'Nuevo programa de vigilancia' : esc(nombreProg(d))) + '</h3>' +
+    '<div class="field"><label for="pgP">Programa</label><select id="pgP">' + PROGRAMAS.map((x)=> '<option' + (x === d.programa ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select></div>' +
+    '<div class="field" id="pgOtroF"><label for="pgO">¿Cuál otro programa?</label><input type="text" id="pgO" value="' + esc(d.programaOtro || '') + '" placeholder="Ej: Dermatológico"></div>' +
+    '<div class="grid2"><div class="field"><label for="pgR">Responsable</label><input type="text" id="pgR" value="' + esc(d.responsable || '') + '"></div><div class="field"><label for="pgI">Inicio</label><input type="date" id="pgI" value="' + esc(d.fechaInicio || UI.hoy()) + '"></div></div>' +
+    '<div class="field"><label for="pgObj">Objetivo</label><textarea id="pgObj" rows="2">' + esc(d.objetivo || '') + '</textarea></div>' +
+    '<div class="grid2"><div class="field"><label for="pgMP">Meta de prevalencia (máximo %)</label><input type="number" id="pgMP" min="0" max="100" value="' + esc(d.metaPrevalencia === undefined ? '' : d.metaPrevalencia) + '"></div><div class="field"><label for="pgMC">Meta de cobertura de evaluación (%)</label><input type="number" id="pgMC" min="0" max="100" value="' + esc(d.metaCobertura === undefined ? 90 : d.metaCobertura) + '"></div></div>' +
+    '<div class="field"><label>Actividades del año</label><div class="pv-act ayuda"><span>Actividad</span><span>Programadas</span><span>Ejecutadas</span><span></span></div><div id="pgActs"></div><div class="fila-btn"><button type="button" class="btn ghost mini" id="pgAdd">+ Actividad</button><button type="button" class="btn ghost mini" id="pgTip">Sugerir las típicas</button></div></div>' +
+    '<div class="field"><label for="pgE">Estado</label><select id="pgE"><option' + (d.estado !== 'Cerrado' ? ' selected' : '') + '>Activo</option><option' + (d.estado === 'Cerrado' ? ' selected' : '') + '>Cerrado</option></select></div>' +
+    '<button type="button" class="btn amber" id="pgOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="pgMsg"></div>', true);
+  const q = (id)=> m.el.querySelector('#' + id);
+  const leerActs = ()=> { m.el.querySelectorAll('.pv-act[data-i]').forEach((f)=> { const a = acts[+f.dataset.i]; a.actividad = f.querySelector('.a').value; a.programadas = f.querySelector('.p').value; a.ejecutadas = f.querySelector('.e').value; }); };
+  const pintarActs = ()=> { q('pgActs').innerHTML = acts.map((a, i)=> '<div class="pv-act" data-i="' + i + '"><input type="text" class="a" value="' + esc(a.actividad || '') + '" aria-label="Actividad"><input type="number" class="p" min="0" value="' + esc(a.programadas || '') + '" aria-label="Programadas"><input type="number" class="e" min="0" value="' + esc(a.ejecutadas || '') + '" aria-label="Ejecutadas"><button type="button" class="btn-mini rojo" data-q="' + i + '" aria-label="Quitar">✕</button></div>').join('') || '<div class="ayuda">Sin actividades.</div>'; };
+  pintarActs();
+  q('pgActs').addEventListener('click', (e)=> { const b = e.target.closest('[data-q]'); if (!b) return; leerActs(); acts.splice(+b.dataset.q, 1); pintarActs(); });
+  q('pgAdd').addEventListener('click', ()=> { leerActs(); acts.push({ actividad: '', programadas: 1, ejecutadas: 0 }); pintarActs(); });
+  q('pgTip').addEventListener('click', ()=> { leerActs(); const n = q('pgP').value === 'Otro' ? q('pgO').value : q('pgP').value; (ACT_TIPICAS[pveClave(n)] || []).forEach((t)=> { if (!acts.some((a)=> UI.norm(a.actividad) === UI.norm(t))) acts.push({ actividad: t, programadas: 1, ejecutadas: 0 }); }); pintarActs(); });
+  const verOtro = ()=> { q('pgOtroF').hidden = q('pgP').value !== 'Otro'; }; q('pgP').addEventListener('change', verOtro); verOtro();
+  q('pgOk').addEventListener('click', async ()=> {
+    leerActs(); const msg = q('pgMsg'), pr = q('pgP').value;
+    if (pr === 'Otro' && q('pgO').value.trim().length < 3) { msg.textContent = 'Escribe cuál es el programa.'; return; }
+    const lista = acts.filter((a)=> String(a.actividad || '').trim()).map((a)=> ({ actividad: String(a.actividad).trim().slice(0, 100), programadas: Math.max(0, Number(a.programadas) || 0), ejecutadas: Math.max(0, Number(a.ejecutadas) || 0) }));
+    const ap = lista.reduce((s, a)=> s + a.programadas, 0), ae = lista.reduce((s, a)=> s + Math.min(a.ejecutadas, a.programadas || a.ejecutadas), 0);
+    const v = Object.assign({}, d, { programa: pr, programaOtro: pr === 'Otro' ? q('pgO').value.trim() : '', responsable: q('pgR').value.trim(), fechaInicio: q('pgI').value, objetivo: q('pgObj').value.trim(),
+      metaPrevalencia: q('pgMP').value === '' ? '' : Number(q('pgMP').value), metaCobertura: q('pgMC').value === '' ? 90 : Number(q('pgMC').value), actividadesPlan: lista,
+      actividadesTexto: lista.map((a)=> a.actividad).join('\n'), actividades: lista.length, actProgramadas: ap, actEjecutadas: ae, cumplimiento: ap ? Math.round(ae * 100 / ap) : '', estado: q('pgE').value });
+    delete v.nuevo; msg.textContent = 'Guardando…';
+    const r = await Registros.guardar('sve', d.id, v, d.nuevo ? 0 : d.version);
+    if (typeof r === 'string') { msg.textContent = r; return; }
+    m.cerrar(); UI.toast('✓ Programa guardado'); await cargar(); if (d.nuevo) abrirProg(d.id);
+  });
+}
+/* ── PDF ── */
+function hojaPrograma(p, docP){
+  const r = p.resumen, I = indicadores(p), ps = personasDe(p.id), act = ps.filter((x)=> x.resumen.estado !== 'Egresado');
+  const porClase = CLASES.map((c, i)=> ({ n: c.replace(/ \(.*/, ''), v: act.filter((x)=> x.resumen.clasificacion === c).length, color: [C.ok, C.alerta, C.mal][i] }));
+  return UI.cabecera('SG-PVE', 'PROGRAMA DE VIGILANCIA EPIDEMIOLÓGICA: ' + nombreProg(r).toUpperCase(), 'Corte ' + UI.corta(UI.hoy()) + ' · ' + (r.estado || 'Activo')) +
+    UI.seccion('DATOS DEL PROGRAMA', UI.tablaDatos([['Responsable', r.responsable || '—'], ['Inicio', UI.corta(r.fechaInicio || '') || '—'], ['Objetivo', (docP && docP.objetivo) || '—']])) +
+    UI.seccion('INDICADORES', '<table><tr>' + tiles(I).map((t)=> '<td style="width:16.6%;vertical-align:top;border-left:3pt solid ' + ({ ok: '#15803d', amar: '#b45309', mal: '#b42318' }[t[3]] || '#94a3b8') + ';"><div style="font-size:6.8pt;font-weight:bold;">' + esc(t[0]) + '</div><div style="font-size:14pt;font-weight:bold;">' + esc(t[1]) + '</div><div style="font-size:6.5pt;">' + esc(t[2]) + '</div></td>').join('') + '</tr></table>' +
+      '<p style="font-size:6.8pt;">Prevalencia = casos (sospechosos + confirmados) ÷ población activa × 100. Incidencia = casos nuevos del año ÷ población × 100. Cobertura = personas con seguimiento en el año ÷ población × 100.</p>') +
+    UI.seccion('GRÁFICAS', '<table style="table-layout:fixed;width:100%;"><tr><td style="width:50%;">' + G.anillo(porClase, { sub: 'personas' }) + '</td><td>' + (I.ap ? G.barrasPar(((docP && docP.actividadesPlan) || []).map((a)=> ({ et: String(a.actividad).slice(0, 10), a: a.programadas, b: a.ejecutadas })), { na: 'programadas', nb: 'ejecutadas' }) : 'Sin actividades programadas.') + '</td></tr></table>') +
+    (docP && (docP.actividadesPlan || []).length ? UI.seccion('ACTIVIDADES', '<table><tr><th>Actividad</th><th style="width:15%;">Programadas</th><th style="width:15%;">Ejecutadas</th><th style="width:15%;">Cumplimiento</th></tr>' + docP.actividadesPlan.map((a)=> '<tr><td>' + esc(a.actividad) + '</td><td>' + a.programadas + '</td><td>' + a.ejecutadas + '</td><td>' + (a.programadas ? Math.round(Math.min(a.ejecutadas, a.programadas) * 100 / a.programadas) + ' %' : '—') + '</td></tr>').join('') + '</table>') : '') +
+    UI.seccion('PERSONAS EN EL PROGRAMA (' + act.length + ')', act.length ? '<table><tr><th>Trabajador</th><th>Cédula</th><th>Cargo / área</th><th>Clasificación</th><th>Ingresó (origen)</th><th>Último seguimiento</th><th>Próxima evaluación</th></tr>' +
+      act.map((x)=> { const s = x.resumen; return '<tr><td>' + esc(s.nombre) + '</td><td>' + esc(s.cedula || '') + '</td><td>' + esc([s.cargo, s.area].filter(Boolean).join(' · ')) + '</td><td>' + esc(String(s.clasificacion || '').replace(/ \(.*/, '')) + '</td><td>' + esc(UI.corta(s.fechaIngreso || '')) + ' (' + esc(s.origen || '') + ')</td><td>' + esc(s.ultimoSeguimiento ? UI.corta(s.ultimoSeguimiento) : '—') + '</td><td>' + esc(s.proximaEvaluacion ? UI.corta(s.proximaEvaluacion) : '—') + '</td></tr>'; }).join('') + '</table>' : '<table><tr><td>Sin personas.</td></tr></table>') +
+    '<p style="font-size:7pt;">Documento con datos de salud: uso exclusivo del área SST y del médico del trabajo (Ley 1581 de 2012; Res. 1843 de 2025). No contiene diagnósticos: quedan en la historia clínica que custodia el prestador.</p>';
+}
+async function pdfPrograma(p){ const d = await Registros.abrir(p.id); UI.imprimir([hojaPrograma(p, d)], true); }
+async function pdfGeneral(){
+  const progs = de('sve').filter((p)=> p.resumen.estado !== 'Cerrado'); if (!progs.length) { UI.toast('No hay programas activos.', 'mal'); return; }
+  const docs = await Promise.all(progs.map((p)=> Registros.abrir(p.id).catch(()=> null)));
+  const res = UI.cabecera('SG-PVE', 'INFORME DE LOS PROGRAMAS DE VIGILANCIA EPIDEMIOLÓGICA', 'Corte ' + UI.corta(UI.hoy())) +
+    UI.seccion('RESUMEN', '<table><tr><th>Programa</th><th>Población</th><th>Prevalencia</th><th>Incidencia ' + anio + '</th><th>Cobertura</th><th>Seguimientos vencidos</th><th>Cumplimiento</th></tr>' +
+      progs.map((p)=> { const I = indicadores(p); return '<tr><td>' + esc(nombreProg(p.resumen)) + '</td><td>' + I.expuestos + '</td><td>' + fmt1(I.prevalencia) + '</td><td>' + fmt1(I.incidencia) + '</td><td>' + fmt1(I.cobertura) + '</td><td>' + I.vencidos + '</td><td>' + (I.cumplimiento === null ? '—' : I.cumplimiento + ' %') + '</td></tr>'; }).join('') + '</table>');
+  UI.imprimir([res].concat(progs.map((p, i)=> hojaPrograma(p, docs[i]))), true);
+}
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Pantalla de planta · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pantalla de planta · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+/* Modo televisor: oscuro, alto contraste, cifras grandes que se leen a 5 metros. */
+body.tv{--tv-fondo:#0b1220;--tv-texto:#f4f7fb;--tv-caja:#16213a;--tv-ok1:#0f5132;--tv-ok2:#0a3a24;--tv-mal1:#7a1c14;--tv-mal2:#4d100b;--tv-cmal:#5c1710;--tv-cok:#123826;
+  background:var(--tv-fondo);color:var(--tv-texto);overflow:hidden;cursor:default;}
+body.tv.sin-cursor{cursor:none;}
+body.tv .wrap,body.tv .screen{max-width:none;padding:0;margin:0;background:transparent;}
+.tv-grid{display:none;}
+body.tv .tv-grid{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100vh;padding:2.2vw 3vw;gap:1.6vw;box-sizing:border-box;}
+body.tv #config{display:none;}
+/* en el televisor no va nada de la aplicación: ni la barra de abajo, ni la sesión, ni avisos */
+body.tv .barra-inferior,body.tv .ses-chip,body.tv .subir-arriba,body.tv .acceso-rol,body.tv .jornada-barra,body.tv #i18nBtn,body.tv .offline-banner,body.tv [class*="demo-"],body.tv #botonDemo{display:none !important;}
+.tv-top{display:flex;align-items:center;gap:1.4vw;}
+.tv-top .marca{width:5vw;height:5vw;border-radius:var(--r-m);background-size:contain;background-repeat:no-repeat;background-position:center;}
+.tv-emp{font-family:Manrope,system-ui,sans-serif;font-weight:800;font-size:clamp(18px,2.4vw,48px);line-height:1.1;}
+.tv-sub{opacity:.75;font-size:clamp(12px,1.3vw,26px);}
+.tv-reloj{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums;}
+.tv-reloj b{display:block;font-size:clamp(20px,3vw,60px);font-weight:800;}
+.tv-cuerpo{display:grid;grid-template-columns:1.25fr 1fr;gap:1.6vw;min-height:0;}
+.tv-heroe{background:linear-gradient(160deg,var(--tv-ok1),var(--tv-ok2));border-radius:var(--r-xl);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2vw;}
+.tv-heroe.mal{background:linear-gradient(160deg,var(--tv-mal1),var(--tv-mal2));}
+.tv-num{font-family:Manrope,system-ui,sans-serif;font-weight:800;font-size:clamp(64px,16vw,320px);line-height:.9;font-variant-numeric:tabular-nums;}
+.tv-lbl{font-size:clamp(18px,2.6vw,52px);font-weight:800;margin-top:.6vw;}
+.tv-det{opacity:.85;font-size:clamp(12px,1.4vw,28px);margin-top:.8vw;}
+.tv-col{display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:1.2vw;min-height:0;}
+.tv-caja{background:var(--tv-caja);border-radius:var(--r-xl);padding:1vw 1.8vw;display:flex;flex-direction:column;justify-content:center;min-height:0;overflow:hidden;}
+.tv-caja.mal{background:var(--tv-cmal);} .tv-caja.ok{background:var(--tv-cok);}
+.tv-caja .n{font-family:Manrope,system-ui,sans-serif;font-weight:800;font-size:clamp(30px,4.6vw,96px);line-height:1;font-variant-numeric:tabular-nums;}
+.tv-caja .t{font-size:clamp(14px,1.7vw,34px);font-weight:700;margin-top:.3vw;}
+.tv-caja .d{opacity:.8;font-size:clamp(12px,1.25vw,24px);margin-top:.3vw;}
+.tv-pie{display:flex;align-items:center;gap:2vw;background:var(--tv-caja);border-radius:var(--r-xl);padding:1.2vw 1.8vw;}
+.tv-msg{flex:1;font-size:clamp(16px,2vw,40px);font-weight:700;line-height:1.25;transition:opacity .6s;}
+.tv-qr{display:flex;align-items:center;gap:1vw;font-size:clamp(11px,1.1vw,22px);opacity:.9;max-width:22vw;}
+.tv-qr canvas{background:#fff;padding:.4vw;border-radius:var(--r-s);width:7vw;height:7vw;}
+.tv-estado{position:fixed;right:1vw;bottom:.6vw;font-size:clamp(10px,.9vw,16px);opacity:.55;}
+@media (orientation:portrait){ body.tv .tv-cuerpo{grid-template-columns:1fr;} body.tv .tv-col{grid-template-rows:none;grid-template-columns:1fr 1fr 1fr;} }
+</style>
+</head>
+<body data-i18n>
+<div class="wrap">
+<div class="screen active">
+  <div id="config">
+    <div class="hdr">
+      <a class="back" href="index.html">← Atrás</a>
+      <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Verificar</div>
+      <h1>Pantalla de planta</h1>
+      <p>Para un televisor: días sin accidentes, reportes del mes y acciones vencidas</p></div></div>
+    </div>
+    <div id="avisoSrv"></div>
+    <div class="card">
+      <h2>Cómo se pone en el televisor</h2>
+      <ol class="ayuda">
+        <li>Crea el enlace del televisor (abajo).</li>
+        <li>Ábrelo en el navegador del televisor o del computador conectado a él, y toca la pantalla para verla completa.</li>
+        <li>Se actualiza sola cada 5 minutos y no muestra nombres ni datos de las personas: solo cifras.</li>
+      </ol>
+      <label class="check"><input type="checkbox" id="enIngles"> En inglés</label>
+      <div class="fila-btn"><button type="button" class="btn amber" id="crear">Crear el enlace del televisor</button></div>
+      <div id="enlace"></div>
+    </div>
+  </div>
+  <div class="tv-grid" id="tv" aria-live="polite">
+    <div class="tv-top"><span class="marca" role="img" aria-label="Logo de la empresa"></span>
+      <div><div class="tv-emp" id="tvEmp">Seguridad y salud en el trabajo</div><div class="tv-sub">Seguridad y salud en el trabajo</div></div>
+      <div class="tv-reloj"><b id="tvHora">--:--</b><span id="tvFecha"></span></div></div>
+    <div class="tv-cuerpo">
+      <div class="tv-heroe" id="tvHeroe"><div class="tv-num" id="tvDias">—</div><div class="tv-lbl" id="tvLbl">días sin accidentes de trabajo</div><div class="tv-det" id="tvDet"></div></div>
+      <div class="tv-col">
+        <div class="tv-caja" id="cRep"><div class="n" id="tvRep">—</div><div class="t">Reportes de seguridad este mes</div><div class="d" id="tvRepD"></div></div>
+        <div class="tv-caja" id="cAcc"><div class="n" id="tvAcc">—</div><div class="t">Acciones vencidas</div><div class="d" id="tvAccD"></div></div>
+        <div class="tv-caja" id="cIns"><div class="n" id="tvIns">—</div><div class="t">Inspecciones este mes</div><div class="d">Cada inspección previene un accidente</div></div>
+      </div>
+    </div>
+    <div class="tv-pie"><div class="tv-msg" id="tvMsg"></div><div class="tv-qr"><canvas id="tvQr" width="140" height="140" aria-label="Código QR para reportar"></canvas><span>¿Viste un acto o una condición insegura? Escanea y repórtalo.</span></div></div>
+  </div>
+  <div class="tv-estado" id="tvEstado" hidden></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="qr.js"></script>
+<script src="i18n-en.js"></script>
+<script src="i18n.js"></script>
+<script src="pantalla-planta.app.js"></script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-hY6BhsjA6fqiwWOePHz7jfkQjKH348e673mFujakeV0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Buzón reservado del comité · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Buzón reservado del comité · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.reserva{display:flex;gap:10px;align-items:flex-start;background:var(--tinta);color:#fff;border-radius:var(--r-l);padding:14px 16px;margin-bottom:12px;font-size:var(--fs-base);line-height:1.45;}
+.reserva b{color:var(--amarillo-400);}
+.reserva svg{flex:none;width:22px;height:22px;margin-top:1px;}
+.no-anon{background:var(--ambar-50);border:1.5px solid #f0c27b;color:#7a4b00;border-radius:var(--r-m);padding:10px 12px;font-weight:700;font-size:var(--fs-base);margin-bottom:10px;}
+.campo-ayuda{font-size:var(--fs-menor);color:var(--muted);margin:-2px 0 6px;line-height:1.4;}
+.conductas{background:var(--n-50);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 14px;margin:6px 0 10px;font-size:var(--fs-base);line-height:1.45;}
+.conductas summary{cursor:pointer;font-weight:700;}
+.conductas ul{margin:8px 0 0;padding-left:18px;}
+.conductas li{margin-bottom:4px;}
+.ev-lista{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.ev-it{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:var(--r-m);padding:8px 10px;font-size:var(--fs-base);background:#fff;}
+.ev-it button{border:0;background:none;color:var(--rojo-700);font-weight:700;cursor:pointer;font-family:inherit;}
+.listo{text-align:center;padding:26px 12px;}
+.listo .cod{font-size:var(--fs-h1);font-weight:800;letter-spacing:.04em;margin:10px 0;color:var(--tinta);}
+.autoriza label.check{align-items:flex-start;line-height:1.4;}
+.barra-env{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg,var(--bg)) 30%);padding:14px 0 calc(100px + env(safe-area-inset-bottom));}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrForm">
+  <div class="hdr">
+    <a class="back" href="index.html#reportar">← Portal</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Empresa"></span><div><div class="eyebrow" id="fEyebrow">Comité de Convivencia Laboral</div>
+    <h1 id="fTitulo">Formato de quejas</h1>
+    <p id="fSub">Comité de Convivencia Laboral</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="fAviso"></div>
+  <div class="reserva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    <div>Lo que escriba aquí <b>se cifra en este celular</b> antes de salir: solo el comité, con su clave, lo puede leer. Ni el área SST ni el administrador del portal lo ven.<span id="fCorreoTxt"></span></div></div>
+  <div class="no-anon" id="fNoAnon"><strong>El comité no acepta quejas anónimas</strong></div>
+
+  <div class="card">
+    <h2 id="tDatos">Sus datos</h2>
+    <p class="campo-ayuda" id="aDatos">Si usted quiere presentar una queja, diligencie los siguientes espacios. De ser necesario, el comité podrá solicitarle posteriormente la ampliación de la información.</p>
+    <div class="field"><label>Nombre completo *</label><input type="text" id="pNombre" maxlength="100" autocomplete="name" data-no-ac></div>
+    <div class="grid2"><div class="field"><label>Cédula *</label><input type="text" id="pCedula" inputmode="numeric" maxlength="15"></div>
+      <div class="field"><label>Cargo *</label><input type="text" id="pCargo" maxlength="80"></div></div>
+    <div class="field"><label>Área o proceso</label><input type="text" id="pArea" maxlength="80"></div>
+    <div class="grid2"><div class="field"><label>Correo electrónico *</label><input type="email" id="pCorreo" maxlength="120" autocomplete="email" placeholder="para que el comité le responda"></div>
+      <div class="field"><label>Teléfono</label><input type="tel" id="pTel" maxlength="20" autocomplete="tel"></div></div>
+  </div>
+
+  <!-- QUEJA DE CONVIVENCIA -->
+  <div id="bloqueConv">
+    <div class="card">
+      <h2>Relacione los hechos de la queja *</h2>
+      <p class="campo-ayuda">Incluya todos los elementos que permitan identificar las circunstancias de <b>sujeto</b> (quién o quiénes), <b>tiempo</b> (cuándo), <b>modo</b> (cómo) y <b>lugar</b> (dónde).</p>
+      <div class="field"><label>Persona(s) a quien(es) se refiere la queja (nombre y cargo, una por línea)</label><textarea id="cSenalados" maxlength="1000" class="u-alto60"></textarea></div>
+      <div class="field"><label>Los hechos *</label><textarea id="cHechos" maxlength="6000" style="min-height:160px;" placeholder="Quién, cuándo, cómo y dónde ocurrió"></textarea></div>
+    </div>
+    <div class="card">
+      <h2>¿Cuenta usted con alguna evidencia?</h2>
+      <div class="field"><label>Describa la evidencia</label><textarea id="cEvidencia" maxlength="2000" style="min-height:70px;" placeholder="Ej.: mensajes de WhatsApp del 3 y 7 de octubre"></textarea></div>
+      <div class="field"><label>Subir la evidencia (fotos, capturas o PDF)</label><input type="file" id="cArchivos" multiple accept="image/*,application/pdf"><div class="ev-lista" id="cEvLista"></div><p class="campo-ayuda u-mt6">Hasta 5 archivos y 6 MB en total. Las fotos se reducen solas. También se cifran.</p></div>
+      <div class="field"><label>¿Tiene testigos? ¿Quiénes?</label><textarea id="cTestigos" maxlength="1000" class="u-alto60"></textarea></div>
+    </div>
+    <div class="card">
+      <h2>Sugerencias</h2>
+      <div class="field"><label>¿Cómo podemos prevenir situaciones de acoso laboral? (por ejemplo, capacitación)</label><textarea id="cSugerencias" maxlength="1500" style="min-height:70px;"></textarea></div>
+      <div class="field"><label>¿Cuál es su intención al dar a conocer esta situación ante el comité?</label><textarea id="cIntencion" maxlength="1500" style="min-height:70px;"></textarea></div>
+    </div>
+    <div class="card autoriza">
+      <h2>Autorizaciones</h2>
+      <label class="check"><input type="checkbox" id="cAutCopia"> <span>Autorizo expresamente al comité para que entregue copia de mi queja a la parte solicitada, con el fin de darle conocimiento de esta situación y así plantear soluciones al conflicto que se presenta.</span></label>
+      <label class="check"><input type="checkbox" id="cAutCorreo"> <span>Autorizo expresamente al comité para que me envíe al correo anotado en este formulario la información e invitaciones requeridas para el trámite de mi caso.</span></label>
+    </div>
+  </div>
+
+  <!-- ACOSO SEXUAL -->
+  <div id="bloqueAcoso" hidden>
+    <div class="card">
+      <h2>Presunto(s) agresor(es)</h2>
+      <div class="field"><label>Indique el (los) nombre(s) del (los) presunto(s) agresor(es) y su cargo *</label><textarea id="aAgresor" maxlength="1000" class="u-alto60" placeholder="Nombre — cargo (uno por línea)"></textarea></div>
+    </div>
+    <div class="card">
+      <h2>Las conductas</h2>
+      <div class="field"><label>Detalle las conductas específicas con connotación sexual que usted considera se han presentado *</label>
+        <p class="campo-ayuda">Describa cuándo y dónde ocurrió, y mencione si hay testigos de los hechos.</p>
+        <textarea id="aHechos" maxlength="6000" style="min-height:160px;"></textarea></div>
+      <div class="field"><label>Testigos</label><textarea id="aTestigos" maxlength="1000" class="u-alto56"></textarea></div>
+      <div class="field"><label>¿Sabe usted cuáles son las conductas constitutivas de acoso sexual laboral, de acuerdo con la Ley 2365 de 2024 en Colombia? *</label>
+        <div class="chips grandes" id="aConoce"><button type="button" data-v="Sí">Sí</button><button type="button" data-v="No">No</button><button type="button" data-v="No estoy seguro(a)">No estoy seguro(a)</button></div></div>
+      <details class="conductas" id="aEjemplos"><summary>Ver ejemplos de conductas (no es una lista completa)</summary>
+        <p style="margin:8px 0 0;">Comportamientos que aprovechan relaciones de poder para fines sexuales no consentidos, como:</p>
+        <ul>
+          <li>Observaciones sugerentes, desagradables o comentarios sobre la apariencia, aspecto o condición sexual de una persona, y abusos verbales de contenido libidinoso.</li>
+          <li>Formas denigrantes u obscenas de dirigirse a alguien.</li>
+          <li>Bromas sexuales con intenciones no consentidas.</li>
+          <li>Preguntas o comentarios sobre historias, fantasías, preferencias o vida sexual de la persona.</li>
+          <li>Gestos obscenos, silbidos, miradas impúdicas, pellizcos, apretones o roces con intención sexual.</li>
+          <li>Contacto físico no solicitado o acercamiento innecesario con connotaciones sexuales.</li>
+          <li>Invitaciones persistentes a actividades sociales con intenciones sexuales, o presiones para citas o encuentros no consentidos.</li>
+          <li>Demandas de favores sexuales, directas o indirectas, relacionadas con la carrera, las condiciones de trabajo o la conservación del puesto.</li>
+          <li>Envío de mensajes (físicos o virtuales) de carácter sexual y ofensivo.</li>
+          <li>Mostrar o compartir imágenes, fotos o dibujos de contenido sexual explícito.</li>
+          <li>Difusión de rumores sobre la vida sexual de alguien.</li>
+          <li>Obligar a actividades no relacionadas con el trabajo, o medidas disciplinarias por rechazar proposiciones sexuales.</li>
+          <li>Exclamaciones alusivas a prácticas eróticas.</li>
+          <li>Observar clandestinamente en lugares privados, como baños.</li>
+          <li>Obligar a trabajar fuera de los horarios normales con finalidad sexual.</li>
+        </ul></details>
+    </div>
+    <div class="card">
+      <h2>Pruebas</h2>
+      <p class="campo-ayuda" id="aCorreoPruebas">En caso de tener pruebas, súbalas aquí (se cifran) o envíelas al correo del comité.</p>
+      <div class="field"><label>Describa las pruebas</label><textarea id="aEvidencia" maxlength="2000" class="u-alto60"></textarea></div>
+      <div class="field"><label>Subir pruebas (fotos, capturas o PDF)</label><input type="file" id="aArchivos" multiple accept="image/*,application/pdf"><div class="ev-lista" id="aEvLista"></div><p class="campo-ayuda u-mt6">Hasta 5 archivos y 6 MB en total.</p></div>
+    </div>
+    <div class="card">
+      <h2>Su solicitud</h2>
+      <div class="field"><label>Mencione su solicitud específica frente al caso *</label>
+        <div class="checks" id="aSolicitud">
+          <label><input type="checkbox" value="Protección inmediata"> <span>Protección inmediata</span></label>
+          <label><input type="checkbox" value="Reserva de identidad"> <span>Reserva de identidad</span></label>
+          <label><input type="checkbox" value="Asesoría"> <span>Asesoría</span></label>
+          <label><input type="checkbox" value="Acompañamiento"> <span>Acompañamiento</span></label>
+        </div></div>
+      <div class="field"><label>Detalle de su solicitud</label><textarea id="aSolicitudTxt" maxlength="1500" class="u-alto60"></textarea></div>
+      <p class="campo-ayuda">Ley 2365 de 2024: usted tiene derecho a la confidencialidad, a no ser confrontado(a) con el presunto agresor y a no sufrir represalias; puede pedir cambio de área o trabajo en casa mientras se atiende el caso (art. 13). Presentar esta queja no le impide acudir a la Fiscalía (art. 15, par.).</p>
+    </div>
+  </div>
+
+  <div class="barra-env"><div class="status-msg" id="fMsg"></div><button type="button" class="btn amber" id="fEnviar">Enviar de forma reservada</button></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrListo"><div class="card listo">
+  <h2>Recibido</h2><p>Su <span id="lQue">queja</span> llegó cifrada al comité con el código:</p>
+  <div class="cod" id="lCod"></div>
+  <p>Guárdelo: con él puede preguntar por su caso. El comité lo contactará por los datos que dejó.</p>
+  <a class="btn ghost" href="index.html">Volver al portal</a>
+</div></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="cifrado.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* v128: buzón reservado del Comité de Convivencia. Sin usuario y sin anónimos.
+   ?tipo=convivencia → Formato de quejas · Comité de Convivencia Laboral (Ley 1010 de 2006)
+   ?tipo=acoso       → Reporte o queja de acoso sexual en el trabajo (Ley 2365 de 2024)
+   Todo (incluidas las evidencias) se cifra aquí con la llave pública del comité. */
+const $ = UI.$;
+const TIPO = new URLSearchParams(location.search).get('tipo') === 'acoso' ? 'acoso' : 'convivencia';
+const ACOSO = TIPO === 'acoso';
+const MAX_ARCH = 5, MAX_BYTES = 6 * 1024 * 1024;
+let pub = null, correoComite = '';
+const evid = { c: [], a: [] };
+
+if (ACOSO) {
+  $('bloqueConv').hidden = true; $('bloqueAcoso').hidden = false;
+  $('fEyebrow').textContent = 'Reporte reservado';
+  $('fTitulo').textContent = 'Reporte o queja de acoso sexual en el trabajo';
+  $('fSub').textContent = 'Ley 2365 de 2024';
+  $('tDatos').textContent = 'Sus datos';
+  $('aDatos').textContent = 'Sus datos solo los conoce quien atiende el caso. Si pide reserva de identidad, se protege también frente a la persona señalada.';
+  $('fNoAnon').textContent = 'Para poder atender y proteger a quien reporta, este formulario no es anónimo';
+  document.title = 'Reporte de acoso sexual · Portal SSTA';
+} else document.title = 'Formato de quejas · Comité de Convivencia Laboral';
+if (typeof Empresa !== 'undefined' && Empresa.moduloActivo && !Empresa.moduloActivo('convivencia'))
+  $('fAviso').innerHTML = '<div class="aviso">Esta empresa no tiene activo el Comité de Convivencia en el portal. Presente su queja por escrito al comité.</div>';
+$('aConoce').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; $('aConoce').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); });
+
+/* Llave pública del comité (se guarda en el celular para poder enviar sin señal). */
+async function traerLlave() {
+  try { const c = JSON.parse(localStorage.getItem('ssta-buzon-pub') || 'null'); if (c && c.publica) { pub = c.publica; correoComite = c.correo || ''; } } catch (e) {}
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  try {
+    const r = await fetchWithRetry(SGSST.url() + '?action=buzonPublico&token=' + encodeURIComponent(SGSST.token()));
+    const j = await r.json();
+    if (j && j.ok) {
+      pub = j.activo ? j.publica : null; correoComite = j.correo || '';
+      try { localStorage.setItem('ssta-buzon-pub', JSON.stringify({ publica: pub, correo: correoComite })); } catch (e) {}
+    }
+  } catch (e) {}
+  pintarCorreo();
+  // v143: si el buzón no está activo, no se muestra un formulario que no se va a poder enviar
+  if (!pub) {
+    $('fAviso').innerHTML = '<div class="aviso"><b>Este buzón todavía no está activo.</b> Entregue su queja por escrito a un integrante del comité' + (correoComite ? ' o escríbale al correo <b>' + esc(correoComite) + '</b>' : '') + '.</div><a class="btn ghost" href="index.html">Volver al inicio</a>';
+    document.querySelectorAll('#fAviso ~ *').forEach((el)=> { if (!el.matches('script, .version-portal')) el.hidden = true; });
+  }
+}
+function pintarCorreo() {
+  $('fCorreoTxt').innerHTML = correoComite ? ' Correo del comité: <b>' + esc(correoComite) + '</b>.' : '';
+  if (correoComite) $('aCorreoPruebas').innerHTML = 'En caso de tener pruebas, súbalas aquí (se cifran) o envíelas al correo electrónico <b>' + esc(correoComite) + '</b>.';
+}
+traerLlave();
+
+/* Evidencias: las fotos se reducen; todo va en base64 dentro de lo cifrado. */
+function leerArchivo(f) {
+  return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = () => no(new Error('No se pudo leer ' + f.name)); fr.readAsDataURL(f); });
+}
+async function agregarArchivos(k, input, lista) {
+  for (const f of [...input.files]) {
+    if (evid[k].length >= MAX_ARCH) { UI.toast('Máximo ' + MAX_ARCH + ' archivos.', 'mal'); break; }
+    let data, tipo = f.type || 'application/octet-stream', nombre = f.name;
+    if (/^image\//.test(tipo) && typeof UI.comprimir === 'function') {
+      try { const u = await UI.comprimir(f); data = String(u).split(',')[1]; tipo = (String(u).match(/^data:([^;]+)/) || [])[1] || 'image/jpeg'; } catch (e) { data = await leerArchivo(f); }
+    } else data = await leerArchivo(f);
+    const total = evid.c.concat(evid.a).reduce((s, x) => s + x.data.length * 0.75, 0) + data.length * 0.75;
+    if (total > MAX_BYTES) { UI.toast('Las evidencias pasan de 6 MB: envíe las demás al correo del comité.', 'mal'); break; }
+    evid[k].push({ nombre, tipo, data });
+  }
+  input.value = '';
+  lista.innerHTML = evid[k].map((x, i) => '<div class="ev-it"><span>' + esc(x.nombre) + ' · ' + Math.max(1, Math.round(x.data.length * 0.75 / 1024)) + ' KB</span><button type="button" data-q="' + i + '">Quitar</button></div>').join('');
+  lista.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => { evid[k].splice(+b.dataset.q, 1); agregarArchivos(k, { files: [], set value(v) {} }, lista); }));
+}
+$('cArchivos').addEventListener('change', () => agregarArchivos('c', $('cArchivos'), $('cEvLista')));
+$('aArchivos').addEventListener('change', () => agregarArchivos('a', $('aArchivos'), $('aEvLista')));
+
+function leer() {
+  const v = (id) => $(id).value.trim();
+  const persona = { nombre: v('pNombre'), cedula: v('pCedula'), cargo: v('pCargo'), area: v('pArea'), correo: v('pCorreo'), telefono: v('pTel') };
+  const faltan = [];
+  if (Valida.texto(persona.nombre, 5)) faltan.push('su nombre completo');
+  if (!/^\d{5,12}$/.test(persona.cedula.replace(/\D/g, ''))) faltan.push('su cédula');
+  if (!persona.cargo) faltan.push('su cargo');
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(persona.correo)) faltan.push('un correo válido');
+  if (!ACOSO) {
+    const x = { persona, senalados: v('cSenalados'), hechos: v('cHechos'), evidencia: v('cEvidencia'), evidencias: evid.c, testigos: v('cTestigos'), sugerencias: v('cSugerencias'), intencion: v('cIntencion'),
+      autorizaciones: { copia: $('cAutCopia').checked, correo: $('cAutCorreo').checked } };
+    if (x.hechos.length < 30) faltan.push('los hechos (quién, cuándo, cómo y dónde)');
+    return { x, faltan };
+  }
+  const conoce = ($('aConoce').querySelector('.on') || {}).dataset;
+  const sol = [...document.querySelectorAll('#aSolicitud input:checked')].map((i) => i.value);
+  const x = { persona, senalados: v('aAgresor'), hechos: v('aHechos'), testigos: v('aTestigos'), conoceConductas: conoce ? conoce.v : '', evidencia: v('aEvidencia'), evidencias: evid.a,
+    solicitud: sol.concat(v('aSolicitudTxt') ? [v('aSolicitudTxt')] : []).join(' · ') };
+  if (!x.senalados) faltan.push('el nombre y cargo del presunto agresor');
+  if (x.hechos.length < 30) faltan.push('las conductas (cuándo y dónde)');
+  if (!x.conoceConductas) faltan.push('si conoce las conductas de la Ley 2365');
+  if (!sol.length && !v('aSolicitudTxt')) faltan.push('su solicitud frente al caso');
+  return { x, faltan };
+}
+$('fEnviar').addEventListener('click', async () => {
+  const msg = $('fMsg'), b = $('fEnviar');
+  if (!pub) { msg.textContent = 'El comité todavía no ha activado su buzón: no se puede enviar de forma reservada.'; return; }
+  const { x, faltan } = leer();
+  if (faltan.length) { msg.textContent = 'Falta: ' + faltan.join(', ') + '.'; return; }
+  b.disabled = true; msg.textContent = 'Cifrando…';
+  try {
+    x.tipo = TIPO; x.enviado = new Date().toISOString();
+    const cifrado = await Cifrado.cifrarParaBuzon(pub, x);
+    const codigo = (ACOSO ? 'AS-' : 'CCL-B-') + UI.hoy().slice(2, 4) + UI.hoy().slice(5, 7) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    msg.textContent = 'Enviando…';
+    const r = await SGSST.enviar({ action: 'guardar', tipo: 'buzon', id: 'BZN-' + codigo, doc: { clase: TIPO, codigo, cifrado } });
+    if (!r.ok) throw new Error(r.error || 'no se pudo enviar');
+    $('lCod').textContent = codigo; $('lQue').textContent = ACOSO ? 'reporte' : 'queja';
+    if (r.enCola) $('lQue').textContent += ' (se envía sola al volver la señal)';
+    document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 'scrListo')); window.scrollTo(0, 0);
+  } catch (e) { msg.textContent = 'No se envió: ' + e.message; b.disabled = false; }
+});
+</script>
+</body>
+</html>

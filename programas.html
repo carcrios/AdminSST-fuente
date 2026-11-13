@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-0VLqtfUERfVkY6+GAPLtS/xvBXfCsVWtCBMoyg5aqJQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Programas de alto riesgo · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Programas de alto riesgo · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+/* v107: botones de estado con color (antes no se veía cuál quedaba marcado) */
+.seg-btn{flex-wrap:wrap;}
+.seg-btn button{min-height:44px;flex:1 1 auto;padding:0 10px;}
+.seg-btn button.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.seg-btn button.on[data-v="Cumple"],.seg-btn button.on[data-v="Completo"],.seg-btn button.on[data-v="Bueno"]{background:var(--ok);border-color:var(--ok);color:#fff;}
+.seg-btn button.on[data-v="Parcial"],.seg-btn button.on[data-v="Incompleto"],.seg-btn button.on[data-v="Regular"]{background:var(--ambar-400);border-color:var(--ambar-400);color:var(--ink);}
+.seg-btn button.on[data-v="No cumple"],.seg-btn button.on[data-v="No tiene"],.seg-btn button.on[data-v="Malo"]{background:var(--mal);border-color:var(--mal);color:#fff;}
+.seg-btn button.on[data-v="No aplica"]{background:var(--ink-soft);border-color:var(--ink-soft);color:#fff;}
+/* filas editables (responsables, inventario, personal, equipos…) */
+.filas{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px;}
+.fila-ed{border:1px solid var(--line);border-left:5px solid var(--n-300);border-radius:var(--r-m);padding:10px 12px 8px;background:var(--n-0);}
+.fila-ed.ok{border-left-color:var(--ok);} .fila-ed.pronto{border-left-color:var(--ambar-400);} .fila-ed.mal{border-left-color:var(--mal);}
+.fila-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 10px;}
+.fila-campos .field{margin-bottom:8px;min-width:0;}
+.fila-campos .fe-l{grid-column:1 / -1;}
+.fila-pie{display:flex;align-items:center;gap:8px;border-top:1px dashed var(--n-150);padding-top:8px;}
+.fila-pie .chip{white-space:normal;}
+.btn-quitar{margin-left:auto;min-height:44px;min-width:92px;padding:0 14px;border:1.5px solid var(--rojo-200);background:#fff;color:var(--mal);border-radius:var(--r-m);font:700 13.5px/1 inherit;font-family:inherit;cursor:pointer;}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;border:1.5px dashed var(--n-300);background:#fff;border-radius:var(--r-m);font:700 14px/1.2 inherit;font-family:inherit;color:var(--ink);cursor:pointer;margin-top:4px;}
+.con-otro .otro-txt{margin-top:6px;}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
+.acciones .btn{flex:1 1 140px;width:auto;margin:0;}
+.acciones.fija{position:sticky;top:0;z-index:20;background:var(--bg,var(--bg));padding:8px 0;margin-top:-6px;}
+.barra{height:10px;border-radius:var(--r-xs);background:var(--n-150);overflow:hidden;margin:6px 0 2px;}
+.barra > i{display:block;height:100%;background:var(--ok);border-radius:var(--r-xs);}
+.barra.pronto > i{background:var(--ambar-400);} .barra.mal > i{background:var(--mal);}
+.falta-lista{margin:8px 0 0;padding-left:18px;font-size:var(--fs-base);line-height:1.5;color:var(--rojo-800);}
+.falta-lista button{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer;text-align:left;}
+.card h2 .n{font-size:var(--fs-menor);color:var(--muted);font-weight:600;margin-left:6px;}
+.prog-ic{display:inline-flex;width:22px;height:22px;vertical-align:-5px;margin-right:6px;color:var(--ink);}
+.prog-ic svg{width:22px;height:22px;}
+.hdr .prog-ic{color:var(--ambar-600);}
+/* checklist */
+.comp{font-family:var(--font-display);font-size:var(--fs-menor);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 0 2px;display:flex;justify-content:space-between;gap:8px;}
+.comp span{font-family:inherit;text-transform:none;letter-spacing:0;font-weight:700;}
+.elem{border-bottom:1px dashed var(--n-150);padding:9px 0;}
+.elem .et{font-size:var(--fs-base);font-weight:600;line-height:1.35;}
+.elem .seg-btn{margin-top:6px;}
+.elem textarea,.elem input.otro-req{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px;font-size:var(--fs-titulo);font-family:inherit;min-height:44px;margin-top:6px;background:var(--n-0);}
+.elem.sin .et::after{content:' · sin evaluar';color:var(--mal);font-weight:700;font-size:var(--fs-menor);}
+.elem .quitar-otro{margin-top:6px;}
+.ind{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:7px 0;border-bottom:1px dashed var(--n-150);font-size:var(--fs-base);}
+.ind b{font-size:var(--fs-titulo);}
+.ind small{grid-column:1 / span 2;color:var(--muted);font-size:var(--fs-menor);}
+.field-invalid{border-color:var(--warn) !important;background:var(--rojo-50) !important;}
+/* v109: personal y equipos sincronizados con el anexo, Personal habilitado y el inventario */
+.fila-nota{font-size:var(--fs-menor);color:var(--muted);line-height:1.4;margin:-2px 0 6px;}
+.fila-nota b{color:var(--ink);font-weight:700;}
+.tag{display:inline-block;font-size:var(--fs-etiqueta);font-weight:700;padding:1px 7px;border-radius:var(--r-pill);background:var(--n-150);color:var(--ink);margin-right:4px;vertical-align:1px;}
+.tag.nuevo{background:#fff1c2;color:var(--ambar-900);}
+.sync{border:1px solid var(--line);background:var(--n-50);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);line-height:1.45;margin:6px 0 10px;}
+.sync .btn{width:auto;min-height:44px;margin:8px 0 0;padding:0 14px;}
+.quitados{margin:10px 0 0;font-size:var(--fs-base);}
+.quitados summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:700;}
+.quitados .q{display:flex;align-items:center;gap:8px;border-top:1px dashed var(--n-150);padding:8px 0;}
+.quitados .q div{flex:1;min-width:0;} .quitados .q small{display:block;color:var(--muted);}
+.quitados .q button{min-height:44px;padding:0 12px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);font:700 13px/1 inherit;font-family:inherit;cursor:pointer;}
+.eq-inv{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;align-items:start;border:1px solid var(--line);border-left:5px solid var(--n-300);border-radius:var(--r-m);padding:10px 12px;background:var(--n-0);margin:0 0 8px;cursor:pointer;min-height:44px;}
+.eq-inv.ok{border-left-color:var(--ok);} .eq-inv.pronto{border-left-color:var(--ambar-400);} .eq-inv.mal{border-left-color:var(--mal);} .eq-inv.fuera{opacity:.72;}
+.eq-inv input{width:24px;height:24px;margin:1px 0 0;}
+.eq-inv b{font-size:var(--fs-base);display:block;} .eq-inv small{display:block;color:var(--muted);font-size:var(--fs-menor);line-height:1.4;}
+.eq-inv .alerta{color:var(--mal);font-weight:700;} .eq-inv .chip{margin-top:4px;}
+.sub-h{font-family:var(--font-display);font-size:var(--fs-base);text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:14px 0 4px;}
+.btn-mini{min-height:44px;padding:0 12px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-m);font:700 13px/1.1 inherit;font-family:inherit;cursor:pointer;color:var(--ink);}
+.filtro-aviso{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--ambar-100);border:1px solid var(--ambar-200);border-radius:var(--r-m);padding:8px 12px;margin:0 0 10px;font-size:var(--fs-base);}
+.filtro-aviso button{margin-left:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
+    <h1>Programas de alto riesgo</h1>
+    <p>Alturas, espacios confinados, eléctrico, caliente, izaje, energías peligrosas, químicos, excavaciones y cargas: requisitos, personal, equipos, rescate e indicadores</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="acciones"><button type="button" class="btn ghost" id="pdfTodos">Resumen de los programas (PDF)</button></div>
+  <div class="kpis" id="kpis"></div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrProg"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="inspecciones-plantillas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* ── v107: utilidades locales («Otro» que deja escribir, filas editables y validación) ── */
+const esOtro = (v)=> /^Otr[oa]s?\b/i.test(String(v == null ? '' : v));
+/** Lista desplegable que, con «Otro»/«Otra», muestra un campo para escribir cuál. */
+function selOtro(attr, ops, val, ph, vacio){
+  val = val == null ? '' : String(val);
+  const otro = ops.find(esOtro), enLista = ops.some((o)=> String(o) === val), usa = !!otro && val !== '' && (!enLista || esOtro(val));
+  const sel = usa ? otro : val;
+  return '<div class="con-otro"><select ' + attr + '>' + (vacio ? '<option value="">' + esc(vacio) + '</option>' : '') + ops.map((o)=> '<option' + (String(o) === sel ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>' +
+    (otro ? '<input type="text" class="otro-txt" aria-label="Escribe cuál" placeholder="' + esc(ph || '¿Cuál? Escríbelo aquí') + '" value="' + esc(usa && !esOtro(val) ? val : '') + '"' + (usa ? '' : ' hidden') + '>' : '') + '</div>';
+}
+/** Valor de una lista con «Otro»: el texto escrito (vacío si falta escribirlo). */
+function valSel(s){ const t = s.parentElement && s.parentElement.querySelector('.otro-txt'); return t && esOtro(s.value) ? t.value.trim() : s.value; }
+document.addEventListener('change', (e)=> { const s = e.target.closest('.con-otro > select'); if (!s) return; const t = s.parentElement.querySelector('.otro-txt'); if (t) { t.hidden = !esOtro(s.value); if (!t.hidden) t.focus(); } });
+/* Filas editables: cols = [{ k, l, t: text|number|date|select|persona|sino, op, req, ph, ancho:'l', despuesDe:'k' }] */
+function campoFila(c, v){
+  const a = 'data-k="' + c.k + '"';
+  if (c.t === 'select') return selOtro(a, c.op, v, c.ph, c.vacio);
+  if (c.t === 'sino') return '<select ' + a + '>' + ['', 'Sí', 'No'].map((o)=> '<option value="' + o + '"' + (String(v || '') === o ? ' selected' : '') + '>' + (o || '—') + '</option>').join('') + '</select>';
+  if (c.t === 'number') return '<input type="number" min="0" step="any" inputmode="decimal" ' + a + ' value="' + esc(v == null ? '' : v) + '"' + (c.ph ? ' placeholder="' + esc(c.ph) + '"' : '') + '>';
+  return '<input type="' + (c.t === 'date' ? 'date' : 'text') + '" ' + a + (c.t === 'persona' ? ' data-persona="1"' : '') + ' value="' + esc(v == null ? '' : v) + '"' + (c.ph ? ' placeholder="' + esc(c.ph) + '"' : '') + '>';
+}
+function filaHTML(cols, r, estado, nota){
+  const e = estado ? estado(r) : null, extra = {};
+  // v109: lo que no es una columna (origen, obra, equipoId…) viaja escondido en la fila y se conserva al guardar.
+  Object.keys(r || {}).forEach((k)=> { if (k !== 'uid' && !cols.some((c)=> c.k === k)) extra[k] = r[k]; });
+  return '<div class="fila-ed ' + (e ? e[0] : '') + '" data-uid="' + esc(r.uid || '') + '" data-extra="' + esc(JSON.stringify(extra)) + '">' + (nota ? '<div class="fila-nota" data-nota>' + nota(r) + '</div>' : '') +
+    '<div class="fila-campos">' + cols.map((c)=> '<div class="field' + (c.ancho === 'l' ? ' fe-l' : '') + '"><label>' + esc(c.l) + (c.req ? ' *' : '') + '</label>' + campoFila(c, r[c.k]) + '</div>').join('') + '</div>' +
+    '<div class="fila-pie">' + (e ? '<span class="chip ' + e[0] + '" data-est>' + esc(e[1]) + '</span>' : '') + '<button type="button" class="btn-quitar" data-quitar>Quitar</button></div></div>';
+}
+function leerFila(el, cols){
+  let extra = {}; try { extra = JSON.parse(el.dataset.extra || '{}') || {}; } catch (e) { extra = {}; }
+  const o = Object.assign(extra, { uid: el.dataset.uid || SGSST.nuevoOpId() });
+  cols.forEach((c)=> { const i = el.querySelector('[data-k="' + c.k + '"]'); if (!i) return; o[c.k] = c.t === 'select' ? valSel(i) : c.t === 'number' ? (i.value === '' ? '' : Number(i.value)) : i.value.trim(); });
+  return o;
+}
+/** Monta una lista de filas en cont. Devuelve { leer(), validar(nombre) → [faltas] }. */
+function listaFilas(cont, cols, lista, o){
+  o = o || {};
+  cont.innerHTML = '<div class="filas"></div><button type="button" class="btn-add">+ ' + esc(o.agregar || 'Agregar') + '</button>' + (o.vacio ? '<div class="ayuda" data-vacio>' + esc(o.vacio) + '</div>' : '');
+  const caja = cont.querySelector('.filas');
+  const vacio = ()=> { const v = cont.querySelector('[data-vacio]'); if (v) v.hidden = !!caja.children.length; };
+  const activar = (el)=> {
+    el.querySelectorAll('input[data-persona]').forEach((i)=> UI.autocompletar(i, (p)=> { i.value = p.nombre; const ce = el.querySelector('[data-k="cedula"]'), ca = el.querySelector('[data-k="cargo"]'); if (ce && p.cedula) ce.value = p.cedula; if (ca && p.cargo) ca.value = p.cargo; refrescar(el); }));
+    el.querySelector('[data-quitar]').addEventListener('click', async ()=> { const r = leerFila(el, cols);
+      if (o.alQuitar) { if (!(await o.alQuitar(r, el))) return; }
+      else { const lleno = cols.some((c)=> r[c.k] !== '' && r[c.k] != null && c.k !== (o.clavePrincipalVacia || '')); if (lleno && !await Dialogo.confirmar('¿Quitar esta fila?')) return; }
+      el.remove(); vacio(); if (o.alCambiar) o.alCambiar(); });
+    el.addEventListener('input', ()=> refrescar(el)); el.addEventListener('change', ()=> refrescar(el));
+    if (o.alActivar) o.alActivar(el);
+  };
+  const refrescar = (el)=> { if (!o.estado) { if (o.alCambiar) o.alCambiar(); return; } const r = leerFila(el, cols), e = o.estado(r); el.className = 'fila-ed ' + e[0]; const ch = el.querySelector('[data-est]'); if (ch) { ch.className = 'chip ' + e[0]; ch.textContent = e[1]; } const n = el.querySelector('[data-nota]'); if (n && o.nota) n.innerHTML = o.nota(r); if (o.alCambiar) o.alCambiar(); };
+  const agregar = (r)=> { caja.insertAdjacentHTML('beforeend', filaHTML(cols, r || {}, o.estado, o.nota)); activar(caja.lastElementChild); vacio(); };
+  (lista || []).forEach((r)=> agregar(r));
+  cont.querySelector('.btn-add').addEventListener('click', ()=> { agregar(Object.assign({ uid: SGSST.nuevoOpId() }, o.nueva ? o.nueva() : {})); const f = caja.lastElementChild.querySelector('input,select'); if (f) f.focus(); if (o.alCambiar) o.alCambiar(); });
+  vacio();
+  return {
+    agregar: (r)=> agregar(r),
+    quitar: (el)=> { el.remove(); vacio(); if (o.alCambiar) o.alCambiar(); },
+    filas: ()=> [...caja.children],
+    refrescarTodo: ()=> [...caja.children].forEach((el)=> refrescar(el)),
+    /** Cambia campos de una fila ya pintada (sin tocar lo que la persona escribió en las demás). */
+    poner: (el, campos)=> { Object.keys(campos).forEach((k)=> { const i = el.querySelector('[data-k="' + k + '"]'); if (i) i.value = campos[k] == null ? '' : campos[k];
+      else { let x = {}; try { x = JSON.parse(el.dataset.extra || '{}') || {}; } catch (e) {} x[k] = campos[k]; el.dataset.extra = JSON.stringify(x); } }); refrescar(el); },
+    leer: ()=> [...caja.children].map((el)=> leerFila(el, cols)),
+    validar: (nombre)=> { const faltas = [];
+      [...caja.children].forEach((el, n)=> { const r = leerFila(el, cols), q = (k)=> el.querySelector('[data-k="' + k + '"]');
+        const marca = (k, t)=> { const i = q(k); const x = i && i.parentElement.querySelector('.otro-txt:not([hidden])') && esOtro(i.value) ? i.parentElement.querySelector('.otro-txt') : i; if (x) x.classList.add('field-invalid'); faltas.push({ t: nombre + ' ' + (n + 1) + ': ' + t, el: x }); };
+        cols.forEach((c)=> { const i = q(c.k); if (!i) return;
+          if (c.t === 'select' && esOtro(i.value) && !r[c.k]) marca(c.k, 'escribe cuál en «' + c.l + '»');
+          else if (c.req && (r[c.k] === '' || r[c.k] == null)) marca(c.k, 'falta «' + c.l + '»');
+          if (c.t === 'number' && r[c.k] !== '' && Number(r[c.k]) < 0) marca(c.k, '«' + c.l + '» no puede ser negativo');
+          if (c.despuesDe && r[c.k] && r[c.despuesDe] && r[c.k] < r[c.despuesDe]) marca(c.k, '«' + c.l + '» no puede ser antes de «' + (cols.find((x)=> x.k === c.despuesDe) || {}).l + '»');
+          if (c.k === 'cedula' && r[c.k] && !/^\d{4,12}$/.test(r[c.k])) marca(c.k, 'la cédula va solo con números'); });
+      });
+      return faltas; }
+  };
+}
+/** Muestra «qué falta» (con enlace a cada campo) y lleva al primero. */
+function mostrarFaltas(caja, faltas){
+  if (!faltas.length) { caja.innerHTML = ''; return; }
+  caja.innerHTML = '<div class="aviso"><b>Falta completar ' + faltas.length + ' cosa(s):</b><ul class="falta-lista">' + faltas.slice(0, 12).map((f, i)=> '<li><button type="button" data-f="' + i + '">' + esc(f.t) + '</button></li>').join('') + (faltas.length > 12 ? '<li>… y ' + (faltas.length - 12) + ' más</li>' : '') + '</ul></div>';
+  caja.querySelectorAll('[data-f]').forEach((b)=> b.addEventListener('click', ()=> { const el = faltas[+b.dataset.f].el; if (el) { el.scrollIntoView({ block: 'center' }); if (el.focus) el.focus(); } }));
+  caja.scrollIntoView({ block: 'center' });
+}
+const limpiarMarcas = (raiz)=> raiz.querySelectorAll('.field-invalid').forEach((x)=> x.classList.remove('field-invalid'));
+const estadoVence = (vence, txtOk)=> { const c = vence ? UI.semaforo(vence, 30) : 'gris'; return [c, c === 'mal' ? 'Vencido ' + UI.corta(vence) : c === 'pronto' ? 'Vence ' + UI.corta(vence) : c === 'ok' ? (txtOk || 'Vigente') + ' hasta ' + UI.corta(vence) : 'Sin fecha de vencimiento']; };
+
+/* Íconos de línea (sin emojis) */
+const IC = {
+  alturas: '<path d="M4 20h16M7 20V9l5-5 5 5v11M12 4v6M10 14h4"/>', confinados: '<ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M12 9v8M9.5 14.5 12 17l2.5-2.5"/>',
+  electrico: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', caliente: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-3.5 2-6 1.5 1 2.5 2.5 2.5 4.5"/>',
+  izajes: '<path d="M4 21h6M7 21V4h12M7 8l4-4M19 4v6M17 10h4v4h-4z"/>', loto: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/>',
+  quimicos: '<path d="M9 3h6M10 3v6L5 18a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 14h9"/>', excavaciones: '<path d="M3 20h18M5 20l3-8h8l3 8M10 12V5l4 2-4 2"/>',
+  cargas: '<rect x="6" y="9" width="12" height="9" rx="1"/><path d="M9 9V6h6v3M4 21h16"/>'
+};
+const icono = (k)=> '<span class="prog-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (IC[k] || IC.alturas) + '</svg></span>';
+
+/* Componentes mínimos de cada programa (orden en que se muestran) */
+const COMP = { P: 'Programa y responsables', I: 'Inventario de tareas y sitios', D: 'Procedimientos y permisos', C: 'Controles en el sitio', K: 'Personal, capacitación y aptitud', E: 'Equipos e inspección', R: 'Rescate y emergencias', S: 'Seguimiento e indicadores' };
+/* Requisitos de cada programa: [componente, texto]. Los primeros de alturas, confinados, eléctrico,
+   caliente e izajes van en el mismo orden de antes (las evaluaciones guardadas siguen en su sitio);
+   los nuevos se agregan al final. Guía práctica: verifícala con el texto vigente de cada norma. */
+const PROGRAMAS = {
+  alturas: { nombre: 'Protección contra caídas (trabajo en alturas)', norma: 'Res. 4272 de 2021', req: 'alturas', permiso: 'permiso-trabajo-alturas.html',
+    equipos: ['arnes', 'escalera', 'andamio'], palabras: /altura|ca[ií]da|rescate en altura|andamio|escalera/i, simRescate: true,
+    roles: ['Empleador / representante legal', 'Coordinador de trabajo en alturas', 'Persona competente para inspección de equipos', 'Responsable del plan de rescate', 'Entrenador en alturas', 'Jefe de área', 'Otro'],
+    certAuto: 'Trabajador autorizado (nivel avanzado)', certs: ['Trabajador autorizado (nivel avanzado)', 'Trabajador autorizado (nivel básico)', 'Jefe de área (nivel administrativo)', 'Coordinador de trabajo en alturas', 'Reentrenamiento', 'Rescatista', 'Persona competente en inspección', 'Otro'],
+    equiposLista: ['Arnés de cuerpo completo', 'Eslinga con absorbedor de energía', 'Eslinga de posicionamiento', 'Línea de vida vertical', 'Línea de vida horizontal', 'Arrestador / freno', 'Conector (mosquetón)', 'Punto de anclaje', 'Escalera', 'Andamio', 'Kit de rescate', 'Casco con barbuquejo', 'Otro'],
+    inventarioPh: 'Ej: mantenimiento de cubierta bodega 2 (6 m)',
+    elementos: [['P', 'Programa de prevención y protección contra caídas, documentado y firmado'], ['P', 'Coordinador de trabajo en alturas designado y con su curso vigente'],
+      ['I', 'Tareas y sitios con riesgo de caída (desde 2 m) identificados en la matriz de peligros'], ['D', 'Procedimiento de trabajo seguro para cada tarea en alturas'],
+      ['D', 'Permiso de trabajo y ATS antes de cada tarea'], ['C', 'Medidas de prevención: barandas, control de acceso, delimitación y señalización'],
+      ['E', 'Sistemas de protección contra caídas y puntos de anclaje certificados'], ['E', 'Inspección de equipos: antes de cada uso y anual por persona competente'],
+      ['R', 'Plan de rescate en alturas con equipos y personal entrenado'], ['K', 'Personal capacitado y certificado en el nivel que exige su tarea, con reentrenamiento'],
+      ['K', 'Aptitud médica para trabajo en alturas (concepto, sin diagnósticos)'], ['C', 'Medidas colectivas de prevención priorizadas sobre la protección individual'],
+      ['K', 'Contratistas que trabajan en alturas verificados (certificados, seguridad social y equipos)'], ['S', 'Indicadores del programa medidos y analizados'],
+      ['S', 'Revisión anual del programa y actualización tras accidentes o cambios']] },
+  confinados: { nombre: 'Trabajo en espacios confinados', norma: 'Res. 0491 de 2020', req: 'confinados', permiso: 'permiso-espacios-confinados.html',
+    equipos: [], palabrasEquipo: /gases|multig|detector|tr[ií]pode|ventilador|extractor|malacate/i, palabras: /confinad|tanque|pozo|alcantarill|silo/i, simRescate: true,
+    roles: ['Administrador del programa', 'Supervisor de entrada', 'Vigía', 'Persona competente en mediciones', 'Rescatista', 'Otro'],
+    certAuto: 'Entrante', certs: ['Entrante', 'Vigía', 'Supervisor de entrada', 'Rescatista', 'Administrador del programa', 'Reentrenamiento', 'Otro'],
+    equiposLista: ['Detector multigás', 'Ventilador / extractor', 'Trípode de rescate', 'Malacate / sistema de recuperación', 'Arnés de cuerpo completo', 'Equipo de respiración autónomo', 'Línea de vida', 'Radio de comunicación', 'Iluminación antiexplosiva', 'Otro'],
+    inventarioPh: 'Ej: tanque de agua 1 (con permiso)',
+    elementos: [['P', 'Programa de gestión para trabajo en espacios confinados'], ['I', 'Inventario y clasificación de los espacios confinados, señalizados'],
+      ['P', 'Supervisor de entrada y vigía designados y capacitados'], ['D', 'Permiso de entrada con medición de la atmósfera (oxígeno, explosividad y tóxicos)'],
+      ['E', 'Equipos de medición calibrados y con prueba de respuesta antes de usarlos'], ['C', 'Ventilación, aislamiento y bloqueo de energías y fluidos'],
+      ['R', 'Plan de rescate específico con equipos y personal entrenado'], ['K', 'Capacitación de entrantes, vigías y supervisores'], ['K', 'Aptitud médica de quienes entran (concepto, sin diagnósticos)'],
+      ['P', 'Administrador del programa de espacios confinados designado'], ['I', 'Evaluación de los riesgos de cada espacio antes de la entrada'],
+      ['C', 'Control de acceso: entradas bloqueadas y registro de entrantes y salientes'], ['C', 'Comunicación permanente entre el vigía y los entrantes'],
+      ['E', 'Equipos de entrada y rescate (trípode, arnés, línea de vida, respiración) inspeccionados'], ['S', 'Indicadores y revisión anual del programa']] },
+  electrico: { nombre: 'Riesgo eléctrico', norma: 'RETIE (Res. 40117 de 2024 y ajustes) · Res. 5018 de 2019', req: 'electrico', permiso: 'permiso-trabajo-electrico.html',
+    equipos: ['herramienta_electrica', 'electrica'], palabras: /el[eé]ctric|descarga|arco|tensi[oó]n|electrocu/i,
+    roles: ['Responsable del programa', 'Ingeniero o técnico electricista con matrícula', 'Supervisor de trabajos eléctricos', 'Persona calificada', 'Otro'],
+    certAuto: 'Persona calificada', certs: ['Técnico electricista con matrícula profesional', 'Ingeniero electricista con matrícula profesional', 'Persona calificada', 'Persona advertida (no electricista)', 'Trabajos en tensión', 'Primeros auxilios y RCP', 'Otro'],
+    equiposLista: ['Detector de ausencia de tensión', 'Multímetro / pinza amperimétrica', 'Equipo de puesta a tierra temporal', 'Guantes dieléctricos', 'Traje para arco eléctrico', 'Careta para arco', 'Herramienta aislada', 'Kit de bloqueo y etiquetado', 'Tapete dieléctrico', 'Pértiga', 'Otro'],
+    inventarioPh: 'Ej: tablero general bodega (220 V)',
+    elementos: [['P', 'Programa o procedimientos de trabajo con riesgo eléctrico'], ['K', 'Personal calificado y autorizado según el trabajo (competencia certificada)'],
+      ['D', 'Cinco reglas de oro en los trabajos sin tensión'], ['C', 'Bloqueo y etiquetado de energías (LOTO)'], ['D', 'Permiso de trabajo eléctrico y ATS'],
+      ['E', 'EPP dieléctrico y para arco eléctrico; herramientas aisladas e inspeccionadas'], ['C', 'Distancias de seguridad y demarcación de la zona'],
+      ['I', 'Instalaciones propias con su certificación RETIE (si aplica)'], ['R', 'Atención de emergencias por choque eléctrico (primeros auxilios y rescate)'],
+      ['I', 'Inventario de tableros, subestaciones y equipos con riesgo eléctrico, señalizados'], ['I', 'Planos y diagramas unifilares actualizados'],
+      ['I', 'Análisis de riesgo por arco eléctrico y tableros rotulados'], ['E', 'Equipos de medición (detector de tensión, multímetro) calibrados o verificados'],
+      ['C', 'Mantenimiento preventivo de las instalaciones y del sistema de puesta a tierra'], ['S', 'Indicadores y revisión anual del programa']] },
+  caliente: { nombre: 'Trabajo en caliente', norma: 'Res. 2400 de 1979 (soldadura y corte) · NFPA 51B (buena práctica)', req: 'caliente', permiso: 'permiso-trabajo-caliente.html',
+    equipos: ['soldadura', 'oxicorte', 'extintor'], palabras: /caliente|soldad|oxicorte|incendio|chispa|quemadur/i,
+    roles: ['Responsable del programa', 'Emisor del permiso (autorizador)', 'Vigía de fuego', 'Supervisor', 'Otro'],
+    certAuto: 'Personal capacitado en trabajo en caliente', certCargo: [[/soldad/i, 'Soldador calificado']], certs: ['Soldador calificado', 'Vigía de fuego', 'Uso de extintores', 'Emisor de permisos', 'Personal capacitado en trabajo en caliente', 'Otro'],
+    equiposLista: ['Máquina de soldar', 'Equipo de oxicorte', 'Válvulas antirretroceso (arrestallamas)', 'Mangueras y reguladores', 'Cilindros', 'Extintor', 'Manta ignífuga', 'Pantalla / biombo', 'Extractor de humos', 'Careta de soldar', 'Otro'],
+    inventarioPh: 'Ej: taller de soldadura (área permanente)',
+    elementos: [['D', 'Procedimiento de trabajo en caliente'], ['D', 'Permiso de trabajo en caliente con vigía de fuego'],
+      ['C', 'Retiro o protección de combustibles alrededor del trabajo'], ['C', 'Extintor adecuado en el sitio y vigilancia después de terminar'],
+      ['E', 'Equipos de soldadura y oxicorte inspeccionados (válvulas antirretroceso, mangueras, cilindros asegurados)'], ['C', 'Medición de atmósfera cuando puede haber gases o vapores inflamables'],
+      ['E', 'EPP del soldador y protección de terceros (pantallas)'], ['K', 'Personal capacitado'],
+      ['P', 'Programa de trabajo en caliente con responsable designado'], ['I', 'Áreas de trabajo en caliente identificadas (permanentes y temporales)'],
+      ['C', 'Almacenamiento seguro de cilindros (oxígeno separado del combustible, verticales, con capuchón)'], ['C', 'Ventilación o extracción de humos de soldadura'],
+      ['R', 'Plan de emergencia ante incendio con brigada y extintores'], ['S', 'Indicadores y revisión anual del programa']] },
+  izajes: { nombre: 'Izaje de cargas', norma: 'Res. 2400 de 1979 (aparatos de izar) · ASME B30 (buena práctica)', req: 'izajes', permiso: 'permiso-izajes-cargas.html',
+    equipos: [], palabrasEquipo: /eslinga|grillete|gr[uú]a|polipasto|diferencial|aparejo|montacarga/i, palabras: /izaje|izar|carga suspendida|gr[uú]a|aplastamiento/i,
+    roles: ['Responsable del programa', 'Supervisor de izaje', 'Operador de grúa', 'Aparejador (rigger)', 'Señalero', 'Inspector certificado (tercero)', 'Otro'],
+    certAuto: 'Personal de apoyo en izaje', certCargo: [[/gr[uú]a/i, 'Operador de grúa'], [/rigger|aparejador/i, 'Aparejador (rigger)'], [/se[ñn]aler/i, 'Señalero'], [/montacarga/i, 'Operador de montacargas'], [/supervisor/i, 'Supervisor de izaje']], certs: ['Operador de grúa', 'Aparejador (rigger)', 'Señalero', 'Supervisor de izaje', 'Operador de montacargas', 'Personal de apoyo en izaje', 'Otro'],
+    equiposLista: ['Grúa móvil', 'Puente grúa', 'Polipasto / diferencial', 'Eslinga sintética', 'Eslinga de cable de acero', 'Eslinga de cadena', 'Grillete', 'Gancho', 'Viga de izaje / balancín', 'Montacargas', 'Otro'],
+    inventarioPh: 'Ej: cargue de vigas con grúa de 30 t',
+    elementos: [['D', 'Plan de izaje (crítico o no crítico) antes de cada maniobra'], ['K', 'Operador y aparejador (rigger) certificados'],
+      ['E', 'Grúa o equipo de izaje con certificado de inspección vigente'], ['E', 'Elementos de izaje (eslingas, grilletes) inspeccionados y marcados con su capacidad'],
+      ['D', 'Capacidad, radio y tabla de carga verificados'], ['C', 'Área demarcada, señalero y comunicación definidas'], ['D', 'Permiso de izaje y ATS'], ['C', 'Condiciones de viento y clima verificadas'],
+      ['P', 'Programa de izaje con responsable designado'], ['I', 'Inventario de equipos y accesorios de izaje con código'],
+      ['E', 'Inspección pre-uso diaria por el operador'], ['E', 'Mantenimiento preventivo del equipo de izaje'],
+      ['R', 'Plan de emergencia ante caída de carga o volcamiento'], ['S', 'Indicadores y revisión anual del programa']] },
+  loto: { nombre: 'Control de energías peligrosas (bloqueo y etiquetado)', norma: 'Res. 2400 de 1979 · RETIE · OSHA 29 CFR 1910.147 (buena práctica)',
+    equipos: [], palabrasEquipo: /bloqueo|candado|loto/i, palabras: /bloqueo|etiquet|energ[ií]a|atrapamiento|arranque|atrap/i,
+    roles: ['Responsable del programa', 'Personal autorizado (aplica el bloqueo)', 'Supervisor de mantenimiento', 'Otro'],
+    certs: ['Personal autorizado en bloqueo y etiquetado', 'Personal afectado (operadores)', 'Otro'],
+    equiposLista: ['Candado personal', 'Pinza multibloqueo', 'Tarjeta de peligro', 'Bloqueador de breaker', 'Bloqueador de válvula', 'Caja de bloqueo grupal', 'Estación de bloqueo', 'Otro'],
+    inventarioPh: 'Ej: freidora 3 (eléctrica, térmica)',
+    elementos: [['P', 'Programa de control de energías peligrosas con responsable'], ['I', 'Inventario de máquinas y equipos con sus fuentes de energía (eléctrica, mecánica, hidráulica, neumática, térmica, química)'],
+      ['D', 'Procedimiento de bloqueo de cada equipo con sus puntos de aislamiento'], ['E', 'Candados personales, tarjetas y dispositivos de bloqueo suficientes'],
+      ['C', 'Verificación de energía cero antes de intervenir'], ['D', 'Bloqueo grupal y cambio de turno definidos'], ['K', 'Personal autorizado y afectado capacitado'],
+      ['C', 'Guardas de seguridad y paradas de emergencia de las máquinas en buen estado'], ['R', 'Plan de atención de emergencias por atrapamiento'],
+      ['S', 'Inspección periódica (mínimo anual) de la aplicación del procedimiento'], ['S', 'Indicadores y revisión anual del programa']] },
+  quimicos: { nombre: 'Gestión del riesgo químico', norma: 'Decreto 1496 de 2018 (SGA) · Res. 773 de 2021', enlace: 'quimicos.html',
+    equipos: ['quimicos'], palabrasEquipo: /lavaojos|ducha|derrame/i, palabras: /qu[ií]mic|derrame|sustancia|intoxica|corrosiv|fuga/i,
+    roles: ['Responsable del programa', 'Responsable del almacén de químicos', 'Brigada de derrames', 'Otro'],
+    certs: ['Capacitación en el SGA', 'Manejo de derrames', 'Transporte de mercancías peligrosas', 'Otro'],
+    equiposLista: ['Ducha de emergencia', 'Lavaojos', 'Kit para derrames', 'Gabinete para inflamables', 'Respirador con filtros', 'Guantes químicos', 'Bandeja de contención', 'Otro'],
+    inventarioPh: 'Ej: trasvase de desengrasante en el almacén',
+    elementos: [['P', 'Programa de gestión del riesgo químico con responsable'], ['I', 'Inventario de sustancias químicas actualizado'],
+      ['D', 'Fichas de datos de seguridad (FDS) en español, de 16 secciones, disponibles donde se usan'], ['C', 'Etiquetado según el SGA, también en los envases de trasvase'],
+      ['C', 'Matriz de compatibilidad y almacenamiento seguro'], ['K', 'Capacitación anual en el SGA a los trabajadores expuestos'],
+      ['E', 'EPP según la FDS, entregado y con su reposición'], ['E', 'Duchas y lavaojos inspeccionados'], ['R', 'Kit para el control de derrames en cada área'],
+      ['R', 'Plan de emergencia ante derrames, fugas e intoxicaciones'], ['S', 'Mediciones higiénicas y vigilancia de la salud cuando apliquen'], ['S', 'Indicadores y revisión anual del programa']] },
+  excavaciones: { nombre: 'Excavaciones y zanjas', norma: 'Res. 2413 de 1979 (construcción) · buenas prácticas',
+    equipos: [], palabrasEquipo: /entibad|excava|zanja/i, palabras: /excava|zanja|derrumbe|talud|sepult/i, simRescate: true,
+    roles: ['Responsable de la excavación', 'Persona competente (inspección)', 'Supervisor', 'Otro'],
+    certs: ['Persona competente en excavaciones', 'Operador de retroexcavadora', 'Otro'],
+    equiposLista: ['Sistema de entibado', 'Escalera de acceso', 'Barreras / cinta de demarcación', 'Detector de redes', 'Detector multigás', 'Bomba de achique', 'Otro'],
+    inventarioPh: 'Ej: zanja para tubería, 1,8 m de profundidad',
+    elementos: [['P', 'Procedimiento de excavación con responsable'], ['I', 'Inventario de excavaciones con profundidad y tipo de suelo'],
+      ['I', 'Redes subterráneas (gas, electricidad, agua) identificadas antes de excavar'], ['D', 'Evaluación del suelo por persona competente'],
+      ['C', 'Entibado, taludes o sistemas de protección según la profundidad'], ['C', 'Material retirado a distancia segura del borde'],
+      ['C', 'Accesos y salidas (escaleras) a distancia segura'], ['C', 'Barreras, señalización y control de acceso al área'],
+      ['E', 'Inspección diaria de la excavación y después de lluvias'], ['D', 'Permiso de trabajo y ATS'], ['C', 'Medición de atmósfera si la excavación es un espacio confinado'],
+      ['R', 'Plan de rescate ante derrumbe'], ['K', 'Personal capacitado'], ['S', 'Indicadores y revisión del programa']] },
+  cargas: { nombre: 'Manipulación manual de cargas', norma: 'Res. 2400 de 1979 (manejo y transporte manual de materiales)',
+    equipos: [], palabrasEquipo: /carretilla|estibador|montacarga/i, palabras: /carga|levant|lumbar|espalda|sobreesfuerzo|ergon/i,
+    roles: ['Responsable del programa', 'Profesional en ergonomía o fisioterapia', 'Supervisor', 'Otro'],
+    certs: ['Levantamiento seguro de cargas', 'Operador de estibador o montacargas', 'Otro'],
+    equiposLista: ['Carretilla', 'Estibador manual', 'Mesa elevadora', 'Polipasto ligero', 'Ayuda mecánica', 'Otro'],
+    inventarioPh: 'Ej: cargue de bultos de 25 kg al camión',
+    elementos: [['P', 'Programa de prevención de lesiones por manipulación de cargas con responsable'], ['I', 'Inventario de tareas con levantamiento, empuje o arrastre (peso, frecuencia, distancia)'],
+      ['I', 'Evaluación ergonómica de las tareas críticas'], ['D', 'Límites de peso definidos según la norma y la aptitud de cada trabajador'],
+      ['E', 'Ayudas mecánicas (carretillas, estibadores, mesas) disponibles e inspeccionadas'], ['K', 'Capacitación en técnicas de levantamiento seguro'],
+      ['C', 'Pausas activas y rotación de tareas'], ['S', 'Vigilancia de la salud osteomuscular (SVE) cuando aplique'],
+      ['S', 'Reporte e investigación de lesiones por sobreesfuerzo'], ['R', 'Atención de primeros auxilios ante lesiones'], ['S', 'Indicadores y revisión anual del programa']] }
+};
+const ESTADOS = ['Cumple', 'Parcial', 'No cumple', 'No aplica'];
+const ESTADO_EQ = ['Bueno', 'Regular', 'Malo', 'Fuera de servicio'];
+const FRECUENCIA = ['Diaria', 'Semanal', 'Mensual', 'Ocasional', 'Otra'];
+const TIPO_DOC = ['Procedimiento', 'Instructivo', 'Permiso de trabajo', 'ATS', 'Plan de rescate', 'Programa', 'Formato de inspección', 'Otro'];
+const PLAN_RESCATE = ['Documentado y probado en simulacro', 'Documentado, sin probar', 'En elaboración', 'No tiene'];
+let rows = [], permisos = {}, PL = {}, HAB = {}, filtroLista = '';
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const ced = (c)=> Habilitacion.clave(c);
+const claveP = (p)=> ced(p.cedula) || (p.nombre ? 'N:' + UI.norm(p.nombre).replace(/\s+/g, ' ').trim() : '');
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('programa,trabajador,equipo,plantillainsp,simulacro,reporte,sustancia');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; armarListas(); pintar();
+  cargarPermisos();
+  cargarAnexo();   // en segundo plano: quién está en el anexo de personal autorizado
+}
+/** Listas de inspección (para el nombre de la categoría, su frecuencia y sus vencimientos) y Personal habilitado por cédula. */
+function armarListas(){
+  PL = {}; plantillasInspeccion(de('plantillainsp')).forEach((p)=> { PL[p.id] = p; });
+  HAB = {}; de('trabajador').forEach((x)=> { const k = ced(x.resumen.cedula); if (k) HAB[k] = x.resumen; });
+}
+
+/* ── v109: inventario de equipos (Inspecciones) ── */
+const plN = (id)=> PL[id] || { id, nombre: id || 'Equipo', vencimientos: [], frecuencia: 'mensual' };
+function proximaEq(s){ const f = FRECUENCIAS[s.frecuencia] || FRECUENCIAS.mensual; if (!s.ultimaInspeccion) return UI.hoy(); return f.dias ? Festivos.sumarDias(s.ultimaInspeccion, f.dias) : Festivos.sumarMeses(s.ultimaInspeccion, f.meses); }
+/** Estado de un equipo del inventario (mismas reglas de Inspecciones). */
+function estInv(x){
+  const s = x.resumen || {};
+  if (s.activo === false) return { c: 'gris', t: 'De baja', motivos: [], proxima: '' };
+  const motivos = [], h = UI.hoy(), vale = plN(s.categoria).vencimientos || [];
+  Object.keys(s.vencimientos || {}).filter((k)=> !PL[s.categoria] || vale.includes(k)).forEach((k)=> { const v = s.vencimientos[k]; if (!v) return; if (v < h) motivos.push(k + ' vencida (' + UI.corta(v) + ')'); else if (v <= Festivos.sumarDias(h, 30)) motivos.push(k + ' vence ' + UI.corta(v)); });
+  const p = proximaEq(s);
+  if (s.ultimoResultado === 'NO CONFORME') motivos.unshift('Última inspección: NO CONFORME');
+  const mal = motivos.some((m)=> /vencida|NO CONFORME/.test(m));
+  return { c: mal ? 'mal' : (p <= h || motivos.length ? 'pronto' : 'ok'), t: mal ? 'Atención' : p <= h ? (s.ultimaInspeccion ? 'Toca inspección' : 'Sin inspeccionar') : 'Al día', motivos, proxima: p };
+}
+/** Equipos del inventario que corresponden al programa (por categoría o por nombre). */
+function pertinentes(k){
+  const P = PROGRAMAS[k];
+  return de('equipo').filter((y)=> y.resumen.activo !== false && (P.equipos.indexOf(y.resumen.categoria) !== -1 || (P.palabrasEquipo && P.palabrasEquipo.test(y.resumen.nombre + ' ' + y.resumen.categoria + ' ' + plN(y.resumen.categoria).nombre))));
+}
+
+/* ── v109: personal autorizado (anexo por obra) ── */
+let ANEXO = null, anexoCargando = null;
+const riesgoDeTipo = (t)=> /altura/i.test(t) ? 'alturas' : /confinad/i.test(t) ? 'confinados' : /el[eé]ctric/i.test(t) ? 'electrico' : /caliente/i.test(t) ? 'caliente' : /izaje/i.test(t) ? 'izajes' : '';
+/** Trae del servidor del anexo las obras con permisos de alto riesgo y el último registro diario de cada una.
+ *  Resultado: { porRiesgo: { alturas: [{ nombre, cedula, cargo, obra, fecha }] }, obras, ok, error, cuando }. Sin señal usa la última copia. */
+function cargarAnexo(forzar){
+  if (ANEXO && !forzar) return Promise.resolve(ANEXO);
+  if (anexoCargando && !forzar) return anexoCargando;
+  anexoCargando = (async ()=> {
+    const B = PORTAL_CONFIG.BACKENDS.personal, copia = SGSST._lsGet('ssta-prog-anexo', null);
+    const sin = (error)=> Object.assign({ porRiesgo: {}, obras: 0 }, copia || {}, { ok: false, error, deCopia: !!copia });
+    if (!B || !B.url || (typeof Empresa !== 'undefined' && !Empresa.moduloActivo('personal'))) return (ANEXO = { porRiesgo: {}, obras: 0, ok: false, error: 'sin servidor' });
+    if (!navigator.onLine) return (ANEXO = sin('sin señal'));
+    try {
+      const tk = '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN);
+      const j = await (await fetchWithRetry(B.url + '?action=listObras' + tk)).json();
+      if (!j || !j.ok) throw new Error((j && j.error) || 'respuesta no válida');
+      const archivoDe = {};
+      Object.keys(PROGRAMAS).forEach((k)=> { const a = (PORTAL_CONFIG.BACKENDS[k] || {}).archivo || PROGRAMAS[k].permiso; if (a) archivoDe[a] = k; if (PROGRAMAS[k].permiso) archivoDe[PROGRAMAS[k].permiso] = k; });
+      const hace = Festivos.sumarDias(UI.hoy(), -90), out = { porRiesgo: {}, obras: 0, ok: true, error: '', cuando: new Date().toISOString() };
+      const obras = (j.obras || []).map((o)=> ({ o, ks: [...new Set((o.permisos || []).map((p)=> archivoDe[p.archivo] || riesgoDeTipo(p.tipo)).filter(Boolean))] }))
+        .filter((x)=> x.ks.length && (!x.o.fechaFin || String(x.o.fechaFin).slice(0, 10) >= hace)).slice(0, 15);
+      await Promise.all(obras.map(async (x)=> {
+        try {
+          const r = await (await fetchWithRetry(B.url + '?action=ultimoRegistro&obraId=' + encodeURIComponent(x.o.obraId) + tk)).json();
+          ((r && Array.isArray(r.trabajadores)) ? r.trabajadores : []).forEach((t)=> { if (!t || !String(t.nombre || '').trim()) return;
+            x.ks.forEach((k)=> (out.porRiesgo[k] = out.porRiesgo[k] || []).push({ nombre: String(t.nombre).trim(), cedula: String(t.cedula || '').trim(), cargo: String(t.cargo || '').trim(), obra: String(x.o.nombre || ''), fecha: String(r.fecha || '').slice(0, 10) })); });
+        } catch (e) { /* una obra que no responde no detiene las demás */ }
+      }));
+      out.obras = obras.length;
+      SGSST._lsSet('ssta-prog-anexo', out);
+      return (ANEXO = out);
+    } catch (e) { return (ANEXO = sin(e.message || String(e))); }
+  })();
+  return anexoCargando;
+}
+/** Quiénes deben estar en el programa: Personal habilitado con el curso de ese riesgo + el anexo de obras con permiso de ese riesgo. */
+function candidatos(k){
+  const P = PROGRAMAS[k], m = {};
+  const poner = (p, origen, extra)=> { const c = claveP(p); if (!c) return; const x = m[c] || (m[c] = { nombre: p.nombre, cedula: p.cedula || '', cargo: p.cargo || '', origenes: [] });
+    if (!x.cedula && p.cedula) x.cedula = p.cedula; if (!x.cargo && p.cargo) x.cargo = p.cargo; if (x.origenes.indexOf(origen) === -1) x.origenes.push(origen); Object.assign(x, extra || {}); };
+  if (P.req) de('trabajador').forEach((y)=> { const s = y.resumen, q = (s.req || {})[P.req]; if (s.activo === false || !q || !(q.fecha || q.vence)) return; poner(s, 'habilitado', { fecha: q.fecha || '', vence: q.vence || '' }); });
+  ((ANEXO && ANEXO.porRiesgo[k]) || []).forEach((t)=> poner(t, 'anexo', { obra: t.obra }));
+  return m;
+}
+const certPara = (P, cargo)=> { const c = (P.certCargo || []).find((x)=> x[0].test(cargo || '')); return c ? c[1] : (P.certAuto || P.certs[0]); };
+/** Concepto médico de Personal habilitado (solo apto / no apto: sin diagnósticos ni restricciones). */
+function aptitud(cedula){
+  const h = HAB[ced(cedula)]; if (!h) return null;
+  const m = (h.req || {}).medico; if (!m || !(m.apto || m.fecha)) return { c: 'mal', t: 'sin concepto médico' };
+  if (m.vence && m.vence < UI.hoy()) return { c: 'mal', t: 'concepto médico vencido' };
+  if (/no apto/i.test(m.apto || '')) return { c: 'mal', t: 'No apto' };
+  if (/restric/i.test(m.apto || '')) return { c: 'pronto', t: 'Apto con restricciones' };
+  return { c: 'ok', t: m.apto || 'Concepto médico al día' };
+}
+/** Permisos de cada tipo en los últimos 30 días (de los servidores de permisos, si están). */
+async function cargarPermisos(){
+  if (typeof getPermitBackends !== 'function' || !navigator.onLine) return;
+  const desde = Festivos.sumarDias(UI.hoy(), -30);
+  await Promise.all(Object.keys(PROGRAMAS).map(async (k)=> {
+    const B = PORTAL_CONFIG.BACKENDS[k]; if (!B || !B.url || (typeof Empresa !== 'undefined' && !Empresa.moduloActivo(k))) return;
+    try {
+      const res = await fetchWithRetry(B.url + '?' + (B.listQuery || 'list=1') + '&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN));
+      const j = await res.json(); if (!j || !j.ok) return;
+      const l = (j.rows || []).filter((x)=> String(x.openedAt || x.updatedAt || '').slice(0, 10) >= desde);
+      permisos[k] = { total: l.length, abiertos: (j.rows || []).filter((x)=> x.status === 'ABIERTO').length };
+    } catch (e) { /* sin servidor de permisos: no se muestra */ }
+  }));
+  pintar();
+}
+/** Indicadores de un programa calculados con lo que ya hay en el portal (y con su propio registro, si se pasa). */
+function indicadores(k, doc){
+  const P = PROGRAMAS[k], h = UI.hoy(), hace12 = Festivos.sumarDias(h, -365), out = [], x = progDe(k);
+  const res = doc || (x ? x.resumen : {});
+  if (P.req) {
+    const t = de('trabajador').filter((y)=> y.resumen.activo !== false && (y.resumen.req || {})[k] && ((y.resumen.req || {})[k].fecha || (y.resumen.req || {})[k].vence));
+    const vig = t.filter((y)=> !y.resumen.req[k].vence || y.resumen.req[k].vence >= h);
+    out.push({ n: 'Personas con el curso o la certificación vigente (Personal habilitado)', c: 'personal', v: t.length ? vig.length + ' / ' + t.length : '—', ok: t.length ? vig.length === t.length : null, d: t.length ? (t.length - vig.length) + ' vencido(s) en Personal habilitado' : 'Nadie tiene registrado este requisito en Personal habilitado' });
+  }
+  const pt = Number(res.personalTotal) || 0, pv = Number(res.personalVigente) || 0;
+  out.push({ n: 'Personal del programa con certificación vigente', c: 'personalProg', v: pt ? pv + ' / ' + pt : '—', ok: pt ? pv === pt : null, d: pt ? (pt - pv) + ' vencida(s) o sin fecha en la lista del programa' : 'Sin personal registrado en el programa' });
+  // v109: los equipos del programa ya vienen del inventario (sin contarlos dos veces). Si el programa aún no tiene equipos, se miran los del inventario que le corresponden.
+  const et = Number(res.equiposTotal) || 0, ea = Number(res.equiposAlDia) || 0;
+  if (et) out.push({ n: 'Equipos del programa al día', c: 'equipos', v: ea + ' / ' + et, ok: ea === et, d: (et - ea) + ' con inspección vencida o por hacer, en mal estado o no conformes' });
+  else { const eqs = pertinentes(k), okE = eqs.filter((y)=> estInv(y).c === 'ok').length;
+    out.push({ n: 'Equipos del programa al día', c: 'equipos', v: eqs.length ? okE + ' / ' + eqs.length : '—', ok: eqs.length ? okE === eqs.length : null, d: eqs.length ? (eqs.length - okE) + ' por revisar; están en Inspecciones y aún no se han elegido en el programa' : 'Sin equipos de este programa en el programa ni en Inspecciones' }); }
+  if (P.permiso) { const p = permisos[k]; out.push({ n: 'Permisos de trabajo en 30 días', c: 'permisos', v: p ? String(p.total) : '—', ok: null, d: p ? p.abiertos + ' abierto(s) ahora' : 'Sin servidor de permisos de este tipo, o sin conexión' }); }
+  if (k === 'quimicos') { const s = de('sustancia').filter((y)=> y.estado !== 'INACTIVA' && y.estado !== 'INACTIVO'), sv = s.filter((y)=> y.vence && y.vence < h);
+    out.push({ n: 'Sustancias con hoja de seguridad vigente', c: 'fds', v: s.length ? (s.length - sv.length) + ' / ' + s.length : '—', ok: s.length ? !sv.length : null, d: s.length ? sv.length + ' con la FDS vencida (Sustancias químicas)' : 'Sin sustancias en el inventario de Sustancias químicas' }); }
+  const sim = de('simulacro').filter((y)=> String(y.fecha) >= hace12 && P.palabras.test(y.resumen.escenario + ' ' + y.resumen.tipoSimulacro) && (!P.simRescate || /rescate/i.test(y.resumen.escenario + ' ' + y.resumen.tipoSimulacro)));
+  out.push({ n: P.simRescate ? 'Simulacros de rescate en 12 meses' : 'Simulacros relacionados en 12 meses', c: 'simulacros', v: String(sim.length), ok: sim.length > 0, d: sim.length ? 'Último: ' + UI.corta(sim.map((y)=> y.fecha).sort().pop()) : 'Ninguno registrado en Emergencias' + (P.simRescate ? ' con la palabra «rescate»' : '') });
+  const ev = de('reporte').filter((y)=> String(y.resumen.fecha) >= hace12 && /Incidente|Accidente/.test(y.resumen.clase) && P.palabras.test(y.resumen.descripcion + ' ' + y.resumen.lugar));
+  out.push({ n: 'Incidentes y accidentes relacionados (12 meses)', c: 'eventos', v: String(ev.length), ok: ev.length === 0, d: ev.length ? ev.filter((y)=> y.resumen.clase === 'Accidente de trabajo').length + ' accidente(s); revisa las investigaciones' : 'Ninguno en Reportes' });
+  return out;
+}
+function progDe(k){ return de('programa').find((x)=> x.resumen.programa === k); }
+const claseCump = (c)=> c >= 90 ? 'ok' : c >= 60 ? 'pronto' : 'mal';
+function pintar(){
+  const h = UI.hoy(), ks = Object.keys(PROGRAMAS);
+  const aplica = ks.filter((k)=> { const x = progDe(k); return !x || x.estado !== 'NO APLICA'; });
+  const conProg = aplica.filter((k)=> progDe(k)), prom = conProg.length ? Math.round(conProg.reduce((a, k)=> a + (Number(progDe(k).resumen.cumplimiento) || 0), 0) / conProg.length) : 0;
+  const vencidos = conProg.filter((k)=> progDe(k).resumen.proximaRevision && progDe(k).resumen.proximaRevision < h).length;
+  const IND = {}; ks.forEach((k)=> { IND[k] = indicadores(k); });
+  const conAlertas = aplica.filter((k)=> IND[k].some((i)=> /^(personal|personalProg|equipos)$/.test(i.c) && i.ok === false));
+  // v109: cada cifra lleva a la lista de esos programas.
+  const FILTROS = { sinEvaluar: ['sin evaluar', (k)=> aplica.indexOf(k) !== -1 && !progDe(k)], bajo: ['con cumplimiento menor al 90 %', (k)=> aplica.indexOf(k) !== -1 && (!progDe(k) || (Number(progDe(k).resumen.cumplimiento) || 0) < 90)],
+    revision: ['con la revisión anual vencida', (k)=> { const x = progDe(k); return !!(x && x.estado !== 'NO APLICA' && x.resumen.proximaRevision && x.resumen.proximaRevision < h); }],
+    alertas: ['con personal o equipos vencidos', (k)=> conAlertas.indexOf(k) !== -1] };
+  $('kpis').innerHTML = '<div class="kpi ' + (conProg.length === aplica.length ? 'ok' : 'mal') + '"' + (conProg.length < aplica.length ? ' data-ir="filtro:sinEvaluar"' : '') + '><div class="v">' + conProg.length + ' / ' + aplica.length + '</div><div class="n">programas evaluados</div></div>' +
+    '<div class="kpi ' + claseCump(prom) + '"' + (aplica.some(FILTROS.bajo[1]) ? ' data-ir="filtro:bajo"' : '') + '><div class="v">' + (conProg.length ? prom + '%' : '—') + '</div><div class="n">cumplimiento promedio de los requisitos</div></div>' +
+    '<div class="kpi ' + (vencidos ? 'mal' : 'ok') + '"' + (vencidos ? ' data-ir="filtro:revision"' : '') + '><div class="v">' + vencidos + '</div><div class="n">con la revisión anual vencida</div></div>' +
+    '<div class="kpi ' + (conAlertas.length ? 'mal' : 'ok') + '"' + (conAlertas.length ? ' data-ir="filtro:alertas"' : '') + '><div class="v">' + conAlertas.length + '</div><div class="n">con personal o equipos vencidos</div></div>';
+  const F = FILTROS[filtroLista], lista = F ? ks.filter(F[1]) : ks;
+  $('panel').innerHTML = (F ? '<div class="filtro-aviso" id="filtroAviso"><span>Mostrando <b>' + lista.length + '</b> programa(s) ' + esc(F[0]) + '.</span><button type="button" class="btn-mini" id="filtroQuitar">Ver todos</button></div>' : '') +
+    '<p class="ayuda" style="margin:0 0 10px;">Toca un programa para ver sus requisitos, responsables, personal, equipos, plan de rescate e indicadores. El personal y los equipos se traen solos del anexo de personal autorizado, de Personal habilitado y del inventario de Inspecciones.</p>' + (lista.length ? '' : '<div class="empty">Ningún programa en esta lista.</div>') + lista.map((k)=> {
+    const P = PROGRAMAS[k], x = progDe(k), ind = IND[k], malos = ind.filter((i)=> i.ok === false).length, cum = x ? Number(x.resumen.cumplimiento) || 0 : 0;
+    const c = x && x.estado === 'NO APLICA' ? 'gris' : !x ? 'mal' : cum >= 90 && !malos ? 'ok' : claseCump(cum);
+    const pp = ind.find((i)=> i.c === 'personalProg'), ph = ind.find((i)=> i.c === 'personal');
+    const resumen = [pp && pp.v !== '—' ? 'Personal ' + pp.v : ph && ph.v !== '—' ? 'Personal habilitado ' + ph.v : ''].concat(ind.filter((i)=> /equipos|permisos/.test(i.c) && i.v !== '—').map((i)=> (i.c === 'equipos' ? 'Equipos ' : 'Permisos 30 d: ') + i.v)).filter(Boolean).join(' · ');
+    return '<button type="button" class="item ' + c + '" data-k="' + k + '"><div class="fila"><div><div class="t">' + icono(k) + esc(P.nombre) + '</div><div class="m">' + esc(P.norma) + (x && x.resumen.coordinador ? ' · coordina ' + esc(x.resumen.coordinador) : '') + '</div>' +
+      (resumen ? '<div class="m">' + esc(resumen) + '</div>' : '') +
+      (x && x.estado !== 'NO APLICA' ? '<div class="barra ' + claseCump(cum) + '" aria-hidden="true"><i style="width:' + Math.max(0, Math.min(100, cum)) + '%"></i></div>' : '') +
+      (x && x.resumen.proximaRevision && x.resumen.proximaRevision < h ? '<div class="m u-mal">Revisión anual vencida</div>' : '') + '</div>' +
+      '<span class="chip ' + c + '">' + (x && x.estado === 'NO APLICA' ? 'No aplica' : x ? cum + '%' : 'Sin evaluar') + '</span></div></button>';
+  }).join('');
+  $('panel').querySelectorAll('[data-k]').forEach((b)=> b.addEventListener('click', ()=> abrir(b.dataset.k)));
+  if ($('filtroQuitar')) $('filtroQuitar').addEventListener('click', ()=> { filtroLista = ''; pintar(); });
+}
+/** Cifras clicables (sgsst-ui.js → data-ir="filtro:…"). */
+window.filtrarKpi = (f)=> { filtroLista = f; if (!$('scrLista').classList.contains('active')) show('scrLista'); pintar(); };
+$('pdfTodos').addEventListener('click', pdfResumen);
+
+/* ── Un programa ── */
+let actual = null, clave = '', L = {};
+const C_RESP = (P)=> [{ k: 'rol', l: 'Rol', t: 'select', op: P.roles, req: true }, { k: 'nombre', l: 'Nombre', t: 'persona', req: true, ph: 'Escribe para buscar' }, { k: 'contacto', l: 'Teléfono o correo' }];
+const C_INV = (P)=> [{ k: 'tarea', l: 'Tarea o sitio', req: true, ph: P.inventarioPh, ancho: 'l' }, { k: 'area', l: 'Área' }, { k: 'frecuencia', l: 'Frecuencia', t: 'select', op: FRECUENCIA }, { k: 'control', l: 'Controles o permiso que exige', ancho: 'l' }];
+const C_DOC = [{ k: 'tipoDoc', l: 'Tipo', t: 'select', op: TIPO_DOC, req: true }, { k: 'nombre', l: 'Nombre o código', req: true }, { k: 'fecha', l: 'Fecha o versión', t: 'date' }, { k: 'ubicacion', l: 'Dónde está', ph: 'Ej: Drive / carpeta SST' }];
+const C_PER = (P)=> [{ k: 'nombre', l: 'Nombre', t: 'persona', req: true, ph: 'Escribe para buscar' }, { k: 'cedula', l: 'Cédula' }, { k: 'cert', l: 'Certificación o rol', t: 'select', op: P.certs, req: true },
+  { k: 'entidad', l: 'Entidad que certifica' }, { k: 'fecha', l: 'Fecha del curso', t: 'date' }, { k: 'vence', l: 'Vence', t: 'date', despuesDe: 'fecha' }];
+const C_EQ = (P)=> [{ k: 'equipo', l: 'Equipo', t: 'select', op: P.equiposLista, req: true }, { k: 'codigo', l: 'Código o serial' }, { k: 'cantidad', l: 'Cantidad', t: 'number' },
+  { k: 'estado', l: 'Estado', t: 'select', op: ESTADO_EQ }, { k: 'ultima', l: 'Última inspección', t: 'date' }, { k: 'proxima', l: 'Próxima inspección', t: 'date', despuesDe: 'ultima' }];
+/** Semáforo de cada persona: curso (vigente / vence / vencido / sin curso) y, en los programas con curso, el concepto médico de Personal habilitado. */
+const estPer = (r)=> {
+  const P = PROGRAMAS[clave] || {};
+  let e = !r.fecha && !r.vence ? (P.req ? ['mal', 'Sin curso registrado'] : ['gris', 'Sin fecha de vencimiento']) : estadoVence(r.vence, 'Curso vigente');
+  const a = P.req ? aptitud(r.cedula) : null;
+  if (a) { const cs = [e[0], a.c]; e = [cs.indexOf('mal') !== -1 ? 'mal' : cs.indexOf('pronto') !== -1 ? 'pronto' : e[0], e[1] + ' · ' + a.t]; }
+  return e;
+};
+const ORIGEN_TXT = { anexo: 'Anexo de personal autorizado', habilitado: 'Personal habilitado' };
+const origenTexto = (r)=> (r.origen || []).length ? r.origen.map((o)=> (ORIGEN_TXT[o] || o) + (o === 'anexo' && r.obra ? ' (' + r.obra + ')' : '')).join(' + ') : 'Escrito a mano';
+const notaPer = (r)=> (nuevosUid.has(r.uid) ? '<span class="tag nuevo">Nuevo</span>' : '') + '<span class="tag">' + esc((r.origen || []).length ? 'Sincronizado' : 'A mano') + '</span>' + esc(origenTexto(r) + (r.cargo ? ' · ' + r.cargo : ''));
+const notaEq = (r)=> '<button type="button" class="btn-mini" data-alinv>+ Agregar al inventario de Inspecciones</button>';
+const MOTIVOS_QUITAR = ['Ya no trabaja en la empresa', 'Ya no hace tareas de este riesgo', 'Contratista que terminó su trabajo', 'No está autorizado para esta tarea', 'Registro repetido o con error', 'Otro'];
+let nuevosUid = new Set(), eqNuevos = new Set(), eqSel = {}, verTodoInv = false;
+const estEq = (r)=> { if (r.estado === 'Malo' || r.estado === 'Fuera de servicio') return ['mal', r.estado]; const e = estadoVence(r.proxima, 'Al día'); if (e[0] === 'gris') return ['gris', 'Sin fecha de próxima inspección']; if (r.estado === 'Regular' && e[0] === 'ok') return ['pronto', 'Estado regular']; return [e[0], e[0] === 'mal' ? 'Inspección vencida ' + UI.corta(r.proxima) : e[0] === 'pronto' ? 'Inspeccionar antes del ' + UI.corta(r.proxima) : 'Al día hasta ' + UI.corta(r.proxima)]; };
+
+async function abrir(k){
+  clave = k; const P = PROGRAMAS[k], x = progDe(k);
+  actual = x ? await Registros.abrir(x.id) : { id: 'PRG-' + k.toUpperCase(), nuevo: true, programa: k, nombre: P.nombre, elementos: {}, estado: 'ACTIVO' };
+  if (!actual) return;
+  actual.elementos = actual.elementos || {}; actual.otros = actual.otros || []; actual.rescate = actual.rescate || {};
+  const s = $('scrProg'), r = actual.rescate;
+  let comp = '';
+  const orden = Object.keys(COMP), idx = P.elementos.map((e, i)=> i).sort((a, b)=> orden.indexOf(P.elementos[a][0]) - orden.indexOf(P.elementos[b][0]) || a - b);
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver a los programas</a><div class="eyebrow">' + esc(P.norma) + '</div><h1>' + icono(k) + esc(P.nombre) + '</h1><p id="pSub"></p></div>' +
+    '<div class="acciones fija"><button type="button" class="btn amber" id="pOk">Guardar el programa</button><button type="button" class="btn ghost" id="pPdf">Programa (PDF)</button></div>' +
+    '<div class="card"><h2>Avance del programa</h2><div class="barra" id="pBarra"><i style="width:0"></i></div><div class="ayuda" id="pAvance"></div><div id="pFaltan"></div></div>' +
+    '<div class="card"><h2>Indicadores <span class="n">con los datos del portal</span></h2><div id="pInd"></div>' +
+      (P.permiso ? '<p class="ayuda"><a href="' + P.permiso + '">Abrir los permisos de trabajo de este tipo</a></p>' : P.enlace ? '<p class="ayuda"><a href="' + P.enlace + '">Abrir el inventario de sustancias químicas</a></p>' : '') + '</div>' +
+    '<div class="card"><h2>Datos del programa</h2><div class="grid2"><div class="field"><label>Coordinador o responsable *</label><input type="text" id="pCoord" data-persona="1" placeholder="Escribe para buscar" value="' + esc(actual.coordinador || '') + '"></div>' +
+    '<div class="field"><label>¿Aplica a la empresa?</label><select id="pAplica"><option value="ACTIVO">Sí, aplica</option><option value="NO APLICA"' + (actual.estado === 'NO APLICA' ? ' selected' : '') + '>No: la empresa no hace estas tareas</option></select></div></div>' +
+    '<div class="field"><label>Objetivo</label><textarea id="pObj" placeholder="Ej: prevenir lesiones por caídas en las tareas en alturas de la empresa y sus contratistas">' + esc(actual.objetivo || '') + '</textarea></div>' +
+    '<div class="field"><label>Alcance (áreas, sedes, contratistas)</label><input type="text" id="pAlc" value="' + esc(actual.alcance || '') + '"></div>' +
+    '<div class="field"><label>Metas del programa</label><textarea id="pMetas" placeholder="Ej: 0 accidentes; 100 % del personal con certificación vigente; 100 % de equipos inspeccionados">' + esc(actual.metas || '') + '</textarea></div></div>' +
+    '<div class="card"><h2>Responsables <span class="n" id="nResp"></span></h2><div id="lResp"></div></div>' +
+    '<div class="card"><h2>Inventario de tareas y sitios <span class="n" id="nInv"></span></h2><p class="ayuda">Dónde y cuándo se hacen estas tareas. Debe coincidir con la matriz de peligros.</p><div id="lInv"></div></div>' +
+    '<div class="card"><h2>Procedimientos, permisos y documentos <span class="n" id="nDoc"></span></h2><div id="lDoc"></div></div>' +
+    '<div class="card" id="cPer"><h2>Personal capacitado y certificado <span class="n" id="nPer"></span></h2><div id="pSync"></div><p class="ayuda">Semáforo: rojo vencido o sin curso, amarillo vence en 30 días.' + (P.req ? ' El concepto médico sale de Personal habilitado (solo apto o no apto, sin diagnósticos).' : '') + '</p><div id="lPer"></div><div id="pQuitados"></div></div>' +
+    '<div class="card" id="cEq"><h2>Equipos y su inspección <span class="n" id="nEq"></span></h2><p class="ayuda">Se traen del inventario de <a href="inspecciones.html">Inspecciones</a>' + (P.equipos.length ? ' (' + esc(P.equipos.map((c)=> plN(c).nombre).join(', ')) + ')' : '') + '. Marca los que usa el programa: su última inspección y sus vencimientos se actualizan solos.</p><div id="lEqInv"></div>' +
+      '<div class="sub-h">Escritos a mano <span class="n" id="nEqMano"></span></div><p class="ayuda">Equipos que aún no están en el inventario. Toca «Agregar al inventario» para inspeccionarlos con el portal.</p><div id="lEq"></div></div>' +
+    '<div class="card"><h2>Plan de rescate y emergencias</h2><div class="grid2"><div class="field"><label>Plan</label>' + selOtro('id="rEstado"', PLAN_RESCATE, r.estado || '', '', '—') + '</div>' +
+      '<div class="field"><label>Última actualización</label><input type="date" id="rFecha" value="' + esc(r.fecha || '') + '"></div></div>' +
+      '<div class="grid2"><div class="field"><label>Personas entrenadas para el rescate</label><input type="number" min="0" inputmode="numeric" id="rPersonas" value="' + esc(r.personas == null ? '' : r.personas) + '"></div>' +
+      '<div class="field"><label>Tiempo de respuesta esperado (min)</label><input type="number" min="0" inputmode="numeric" id="rTiempo" value="' + esc(r.tiempo == null ? '' : r.tiempo) + '"></div></div>' +
+      '<div class="field"><label>Equipos de rescate y dónde están</label><textarea id="rEquipos">' + esc(r.equipos || '') + '</textarea></div>' +
+      '<p class="ayuda" id="rSim"></p></div>' +
+    '<div class="card"><h2>Lista de chequeo de cumplimiento</h2><p class="ayuda">Guía práctica según ' + esc(P.norma) + '. Verifícala con el texto vigente de la norma. Marca cada requisito y anota la evidencia.</p>' +
+    idx.map((i)=> { const e = P.elementos[i], v = actual.elementos[i] || {}; const cab = e[0] !== comp ? '<div class="comp" data-comp="' + e[0] + '">' + esc(COMP[(comp = e[0])]) + '<span></span></div>' : '';
+      return cab + '<div class="elem" data-i="' + i + '" data-c="' + e[0] + '"><div class="et">' + esc(e[1]) + '</div><div class="seg-btn" role="group">' + ESTADOS.map((o)=> '<button type="button" data-v="' + o + '" aria-pressed="' + (v.estado === o) + '" class="' + (v.estado === o ? 'on' : '') + '">' + o + '</button>').join('') + '</div>' +
+        '<textarea data-ev placeholder="Evidencia: documento, registro, dónde está">' + esc(v.evidencia || '') + '</textarea></div>'; }).join('') +
+    '<div class="comp">Otros requisitos de la empresa<span></span></div><div id="pOtros"></div><button type="button" class="btn-add" id="pOtroAdd">+ Otro requisito (escríbelo)</button>' +
+    '<div id="pAdj"></div></div>' +
+    '<button type="button" class="btn amber" id="pOk2">Guardar el programa</button><div id="pHist"></div><div class="status-msg" id="pMsg"></div>';
+  const cambio = ()=> sub();
+  L.resp = listaFilas($('lResp'), C_RESP(P), actual.responsables || [], { agregar: 'Responsable', vacio: 'Agrega por lo menos al coordinador o responsable del programa.', alCambiar: cambio, nueva: ()=> ({ rol: P.roles[1] || P.roles[0] }) });
+  L.inv = listaFilas($('lInv'), C_INV(P), actual.inventario || [], { agregar: 'Tarea o sitio', vacio: 'Sin tareas registradas.', alCambiar: cambio });
+  L.doc = listaFilas($('lDoc'), C_DOC, actual.documentos || [], { agregar: 'Documento', vacio: 'Sin documentos registrados.', alCambiar: cambio });
+  nuevosUid = new Set(); eqNuevos = new Set(); verTodoInv = false;
+  L.per = listaFilas($('lPer'), C_PER(P), actual.personal || [], { agregar: 'Persona (escribirla a mano)', vacio: 'Sin personal registrado.', estado: estPer, nota: notaPer, alQuitar: quitarPersona, alCambiar: cambio });
+  L.eq = listaFilas($('lEq'), C_EQ(P), actual.equiposPrograma || [], { agregar: 'Equipo escrito a mano', vacio: 'Ninguno escrito a mano.', estado: estEq, nota: notaEq, alCambiar: cambio, nueva: ()=> ({ estado: 'Bueno', cantidad: 1 }) });
+  $('lEq').addEventListener('click', (e)=> { const b = e.target.closest('[data-alinv]'); if (b) alInventario(b.closest('.fila-ed')); });
+  $('lEqInv').addEventListener('change', (e)=> { const c = e.target.closest('[data-eqinv]'); if (!c) return; eqSel[c.dataset.eqinv] = c.checked; if (!c.checked) eqNuevos.delete(c.dataset.eqinv); pintarEquiposInv(); sub(); });
+  $('lEqInv').addEventListener('click', (e)=> { if (e.target.closest('#eqVerTodo')) { verTodoInv = !verTodoInv; pintarEquiposInv(); } });
+  iniciarEquipos(); pintarEquiposInv(); pintarQuitados();
+  sincronizarPersonal(); pintarSync();
+  cargarAnexo().then(()=> { if (clave !== k || !$('lPer') || !$('scrProg').classList.contains('active')) return; sincronizarPersonal(); pintarSync(); sub(); });
+  UI.autocompletar($('pCoord'), (p)=> { $('pCoord').value = p.nombre; });
+  pintarOtros();
+  $('pOtroAdd').addEventListener('click', ()=> { leerOtros(); actual.otros.push({ uid: SGSST.nuevoOpId(), t: '', estado: '', evidencia: '' }); pintarOtros(); const l = $('pOtros').querySelectorAll('.otro-req'); if (l.length) l[l.length - 1].focus(); });
+  s.addEventListener('click', (e)=> { const b = e.target.closest('.seg-btn button[data-v]'); if (!b) return; const g = b.parentElement; g.querySelectorAll('button').forEach((y)=> { y.classList.toggle('on', y === b); y.setAttribute('aria-pressed', y === b); }); b.closest('.elem').classList.remove('sin'); sub(); });
+  s.addEventListener('input', (e)=> { if (e.target.matches('#pAplica, #rEstado')) sub(); });
+  $('pAplica').addEventListener('change', sub);
+  const simUlt = de('simulacro').filter((y)=> P.palabras.test(y.resumen.escenario + ' ' + y.resumen.tipoSimulacro)).map((y)=> y.fecha).sort().pop();
+  $('rSim').innerHTML = simUlt ? 'Último simulacro relacionado: ' + esc(UI.corta(simUlt)) + ' (Emergencias).' : 'No hay simulacros relacionados en <a href="emergencias.html">Emergencias</a>. Programa uno para probar el plan.';
+  if (!actual.nuevo) {
+    const refs = {}; P.elementos.forEach((e, i)=> { refs['e' + i] = e[1].slice(0, 60); }); refs.otro = 'Otro soporte';
+    UI.adjuntos($('pAdj'), { id: actual.id, lista: actual.adjuntos || [], refs, titulo: 'Evidencias' });
+    $('pHist').appendChild(UI.botonHistorial(actual.id, P.nombre));
+  } else UI.adjuntos($('pAdj'), {});
+  $('pOk').addEventListener('click', guardar); $('pOk2').addEventListener('click', guardar);
+  $('pPdf').addEventListener('click', ()=> pdfPrograma(leer()));
+  sub(); show('scrProg');
+}
+/* ── v109: personal sincronizado (anexo + Personal habilitado), sin duplicar por cédula ── */
+const normNom = (n)=> 'N:' + UI.norm(n).replace(/\s+/g, ' ').trim();
+function sincronizarPersonal(){
+  if (!L.per || $('pAplica').value === 'NO APLICA') return 0;
+  const P = PROGRAMAS[clave], cols = C_PER(P), cand = candidatos(clave);
+  const fuera = new Set(); (actual.quitados || []).forEach((q)=> { fuera.add(claveP(q)); if (q.nombre) fuera.add(normNom(q.nombre)); });
+  const porClave = {}, porNombre = {};
+  L.per.filas().forEach((el)=> { const r = leerFila(el, cols), f = { el, r }; if (ced(r.cedula)) porClave[ced(r.cedula)] = f; if (r.nombre) porNombre[normNom(r.nombre)] = f; });
+  let n = 0;
+  Object.keys(cand).forEach((c)=> {
+    const p = cand[c];
+    let f = porClave[c];
+    if (!f && p.nombre) { const g = porNombre[normNom(p.nombre)]; if (g && (!ced(g.r.cedula) || !p.cedula)) f = g; }   // escrita a mano sin cédula: es la misma persona
+    if (f) {   // ya está: se completa lo que falte y se toma el curso más reciente de Personal habilitado
+      const cambios = {}, o = [...new Set((f.r.origen || []).concat(p.origenes))];
+      if (o.join() !== (f.r.origen || []).join()) cambios.origen = o;
+      if (p.obra && f.r.obra !== p.obra) cambios.obra = p.obra;
+      if (!f.r.cedula && p.cedula) cambios.cedula = p.cedula;
+      if (!f.r.cargo && p.cargo) cambios.cargo = p.cargo;
+      if (p.vence && (!f.r.vence || p.vence > f.r.vence)) { cambios.vence = p.vence; cambios.fecha = p.fecha || f.r.fecha || ''; }
+      if (Object.keys(cambios).length) L.per.poner(f.el, cambios);
+      return;
+    }
+    if (fuera.has(c) || (p.nombre && fuera.has(normNom(p.nombre)))) return;   // lo quitaron con motivo
+    const uid = SGSST.nuevoOpId(); nuevosUid.add(uid);
+    L.per.agregar({ uid, nombre: p.nombre, cedula: p.cedula || '', cert: certPara(P, p.cargo), entidad: '', fecha: p.fecha || '', vence: p.vence || '', origen: p.origenes, obra: p.obra || '', cargo: p.cargo || '' });
+    n++;
+  });
+  return n;
+}
+function pintarSync(){
+  const P = PROGRAMAS[clave], a = ANEXO, c = $('pSync'); if (!c) return;
+  const reqN = P.req ? ((Habilitacion.config().requisitos[P.req] || {}).nombre || P.req) : '';
+  const fuentes = [P.req ? '<a href="habilitacion.html">Personal habilitado</a> (quien tiene el ' + esc(reqN.toLowerCase()) + ')' : '', P.permiso ? 'el <a href="personal-autorizado.html">anexo de personal autorizado</a> de las obras con este permiso' : ''].filter(Boolean);
+  if (!fuentes.length) { c.innerHTML = '<div class="sync">Este programa no tiene un curso ni un permiso propio en el portal: agrega a las personas abajo (escribe el nombre para buscarlas).</div>'; return; }
+  const n = L.per.filas().filter((el)=> nuevosUid.has(el.dataset.uid)).length;
+  const est = !P.permiso ? '' : !a ? 'revisando el anexo…' : a.ok ? (a.obras ? a.obras + ' obra(s) con permiso de alto riesgo revisada(s).' : 'ninguna obra del anexo tiene permisos de alto riesgo vinculados.') :
+    a.error === 'sin servidor' ? 'el anexo de personal autorizado no está configurado en este portal.' : a.error === 'sin señal' ? 'sin señal' + (a.deCopia ? ': se usó la última copia guardada.' : '.') : 'no se pudo leer (' + esc(a.error) + ')' + (a.deCopia ? '; se usó la última copia.' : '.');
+  c.innerHTML = '<div class="sync">Se sincroniza solo con ' + fuentes.join(' y ') + ', sin repetir cédulas. ' +
+    (n ? '<b>' + n + ' persona(s) nueva(s)</b> (marcadas «Nuevo»): guarda el programa para dejarlas registradas. ' : 'Todo al día. ') + 'Para sacar a alguien toca «Quitar» y di el motivo.' +
+    (est ? '<div class="ayuda" style="margin:4px 0 0;">Anexo: ' + est + '</div>' : '') + '<button type="button" class="btn ghost" id="pSyncBtn">Volver a sincronizar</button></div>';
+  $('pSyncBtn').addEventListener('click', async ()=> { const b = $('pSyncBtn'); b.disabled = true; b.textContent = 'Sincronizando…'; await cargarAnexo(true); const k = clave; if (!$('pSync') || clave !== k) return;
+    const nn = sincronizarPersonal(); pintarSync(); sub(); UI.toast(nn ? '✓ ' + nn + ' persona(s) agregada(s).' : '✓ Personal al día.'); });
+}
+async function quitarPersona(r){
+  const c = claveP(r), auto = (r.origen || []).length || (c && candidatos(clave)[c]);
+  if (!auto) return !(r.nombre || r.cedula) || await Dialogo.confirmar('¿Quitar a ' + (r.nombre || 'esta persona') + ' del programa?');
+  const motivo = await pedirMotivo(r.nombre || 'esta persona');
+  if (!motivo) return false;
+  actual.quitados = (actual.quitados || []).filter((q)=> claveP(q) !== c).concat([{ nombre: r.nombre, cedula: r.cedula || '', motivo, fecha: UI.hoy(), por: (typeof Sesion !== 'undefined' && Sesion.nombre()) || '' }]);
+  nuevosUid.delete(r.uid); pintarQuitados(); setTimeout(pintarSync, 0);
+  return true;
+}
+function pedirMotivo(nombre){
+  return new Promise((listo)=> {
+    const m = UI.modal('<h3>Quitar a ' + esc(nombre) + ' del programa</h3><p class="ayuda">Viene del anexo de personal autorizado o de Personal habilitado: con el motivo queda registrado y no vuelve a aparecer sola.</p>' +
+      '<div class="field"><label>Motivo *</label>' + selOtro('id="qMot"', MOTIVOS_QUITAR, '', 'Escribe el motivo', 'Elige el motivo') + '</div><div class="status-msg" id="qMsg" style="color:var(--mal);font-weight:600;"></div>' +
+      '<div class="acciones"><button type="button" class="btn amber" id="qOk">Quitar del programa</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button></div>', true);
+    m.el.querySelector('[data-cerrar]').addEventListener('click', ()=> listo(''));
+    m.el.querySelector('#qOk').addEventListener('click', ()=> { const s = m.el.querySelector('#qMot'), v = valSel(s); limpiarMarcas(m.el);
+      if (!v) { const x = esOtro(s.value) ? s.parentElement.querySelector('.otro-txt') : s; x.classList.add('field-invalid'); m.el.querySelector('#qMsg').textContent = esOtro(s.value) ? 'Falta escribir el motivo.' : 'Falta elegir el motivo.'; x.focus(); return; }
+      m.cerrar(); listo(v); });
+  });
+}
+function pintarQuitados(){
+  const l = actual.quitados || [], c = $('pQuitados'); if (!c) return;
+  c.innerHTML = l.length ? '<details class="quitados"><summary>Quitados del programa (' + l.length + ')</summary>' + l.map((q, i)=> '<div class="q"><div><b>' + esc(q.nombre) + '</b><small>' + esc([q.cedula && 'C.C. ' + q.cedula, q.motivo, UI.corta(q.fecha), q.por].filter(Boolean).join(' · ')) + '</small></div><button type="button" data-reincluir="' + i + '">Incluir de nuevo</button></div>').join('') + '</details>' : '';
+  c.querySelectorAll('[data-reincluir]').forEach((b)=> b.addEventListener('click', ()=> {
+    const q = actual.quitados.splice(+b.dataset.reincluir, 1)[0]; pintarQuitados();
+    if (!sincronizarPersonal()) { const uid = SGSST.nuevoOpId(); nuevosUid.add(uid); L.per.agregar({ uid, nombre: q.nombre, cedula: q.cedula, cert: certPara(PROGRAMAS[clave], '') }); }
+    pintarSync(); sub(); }));
+}
+
+/* ── v109: equipos del programa elegidos del inventario de Inspecciones ── */
+function iniciarEquipos(){
+  const excl = new Set(actual.equiposExcluidos || []), antes = new Set((actual.equiposInventario || []).map((e)=> e.equipoId));
+  eqSel = {};
+  antes.forEach((id)=> { eqSel[id] = true; });
+  // Los del inventario que le corresponden al programa entran solos (salvo los que se desmarcaron).
+  pertinentes(clave).forEach((x)=> { if (excl.has(x.id) || antes.has(x.id)) return; eqSel[x.id] = true; eqNuevos.add(x.id); });
+}
+function itemInv(x, on){
+  const s = x.resumen, e = estInv(x), p = plN(s.categoria);
+  return '<label class="eq-inv ' + (on ? e.c : 'fuera') + '"><input type="checkbox" data-eqinv="' + esc(x.id) + '"' + (on ? ' checked' : '') + ' aria-label="Usar en el programa: ' + esc(s.codigo || s.nombre || '') + '"><div>' +
+    '<b>' + esc((s.codigo ? s.codigo + ' · ' : '') + (s.nombre || p.nombre)) + (on && eqNuevos.has(x.id) ? ' <span class="tag nuevo">Nuevo</span>' : '') + '</b>' +
+    '<small>' + esc(p.nombre + (s.ubicacion ? ' · ' + s.ubicacion : '')) + '</small>' +
+    '<small>' + esc((s.ultimaInspeccion ? 'Última inspección ' + UI.corta(s.ultimaInspeccion) + (s.ultimoResultado ? ' (' + s.ultimoResultado.toLowerCase() + ')' : '') : 'Sin inspecciones') + ' · próxima ' + UI.corta(e.proxima)) + '</small>' +
+    (e.motivos.length ? '<small class="' + (e.c === 'mal' ? 'alerta' : '') + '">' + esc(e.motivos.join(' · ')) + '</small>' : '') +
+    '<span class="chip ' + e.c + '">' + esc(on ? e.t : 'No se usa en el programa') + '</span> <a class="ayuda" href="inspecciones.html#' + encodeURIComponent(x.id) + '">Abrir en Inspecciones</a></div></label>';
+}
+function pintarEquiposInv(){
+  const c = $('lEqInv'); if (!c) return;
+  const pert = pertinentes(clave), pertIds = new Set(pert.map((x)=> x.id)), inv = de('equipo').filter((x)=> x.resumen.activo !== false);
+  const otros = inv.filter((x)=> !pertIds.has(x.id)), otrosSel = otros.filter((x)=> eqSel[x.id]), otrosNo = otros.filter((x)=> !eqSel[x.id]);
+  const idsInv = new Set(inv.map((x)=> x.id));
+  const perdidos = (actual.equiposInventario || []).filter((e)=> eqSel[e.equipoId] && !idsInv.has(e.equipoId));
+  c.innerHTML = pert.concat(otrosSel).map((x)=> itemInv(x, !!eqSel[x.id])).join('') + (verTodoInv ? otrosNo.map((x)=> itemInv(x, false)).join('') : '') +
+    perdidos.map((e)=> '<label class="eq-inv gris"><input type="checkbox" data-eqinv="' + esc(e.equipoId) + '" checked><div><b>' + esc((e.codigo ? e.codigo + ' · ' : '') + (e.nombre || '')) + '</b><small>Ya no está activo en el inventario (de baja o borrado). Desmárcalo si ya no se usa.</small></div></label>').join('') +
+    (otrosNo.length ? '<button type="button" class="btn-add" id="eqVerTodo">' + (verTodoInv ? 'Ocultar los demás equipos del inventario' : 'Ver los demás equipos del inventario (' + otrosNo.length + ')') + '</button>' : '') +
+    (!inv.length ? '<div class="ayuda">El inventario de Inspecciones está vacío. <a href="inspecciones.html">Agrega allá los equipos</a> o escríbelos abajo y súbelos al inventario.</div>'
+      : !pert.length ? '<div class="ayuda">En el inventario no hay equipos de este programa todavía' + (otrosNo.length ? ': mira los demás o escríbelos abajo.' : '.') + '</div>' : '');
+}
+const CAT_EQ = [[/arn[eé]s|eslinga|l[ií]nea de vida|arrestador|freno|mosquet|conector|anclaje|kit de rescate|barbuquejo/i, 'arnes'], [/escalera/i, 'escalera'], [/andamio/i, 'andamio'], [/extintor/i, 'extintor'],
+  [/soldar|soldadura|careta de soldar/i, 'soldadura'], [/oxicorte|cilindro|manguera|regulador|antirretroceso|arrestallama/i, 'oxicorte'], [/mult[ií]metro|pinza|pulidora|taladro|esmeril|herramienta/i, 'herramienta_electrica'],
+  [/tablero|tapete|p[eé]rtiga|puesta a tierra/i, 'electrica'], [/botiqu/i, 'botiquin'], [/camilla|tr[ií]pode|malacate/i, 'camilla'], [/ducha|lavaojos|derrame|gabinete|contenci/i, 'quimicos'], [/montacarga|veh[ií]culo|gr[uú]a m[oó]vil/i, 'vehiculo']];
+function categoriaDe(nombre, P){ const c = CAT_EQ.find((x)=> x[0].test(nombre || '')); return c && PL[c[1]] ? c[1] : (P.equipos.find((k)=> PL[k]) || 'locativa'); }
+/** Un equipo escrito a mano se sube al inventario de Inspecciones (y queda marcado en el programa). */
+function alInventario(el){
+  const P = PROGRAMAS[clave], r = leerFila(el, C_EQ(P));
+  const cats = Object.keys(PL).map((k)=> PL[k]).filter((p)=> p.equipo !== false && p.activa !== false), cat0 = categoriaDe(r.equipo, P);
+  const m = UI.modal('<h3>Agregar al inventario de Inspecciones</h3><p class="ayuda">Así se inspecciona con el portal (lista de chequeo, etiqueta QR y vencimientos) y su estado se ve solo en este programa. Las fechas de vencimiento se ponen después en Inspecciones.</p>' +
+    '<div class="field"><label>Lista de inspección (categoría) *</label><select id="aiCat">' + cats.map((p)=> '<option value="' + esc(p.id) + '"' + (p.id === cat0 ? ' selected' : '') + '>' + esc(p.nombre) + '</option>').join('') + '</select></div>' +
+    '<div class="grid2"><div class="field"><label>Descripción *</label><input type="text" id="aiNom" value="' + esc(r.equipo || '') + '" placeholder="Ej: Arnés 4 argollas talla M"></div><div class="field"><label>Código o serial</label><input type="text" id="aiCod" value="' + esc(r.codigo || '') + '" placeholder="Ej: ARN-07"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Ubicación</label><input type="text" id="aiUbi" placeholder="Ej: Almacén de EPP"></div><div class="field"><label>Frecuencia de inspección</label><select id="aiFrec">' + Object.keys(FRECUENCIAS).map((k)=> '<option value="' + k + '">' + esc(FRECUENCIAS[k].nombre) + '</option>').join('') + '</select></div></div>' +
+    '<div class="status-msg" id="aiMsg" style="color:var(--mal);font-weight:600;"></div><div class="acciones"><button type="button" class="btn amber" id="aiOk">Agregar al inventario</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button></div>', true);
+  const q = (id)=> m.el.querySelector('#' + id), frec = ()=> { q('aiFrec').value = (PL[q('aiCat').value] || {}).frecuencia || 'mensual'; };
+  frec(); q('aiCat').addEventListener('change', frec);
+  q('aiOk').addEventListener('click', async ()=> {
+    limpiarMarcas(m.el); const nom = q('aiNom').value.trim(), cod = q('aiCod').value.trim(), faltan = [];
+    const igual = cod && de('equipo').find((x)=> UI.norm(x.resumen.codigo) === UI.norm(cod));
+    if (!nom) { q('aiNom').classList.add('field-invalid'); faltan.push('falta la descripción'); }
+    if (igual) { q('aiCod').classList.add('field-invalid'); faltan.push('el código ' + cod + ' ya está en el inventario (' + (igual.resumen.nombre || '') + '): márcalo en la lista de arriba'); }
+    if (faltan.length) { q('aiMsg').textContent = 'Revisa: ' + faltan.join(' · ') + '.'; return; }
+    const campos = { categoria: q('aiCat').value, codigo: cod, nombre: nom, ubicacion: q('aiUbi').value.trim(), frecuencia: q('aiFrec').value, vencimientos: {}, activo: true };
+    const id = SGSST.nuevoId('EQP'); q('aiOk').disabled = true; q('aiMsg').textContent = 'Guardando…';
+    const res = await SGSST.enviar({ action: 'parche', tipo: 'equipo', id, campos }, { resumen: Object.assign({ ultimaInspeccion: '', ultimoResultado: '' }, campos) });
+    q('aiOk').disabled = false;
+    if (!res.ok) { q('aiMsg').textContent = Errores.texto('guardó', res); return; }
+    rows.push({ id, tipo: 'equipo', resumen: res.resumen || Object.assign({ ultimaInspeccion: '', ultimoResultado: '' }, campos), pendiente: !!res.enCola });
+    eqSel[id] = true; eqNuevos.add(id); L.eq.quitar(el); pintarEquiposInv(); sub(); m.cerrar();
+    UI.toast((res.enCola ? '⏳ Se envía al volver la señal. ' : '✓ ') + 'Agregado al inventario y marcado en el programa. Guarda el programa.');
+  });
+}
+/** Equipos del inventario marcados en el programa, con su estado de hoy. */
+function equiposInvDe(){
+  const inv = de('equipo');
+  return Object.keys(eqSel).filter((id)=> eqSel[id]).map((id)=> { const x = inv.find((y)=> y.id === id), prev = (actual.equiposInventario || []).find((e)=> e.equipoId === id) || {};
+    const s = x ? x.resumen : { codigo: prev.codigo, nombre: prev.nombre, categoria: prev.categoria, ultimaInspeccion: prev.ultima }, e = x && x.resumen.activo !== false ? estInv(x) : { c: 'gris', t: 'Ya no está en el inventario', proxima: '' };
+    return { equipoId: id, codigo: s.codigo || '', nombre: s.nombre || '', categoria: s.categoria || '', ubicacion: s.ubicacion || '', ultima: s.ultimaInspeccion || '', resultado: s.ultimoResultado || '', proxima: e.proxima || '', estado: e.t, alDia: e.c === 'ok' }; });
+}
+function pintarOtros(){
+  $('pOtros').innerHTML = actual.otros.map((o, j)=> '<div class="elem" data-o="' + j + '" data-uid="' + esc(o.uid) + '"><input type="text" class="otro-req" placeholder="Escribe el requisito (ej: requisito del cliente o de la ARL)" value="' + esc(o.t || '') + '">' +
+    '<div class="seg-btn" role="group">' + ESTADOS.map((x)=> '<button type="button" data-v="' + x + '" aria-pressed="' + (o.estado === x) + '" class="' + (o.estado === x ? 'on' : '') + '">' + x + '</button>').join('') + '</div>' +
+    '<textarea data-ev placeholder="Evidencia">' + esc(o.evidencia || '') + '</textarea><div class="fila-pie" style="border:0;"><button type="button" class="btn-quitar" data-qo="' + j + '">Quitar</button></div></div>').join('');
+  $('pOtros').querySelectorAll('[data-qo]').forEach((b)=> b.addEventListener('click', ()=> { leerOtros(); actual.otros.splice(+b.dataset.qo, 1); pintarOtros(); sub(); }));
+}
+function leerOtros(){
+  actual.otros = [...$('pOtros').querySelectorAll('.elem[data-o]')].map((d)=> { const on = d.querySelector('.seg-btn .on'); return { uid: d.dataset.uid || SGSST.nuevoOpId(), t: d.querySelector('.otro-req').value.trim(), estado: on ? on.dataset.v : '', evidencia: d.querySelector('[data-ev]').value.trim() }; });
+}
+function leer(){
+  const P = PROGRAMAS[clave], el = {};
+  document.querySelectorAll('#scrProg .elem[data-i]').forEach((d)=> { const on = d.querySelector('.seg-btn .on'); el[d.dataset.i] = { estado: on ? on.dataset.v : '', evidencia: d.querySelector('[data-ev]').value.trim() }; });
+  leerOtros();
+  const todos = Object.keys(el).map((i)=> el[i]).concat(actual.otros.filter((o)=> o.t));
+  const ap = todos.filter((x)=> x.estado && x.estado !== 'No aplica'), pts = ap.reduce((a, x)=> a + (x.estado === 'Cumple' ? 1 : x.estado === 'Parcial' ? 0.5 : 0), 0);
+  const personal = L.per.leer(), eqs = L.eq.leer(), h = UI.hoy(), eqInv = equiposInvDe();
+  const excluidos = [...new Set((actual.equiposExcluidos || []).concat(pertinentes(clave).map((x)=> x.id)).filter((id)=> !eqSel[id]))];
+  const resc = { estado: valSel($('rEstado')), fecha: $('rFecha').value, personas: $('rPersonas').value === '' ? '' : Number($('rPersonas').value), tiempo: $('rTiempo').value === '' ? '' : Number($('rTiempo').value), equipos: $('rEquipos').value.trim() };
+  return Object.assign({}, actual, { programa: clave, nombre: P.nombre, coordinador: $('pCoord').value.trim(), estado: $('pAplica').value, objetivo: $('pObj').value.trim(), alcance: $('pAlc').value.trim(), metas: $('pMetas').value.trim(), elementos: el,
+    responsables: L.resp.leer(), inventario: L.inv.leer(), documentos: L.doc.leer(), personal, equiposPrograma: eqs, rescate: resc,
+    equiposInventario: eqInv, equiposExcluidos: excluidos, quitados: actual.quitados || [],
+    personalTotal: personal.length, personalVigente: personal.filter((p)=> p.vence && p.vence >= h).length,
+    equiposTotal: eqs.length + eqInv.length, equiposAlDia: eqs.filter((e)=> estEq(e)[0] === 'ok').length + eqInv.filter((e)=> e.alDia).length,
+    evaluados: ap.length, sinEvaluar: todos.filter((x)=> !x.estado).length, cumplimiento: ap.length ? Math.round(pts * 100 / ap.length) : 0 });
+}
+/** Lo que falta para un programa completo (los elementos mínimos). */
+function faltantes(v, marcar){
+  const P = PROGRAMAS[clave], f = [], s = $('scrProg');
+  if (marcar) limpiarMarcas(s);
+  if (v.estado === 'NO APLICA') return f;
+  const m = (el, t)=> { if (marcar && el) el.classList.add('field-invalid'); f.push({ t, el }); };
+  if (!v.coordinador) m($('pCoord'), 'Coordinador o responsable del programa');
+  if (esOtro($('rEstado').value) && !v.rescate.estado) m($('rEstado').parentElement.querySelector('.otro-txt'), 'Plan de rescate: escribe cuál');
+  if (marcar) {
+    f.push(...L.resp.validar('Responsable'), ...L.inv.validar('Tarea'), ...L.doc.validar('Documento'), ...L.per.validar('Persona'), ...L.eq.validar('Equipo'));
+    ['rPersonas', 'rTiempo'].forEach((id)=> { if ($(id).value !== '' && Number($(id).value) < 0) m($(id), 'Plan de rescate: no puede ser negativo'); });
+  }
+  s.querySelectorAll('.elem[data-i]').forEach((d)=> { if (!d.querySelector('.seg-btn .on')) { if (marcar) d.classList.add('sin'); f.push({ t: 'Evaluar: ' + P.elementos[d.dataset.i][1], el: d }); } });
+  s.querySelectorAll('.elem[data-o]').forEach((d, j)=> { const o = v.otros[j] || {}; if (!o.t) m(d.querySelector('.otro-req'), 'Otro requisito ' + (j + 1) + ': escribe cuál es'); else if (!o.estado) { if (marcar) d.classList.add('sin'); f.push({ t: 'Evaluar: ' + o.t, el: d }); } });
+  return f;
+}
+function sub(){
+  const v = leer(), P = PROGRAMAS[clave], f = faltantes(v, false);
+  const minimos = [['responsables', 'responsables'], ['inventario', 'inventario de tareas'], ['documentos', 'procedimientos'], ['personal', 'personal certificado']].filter(([k])=> !(v[k] || []).length).map((x)=> x[1]);
+  if (!v.equiposTotal) minimos.push('equipos');
+  if (!v.rescate.estado || v.rescate.estado === 'No tiene') minimos.push('plan de rescate');
+  $('pSub').textContent = v.estado === 'NO APLICA' ? 'No aplica a la empresa' : 'Cumplimiento ' + v.cumplimiento + '%' + (v.sinEvaluar ? ' · ' + v.sinEvaluar + ' requisito(s) sin evaluar' : '');
+  $('pBarra').className = 'barra ' + claseCump(v.cumplimiento); $('pBarra').firstChild.style.width = (v.estado === 'NO APLICA' ? 0 : v.cumplimiento) + '%';
+  $('pAvance').textContent = v.estado === 'NO APLICA' ? 'El programa no aplica: no se evalúa.' : v.evaluados + ' requisito(s) evaluados, ' + v.sinEvaluar + ' sin evaluar.' + (minimos.length ? ' Sin registrar: ' + minimos.join(', ') + '.' : ' Elementos mínimos registrados.');
+  $('pInd').innerHTML = indicadores(clave, v).map((i)=> '<div class="ind"><span>' + esc(i.n) + '</span><b style="color:' + (i.ok === null ? 'inherit' : i.ok ? 'var(--ok)' : 'var(--mal)') + ';">' + esc(i.v) + '</b><small>' + esc(i.d) + '</small></div>').join('');
+  const n = (id, l)=> { $(id).textContent = l.length ? '(' + l.length + ')' : ''; };
+  n('nResp', v.responsables); n('nInv', v.inventario); n('nDoc', v.documentos); n('nPer', v.personal); n('nEqMano', v.equiposPrograma);
+  $('nEq').textContent = v.equiposTotal ? '(' + v.equiposTotal + ')' : '';
+  document.querySelectorAll('#scrProg .comp[data-comp]').forEach((c)=> { const ls = [...document.querySelectorAll('#scrProg .elem[data-c="' + c.dataset.comp + '"]')].map((d)=> v.elementos[d.dataset.i]).filter((x)=> x.estado && x.estado !== 'No aplica');
+    c.querySelector('span').textContent = ls.length ? Math.round(ls.reduce((a, x)=> a + (x.estado === 'Cumple' ? 1 : x.estado === 'Parcial' ? 0.5 : 0), 0) * 100 / ls.length) + '%' : ''; });
+  if ($('pFaltan').innerHTML && !f.length) $('pFaltan').innerHTML = '';
+}
+async function guardar(){
+  const v = leer(), P = PROGRAMAS[clave], msg = $('pMsg');
+  const f = faltantes(v, true);
+  if (f.length) { mostrarFaltas($('pFaltan'), f); msg.textContent = 'Falta completar ' + f.length + ' cosa(s): mira la lista arriba.'; return; }
+  $('pFaltan').innerHTML = '';
+  v.fechaRevision = UI.hoy(); v.proximaRevision = Festivos.sumarMeses(UI.hoy(), 12);
+  msg.textContent = 'Guardando…'; [$('pOk'), $('pOk2')].forEach((b)=> { b.disabled = true; });
+  const r = await Registros.guardar('programa', v.id, v, v.nuevo ? 0 : v.version);
+  [$('pOk'), $('pOk2')].forEach((b)=> { b.disabled = false; });
+  if (typeof r === 'string') { msg.textContent = r; return; }
+  // Lo que no cumple se vuelve acción del plan de acción (una vez por requisito).
+  const creadas = Object.assign({}, actual.accionesPor || {});
+  const pend = Object.keys(v.elementos).filter((i)=> /No cumple|Parcial/.test(v.elementos[i].estado) && !creadas[i]).map((i)=> ({ k: i, t: P.elementos[i][1], e: v.elementos[i].estado }))
+    .concat(v.otros.filter((o)=> /No cumple|Parcial/.test(o.estado) && !creadas[o.uid]).map((o)=> ({ k: o.uid, t: o.t, e: o.estado })));
+  if (!r.enCola && pend.length && v.estado !== 'NO APLICA' && await Dialogo.confirmar(pend.length + ' requisito(s) sin cumplir del todo. ¿Crear las acciones en el plan de acción?')) {
+    const resp = await Dialogo.pedir('Responsable de las acciones:', v.coordinador || '');
+    if (resp) { for (const x of pend) { const a = await UI.guardarAccion({ origen: 'Programa de alto riesgo', origenRef: v.id, hallazgo: P.nombre + ': ' + x.t + ' (' + x.e + ')', accion: 'Cumplir: ' + x.t, responsable: resp, tipoAccion: 'Preventiva', prioridad: 'Alta' }); if (a.ok) creadas[x.k] = a.id; else break; }
+      await SGSST.enviar({ action: 'parche', tipo: 'programa', id: v.id, campos: { accionesPor: creadas } }); }
+  }
+  UI.toast(r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : '✓ Programa guardado.');
+  await cargar(); show('scrLista');
+}
+function tabla(cab, filas){ return '<table><tr>' + cab.map((c)=> '<td class="l">' + esc(c) + '</td>').join('') + '</tr>' + (filas.length ? filas.map((f)=> '<tr>' + f.map((c)=> '<td>' + esc(c == null ? '' : c) + '</td>').join('') + '</tr>').join('') : '<tr><td colspan="' + cab.length + '">—</td></tr>') + '</table>'; }
+function pdfPrograma(v){
+  const P = PROGRAMAS[clave], ind = indicadores(clave, v), orden = Object.keys(COMP);
+  const req = P.elementos.map((e, i)=> [e, i]).sort((a, b)=> orden.indexOf(a[0][0]) - orden.indexOf(b[0][0]) || a[1] - b[1]).map(([e, i])=> { const x = v.elementos[i] || {}; return [COMP[e[0]], e[1], x.estado || '—', x.evidencia || '']; })
+    .concat((v.otros || []).filter((o)=> o.t).map((o)=> ['Otro', o.t, o.estado || '—', o.evidencia || '']));
+  UI.imprimir([UI.cabecera('SG-PROGRAMA-ALTO-RIESGO', 'PROGRAMA: ' + P.nombre.toUpperCase(), P.norma + ' · revisado ' + UI.corta(v.fechaRevision || UI.hoy())) +
+    UI.seccion('DATOS', UI.tablaDatos([['Coordinador', v.coordinador || ''], ['Aplica', v.estado === 'NO APLICA' ? 'No' : 'Sí'], ['Cumplimiento', v.cumplimiento + '%'], ['Próxima revisión', UI.corta(v.proximaRevision || '')], ['Alcance', v.alcance || ''], ['Objetivo', v.objetivo || '']])) +
+    UI.seccion('METAS', UI.textoLargo(v.metas)) +
+    UI.seccion('RESPONSABLES', tabla(['Rol', 'Nombre', 'Contacto'], (v.responsables || []).map((x)=> [x.rol, x.nombre, x.contacto]))) +
+    UI.seccion('INVENTARIO DE TAREAS Y SITIOS', tabla(['Tarea o sitio', 'Área', 'Frecuencia', 'Controles'], (v.inventario || []).map((x)=> [x.tarea, x.area, x.frecuencia, x.control]))) +
+    UI.seccion('PROCEDIMIENTOS, PERMISOS Y DOCUMENTOS', tabla(['Tipo', 'Nombre o código', 'Fecha', 'Ubicación'], (v.documentos || []).map((x)=> [x.tipoDoc, x.nombre, UI.corta(x.fecha), x.ubicacion]))) +
+    UI.seccion('PERSONAL CAPACITADO Y CERTIFICADO', tabla(['Nombre', 'Cédula', 'Certificación', 'De dónde viene', 'Fecha', 'Vence', 'Estado'], (v.personal || []).map((x)=> [x.nombre, x.cedula, x.cert, origenTexto(x), UI.corta(x.fecha), UI.corta(x.vence), estPer(x)[1]]))) +
+    ((v.quitados || []).length ? UI.seccion('PERSONAS QUITADAS DEL PROGRAMA', tabla(['Nombre', 'Cédula', 'Motivo', 'Fecha', 'Quién'], v.quitados.map((q)=> [q.nombre, q.cedula, q.motivo, UI.corta(q.fecha), q.por]))) : '') +
+    UI.seccion('EQUIPOS Y SU INSPECCIÓN', tabla(['Equipo', 'Código', 'Origen', 'Estado', 'Última', 'Próxima', 'Semáforo'], (v.equiposInventario || []).map((x)=> [x.nombre || plN(x.categoria).nombre, x.codigo, 'Inventario · ' + plN(x.categoria).nombre, x.resultado || '', UI.corta(x.ultima), UI.corta(x.proxima), x.estado])
+      .concat((v.equiposPrograma || []).map((x)=> [x.equipo + (Number(x.cantidad) > 1 ? ' (× ' + x.cantidad + ')' : ''), x.codigo, 'Escrito a mano', x.estado, UI.corta(x.ultima), UI.corta(x.proxima), estEq(x)[1]])))) +
+    UI.seccion('PLAN DE RESCATE Y EMERGENCIAS', UI.tablaDatos([['Plan', v.rescate.estado || '—'], ['Actualizado', UI.corta(v.rescate.fecha || '')], ['Personas entrenadas', String(v.rescate.personas === '' || v.rescate.personas == null ? '—' : v.rescate.personas)], ['Tiempo de respuesta', v.rescate.tiempo === '' || v.rescate.tiempo == null ? '—' : v.rescate.tiempo + ' min'], ['Equipos de rescate', v.rescate.equipos || '—']])) +
+    UI.seccion('INDICADORES', tabla(['Indicador', 'Valor', 'Detalle'], ind.map((i)=> [i.n, i.v, i.d]))) +
+    UI.seccion('LISTA DE CHEQUEO DE CUMPLIMIENTO', tabla(['Componente', 'Requisito', 'Estado', 'Evidencia'], req)) +
+    UI.seccion('FIRMAS', '<table><tr><td style="height:60px;vertical-align:bottom;width:50%;">______________________________<br>Firma · Coordinador del programa<br>' + esc(v.coordinador || '') + '</td><td style="height:60px;vertical-align:bottom;">______________________________<br>Firma · Representante legal o empleador</td></tr></table>')]);
+}
+function pdfResumen(){
+  const ks = Object.keys(PROGRAMAS);
+  UI.imprimir([UI.cabecera('SG-PROGRAMA-ALTO-RIESGO', 'PROGRAMAS DE TAREAS DE ALTO RIESGO', 'Corte ' + UI.corta(UI.hoy())) +
+    '<table><tr><td class="l">Programa</td><td class="l">Norma</td><td class="l">Coordinador</td><td class="l">Cumplimiento</td><td class="l">Personal vigente</td><td class="l">Equipos al día</td><td class="l">Simulacros 12 m</td><td class="l">Eventos 12 m</td><td class="l">Próxima revisión</td></tr>' +
+    ks.map((k)=> { const x = progDe(k), P = PROGRAMAS[k], ind = indicadores(k), g = (c)=> (ind.find((i)=> i.c === c) || {}).v || '—';
+      return '<tr><td>' + esc(P.nombre) + '</td><td>' + esc(P.norma) + '</td><td>' + esc(x ? x.resumen.coordinador : '') + '</td><td>' + (x ? (x.estado === 'NO APLICA' ? 'No aplica' : esc(x.resumen.cumplimiento) + '%') : 'Sin evaluar') + '</td>' +
+        '<td>' + esc(g('personalProg')) + '</td><td>' + esc(g('equipos')) + '</td><td>' + esc(g('simulacros')) + '</td><td>' + esc(g('eventos')) + '</td><td>' + esc(x ? UI.corta(x.resumen.proximaRevision) : '') + '</td></tr>'; }).join('') + '</table>'], true);
+}
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

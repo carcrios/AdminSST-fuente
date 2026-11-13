@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-5QkYRL0JWEkC3o8JZz3Zaf6aHdD4E9fJZjr7cFKuAbU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Manual de uso · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Manual de uso · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.roles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.roles button{border:1.5px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:7px 12px;font:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;color:var(--ink);}
+.roles button.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+details.guia{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);margin-bottom:8px;overflow:hidden;}
+details.guia summary{list-style:none;cursor:pointer;padding:13px 14px;font-weight:800;font-size:var(--fs-titulo);display:flex;gap:10px;align-items:center;}
+details.guia summary::-webkit-details-marker{display:none;}
+details.guia summary .ic{font-size:var(--fs-subtitulo);width:26px;text-align:center;flex:none;}
+details.guia summary small{display:block;font-weight:600;color:var(--muted);font-size:var(--fs-menor);margin-top:1px;}
+details.guia[open] summary{border-bottom:1px solid var(--line);}
+.guia .cuerpo{padding:10px 16px 14px;font-size:var(--fs-base);line-height:1.5;}
+.guia ol{padding-left:20px;margin:4px 0 8px;} .guia li{margin-bottom:4px;}
+.guia .tip{background:var(--n-50);border-radius:var(--r-m);padding:8px 10px;font-size:var(--fs-base);margin:6px 0;}
+.guia .acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.faq b{display:block;margin-top:10px;}
+.preg-f{display:flex;gap:8px;}
+.preg-f input{flex:1;min-width:0;padding:11px 12px;border:1.5px solid var(--line);border-radius:var(--r-m);font:inherit;background:var(--bg);color:var(--ink);}
+.preg-f .btn{width:auto;flex:none;margin:0;}
+.preg-sug{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:8px 0 0;}
+.preg-sug button{border:1px solid var(--line);background:var(--bg);border-radius:var(--r-pill);padding:5px 10px;font:inherit;font-size:var(--fs-menor);cursor:pointer;color:var(--ink);}
+.preg-r{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;}
+.preg-r .q{color:var(--muted);font-size:var(--fs-menor);}
+.preg-r .r{white-space:pre-line;line-height:1.5;margin:4px 0;}
+.preg-r .otra{font-size:var(--fs-menor);margin-top:6px;}
+video{width:100%;max-height:70vh;background:#000;border-radius:var(--r-m);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Ayuda</div>
+    <h1>Manual de uso</h1>
+    <p>Cómo se usa cada módulo, paso a paso, con videos cortos</p></div></div>
+  </div>
+  <div class="card preg" id="preg">
+    <h2>Pregúntale a la guía</h2>
+    <form id="pregForm" class="preg-f"><input type="search" id="pregTxt" aria-label="Tu pregunta" placeholder="Escribe tu pregunta: ¿por dónde empiezo con un cliente nuevo?" autocomplete="off"><button type="submit" class="btn amber">Preguntar</button></form>
+    <ul class="preg-sug" id="pregSug"></ul>
+    <div id="pregRes" aria-live="polite"></div>
+    <p class="ayuda u-mt8">Responde con el manual del portal y la norma colombiana de SST. Funciona sin señal y no envía tu pregunta a nadie.</p>
+  </div>
+  <input type="search" class="buscar" id="buscar" placeholder="Buscar: permiso, inspección, PQRS, clave…">
+  <div class="roles" id="roles"></div>
+  <div id="lista"></div>
+  <div class="card faq" id="faq"></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="ayuda-guias.js"></script>
+<script src="guia-preguntas.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* Las guías están en ayuda-guias.js (las usa también «Menús» de la consola). */
+const FAQ = [['¿Qué pasa si no hay señal?', 'Todo se guarda en el celular y queda «⏳ pendiente». Se envía solo cuando vuelve la señal (el número en la barra muestra cuántos faltan). No borres los datos del navegador ni desinstales la app mientras haya pendientes.'],
+  ['Olvidé la clave del portal', 'Pídela al responsable de SST. Si la empresa usa usuarios con nombre, el administrador te puede dar una clave temporal.'],
+  ['¿Dónde quedan los datos?', 'En la cuenta de Google de la empresa (hojas de cálculo en su Drive), no en el celular ni en el sitio. Cada semana se hace una copia de respaldo.'],
+  ['No veo el plan, los comités ni los indicadores', 'Están en «Sistema de gestión», al final del inicio: entra con tu usuario. Si con tu usuario no aparece un módulo, tu rol no lo tiene: pídeselo al administrador.'],
+  ['¿Quién ve los datos de salud?', 'Solo administrador y SST. Del concepto médico se guarda si es apto y sus restricciones; nunca el diagnóstico.'],
+  ['¿Cómo saco un PDF?', 'Toca el botón «PDF» (con el dibujo de la impresora); en la ventana de impresión elige «Guardar como PDF».'],
+  ['¿Cómo cambio de empresa?', 'Al pie del inicio, «cambiar», o abre el enlace de la otra empresa. Primero deben estar enviados los pendientes.'],
+  ['Algo no funciona', 'Abre «Estado del sistema» (abajo, al final del inicio): prueba cada servidor y dice qué falla. Envíale una captura al responsable de SST.']];
+let rol = (typeof Sesion !== 'undefined' && Sesion.token && Sesion.token()) ? 'todos' : 'campo';   // v143: sin usuario, abre en lo del trabajador
+/* v129: la ayuda muestra solo lo que esta empresa usa (sus módulos activos) y lo que el administrador
+   no apagó en «Menús» → Ayuda. */
+function guiaVisible(g){
+  if (typeof Empresa === 'undefined') return true;
+  if (Empresa.visible && !Empresa.visible('ayuda', g.id)) return false;
+  return !g.mod || !Empresa.moduloActivo || g.mod.some((m)=> Empresa.moduloActivo(m));
+}
+$('roles').innerHTML = ROLES_AYUDA.map(([k, n])=> '<button type="button" data-rol="' + k + '"' + (k === rol ? ' class="on"' : '') + '>' + esc(n) + '</button>').join('');
+const visibles = ()=> { const q = UI.norm($('buscar').value).trim();
+  return GUIAS.filter((g)=> guiaVisible(g) && (rol === 'todos' || g.rol.includes(rol) || g.rol.includes('todos')) && (!q || UI.norm([g.t].concat(g.pasos, g.tips || []).join(' ')).includes(q))); };
+function pintar(){
+  const l = visibles();
+  $('lista').innerHTML = l.length ? l.map((g)=> '<details class="guia" id="g-' + g.id + '"><summary><span class="ic">' + g.ic + '</span><span>' + esc(g.t) + '</span></summary><div class="cuerpo"><ol>' + g.pasos.map((x)=> '<li>' + esc(x) + '</li>').join('') + '</ol>' +
+    (g.tips || []).map((x)=> '<div class="tip">💡 ' + esc(x) + '</div>').join('') + '<div class="acc">' + (g.href ? '<a class="btn-mini" href="' + esc(g.href) + '">Abrir el módulo →</a>' : '') + (g.video ? '<button type="button" class="btn-mini" style="background:var(--rojo-900);" data-video="' + esc(g.video) + '" data-t="' + esc(g.t) + '">▶ Ver video</button>' : '') + '</div></div></details>').join('')
+    : '<div class="empty">Nada con esa búsqueda.</div>';
+}
+$('faq').innerHTML = '<h2>Preguntas frecuentes</h2>' + FAQ.map(([q, r])=> '<b>' + esc(q) + '</b><div style="font-size:var(--fs-base);line-height:1.5;">' + esc(r) + '</div>').join('');
+$('roles').addEventListener('click', (e)=> { const b = e.target.closest('[data-rol]'); if (!b) return; rol = b.dataset.rol; $('roles').querySelectorAll('button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+$('buscar').addEventListener('input', pintar);
+document.addEventListener('click', (e)=> { const b = e.target.closest('[data-video]'); if (!b) return;
+  const m = UI.modal('<h3>' + esc(b.dataset.t) + '</h3><video controls playsinline preload="metadata" poster="videos/' + encodeURIComponent(b.dataset.video) + '.jpg" src="videos/' + encodeURIComponent(b.dataset.video) + '.mp4"><track kind="captions" srclang="es" label="Español" src="videos/' + encodeURIComponent(b.dataset.video) + '.vtt" default></video><div class="status-msg" data-msg></div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>', true);
+  const v = m.el.querySelector('video'); v.addEventListener('error', ()=> { m.el.querySelector('[data-msg]').textContent = navigator.onLine ? 'Este video todavía no está en el sitio (carpeta videos/).' : 'Los videos necesitan señal.'; }); v.play().catch(()=> {}); });
+
+/* v172 · Pregúntale a la guía: busca en las respuestas escritas, las guías visibles y las preguntas frecuentes. */
+GUIA_PREGUNTAS.armar({ guias: GUIAS.filter(guiaVisible), faq: FAQ });
+function responder(q){
+  q = String(q || '').trim(); if (!q) return;
+  const l = GUIA_PREGUNTAS.preguntar(q), x = l[0];
+  if (!x) GUIA_PREGUNTAS.reportar(q);
+  const enl = (a)=> a.map(([t, h])=> '<a class="btn-mini" href="' + esc(h) + '">' + esc(t) + ' →</a>').join(' ');
+  $('pregRes').innerHTML = '<div class="preg-r"><div class="q">Tu pregunta: ' + esc(q) + '</div>' + (x
+    ? '<b>' + esc(x.t) + '</b><div class="r">' + esc(x.r) + '</div>' + enl(x.a) +
+      (l.length > 1 ? '<div class="otra">También puede servirte: ' + l.slice(1).map((y)=> '<button type="button" class="btn-mini gris" data-preg="' + esc(y.t) + '">' + esc(y.t) + '</button>').join(' ') + '</div>' : '')
+    : '<div class="r">No encontré una respuesta para eso. Ya quedó anotada para agregar la respuesta. Mientras tanto, prueba con otras palabras (por ejemplo «permiso», «FURAT», «COPASST») o busca en el manual de abajo.</div>') + '</div>';
+}
+$('pregSug').innerHTML = GUIA_PREGUNTAS.SUGERIDAS.map((t)=> '<li><button type="button" data-preg="' + esc(t) + '">' + esc(t) + '</button></li>').join('');
+$('pregForm').addEventListener('submit', (e)=> { e.preventDefault(); responder($('pregTxt').value); });
+document.addEventListener('click', (e)=> { const b = e.target.closest('[data-preg]'); if (!b) return; $('pregTxt').value = b.dataset.preg; responder(b.dataset.preg); });
+try { const q0 = new URLSearchParams(location.search).get('q'); if (q0) { $('pregTxt').value = q0; responder(q0); } } catch (e) {}
+pintar();
+if (location.hash.length > 1) { const d = document.getElementById('g-' + location.hash.slice(1)); if (d) { d.open = true; d.scrollIntoView(); } }
+</script>
+</body>
+</html>

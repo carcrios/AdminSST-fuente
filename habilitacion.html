@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-0VSKXw91V1OQKWnXF4iHHFh2biwmC3v077SjNFOttWs='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Personal habilitado · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Personal habilitado · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
+.acciones .btn{flex:1 1 calc(50% - 8px);min-width:150px;margin:0;min-height:44px;padding:10px 12px;font-size:var(--fs-base);}
+.acciones .btn.amber{flex-basis:100%;}
+.field .error-txt{font-size:var(--fs-menor);color:var(--mal);font-weight:600;margin-top:4px;}
+.rev-box summary{cursor:pointer;}
+.rev-item{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--n-100);}
+.rev-item div{flex:1 1 220px;min-width:0;}
+.rev-item small{display:block;color:var(--tenue);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════ LISTA ═══════ -->
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Personal habilitado</h1>
+    <p>Cursos, concepto médico, seguridad social e inducción con su vencimiento</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="avisoCopia"></div>
+  <div class="acciones">
+    <button type="button" class="btn amber" id="btnNuevo">+ Agregar persona</button>
+    <button type="button" class="btn ghost" id="btnTabla">Escribir en una tabla</button>
+    <button type="button" class="btn ghost" id="btnExcel">⬆️ Cargar desde Excel</button>
+    <button type="button" class="btn ghost" id="btnPila">Seguridad social del mes (para todos)</button>
+    <button type="button" class="btn ghost" id="btnPdf">🖨️ PDF: estado del personal</button>
+    <button type="button" class="btn ghost" id="btnMaestro" hidden>⬇️ Maestro de personas (CSV para nómina o PILA)</button>
+  </div>
+  <div id="porRevisar"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="todos">Todos <span class="n" id="nTodos">0</span></button>
+    <button type="button" data-tab="mal">No habilitados <span class="n" id="nMal">0</span></button>
+    <button type="button" data-tab="pronto">Vencen pronto <span class="n" id="nPronto">0</span></button>
+    <button type="button" data-tab="ok">Habilitados <span class="n" id="nOk">0</span></button>
+    <button type="button" data-tab="venc">Vencimientos</button>
+  </div>
+  <input type="search" class="buscar" id="buscar" placeholder="Buscar por nombre, cédula, cargo, área o empresa">
+  <div class="sel-barra" id="selBarra"></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<!-- ═══════ FICHA ═══════ -->
+<div class="screen" id="scrFicha">
+  <div class="hdr">
+    <a class="back" href="#" id="volver">← Volver a la lista</a>
+    <div class="eyebrow">Personal habilitado</div>
+    <h1 id="fNombre">Nueva persona</h1>
+    <p id="fSub">—</p>
+  </div>
+  <div class="card">
+    <h2>Datos</h2>
+    <div class="field"><label for="inNombre">Nombre completo *</label><input type="text" id="inNombre" placeholder="Nombre y apellidos"></div>
+    <div class="grid2">
+      <div class="field"><label for="inTipoDoc">Tipo de documento *</label><select id="inTipoDoc"><option value="CC">Cédula de ciudadanía</option><option value="TI">Tarjeta de identidad</option><option value="CE">Cédula de extranjería</option><option value="PPT">PPT (Permiso por Protección Temporal)</option><option value="PEP">PEP (Permiso Especial de Permanencia)</option><option value="PA">Pasaporte</option></select></div>
+      <div class="field"><label for="inCedula">Número de documento *</label><input type="text" id="inCedula" inputmode="numeric" maxlength="15" placeholder="Solo números"></div>
+      <div class="field"><label for="inCargo">Cargo</label><input type="text" id="inCargo" list="lsCargos" autocomplete="off"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="inArea">Área</label><input type="text" id="inArea" list="lsAreas" autocomplete="off" placeholder="Ej: Producción"></div>
+      <div class="field"><label for="inIngreso">Fecha de ingreso</label><input type="date" id="inIngreso"></div>
+      <div class="field"><label for="inCelular">Celular (para avisarle lo que se le vence por WhatsApp)</label><input type="tel" id="inCelular" inputmode="numeric" maxlength="15" placeholder="Ej. 3001234567" data-no-ac></div>
+      <div class="field"><label for="inPension">¿Hace tareas de alto riesgo para pensión especial? (Dec. 2090 de 2003)</label><select id="inPension"><option value="">No</option><option>Sí</option></select><div class="ayuda">Si es Sí, verifica en la PILA la cotización especial (estándar 1.1.5).</div></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="inEmpresa">Empresa / contratista</label><input type="text" id="inEmpresa" list="lsEmpresas" autocomplete="off" placeholder="Propia o nombre del contratista"></div>
+      <div class="field"><label for="inActivo">Estado</label><select id="inActivo"><option value="1">Activo</option><option value="0">Inactivo (retirado)</option></select></div>
+    </div>
+    <datalist id="lsCargos"></datalist><datalist id="lsAreas"></datalist><datalist id="lsEmpresas"></datalist>
+    <button type="button" class="btn" id="btnGuardarDatos">Guardar datos</button>
+    <div class="status-msg" id="msgDatos"></div>
+  </div>
+  <div class="card" id="cardEmer">
+    <h2>Contacto de emergencia</h2>
+    <p class="ayuda mt-menos4">Para una evacuación médica (MEDEVAC). Solo lo ven las personas que entran con su usuario.</p>
+    <div class="grid2">
+      <div class="field"><label for="emNombre">Nombre del contacto</label><input type="text" id="emNombre" autocomplete="off"></div>
+      <div class="field"><label for="emParentesco">Parentesco</label><input type="text" id="emParentesco" list="lsParentesco" autocomplete="off" placeholder="Ej: Esposa, hijo, madre"></div>
+    </div>
+    <datalist id="lsParentesco"><option value="Esposo(a)"><option value="Compañero(a)"><option value="Madre"><option value="Padre"><option value="Hijo(a)"><option value="Hermano(a)"><option value="Otro familiar"><option value="Amigo(a)"></datalist>
+    <div class="grid2">
+      <div class="field"><label for="emTelefono">Celular del contacto</label><input type="tel" id="emTelefono" inputmode="tel" autocomplete="off" placeholder="3001234567"></div>
+      <div class="field"><label for="emTelefono2">Otro teléfono</label><input type="tel" id="emTelefono2" inputmode="tel" autocomplete="off"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="emEps">EPS</label><input type="text" id="emEps" autocomplete="off"></div>
+      <div class="field"><label for="emArl">ARL</label><input type="text" id="emArl" autocomplete="off"></div>
+    </div>
+    <div class="field"><label for="emRh">Tipo de sangre (RH)</label><select id="emRh"><option value="">No registrado</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
+    <button type="button" class="btn" id="btnGuardarEmer">Guardar contacto de emergencia</button>
+    <a class="btn btn-sec u-mt8" id="lnkMedevac" href="medevac.html">Abrir MEDEVAC de esta persona</a>
+    <div class="status-msg" id="msgEmer"></div>
+  </div>
+  <div class="card" id="cardReq">
+    <h2>Requisitos</h2>
+    <p class="ayuda mt-menos4">Toca un requisito para registrar la fecha. El vencimiento se calcula solo y se puede corregir. Del concepto médico solo se guarda si es apto y sus restricciones, <b>nunca el diagnóstico</b>.</p>
+    <div id="reqLista"></div>
+  </div>
+  <div class="card" id="cardAdj" hidden><div id="fAdj"></div><div id="fHist"></div></div>
+</div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="importar.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const CFG = Habilitacion.config();
+/* Carga masiva: datos de cada persona y la fecha de cada requisito (el vencimiento se calcula si no viene).
+   La misma configuración sirve para «Escribir en una tabla» (cuadros) y para pegar la plantilla de Excel. */
+const valoresDe = (k)=> [...new Set(filas.map((x)=> String((x.resumen || {})[k] || '').trim()).filter(Boolean))].sort((a, b)=> a.localeCompare(b));
+function abrirImportar(modo){
+  const cols = [{ k: 'nombre', l: 'Nombre completo', req: true, ej: 'Juan Pérez Gómez', extra: false }, { k: 'cedula', l: 'Cédula', req: true, tipo: 'cedula', unico: true, ej: '1020304050', sin: ['documento', 'cc', 'identificacion'], extra: false },
+    { k: 'cargo', l: 'Cargo', ej: 'Soldador', sugerencias: valoresDe('cargo'), extra: false }, { k: 'area', l: 'Área', ej: 'Producción', sin: ['area', 'proceso', 'dependencia'], sugerencias: valoresDe('area'), vista: false, extra: false },
+    { k: 'fechaIngreso', l: 'Fecha de ingreso', tipo: 'fecha', noFutura: true, ej: '', sin: ['ingreso', 'fecha ingreso'], vista: false, extra: false },
+    { k: 'empresa', l: 'Empresa', ej: 'Propia', sin: ['empleador', 'contratista'], sugerencias: valoresDe('empresa'), vista: false, extra: false }, { k: 'activo', l: 'Activo', tipo: 'sino', def: true, ej: 'Sí', vista: false }];
+  Object.keys(CFG.requisitos).forEach((k)=> { const d = CFG.requisitos[k];
+    cols.push({ k: 'f_' + k, l: d.nombre + ' (fecha)', tipo: 'fecha', noFutura: true, ej: '', vista: false, sin: [d.nombre] });
+    cols.push({ k: 'v_' + k, l: d.nombre + ' (vence)', tipo: 'fecha', avisarVencida: true, ej: '', vista: false });
+    if (d.apto) cols.push({ k: 'a_' + k, l: d.nombre + ' (concepto)', tipo: 'lista', op: ['Apto', 'Apto con restricciones', 'No apto', 'Aplazado'], vista: false }); });
+  Importar.abrir({ titulo: 'Personal desde Excel', archivo: 'personal', modo, fila: 'persona', columnas: cols, tipoDoc: 'trabajador',
+    // La cédula llega solo con dígitos (6 a 10); si Excel la convirtió en notación científica, importar.js lo explica.
+    validar: (f)=> { const e = [];
+      const en = typeof Valida !== 'undefined' ? Valida.nombre(f.nombre) : ''; if (en) e.push({ k: 'nombre', msg: 'Nombre completo: ' + en });
+      // La cédula ya es de otra persona en el sistema (ningún nombre o apellido coincide): no se le cambia el nombre por error.
+      const ya = filas.find((x)=> x.id === idDe(f.cedula)), pal = (t)=> UI.norm(t).split(/\s+/).filter((w)=> w.length >= 3);
+      if (ya && ya.resumen.nombre && !pal(f.nombre).some((w)=> pal(ya.resumen.nombre).indexOf(w) !== -1)) e.push({ k: 'cedula', msg: 'Esa cédula ya es de ' + ya.resumen.nombre + ' en el sistema. Revisa la cédula (o corrige el nombre en su ficha).' });
+      Object.keys(CFG.requisitos).forEach((k)=> { const n = CFG.requisitos[k].nombre, fe = f['f_' + k], ve = f['v_' + k];
+        if (!fe && (ve || f['a_' + k])) e.push({ k: 'f_' + k, msg: 'Falta la fecha de ' + n.toLowerCase() + ' (sin ella no se registra el vencimiento)' });
+        else if (fe && ve && ve < fe) e.push({ k: 'v_' + k, msg: n + ': el vencimiento es anterior a la fecha' }); });
+      return e; },
+    id: (f)=> idDe(f.cedula), existe: (id)=> filas.some((x)=> x.id === id),
+    armar: (f, existe)=> { const c = { nombre: f.nombre, cedula: String(f.cedula).trim() }; if (typeof f.activo === 'boolean' || !existe) c.activo = f.activo !== false; if (f.cargo) c.cargo = f.cargo; if (f.empresa) c.empresa = f.empresa;
+      if (f.area) c.area = f.area; if (f.fechaIngreso) c.fechaIngreso = f.fechaIngreso;
+      const req = {}; Object.keys(CFG.requisitos).forEach((k)=> { const fe = f['f_' + k]; if (!fe) return; const r = { fecha: fe, vence: f['v_' + k] || Festivos.sumarMeses(fe, CFG.requisitos[k].meses), actualizado: new Date().toISOString() }; if (f['a_' + k]) r.apto = f['a_' + k]; req[k] = r; });
+      if (Object.keys(req).length) c.requisitos = req; return c; },
+    alTerminar: ()=> { Habilitacion._mapa = null; cargar(); } });
+}
+const REQS = Object.keys(CFG.requisitos);
+let filas = [];          // filas del servidor (tipo trabajador)
+let tab = 'todos';
+let actual = null;       // ficha abierta: {id, nombre, cedula, cargo, empresa, activo, req:{}}
+let adjMontado = null;   // ficha cuyos adjuntos ya se cargaron
+
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const idDe = (cedula)=> 'TRB-' + Habilitacion.clave(cedula);
+
+/* Estado de una persona: lo exigido a todos + cualquier requisito registrado que esté vencido. */
+function estadoDe(r){
+  const res = r.resumen || r;
+  if (res.activo === false) return { clase:'gris', texto:'Inactivo', problemas:[], avisos:[] };
+  const h = UI.hoy(), pronto = Festivos.sumarDias(h, CFG.avisarDias);
+  const problemas = [], avisos = [];
+  const exig = Habilitacion.exigidos([]);
+  REQS.forEach((k)=>{
+    const def = CFG.requisitos[k], q = (res.req || {})[k];
+    if (!q || (!q.fecha && !q.vence)) { if (exig.indexOf(k) !== -1) problemas.push('Sin ' + def.nombre.toLowerCase()); return; }
+    if (def.apto && /no apto|aplazado/i.test(q.apto || '')) { problemas.push(def.nombre + ': ' + String(q.apto).toUpperCase()); return; }
+    if (q.vence && q.vence < h) { problemas.push(def.nombre + ' vencido (' + UI.corta(q.vence) + ')'); return; }
+    if (q.vence && q.vence <= pronto) avisos.push(def.nombre + ' vence ' + UI.corta(q.vence));
+  });
+  return { clase: problemas.length ? 'mal' : avisos.length ? 'pronto' : 'ok', texto: problemas.length ? 'No habilitado' : avisos.length ? 'Vence pronto' : 'Habilitado', problemas, avisos };
+}
+
+/* v174 · Tipo de documento: CC, TI, CE, PPT, PEP o pasaporte (el pasaporte lleva letras). */
+const TIPO_DOC = { CC: 'C.C.', TI: 'T.I.', CE: 'C.E.', PPT: 'PPT', PEP: 'PEP', PA: 'Pasaporte' };
+const docAbrev = (s)=> TIPO_DOC[s && s.tipoDoc] || 'C.C.';
+function docNumero(v){
+  const t = $('inTipoDoc').value, x = String(v || '').trim().replace(/[.\s,-]/g, '').toUpperCase();
+  if (t === 'PA') return /^[A-Z0-9]{5,15}$/.test(x) ? { v: x } : { v: null, e: 'debe tener de 5 a 15 letras o números' };
+  if (t === 'PPT' || t === 'PEP' || t === 'CE') return /^\d{5,15}$/.test(x) ? { v: x } : { v: null, e: 'debe tener de 5 a 15 números' };
+  return Importar.cedula(v);
+}
+$('inTipoDoc').addEventListener('change', ()=> { $('inCedula').inputMode = $('inTipoDoc').value === 'PA' ? 'text' : 'numeric'; $('inCedula').placeholder = $('inTipoDoc').value === 'PA' ? 'Letras y números' : 'Solo números'; });
+/* v174 · Lo que llega de otros módulos (inducción, anexo de un permiso, portal del contratista) NO entra solo a la
+   lista: queda «por revisar» y SST decide si es del personal. Así no aparece gente que nunca se incluyó. */
+let revisar = [];
+function pintarRevisar(){
+  const c = $('porRevisar');
+  if (!revisar.length) { c.innerHTML = ''; return; }
+  c.innerHTML = '<details class="card rev-box"><summary><b>' + revisar.length + ' persona' + (revisar.length === 1 ? '' : 's') + ' por revisar</b> · llegaron de otros módulos y no están en tu lista</summary>' +
+    '<p class="ayuda">Si es de tu personal, inclúyela. Si no (visitante, de otra obra, error), quítala: no vuelve a aparecer en las listas.</p>' +
+    revisar.map((x)=> { const r = x.resumen || {}; return '<div class="rev-item"><div><b>' + esc(r.nombre) + '</b><small>' + esc(docAbrev(r) + ' ' + (r.cedula || '') + (r.cargo ? ' · ' + r.cargo : '') + (r.empresa ? ' · ' + r.empresa : '') + (r.origen ? ' · llegó de: ' + r.origen : '')) + '</small></div>' +
+      '<button type="button" class="btn-mini" data-incluir="' + esc(x.id) + '">Incluir</button><button type="button" class="btn-mini gris" data-quitar="' + esc(x.id) + '">No es del personal</button></div>'; }).join('') + '</details>';
+}
+$('porRevisar').addEventListener('click', async (e)=> {
+  const b = e.target.closest('[data-incluir],[data-quitar]'); if (!b) return;
+  const inc = !!b.dataset.incluir, id = b.dataset.incluir || b.dataset.quitar;
+  b.disabled = true;
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id, campos: inc ? { porRevisar: false } : { porRevisar: false, activo: false, descartado: true } });
+  if (!r.ok) { b.disabled = false; UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+  UI.toast(inc ? '✓ Incluida en el personal' : '✓ Quitada de las listas'); cargar();
+});
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; return; }
+  const r = await SGSST.listar('trabajador');
+  UI.avisoCopia($('avisoCopia'), r);
+  revisar = (r.rows || []).filter((x)=> x.resumen && x.resumen.porRevisar && x.resumen.activo !== false);
+  filas = (r.rows || []).filter((x)=> !(x.resumen && x.resumen.porRevisar) && !(x.resumen && x.resumen.descartado));
+  pintarRevisar();
+  Habilitacion.cargar(true).catch(()=>{});
+  pintar();
+}
+// v127: varias personas a la vez (las agregadas por error).
+UI.seleccionVarios({ lista: $('lista'), barra: $('selBarra'), atributo: 'id', que: 'esta persona', alTerminar: ()=> cargar() });
+function pintar(){
+  const q = UI.norm($('buscar').value).trim();
+  const conEstado = filas.map((r)=> ({ r, e: estadoDe(r) }));
+  const act = conEstado.filter((x)=> x.e.clase !== 'gris');
+  $('nTodos').textContent = filas.length;
+  $('nMal').textContent = act.filter((x)=> x.e.clase === 'mal').length;
+  $('nPronto').textContent = act.filter((x)=> x.e.clase === 'pronto').length;
+  const nOk = act.filter((x)=> x.e.clase === 'ok').length; $('nOk').textContent = nOk;
+  // v109: cada cifra abre la pestaña con esa lista (las pestañas son el filtro).
+  $('kpis').innerHTML = '<div class="kpi ok" data-ir="tab:ok"><div class="v">' + nOk + '</div><div class="n">habilitados</div></div>' +
+    '<div class="kpi mal" data-ir="tab:mal"><div class="v">' + $('nMal').textContent + '</div><div class="n">no habilitados</div></div>' +
+    '<div class="kpi" data-ir="tab:pronto"><div class="v">' + $('nPronto').textContent + '</div><div class="n">vencen en ' + CFG.avisarDias + ' días</div></div>' +
+    '<div class="kpi" data-ir="tab:todos"><div class="v">' + (act.length ? Math.round(nOk * 100 / act.length) : 0) + '%</div><div class="n">del personal activo habilitado</div></div>';
+  if (tab === 'venc') return pintarVencimientos(q);
+  let l = conEstado.filter((x)=> tab === 'todos' || x.e.clase === tab);
+  if (q) l = l.filter((x)=> UI.norm([x.r.resumen.nombre, x.r.resumen.cedula, x.r.resumen.cargo, x.r.resumen.area, x.r.resumen.empresa].join(' ')).includes(q));
+  l.sort((a, b)=> ({ mal:0, pronto:1, ok:2, gris:3 }[a.e.clase] - { mal:0, pronto:1, ok:2, gris:3 }[b.e.clase]) || String(a.r.resumen.nombre).localeCompare(String(b.r.resumen.nombre)));
+  $('lista').innerHTML = l.length ? l.map((x)=>{
+    const s = x.r.resumen;
+    return '<button type="button" class="item ' + x.e.clase + '" data-id="' + esc(x.r.id) + '"><div class="fila"><div><div class="t">' + esc(s.nombre) + '</div>' +
+      '<div class="m">' + esc(docAbrev(s)) + ' ' + esc(s.cedula) + (s.cargo ? ' · ' + esc(s.cargo) : '') + (s.area ? ' · ' + esc(s.area) : '') + (s.empresa ? ' · ' + esc(s.empresa) : '') + (x.r.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div>' +
+      (x.e.problemas.length || x.e.avisos.length ? '<div class="m" style="color:' + (x.e.problemas.length ? 'var(--mal)' : '#7a5800') + ';font-weight:600;">' + esc(x.e.problemas.concat(x.e.avisos).join(' · ')) + '</div>' : '') +
+      '</div><span class="chip ' + x.e.clase + '">' + esc(x.e.texto) + '</span></div></button>';
+  }).join('') : '<div class="empty">' + (filas.length ? 'Nadie en esta lista.' : 'Todavía no hay personas. Agrega una, escríbelas en una tabla o cárgalas desde Excel.') + '</div>';
+}
+function pintarVencimientos(q){
+  const l = [];
+  filas.forEach((r)=>{
+    const s = r.resumen; if (s.activo === false) return;
+    Object.keys(s.req || {}).forEach((k)=>{ const v = s.req[k].vence; if (v) l.push({ r, k, v, nombre: s.nombre }); });
+  });
+  const h = UI.hoy(), lim = Festivos.sumarDias(h, 60);
+  const ver = l.filter((x)=> x.v <= lim && (!q || UI.norm(x.nombre).includes(q))).sort((a, b)=> a.v < b.v ? -1 : 1);
+  $('lista').innerHTML = '<p class="ayuda">Lo vencido y lo que vence en los próximos 60 días.</p>' + (ver.length ? ver.map((x)=>{
+    const c = UI.semaforo(x.v, CFG.avisarDias);
+    return '<button type="button" class="item ' + c + '" data-id="' + esc(x.r.id) + '"><div class="fila"><div><div class="t">' + esc((CFG.requisitos[x.k] || {}).nombre || x.k) + '</div>' +
+      '<div class="m">' + esc(x.nombre) + '</div></div><span class="chip ' + c + '">' + (x.v < h ? 'Venció ' : 'Vence ') + esc(UI.corta(x.v)) + '</span></div></button>';
+  }).join('') : '<div class="empty">Nada vence en los próximos 60 días. 👍</div>');
+}
+
+/* ── Ficha ── */
+function abrir(id){
+  const r = filas.find((x)=> x.id === id);
+  const s = r ? r.resumen : {};
+  actual = r ? { id, nombre: s.nombre, cedula: s.cedula, cargo: s.cargo, area: s.area || '', fechaIngreso: s.fechaIngreso || '', celular: s.celular || '', pensionEspecial: s.pensionEspecial || '', empresa: s.empresa, activo: s.activo !== false, req: JSON.parse(JSON.stringify(s.req || {})) } : null;
+  pintarFicha();
+  show('scrFicha');
+}
+function pintarFicha(){
+  const a = actual || { req:{} };
+  $('fNombre').textContent = actual ? a.nombre : 'Nueva persona';
+  const e = actual ? estadoDe({ resumen: a }) : null;
+  $('fSub').textContent = actual ? (e.texto + (e.problemas.length ? ': ' + e.problemas.join(' · ') : '')) : 'Escribe los datos y guarda; luego registra sus requisitos.';
+  // v157: enlace a la ficha completa (EPP, dotación, inducción, reportes y, para SST, salud y PVE)
+  { let l = document.getElementById('fFicha'); if (!l) { l = document.createElement('a'); l.id = 'fFicha'; l.className = 'btn ghost mini'; l.textContent = '📇 Ver la ficha completa'; $('fSub').insertAdjacentElement('afterend', l); } l.hidden = !actual; if (actual) l.href = 'persona.html?ced=' + encodeURIComponent(a.cedula || ''); }
+  $('inNombre').value = a.nombre || ''; $('inCedula').value = a.cedula || ''; $('inTipoDoc').value = a.tipoDoc || 'CC'; $('inTipoDoc').disabled = !!a.cedula; $('inCargo').value = a.cargo || ''; $('inEmpresa').value = a.empresa || '';
+  $('inArea').value = a.area || ''; $('inIngreso').value = a.fechaIngreso || ''; $('inCelular').value = a.celular || ''; $('inPension').value = a.pensionEspecial || ''; $('inIngreso').max = UI.hoy();
+  limpiarMarcas($('scrFicha'));
+  [['lsCargos', 'cargo'], ['lsAreas', 'area'], ['lsEmpresas', 'empresa']].forEach(([id, k])=> { $(id).innerHTML = valoresDe(k).map((v)=> '<option value="' + esc(v) + '">').join(''); });
+  $('inActivo').value = a.activo === false ? '0' : '1';
+  $('inCedula').readOnly = !!actual;
+  $('cardReq').style.display = actual ? '' : 'none';
+  $('cardEmer').style.display = actual ? '' : 'none';
+  if (actual) pintarEmer();
+  // Certificados y soportes de cada requisito (curso de alturas, PILA, concepto…), en Drive.
+  $('cardAdj').hidden = !actual;
+  if (actual && adjMontado !== actual.id && !(filas.find((x)=> x.id === actual.id) || {}).pendiente) {
+    adjMontado = actual.id;
+    const refs = {}; REQS.forEach((k)=> { refs[k] = CFG.requisitos[k].nombre; }); refs.otro = 'Otro soporte';
+    UI.adjuntos($('fAdj'), { id: actual.id, refs, titulo: 'Certificados y soportes' });
+    $('fHist').innerHTML = ''; $('fHist').appendChild(UI.botonHistorial(actual.id, actual.nombre));
+    // v127: si se agregó por error (persona duplicada, cédula mal escrita…).
+    $('fHist').appendChild(UI.botonEliminar(actual.id, 'a ' + actual.nombre, ()=> { show('scrLista'); cargar(); }));
+  } else if (!actual) adjMontado = null;
+  $('msgDatos').textContent = '';
+  const exig = Habilitacion.exigidos([]);
+  $('reqLista').innerHTML = REQS.map((k)=>{
+    const def = CFG.requisitos[k], q = a.req[k] || {};
+    const c = q.vence ? UI.semaforo(q.vence, CFG.avisarDias) : (exig.indexOf(k) !== -1 ? 'mal' : 'gris');
+    const estado = !q.fecha && !q.vence ? (exig.indexOf(k) !== -1 ? 'Falta (se exige a todos)' : 'Sin registrar') :
+      (def.apto && q.apto ? q.apto + ' · ' : '') + (q.vence ? (q.vence < UI.hoy() ? 'Venció el ' : 'Vence el ') + UI.corta(q.vence) + ' (' + UI.cuandoTexto(q.vence) + ')' : 'Sin vencimiento');
+    return '<button type="button" class="item ' + c + '" data-req="' + k + '"><div class="fila"><div><div class="t">' + esc(def.nombre) + '</div>' +
+      '<div class="m">' + esc(estado) + (q.fecha ? ' · registrado ' + esc(UI.corta(q.fecha)) : '') + (q.soporte ? ' · 📎 soporte' : '') + '</div>' +
+      (q.restricciones ? '<div class="m" style="color:var(--ambar-700);">Restricciones: ' + esc(q.restricciones) + '</div>' : '') +
+      '</div><span class="chip ' + c + '">' + ({ ok:'Vigente', pronto:'Por vencer', mal: q.vence ? 'Vencido' : 'Falta', gris:'—' }[c]) + '</span></div></button>';
+  }).join('');
+}
+UI.autocompletar($('inNombre'), (p)=>{ if (actual) return; $('inNombre').value = p.nombre; $('inCedula').value = p.cedula || ''; $('inCargo').value = p.cargo || ''; });
+
+/* v140: contacto de emergencia (va solo en el registro completo, que pide usuario; no en la lista). */
+const EMER = [['emNombre', 'nombre'], ['emParentesco', 'parentesco'], ['emTelefono', 'telefono'], ['emTelefono2', 'telefono2'], ['emEps', 'eps'], ['emArl', 'arl'], ['emRh', 'rh']];
+let emerDe = null;
+async function pintarEmer(){
+  const id = actual.id; $('lnkMedevac').href = 'medevac.html?id=' + encodeURIComponent(id); $('msgEmer').textContent = '';
+  if (emerDe !== id) { EMER.forEach(([e])=> { $(e).value = ''; }); }
+  emerDe = id;
+  const d = await SGSST.doc(id); if (!actual || actual.id !== id) return;
+  const em = (d && d.emergencia) || {};
+  EMER.forEach(([e, k])=> { if (!$(e).value) $(e).value = em[k] || ''; });
+  if (!d) $('msgEmer').textContent = 'Entra con tu usuario para ver o cambiar el contacto de emergencia.';
+}
+$('btnGuardarEmer').addEventListener('click', async ()=> {
+  if (!actual) return;
+  const em = {}; EMER.forEach(([e, k])=> { em[k] = $(e).value.trim(); });
+  const tel = em.telefono.replace(/\D/g, '');
+  if (em.telefono && (tel.length < 7 || tel.length > 12)) { marcar($('emTelefono'), 'Escribe un teléfono de 7 a 12 números'); return; }
+  if (em.telefono && !em.nombre) { marcar($('emNombre'), 'Falta el nombre del contacto'); return; }
+  limpiarMarcas($('cardEmer'));
+  $('btnGuardarEmer').disabled = true; $('msgEmer').textContent = 'Guardando…';
+  const r = await SGSST.enviar({ action:'parche', tipo:'trabajador', id: actual.id, campos: { emergencia: em } });
+  $('btnGuardarEmer').disabled = false;
+  $('msgEmer').textContent = r.ok ? (r.enCola ? 'Guardado en el equipo; se envía al volver la señal.' : 'Contacto de emergencia guardado.') : Errores.texto('guardó', r);
+});
+$('btnExcel').addEventListener('click', ()=> abrirImportar('pegar'));
+/* v164 · Maestro único de personas: una fila por persona con su personaId (no cambia aunque le corrijan la cédula
+   o se unifique con una ficha repetida). Es lo que se cruza con nómina o PILA. Sin datos de salud. Solo SST. */
+(function () {
+  const b = $('btnMaestro'); if (!b) return;
+  const rol = (()=> { try { return (Sesion.yo() || {}).rol || ''; } catch (e) { return ''; } })();
+  b.hidden = !!rol && ['admin', 'sst'].indexOf(rol) === -1;
+  b.addEventListener('click', async ()=> {
+    b.disabled = true; const t0 = b.textContent; b.textContent = 'Preparando…';
+    try {
+      const r = await SGSST.consultar({ action: 'personas', todos: '1' });
+      if (!r || !r.ok) { UI.toast((r && r.error) || 'No se pudo traer el maestro.', 'mal'); return; }
+      const c = (x)=> { const s = String(x == null ? '' : x); return /[";\n]|^[=+\-@]/.test(s) ? '"' + s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""') + '"' : s; };
+      const cab = ['personaId', 'cedula', 'cedulas_anteriores', 'nombre', 'cargo', 'area', 'empresa', 'fecha_ingreso', 'activo', 'ficha'];
+      const csv = '﻿' + [cab.join(';')].concat(r.rows.map((p)=> [p.personaId, p.cedula, (p.cedulasAnteriores || []).join(' '), p.nombre, p.cargo, p.area, p.empresa, p.fechaIngreso, p.activo ? 'SI' : 'NO', p.id].map(c).join(';'))).join('\r\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'maestro-personas-' + UI.hoy() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(()=> { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      UI.toast('✓ ' + r.rows.length + ' persona(s) en el maestro');
+    } catch (e) { UI.toast('No se pudo traer el maestro: ' + e.message, 'mal'); }
+    finally { b.disabled = false; b.textContent = t0; }
+  });
+})();
+$('btnTabla').addEventListener('click', ()=> abrirImportar('tabla'));
+/* Marca un campo con su error (borde rojo y el texto debajo) y lo nombra en el mensaje. */
+function marcar(el, txt){
+  el.classList.add('field-invalid'); const f = el.closest('.field'); if (!f) return;
+  f.classList.add('field-invalid'); let e = f.querySelector('.error-txt'); if (!e) { e = document.createElement('div'); e.className = 'error-txt'; f.appendChild(e); } e.textContent = txt;
+}
+function limpiarMarcas(raiz){ raiz.querySelectorAll('.field-invalid').forEach((x)=> x.classList.remove('field-invalid')); raiz.querySelectorAll('.error-txt').forEach((x)=> x.remove()); }
+['inNombre', 'inCedula', 'inIngreso'].forEach((id)=> $(id).addEventListener('input', ()=> { const f = $(id).closest('.field'); $(id).classList.remove('field-invalid'); if (f) { f.classList.remove('field-invalid'); const e = f.querySelector('.error-txt'); if (e) e.remove(); } }));
+/** Errores de los datos de la persona: [[campo, texto]]. La cédula de una persona nueva va solo con dígitos (6 a 10). */
+function erroresDatos(){
+  const out = [], nombre = $('inNombre').value.trim(), ced = $('inCedula').value.trim(), ing = $('inIngreso').value;
+  if (!nombre) out.push(['inNombre', 'Falta el nombre completo']);
+  else if (nombre.length < 5 || !/\s/.test(nombre)) out.push(['inNombre', 'Escribe nombre y apellido']);
+  if (!actual) { const c = docNumero(ced); if (!ced) out.push(['inCedula', 'Falta el número de documento']); else if (c.v === null) out.push(['inCedula', 'El documento ' + c.e]); }
+  if (ing && ing > UI.hoy()) out.push(['inIngreso', 'La fecha de ingreso no puede ser posterior a hoy']);
+  return out;
+}
+$('btnGuardarDatos').addEventListener('click', async ()=>{
+  limpiarMarcas($('scrFicha'));
+  const errs = erroresDatos();
+  if (errs.length) { errs.forEach(([id, t])=> marcar($(id), t)); $('msgDatos').textContent = 'Revisa: ' + errs.map((x)=> x[1]).join(' · ') + '.'; $(errs[0][0]).focus(); return; }
+  const nombre = $('inNombre').value.trim(), cedula = actual ? $('inCedula').value.trim() : docNumero($('inCedula').value).v;
+  const id = actual ? actual.id : idDe(cedula);
+  if (!actual && filas.some((x)=> x.id === id)) { abrir(id); UI.toast('Esa persona ya estaba: se abrió su ficha.'); return; }
+  const campos = { nombre, cedula, tipoDoc: $('inTipoDoc').value, cargo: $('inCargo').value.trim(), area: $('inArea').value.trim(), fechaIngreso: $('inIngreso').value, celular: $('inCelular').value.replace(/\D/g, '').slice(0, 15), pensionEspecial: $('inPension').value, empresa: $('inEmpresa').value.trim(), activo: $('inActivo').value === '1' };
+  $('btnGuardarDatos').disabled = true; $('msgDatos').textContent = 'Guardando…';
+  const r = await SGSST.enviar({ action:'parche', tipo:'trabajador', id, campos }, { resumen: Object.assign({ req: actual ? actual.req : {} }, campos), titulo: nombre });
+  $('btnGuardarDatos').disabled = false;
+  if (!r.ok) { $('msgDatos').textContent = Errores.texto('guardó', r); return; }
+  actual = Object.assign(actual || { id, req:{} }, campos);
+  actualizarFilaLocal(r);
+  $('msgDatos').textContent = r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : '✓ Guardado';
+  pintarFicha();
+});
+function actualizarFilaLocal(r){
+  const res = r.resumen || { nombre: actual.nombre, cedula: actual.cedula, cargo: actual.cargo, area: actual.area || '', fechaIngreso: actual.fechaIngreso || '', empresa: actual.empresa, activo: actual.activo, req: actual.req };
+  const i = filas.findIndex((x)=> x.id === actual.id);
+  const fila = { id: actual.id, tipo:'trabajador', resumen: res, pendiente: !!r.enCola };
+  if (i === -1) filas.push(fila); else filas[i] = fila;
+  // El aviso en permisos/ATS/anexo usa esta misma información.
+  const mapa = Habilitacion._mapa || {}; mapa[Habilitacion.clave(res.cedula)] = Object.assign({ id: actual.id }, res); Habilitacion._mapa = mapa;
+  SGSST._lsSet('ssta-habilitacion', { mapa, en: new Date().toISOString() });
+}
+
+/* ── Registrar un requisito ── */
+$('reqLista').addEventListener('click', (e)=>{
+  const b = e.target.closest('[data-req]'); if (!b || !actual) return;
+  const k = b.dataset.req, def = CFG.requisitos[k], q = actual.req[k] || {};
+  const m = UI.modal('<h3>' + esc(def.nombre) + '</h3>' +
+    '<div class="grid2"><div class="field"><label>' + (k === 'seguridad_social' ? 'Fecha de pago' : 'Fecha (curso / examen / entrega)') + ' *</label><input type="date" id="rqFecha" value="' + esc(q.fecha || UI.hoy()) + '"></div>' +
+    '<div class="field"><label>Vence</label><input type="date" id="rqVence" value="' + esc(q.vence || '') + '"><div class="ayuda">Se calcula: ' + def.meses + ' mes(es). Corrígelo si el certificado dice otra cosa.</div></div></div>' +
+    (def.apto ? '<div class="field"><label>Concepto</label><select id="rqApto"><option>Apto</option><option>Apto con restricciones</option><option>No apto</option><option>Aplazado</option></select></div>' +
+      '<div class="field"><label>Restricciones o recomendaciones (sin diagnóstico)</label><input type="text" id="rqRestr" value="' + esc(q.restricciones || '') + '" placeholder="Ej: no levantar más de 15 kg"></div>' : '') +
+    '<div class="field"><label>Entidad / número de certificado</label><input type="text" id="rqEntidad" value="' + esc(q.entidad || '') + '"></div>' +
+    '<div class="field"><label>Foto del soporte (opcional)</label><div id="rqFoto"></div></div>' +
+    '<button type="button" class="btn amber" id="rqGuardar">Guardar</button>' +
+    (q.fecha ? '<button type="button" class="btn ghost" id="rqBorrar">Quitar este requisito</button>' : '') +
+    '<button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  const el = m.el, val = (s)=> el.querySelector(s);
+  if (def.apto && q.apto) val('#rqApto').value = q.apto;
+  let foto = null;
+  // El soporte guardado no se baja a cada celular (pesa): solo se ve si existe.
+  const fotos = UI.fotos(val('#rqFoto'), { max: 1, inicial: [] });
+  if (q.soporte) val('#rqFoto').insertAdjacentHTML('beforebegin', '<div class="ayuda">📎 Ya tiene un soporte guardado. Agrega otro solo si lo quieres reemplazar.</div>');
+  val('#rqFecha').max = UI.hoy();
+  // Aviso en vivo si el vencimiento ya pasó (no bloquea: puede registrarse un certificado viejo).
+  const avisoVence = ()=>{ const v = val('#rqVence').value, f = val('#rqVence').closest('.field'); let a = f.querySelector('.error-txt');
+    const t = v && v < UI.hoy() ? 'Ya venció: la persona queda como no habilitada.' : v && v < val('#rqFecha').value ? 'El vencimiento es anterior a la fecha.' : '';
+    if (!t) { if (a) a.remove(); return; } if (!a) { a = document.createElement('div'); a.className = 'error-txt'; f.appendChild(a); } a.textContent = t; };
+  const recalcular = ()=>{ const f = val('#rqFecha').value; if (f) val('#rqVence').value = Festivos.sumarMeses(f, def.meses); avisoVence(); };
+  val('#rqVence').addEventListener('change', avisoVence);
+  if (!q.vence) recalcular(); else avisoVence();
+  val('#rqFecha').addEventListener('change', recalcular);
+  val('#rqGuardar').addEventListener('click', async ()=>{
+    const reg = { fecha: val('#rqFecha').value, vence: val('#rqVence').value, entidad: val('#rqEntidad').value.trim(), actualizado: new Date().toISOString() };
+    limpiarMarcas(el);
+    if (!reg.fecha) { marcar(val('#rqFecha'), 'Falta la fecha'); UI.toast('Falta la fecha.', 'mal'); return; }
+    if (reg.fecha > UI.hoy()) { marcar(val('#rqFecha'), 'La fecha no puede ser posterior a hoy'); UI.toast('La fecha no puede ser posterior a hoy.', 'mal'); return; }
+    if (!reg.vence) { marcar(val('#rqVence'), 'Falta la fecha de vencimiento'); UI.toast('Falta la fecha de vencimiento (v148: sin ella el requisito quedaba vigente para siempre).', 'mal'); return; }
+    if (reg.vence && reg.vence < reg.fecha) { marcar(val('#rqVence'), 'El vencimiento es anterior a la fecha'); UI.toast('El vencimiento es anterior a la fecha.', 'mal'); return; }
+    if (reg.vence && reg.vence < UI.hoy() && !await Dialogo.confirmar('El vencimiento (' + UI.corta(reg.vence) + ') ya pasó: la persona queda como NO habilitada en ' + def.nombre.toLowerCase() + '. ¿Guardar así?')) return;
+    if (def.apto) { reg.apto = val('#rqApto').value; reg.restricciones = val('#rqRestr').value.trim(); }
+    foto = fotos.get()[0];
+    if (foto) reg.soporte = foto;
+    const btn = val('#rqGuardar'); btn.disabled = true; btn.textContent = 'Guardando…';
+    const r = await SGSST.enviar({ action:'parche', tipo:'trabajador', id: actual.id, campos: { requisitos: { [k]: reg } } },
+      { resumen: Object.assign({}, { nombre: actual.nombre, cedula: actual.cedula, cargo: actual.cargo, empresa: actual.empresa, activo: actual.activo, req: Object.assign({}, actual.req, { [k]: reg }) }) });
+    btn.disabled = false; btn.textContent = 'Guardar';
+    if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+    actual.req[k] = { fecha: reg.fecha, vence: reg.vence, apto: reg.apto || '', restricciones: reg.restricciones || '', soporte: !!(foto || q.soporte) };
+    actualizarFilaLocal(r);
+    m.cerrar(); pintarFicha(); pintar();
+    UI.toast(r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : '✓ ' + def.nombre + ' registrado');
+  });
+  const bb = val('#rqBorrar');
+  if (bb) bb.addEventListener('click', async ()=>{
+    if (!await Dialogo.confirmar('¿Quitar el registro de ' + def.nombre + '?')) return;
+    const r = await SGSST.enviar({ action:'parche', tipo:'trabajador', id: actual.id, campos: { requisitos: { [k]: { fecha:'', vence:'', apto:'', restricciones:'', soporte:'' } } } });
+    if (!r.ok) { UI.toast(Errores.texto('pudo', r), 'mal'); return; }
+    delete actual.req[k]; actualizarFilaLocal(r); m.cerrar(); pintarFicha(); pintar();
+  });
+});
+
+/* v174 · Seguridad social del mes para todos: si el personal es de la empresa, la PILA es UNA planilla para todos.
+   Se registra una sola vez y queda en cada persona propia (las de contratistas llevan la suya). */
+$('btnPila').addEventListener('click', async ()=> {
+  const def = CFG.requisitos.seguridad_social; if (!def) { UI.toast('El requisito de seguridad social no está activo.', 'mal'); return; }
+  const propia = UI.norm(EMPRESA.nombre || '');
+  const esPropio = (x)=> { const e = UI.norm((x.resumen || {}).empresa || '').trim(); return !e || e === propia || /^propi[ao]s?$/.test(e) || (propia && (propia.indexOf(e) !== -1 || e.indexOf(propia) !== -1)); };
+  const act = filas.filter((x)=> x.resumen && x.resumen.activo !== false), prop = act.filter(esPropio);
+  if (!prop.length) { UI.toast('No hay personal propio activo.'); return; }
+  const h = UI.hoy();
+  const m = UI.modal('<h3>Seguridad social del mes (PILA)</h3><p class="ayuda">Se registra una sola vez y queda para las <b>' + prop.length + '</b> persona(s) propias activas' +
+    (act.length > prop.length ? ' (las ' + (act.length - prop.length) + ' de contratistas llevan la suya)' : '') + '.</p>' +
+    '<div class="grid2"><div class="field"><label for="plFecha">Fecha de pago</label><input type="date" id="plFecha" max="' + h + '" value="' + h + '"></div>' +
+    '<div class="field"><label for="plVence">Cubre hasta</label><input type="date" id="plVence" value="' + esc(Festivos.sumarMeses(h, def.meses)) + '"></div></div>' +
+    '<div class="field"><label for="plPlanilla">N.º de planilla u operador (opcional)</label><input type="text" id="plPlanilla" maxlength="80" placeholder="Ej.: SOI 123456789"></div>' +
+    '<button type="button" class="btn amber" id="plOk">Registrar para todos</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="plMsg"></p>');
+  const v = (q)=> m.el.querySelector(q);
+  v('#plFecha').addEventListener('change', ()=> { if (v('#plFecha').value) v('#plVence').value = Festivos.sumarMeses(v('#plFecha').value, def.meses); });
+  v('#plOk').addEventListener('click', async ()=> {
+    const reg = { fecha: v('#plFecha').value, vence: v('#plVence').value, entidad: v('#plPlanilla').value.trim(), general: true, actualizado: new Date().toISOString() };
+    if (!reg.fecha || !reg.vence || reg.vence < reg.fecha || reg.fecha > h) { v('#plMsg').textContent = 'Revisa las fechas.'; return; }
+    const b = v('#plOk'); b.disabled = true; let n = 0, mal = 0;
+    for (const x of prop) {
+      b.textContent = 'Registrando ' + (++n) + ' de ' + prop.length + '…';
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id: x.id, campos: { requisitos: { seguridad_social: reg } } });
+      if (r.ok) x.resumen.req = Object.assign({}, x.resumen.req, { seguridad_social: { fecha: reg.fecha, vence: reg.vence } }); else mal++;
+    }
+    m.cerrar(); pintar(); Habilitacion.cargar(true).catch(()=>{});
+    UI.toast(mal ? '⚠ Quedaron ' + mal + ' sin registrar. Intenta de nuevo.' : '✓ Seguridad social registrada para ' + prop.length + ' persona(s).', mal ? 'mal' : '');
+  });
+});
+
+/* ── PDF: matriz persona × requisito ── */
+$('btnPdf').addEventListener('click', ()=>{
+  const act = filas.filter((x)=> x.resumen.activo !== false).sort((a, b)=> String(a.resumen.nombre).localeCompare(String(b.resumen.nombre)));
+  if (!act.length) { UI.toast('No hay personas activas.'); return; }
+  const cols = REQS.filter((k)=> act.some((x)=> (x.resumen.req || {})[k]) || Habilitacion.exigidos([]).indexOf(k) !== -1);
+  const h = UI.hoy();
+  let t = '<table><tr><th style="width:3%">N°</th><th style="width:20%">Nombre</th><th style="width:9%">Cédula</th><th style="width:11%">Cargo / empresa</th>' +
+    cols.map((k)=> '<th>' + esc(CFG.requisitos[k].nombre) + '</th>').join('') + '<th style="width:9%">Estado</th></tr>';
+  act.forEach((x, i)=>{
+    const s = x.resumen, e = estadoDe(x);
+    t += '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(s.nombre) + '</td><td>' + esc(s.cedula) + '</td><td>' + esc([s.cargo, s.empresa].filter(Boolean).join(' · ')) + '</td>' +
+      cols.map((k)=>{ const q = (s.req || {})[k]; if (!q || !q.vence && !q.fecha) return '<td class="a" style="background:var(--rojo-100);">Falta</td>';
+        const bg = q.vence && q.vence < h ? '#f6d4cf' : q.vence && q.vence <= Festivos.sumarDias(h, CFG.avisarDias) ? '#fbecc0' : '#d8efe0';
+        return '<td class="a" style="background:' + bg + ';">' + (q.apto ? esc(q.apto) + '<br>' : '') + (q.vence ? 'Vence ' + esc(UI.corta(q.vence)) : esc(UI.corta(q.fecha))) + '</td>'; }).join('') +
+      '<td class="a">' + esc(e.texto) + '</td></tr>';
+  });
+  t += '</table>';
+  UI.imprimir([UI.cabecera('SG-HABILITACION', 'ESTADO DE HABILITACIÓN DEL PERSONAL', 'Corte: ' + UI.corta(h) + ' · ' + act.length + ' personas activas') + t +
+    '<div class="nota" style="margin-top:4px;">Verde: vigente · Amarillo: vence en ' + CFG.avisarDias + ' días · Rojo: vencido o sin registro. Del concepto médico ocupacional solo se registra la aptitud, sin diagnóstico.</div>'], true);
+});
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+$('buscar').addEventListener('input', pintar);
+$('lista').addEventListener('click', (e)=>{ const b = e.target.closest('[data-id]'); if (b) abrir(b.dataset.id); });
+$('btnNuevo').addEventListener('click', ()=>{ actual = null; pintarFicha(); show('scrFicha'); setTimeout(()=> $('inNombre').focus(), 80); });
+$('volver').addEventListener('click', (e)=>{ e.preventDefault(); show('scrLista'); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

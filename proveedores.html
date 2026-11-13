@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Proveedores y contratistas · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Proveedores y contratistas · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.filtros{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px;}
+.filtros select{width:100%;border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 8px;font-size:var(--fs-base);background:#fff;font-family:inherit;min-height:44px;min-width:0;}
+.filtros .check{grid-column:1 / -1;}
+.etapa{margin-top:12px;}
+.etapa h3{margin:0 0 2px;font-size:var(--fs-base);text-transform:uppercase;letter-spacing:.02em;color:var(--steel,var(--n-700));}
+.req{border:1px solid var(--line);border-radius:var(--r-m);padding:9px 10px;margin:7px 0;background:#fff;}
+.req.excl{border-left:4px solid var(--amber,var(--ambar-500));}
+.req.v-falta{border-color:var(--mal);background:var(--rojo-50);}
+.req-t{font-size:var(--fs-base);font-weight:600;line-height:1.35;overflow-wrap:anywhere;}
+.req-m{font-size:var(--fs-menor);color:var(--muted);margin-top:3px;line-height:1.4;overflow-wrap:anywhere;}
+.req-b{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:7px;}
+.req-v{display:flex;flex-direction:column;flex:1 1 140px;min-width:0;}
+.req-v small{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;}
+.req-v input{border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px;font-size:var(--fs-base);font-family:inherit;min-height:44px;width:100%;box-sizing:border-box;}
+.estrella{color:#a36b00;}
+.seg-btn button{min-height:44px;}
+.seg-btn button.on[data-v="N.A."]{background:#7b8794;border-color:#7b8794;color:#fff;}
+.notas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:8px;}
+.notas button{min-width:0;font-size:var(--fs-campo);}
+.notas button.on[data-v="1"],.notas button.on[data-v="2"]{background:var(--mal);border-color:var(--mal);}
+.notas button.on[data-v="3"]{background:var(--ambar-500);border-color:var(--ambar-500);}
+.notas button.on[data-v="4"],.notas button.on[data-v="5"]{background:var(--ok);border-color:var(--ok);}
+.notas button.sug{box-shadow:inset 0 -4px 0 var(--azul-700);}
+.crit-c{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 11px;margin:8px 0;background:#fff;}
+.crit-c.v-falta{border-color:var(--mal);background:var(--rojo-50);}
+.crit-t{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:var(--fs-base);line-height:1.3;}
+.crit-t .peso{flex:0 0 auto;font-size:var(--fs-menor);font-weight:700;background:var(--bg);border-radius:var(--r-m);padding:2px 8px;}
+.crit-d{font-size:var(--fs-menor);color:var(--n-700);margin-top:6px;line-height:1.4;}
+.resultado{border-radius:var(--r-m);padding:12px 13px;margin:10px 0;border:1.5px solid var(--line);background:#fff;}
+.resultado .grande{font-family:var(--font-display);font-size:var(--fs-subtitulo);font-weight:700;}
+.resultado.ok{border-color:var(--ok);background:var(--verde-50);} .resultado.pronto{border-color:var(--ambar-500);background:var(--ambar-50);} .resultado.mal{border-color:var(--mal);background:var(--rojo-50);}
+.mini-tabla{width:100%;border-collapse:collapse;font-size:var(--fs-menor);}
+.mini-tabla td,.mini-tabla th{border-bottom:1px dashed var(--n-150);padding:6px 4px;text-align:left;vertical-align:top;}
+.mini-tabla th{font-size:var(--fs-etiqueta);text-transform:uppercase;color:var(--muted);}
+.mini-tabla td.n{text-align:right;white-space:nowrap;}
+.meses{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;margin-top:8px;}
+.meses span{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:var(--r-xs);background:var(--bg);font-size:10px;color:var(--muted);min-height:36px;line-height:1.1;}
+.meses span b{font-size:var(--fs-base);color:var(--ink);}
+.meses span.p{background:var(--azul-50);} .meses span.p b{color:var(--azul-700);}
+.meses span.e{background:var(--verde-50);} .meses span.e b{color:var(--ok);}
+.meses span.v{background:var(--rojo-50);} .meses span.v b{color:var(--mal);}
+.anios{display:flex;gap:6px;margin-bottom:10px;}
+.anios button{flex:1;}
+.plan-f{border:1px solid var(--line);border-radius:var(--r-m);padding:9px 10px;margin:8px 0;background:var(--n-0);}
+.plan-f .quitar{border:0;background:var(--bg);border-radius:var(--r-s);min-height:40px;padding:0 12px;cursor:pointer;font-family:inherit;}
+.barra-guardar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg,var(--bg)) 25%);padding:12px 0 calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:5;}
+.barra-guardar .btn{margin:0;}
+.resp{border-bottom:1px dashed var(--n-150);padding:6px 0;}
+.resp-r{font-size:var(--fs-menor);font-weight:700;margin-bottom:2px;}
+.norma p{font-size:var(--fs-base);line-height:1.5;margin:6px 0;}
+.norma ol{font-size:var(--fs-base);line-height:1.5;padding-left:20px;margin:6px 0;}
+.grupo-t{font-size:var(--fs-menor);font-weight:700;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;}
+/* v109: ingreso por etapas */
+.pasos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:4px 0 6px;}
+.pasos button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-m);background:#fff;font-family:inherit;cursor:pointer;padding:3px 2px;color:var(--muted);}
+.pasos button b{font-size:var(--fs-titulo);line-height:1;}
+.pasos button span{font-size:9.5px;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pasos button.hecha{border-color:var(--ok);background:var(--verde-50);color:var(--ok);}
+.pasos button.actual{border-color:var(--n-800);background:var(--n-800);color:#fff;}
+.pasos button:disabled{opacity:.55;cursor:not-allowed;}
+.avance{height:6px;border-radius:var(--r-xs);background:var(--n-150);overflow:hidden;margin-bottom:4px;}
+.avance i{display:block;height:100%;background:var(--ok);}
+.etapa-t{font-size:var(--fs-menor);color:var(--muted);margin-bottom:10px;}
+.falta{border:1.5px dashed var(--ambar-500);background:var(--ambar-50);border-radius:var(--r-m);padding:9px 11px;margin:0 0 10px;font-size:var(--fs-menor);line-height:1.45;}
+.falta.ok{border-color:var(--ok);background:var(--verde-50);}
+.falta ul{margin:4px 0 0;padding-left:18px;}
+.cot{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 11px;margin:10px 0;background:#fff;}
+.cot.noapto{opacity:.7;background:var(--n-50);}
+.cot-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+.cot-h b{font-size:var(--fs-base);}
+.cot details{margin-top:6px;font-size:var(--fs-base);}
+.cot details summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600;}
+.cot .chk{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-menor);line-height:1.35;padding:5px 0;}
+.cot .chk input{width:20px;height:20px;flex:0 0 auto;margin-top:1px;}
+.cmp{border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 11px;margin:8px 0;background:#fff;}
+.cmp.rec{border-color:var(--ok);box-shadow:0 0 0 2px var(--verde-50) inset;}
+.cmp.elegida{border-color:var(--n-800);border-width:2.5px;}
+.cmp.nocumple{background:var(--n-50);}
+.cmp-h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+.cmp-h .t{font-weight:700;font-size:var(--fs-base);overflow-wrap:anywhere;}
+.cmp-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;margin:7px 0;font-size:var(--fs-menor);}
+.cmp-g span{color:var(--muted);font-size:var(--fs-etiqueta);display:block;}
+.chips-r{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.btn-elegir{width:100%;min-height:44px;margin-top:4px;}
+.proc-item .t{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.proc-c{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-left:4px solid var(--ambar-500);border-radius:var(--r-m);background:#fff;padding:9px 10px;margin:7px 0;}
+.proc-c .t{font-weight:700;font-size:var(--fs-base);overflow-wrap:anywhere;}
+.proc-c .m{font-size:var(--fs-menor);color:var(--muted);margin-top:2px;overflow-wrap:anywhere;}
+.proc-c .btn{margin:0;min-height:44px;padding:8px 12px;font-size:var(--fs-base);}
+.proc-c.cerrado{border-left-color:var(--ok);} .proc-c.mal{border-left-color:var(--mal);}
+.nit-aviso{font-size:var(--fs-menor);font-weight:700;color:var(--mal);margin-top:4px;}
+.nit-aviso.info{color:var(--muted);font-weight:400;}
+.kpi.pronto .v{color:#a36b00;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Proveedores y contratistas</h1>
+    <p>Matriz de requisitos, evaluación inicial, reevaluación y cronograma</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="matriz">Matriz <span class="n" id="nMat">0</span></button>
+    <button type="button" data-tab="inicial">Evaluación inicial</button>
+    <button type="button" data-tab="reev">Reevaluación <span class="n" id="nReev">0</span></button>
+    <button type="button" data-tab="crono">Cronograma</button>
+    <button type="button" data-tab="sst">Criterios SST</button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrFicha"></div>
+<div class="screen" id="scrEdit"></div>
+<div class="screen" id="scrEval"></div>
+<div class="screen" id="scrProc"></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="proveedores-catalogo.js"></script>
+<script src="proveedores.app.js"></script>
+</body>
+</html>

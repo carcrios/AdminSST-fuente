@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CHX0VjkbLF0nXFxbvERSE48QnG0YyXNiufE6hrbgMIc='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Matriz de peligros · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Matriz de peligros · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.eval{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 10px;}
+.eval div{border:1px solid var(--line);border-radius:var(--r-m);padding:8px;text-align:center;font-size:var(--fs-menor);color:var(--muted);background:#fff;}
+.eval b{display:block;font-family:var(--font-display);font-size:var(--fs-display);color:var(--ink);}
+.nivel{border-radius:var(--r-m);padding:10px 12px;font-weight:700;font-size:var(--fs-base);margin-bottom:10px;}
+.nivel.I{background:var(--rojo-50);color:var(--rojo-800);} .nivel.II{background:var(--ambar-50);color:#8a4b00;} .nivel.III{background:var(--ambar-100);color:var(--ambar-900);} .nivel.IV{background:var(--verde-50);color:var(--verde-600);}
+.chip.I{background:var(--rojo-50);color:var(--rojo-800);} .chip.II{background:var(--ambar-50);color:#8a4b00;} .chip.III{background:var(--ambar-100);color:var(--ambar-900);} .chip.IV{background:var(--verde-50);color:var(--verde-600);}
+.medida{border:1px solid var(--line);border-radius:var(--r-m);padding:9px 11px;margin-bottom:8px;background:var(--n-0);}
+.medida b{font-size:var(--fs-menor);text-transform:uppercase;color:var(--muted);letter-spacing:.03em;}
+.medida textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px 10px;font-size:var(--fs-titulo);font-family:inherit;min-height:46px;margin:5px 0;background:#fff;}
+.medida select{border:1.5px solid var(--line);border-radius:var(--r-s);padding:6px 8px;font-size:var(--fs-base);font-family:inherit;background:#fff;}
+.resumen-niveles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:12px;}
+.resumen-niveles div{border-radius:var(--r-m);padding:8px;text-align:center;font-size:var(--fs-etiqueta);font-weight:700;}
+.resumen-niveles b{display:block;font-size:var(--fs-subtitulo);font-family:var(--font-display);}
+.part{display:flex;gap:8px;align-items:flex-start;border-bottom:1px dashed var(--n-150);padding:8px 0;}
+.sug-gtc{background:var(--n-50);border-color:var(--line);}
+.sg-g{margin:8px 0;}
+.sg-g b{display:block;font-size:var(--fs-menor);color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
+.sg-chip{display:inline-block;text-align:left;font:inherit;font-size:var(--fs-base);line-height:1.35;border:1px solid #b9cfe4;background:#fff;color:var(--azul-700);border-radius:var(--r-m);padding:6px 9px;margin:0 6px 6px 0;cursor:pointer;min-height:34px;}
+.sg-chip[disabled]{opacity:.45;cursor:default;}
+.sg-puesto{box-shadow:0 0 0 3px var(--azul-200);transition:box-shadow .3s;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
+    <h1>Matriz de peligros</h1>
+    <p>Identificación de peligros y valoración de riesgos (GTC 45) · sustancias · mediciones</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div><div id="alertas"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="matriz">Matriz <span class="n" id="nMat">0</span></button>
+    <button type="button" data-tab="sustancias">Sustancias químicas <span class="n" id="nSus">0</span></button>
+    <button type="button" data-tab="mediciones">Mediciones <span class="n" id="nMed">0</span></button>
+    <button type="button" data-tab="revisiones">Revisiones con los trabajadores</button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<div class="screen" id="scrPeligro"></div>
+<div class="screen" id="scrRevision"></div>
+
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="importar.js"></script>
+<script src="gtc45-catalogo.js"></script>
+<script src="qr.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* ── GTC 45 (2012) ── */
+const CLASES = {
+  'Biológico': ['Virus', 'Bacterias', 'Hongos', 'Ricketsias', 'Parásitos', 'Picaduras', 'Mordeduras', 'Fluidos o excrementos'],
+  'Físico': ['Ruido', 'Iluminación', 'Vibración', 'Temperaturas extremas', 'Presión atmosférica', 'Radiaciones ionizantes', 'Radiaciones no ionizantes'],
+  'Químico': ['Polvos orgánicos e inorgánicos', 'Fibras', 'Líquidos (nieblas y rocíos)', 'Gases y vapores', 'Humos metálicos y no metálicos', 'Material particulado'],
+  'Psicosocial': ['Gestión organizacional', 'Características de la organización del trabajo', 'Características del grupo social de trabajo', 'Condiciones de la tarea', 'Interfase persona–tarea', 'Jornada de trabajo'],
+  'Biomecánico': ['Postura', 'Esfuerzo', 'Movimiento repetitivo', 'Manipulación manual de cargas'],
+  'Condiciones de seguridad': ['Mecánico', 'Eléctrico', 'Locativo', 'Tecnológico (explosión, fuga, derrame, incendio)', 'Accidentes de tránsito', 'Públicos (robos, atracos, desorden público)', 'Trabajo en alturas', 'Espacios confinados'],
+  'Fenómenos naturales': ['Sismo', 'Terremoto', 'Vendaval', 'Inundación', 'Derrumbe', 'Precipitaciones']
+};
+const ND = [[10, '10 · Muy alto'], [6, '6 · Alto'], [2, '2 · Medio'], [0, 'Bajo (no se asigna valor)']];
+const NE = [[4, '4 · Continua'], [3, '3 · Frecuente'], [2, '2 · Ocasional'], [1, '1 · Esporádica']];
+const NC = [[100, '100 · Mortal o catastrófico'], [60, '60 · Muy grave'], [25, '25 · Grave'], [10, '10 · Leve']];
+function interpNP(np) { return np >= 24 ? 'Muy alto' : np >= 10 ? 'Alto' : np >= 6 ? 'Medio' : np >= 2 ? 'Bajo' : '—'; }
+function nivelNR(nr) { return nr >= 600 ? 'I' : nr >= 150 ? 'II' : nr >= 40 ? 'III' : 'IV'; }
+const ACEPT = { I: 'No aceptable', II: 'No aceptable o aceptable con control específico', III: 'Mejorable', IV: 'Aceptable' };
+const QUE = { I: 'Situación crítica: suspender actividades hasta que el riesgo esté bajo control. Intervención urgente.', II: 'Corregir y adoptar medidas de control de inmediato.', III: 'Mejorar si es posible; justificar la intervención y su rentabilidad.', IV: 'Mantener las medidas de control existentes y revisarlas periódicamente.' };
+const MEDIDAS = [['eliminacion', 'Eliminación'], ['sustitucion', 'Sustitución'], ['ingenieria', 'Controles de ingeniería'], ['administrativos', 'Controles administrativos, señalización, advertencias'], ['epp', 'Equipos y elementos de protección personal']];
+function evaluar(d) {
+  const nd = Number(d.nd) || 0, ne = Number(d.ne) || 0, nc = Number(d.nc) || 0, np = nd * ne, nr = np * nc, nivel = nivelNR(nr);
+  return { np, nr, nivel, interp: interpNP(np), aceptabilidad: ACEPT[nivel] };
+}
+
+let encuestas = [], peligros = [], sustancias = [], mediciones = [], revisiones = [], acciones = [], tab = 'matriz', actual = null;
+/* v109: filtro de cada lista (lo dejan las cifras y avisos de arriba). */
+const fPel = { matriz: '', mediciones: '' };
+window.filtrarKpi = (v)=> { fPel[tab] = v || ''; pintar(); };
+const noAceptable = (x)=> ['I', 'II'].indexOf(x.resumen.nivel) !== -1, conMedidas = (x)=> Number(x.resumen.controlesPendientes) > 0;
+const medMal = (x)=> x.resumen.resultado !== 'Cumple' || (x.resumen.proxima && x.resumen.proxima < UI.hoy());
+const chipsPel = (panel)=> panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('peligro,sustancia,medicion,revmatriz,accion,encpeligro');
+  UI.avisoCopia($('avisoCopia'), r);
+  peligros = r.rows.filter((x)=> x.tipo === 'peligro'); sustancias = r.rows.filter((x)=> x.tipo === 'sustancia');
+  mediciones = r.rows.filter((x)=> x.tipo === 'medicion'); revisiones = r.rows.filter((x)=> x.tipo === 'revmatriz').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  acciones = r.rows.filter((x)=> x.tipo === 'accion' && x.resumen.origen === 'Matriz de peligros');
+  encuestas = r.rows.filter((x)=> x.tipo === 'encpeligro');
+  pintar();
+}
+function pintar(){
+  const h = UI.hoy(), noAcept = peligros.filter((x)=> ['I', 'II'].indexOf(x.resumen.nivel) !== -1);
+  const pend = peligros.reduce((a, x)=> a + (Number(x.resumen.controlesPendientes) || 0), 0);
+  const ult = revisiones[0], vieja = !ult || ult.resumen.fecha < Festivos.sumarDias(h, -365);
+  $('nMat').textContent = peligros.length; $('nSus').textContent = sustancias.length; $('nMed').textContent = mediciones.length;
+  $('kpis').innerHTML = '<div class="kpi" data-ir="tab:matriz|filtro:"><div class="v">' + peligros.length + '</div><div class="n">peligros identificados</div></div>' +
+    '<div class="kpi ' + (noAcept.length ? 'mal' : 'ok') + '" data-ir="tab:matriz|filtro:' + (noAcept.length ? 'noacept' : '') + '"><div class="v">' + noAcept.length + '</div><div class="n">riesgos no aceptables (I y II)</div></div>' +
+    '<div class="kpi ' + (pend ? 'mal' : 'ok') + '" data-ir="tab:matriz|filtro:' + (pend ? 'medidas' : '') + '"><div class="v">' + pend + '</div><div class="n">medidas por implementar</div></div>' +
+    '<div class="kpi ' + (vieja ? 'mal' : 'ok') + '" data-ir="tab:revisiones"><div class="v">' + (ult ? esc(UI.corta(ult.resumen.fecha)) : '—') + '</div><div class="n">última revisión con los trabajadores</div></div>';
+  const al = [];
+  if (vieja) al.push('<div class="aviso amar">La matriz se revisa por lo menos una vez al año con participación de los trabajadores de todos los niveles (estándar 4.1.2). Registra la revisión en la pestaña «Revisiones».</div>');
+  const vencM = mediciones.filter((x)=> x.resumen.proxima && x.resumen.proxima < h);
+  if (vencM.length) al.push('<div class="aviso">' + vencM.length + ' medición(es) ambiental(es) vencida(s). <button type="button" class="btn-mini" data-ir-av="tab:mediciones|filtro:mal">Ver cuáles</button></div>');
+  const hojas = sustancias.filter((x)=> x.resumen.estado !== 'Fuera de uso' && (x.resumen.hojaSeguridad !== 'Sí' || (x.resumen.venceHoja && x.resumen.venceHoja < h)));
+  if (hojas.length) al.push('<div class="aviso">' + hojas.length + ' sustancia(s) sin hoja de seguridad vigente. <button type="button" class="btn-mini" data-ir-av="url:quimicos.html#ir=tab:inventario|filtro:sinfds">Ver cuáles</button></div>');
+  $('alertas').innerHTML = al.join('');
+  $('alertas').querySelectorAll('[data-ir-av]').forEach((b)=> b.addEventListener('click', ()=> UI.irKpi(b.dataset.irAv)));
+  ({ matriz: pintarMatriz, sustancias: pintarSustancias, mediciones: pintarMediciones, revisiones: pintarRevisiones })[tab]($('panel'));
+}
+
+/* ── Matriz ── */
+function pintarMatriz(panel){
+  const procesos = [...new Set(peligros.map((x)=> x.resumen.proceso).filter(Boolean))].sort();
+  const cuenta = (n)=> peligros.filter((x)=> x.resumen.nivel === n).length;
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="btnNuevo">+ Identificar peligro</button><button type="button" class="btn ghost" id="btnPdf">Matriz de peligros (PDF)</button><button type="button" class="btn ghost" id="btnExcel">Cargar matriz desde Excel</button></div>' +
+    '<div class="resumen-niveles">' + ['I', 'II', 'III', 'IV'].map((n)=> '<div class="chip ' + n + '"><b>' + cuenta(n) + '</b>Nivel ' + n + '</div>').join('') + '</div>' +
+    '<div class="grid2"><div class="field"><select id="fProc"><option value="">Todos los procesos</option>' + procesos.map((p)=> '<option>' + esc(p) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><select id="fNivel"><option value="">Todos los niveles</option><option value="I">I · No aceptable</option><option value="II">II · No aceptable o con control</option><option value="III">III · Mejorable</option><option value="IV">IV · Aceptable</option></select></div></div>' +
+    (peligros.length ? UI.chipsFiltro([['', 'Todos (' + peligros.length + ')'], ['noacept', 'No aceptables, I y II (' + peligros.filter(noAceptable).length + ')'], ['medidas', 'Con medidas por implementar (' + peligros.filter(conMedidas).length + ')']], fPel.matriz) : '') +
+    '<input type="search" class="buscar" id="buscar" placeholder="Buscar actividad, tarea o peligro"><div id="lista"></div>';
+  chipsPel(panel);
+  const lista = ()=> {
+    const p = $('fProc').value, n = $('fNivel').value, q = UI.norm($('buscar').value).trim();
+    let l = peligros.filter((x)=> fPel.matriz === 'noacept' ? noAceptable(x) : fPel.matriz === 'medidas' ? conMedidas(x) : true);
+    if (p) l = l.filter((x)=> x.resumen.proceso === p); if (n) l = l.filter((x)=> x.resumen.nivel === n);
+    if (q) l = l.filter((x)=> UI.norm([x.resumen.actividad, x.resumen.tarea, x.resumen.peligro, x.resumen.clasificacion].join(' ')).includes(q));
+    l.sort((a, b)=> (Number(b.resumen.nr) || 0) - (Number(a.resumen.nr) || 0));
+    $('lista').innerHTML = l.length ? l.map((x)=> { const s = x.resumen;
+      return '<button type="button" class="item ' + ({ I: 'mal', II: 'mal', III: 'pronto', IV: 'ok' }[s.nivel] || '') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.peligro) + '</div>' +
+        '<div class="m">' + esc([s.proceso, s.actividad, s.tarea].filter(Boolean).join(' › ')) + '</div><div class="m">' + esc(s.clasificacion) + ' · NR ' + esc(s.nr) + ' · ' + esc(s.expuestos || 0) + ' expuestos' +
+        (Number(s.controlesPendientes) ? ' · <b class="u-mal">' + s.controlesPendientes + ' medida(s) por implementar</b>' : '') + (x.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div></div>' +
+        '<span class="chip ' + esc(s.nivel) + '">Nivel ' + esc(s.nivel) + '</span></div></button>'; }).join('') : '<div class="empty">' + (peligros.length ? 'Nada con estos filtros.' : 'Empieza identificando los peligros de cada proceso y tarea (rutinaria y no rutinaria).') + '</div>';
+  };
+  ['fProc', 'fNivel'].forEach((id)=> $(id).addEventListener('change', lista)); $('buscar').addEventListener('input', lista);
+  $('lista').addEventListener('click', (e)=> { const b = e.target.closest('[data-id]'); if (b) abrirPeligro(b.dataset.id); });
+  $('btnNuevo').addEventListener('click', ()=> editarPeligro({ id: SGSST.nuevoId('PEL'), nuevo: true, rutinaria: 'Sí', clasificacion: 'Condiciones de seguridad', nd: 6, ne: 3, nc: 25, fechaRevision: UI.hoy(), medidas: {} }));
+  $('btnPdf').addEventListener('click', pdfMatriz);
+  $('btnExcel').addEventListener('click', importarPeligros);
+  lista();
+}
+async function abrirPeligro(id){ const d = await Registros.abrir(id); if (d) editarPeligro(d); }
+function editarPeligro(d){
+  actual = d;
+  const procesos = [...new Set(peligros.map((x)=> x.resumen.proceso).filter(Boolean))];
+  const s = $('scrPeligro');
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver a la matriz</a><div class="eyebrow">Matriz de peligros · GTC 45</div><h1>' + esc(d.nuevo ? 'Nuevo peligro' : d.peligro) + '</h1><p>' + esc(d.nuevo ? 'Identificación y valoración' : d.id) + '</p></div>' +
+    '<datalist id="dlProc">' + procesos.map((p)=> '<option value="' + esc(p) + '">').join('') + '</datalist>' +
+    '<div class="card"><h2>1. Dónde</h2>' +
+      '<div class="field"><label>Proceso *</label><input type="text" id="pProceso" list="dlProc" value="' + esc(d.proceso || '') + '" placeholder="Ej: Montaje de tubería"></div>' +
+      '<div class="grid2"><div class="field"><label>Zona / lugar</label><input type="text" id="pZona" value="' + esc(d.zona || '') + '"></div><div class="field"><label>Actividad</label><input type="text" id="pActividad" value="' + esc(d.actividad || '') + '"></div></div>' +
+      '<div class="field"><label>Tarea *</label><input type="text" id="pTarea" value="' + esc(d.tarea || '') + '" placeholder="Ej: Soldadura de bridas en altura"></div>' +
+      '<div class="grid3"><div class="field"><label>Rutinaria</label><select id="pRut"><option>Sí</option><option>No</option></select></div><div class="field"><label>N.º de expuestos</label><input type="number" id="pExp" value="' + esc(d.expuestos || '') + '" inputmode="numeric"></div>' +
+      '<div class="field"><label>Cargos expuestos</label><input type="text" id="pCargos" value="' + esc(d.cargos || '') + '"></div></div></div>' +
+    '<div class="card"><h2>2. Peligro</h2>' +
+      '<div class="field"><label>Clasificación</label><select id="pClase">' + Object.keys(CLASES).map((c)=> '<option>' + esc(c) + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Tipo</label><select id="pSub"></select></div>' +
+      '<div class="field"><label>Descripción del peligro *</label><input type="text" id="pPeligro" value="' + esc(d.peligro || '') + '" placeholder="Ej: Caída a distinto nivel desde andamio a 4 m"></div>' +
+      '<div class="field"><label>Efectos posibles</label><input type="text" id="pEfectos" value="' + esc(d.efectos || '') + '" placeholder="Ej: Fracturas, trauma craneoencefálico, muerte"></div></div>' +
+    '<div class="card sug-gtc" id="pSug" hidden></div>' +
+    '<div class="card"><h2>3. Controles que ya existen</h2>' +
+      '<div class="field"><label>En la fuente</label><input type="text" id="pCF" value="' + esc(d.ctrlFuente || '') + '"></div>' +
+      '<div class="field"><label>En el medio</label><input type="text" id="pCM" value="' + esc(d.ctrlMedio || '') + '"></div>' +
+      '<div class="field"><label>En el individuo</label><input type="text" id="pCI" value="' + esc(d.ctrlIndividuo || '') + '"></div></div>' +
+    '<div class="card"><h2>4. Evaluación del riesgo</h2>' +
+      '<p class="ayuda u-mtn4">ND: qué tanto fallan los controles. NE: cada cuánto se expone la gente. NC: qué tan grave sería el daño. El portal calcula NP = ND × NE y NR = NP × NC.</p>' +
+      '<div class="field"><label>Nivel de deficiencia (ND)</label><select id="pND">' + ND.map((o)=> '<option value="' + o[0] + '">' + esc(o[1]) + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Nivel de exposición (NE)</label><select id="pNE">' + NE.map((o)=> '<option value="' + o[0] + '">' + esc(o[1]) + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Nivel de consecuencia (NC)</label><select id="pNC">' + NC.map((o)=> '<option value="' + o[0] + '">' + esc(o[1]) + '</option>').join('') + '</select></div>' +
+      '<div class="eval" id="pEval"></div><div id="pNivel"></div>' +
+      '<div class="field"><label>Peor consecuencia</label><input type="text" id="pPeor" value="' + esc(d.peorConsecuencia || '') + '"></div>' +
+      '<div class="field"><label>Requisito legal asociado</label><input type="text" id="pLegal" value="' + esc(d.requisitoLegal || '') + '" placeholder="Ej: Res. 4272 de 2021"></div></div>' +
+    '<div class="card"><h2>5. Medidas de intervención</h2><p class="ayuda">En orden de jerarquía. Lo que esté «por implementar» se envía al plan de acción.</p><div id="pMedidas"></div></div>' +
+    '<div class="card"><div class="field"><label>Fecha de identificación / revisión</label><input type="date" id="pFecha" value="' + esc(d.fechaRevision || UI.hoy()) + '"></div></div>' +
+    '<button type="button" class="btn amber" id="pGuardar">Guardar</button>' + (d.nuevo ? '' : '<button type="button" class="btn ghost u-mal" id="pBorrar">Borrar de la matriz</button>') + '<div class="status-msg" id="pMsg"></div>';
+  $('pRut').value = d.rutinaria || 'Sí'; $('pClase').value = d.clasificacion || 'Condiciones de seguridad';
+  $('pND').value = String(d.nd == null ? 6 : d.nd); $('pNE').value = String(d.ne || 3); $('pNC').value = String(d.nc || 25);
+  const subs = ()=> { const l = CLASES[$('pClase').value] || []; $('pSub').innerHTML = '<option value="">— Elige el tipo —</option>' + l.map((x)=> '<option>' + esc(x) + '</option>').join('') + '<option>Otro</option>';
+    if (d.subtipo && $('pClase').value === d.clasificacion) $('pSub').value = d.subtipo; sugerencias(); };
+  $('pClase').addEventListener('change', subs); $('pSub').addEventListener('change', sugerencias); subs();
+  const ev = ()=> { const e = evaluar({ nd: $('pND').value, ne: $('pNE').value, nc: $('pNC').value });
+    $('pEval').innerHTML = '<div><b>' + e.np + '</b>NP · ' + esc(e.interp) + '</div><div><b>' + $('pNC').value + '</b>NC</div><div><b>' + e.nr + '</b>NR</div>';
+    $('pNivel').innerHTML = '<div class="nivel ' + e.nivel + '">Nivel ' + e.nivel + ' · ' + esc(e.aceptabilidad) + '<div style="font-weight:500;font-size:var(--fs-menor);margin-top:4px;">' + esc(QUE[e.nivel]) + '</div></div>'; };
+  ['pND', 'pNE', 'pNC'].forEach((id)=> $(id).addEventListener('change', ev)); ev();
+  const med = d.medidas || {};
+  $('pMedidas').innerHTML = MEDIDAS.map(([k, n])=> { const m = med[k] || {}; return '<div class="medida" data-m="' + k + '"><b>' + esc(n) + '</b><textarea data-k="texto" placeholder="—">' + esc(m.texto || '') + '</textarea>' +
+    '<select data-k="estado"><option>Existente</option><option>Por implementar</option></select>' + (m.accionId ? ' <a href="plan-accion.html#' + encodeURIComponent(m.accionId) + '" style="font-size:var(--fs-menor);">Acción ' + esc(m.accionId) + '</a>' : '') + '</div>'; }).join('');
+  $('pMedidas').querySelectorAll('.medida').forEach((el)=> { const m = med[el.dataset.m] || {}; el.querySelector('[data-k="estado"]').value = m.estado || 'Por implementar'; });
+  $('pGuardar').addEventListener('click', guardarPeligro);
+  if ($('pBorrar')) $('pBorrar').addEventListener('click', async ()=> { const mo = await Dialogo.pedir('¿Por qué se quita de la matriz? (queda en la bitácora)'); if (!mo) return; if (await Registros.borrar(actual.id, mo)) { show('scrLista'); cargar(); } });
+  show('scrPeligro');
+}
+/* ── Sugerencias GTC 45 (gtc45-catalogo.js): al elegir el tipo de peligro, propone la descripción,
+   los efectos, los controles que suelen existir y las medidas por jerarquía. Se toca para usarlas. ── */
+function sugerencias(){
+  const box = $('pSug'); if (!box) return;
+  const inf = $('pSub').value && $('pSub').value !== 'Otro' && typeof GTC45 !== 'undefined' ? GTC45.info($('pClase').value, $('pSub').value) : null;
+  if (!inf) { box.hidden = true; return; }
+  const chip = (t, destino)=> '<button type="button" class="sg-chip" data-dest="' + destino + '" data-t="' + esc(t) + '">+ ' + esc(t) + '</button>';
+  box.hidden = false;
+  box.innerHTML = '<h2>Sugerencias para «' + esc(inf.tipo) + '»</h2><p class="ayuda u-mtn4">Toca una sugerencia para agregarla. Ajústalas a la realidad de la tarea.</p>' +
+    (inf.desc ? '<div class="sg-g"><b>Descripción</b>' + chip(inf.desc, 'pPeligro') + '</div>' : '') +
+    '<div class="sg-g"><b>Efectos posibles</b>' + chip(inf.efectos, 'pEfectos') + '</div>' +
+    '<div class="sg-g"><b>Controles que suelen existir</b>' + inf.existentes.fuente.map((t)=> chip(t, 'pCF')).join('') + inf.existentes.medio.map((t)=> chip(t, 'pCM')).join('') + inf.existentes.individuo.map((t)=> chip(t, 'pCI')).join('') + '</div>' +
+    MEDIDAS.map(([k, n])=> (inf.controles[k] || []).length ? '<div class="sg-g"><b>' + esc(n) + '</b>' + inf.controles[k].map((t)=> chip(t, 'med-' + k)).join('') + '</div>' : '').join('') +
+    (inf.legal ? '<div class="sg-g"><b>Requisito legal</b>' + chip(inf.legal, 'pLegal') + '</div>' : '') +
+    '<button type="button" class="btn ghost mini" id="sgTodas">Usar todas las sugerencias</button>';
+  const poner = (dest, t)=> {
+    const el = /^med-/.test(dest) ? $('pMedidas').querySelector('[data-m="' + dest.slice(4) + '"] textarea') : $(dest); if (!el) return;
+    const sep = el.tagName === 'TEXTAREA' ? '\n' : '; ';
+    if (dest === 'pPeligro' || dest === 'pEfectos') { if (!el.value.trim()) el.value = t; else if (el.value.indexOf(t) === -1) el.value = el.value.trim() + (dest === 'pPeligro' ? ' — ' : '; ') + t; }
+    else if (el.value.indexOf(t) === -1) el.value = (el.value.trim() ? el.value.trim() + sep : '') + t;
+    el.classList.add('sg-puesto'); setTimeout(()=> el.classList.remove('sg-puesto'), 900);
+  };
+  box.querySelectorAll('.sg-chip').forEach((b)=> b.addEventListener('click', ()=> { poner(b.dataset.dest, b.dataset.t); b.disabled = true; }));
+  box.querySelector('#sgTodas').addEventListener('click', ()=> { box.querySelectorAll('.sg-chip:not([disabled])').forEach((b)=> { poner(b.dataset.dest, b.dataset.t); b.disabled = true; }); UI.toast('Sugerencias agregadas: revísalas y ajústalas.'); });
+}
+function leerPeligro(){
+  const v = (id)=> $(id).value.trim(), d = actual;
+  const medidas = {};
+  $('pMedidas').querySelectorAll('.medida').forEach((el)=> { const prev = (d.medidas || {})[el.dataset.m] || {}; medidas[el.dataset.m] = Object.assign({}, prev, { texto: el.querySelector('[data-k="texto"]').value.trim(), estado: el.querySelector('[data-k="estado"]').value }); });
+  const e = evaluar({ nd: v('pND'), ne: v('pNE'), nc: v('pNC') });
+  return Object.assign({}, d, { proceso: v('pProceso'), zona: v('pZona'), actividad: v('pActividad'), tarea: v('pTarea'), rutinaria: v('pRut'), expuestos: Number(v('pExp')) || 0, cargos: v('pCargos'),
+    clasificacion: v('pClase'), subtipo: v('pSub'), peligro: v('pPeligro'), efectos: v('pEfectos'), ctrlFuente: v('pCF'), ctrlMedio: v('pCM'), ctrlIndividuo: v('pCI'),
+    nd: Number(v('pND')), ne: Number(v('pNE')), nc: Number(v('pNC')), np: e.np, nr: e.nr, nivel: e.nivel, aceptabilidad: e.aceptabilidad,
+    peorConsecuencia: v('pPeor'), requisitoLegal: v('pLegal'), medidas, fechaRevision: v('pFecha') || UI.hoy(),
+    controlesPendientes: Object.keys(medidas).filter((k)=> medidas[k].texto && medidas[k].estado === 'Por implementar' && !medidas[k].cerrada).length,
+    // v158: los controles en texto, para revisar en «Análisis y alertas» si de verdad se están haciendo
+    controlesTexto: [v('pCF'), v('pCM'), v('pCI')].concat(Object.keys(medidas).filter((k)=> medidas[k].texto && medidas[k].estado !== 'Por implementar').map((k)=> medidas[k].texto)).filter(Boolean).join(' · ').slice(0, 600) });
+}
+async function guardarPeligro(){
+  const d = leerPeligro(), msg = $('pMsg');
+  const prob = Valida.revisar($('scrPeligro'), [{ el: $('pProceso'), etiqueta: 'Proceso', error: d.proceso ? '' : 'falta' }, { el: $('pTarea'), etiqueta: 'Tarea', error: d.tarea ? '' : 'falta' },
+    { el: $('pSub'), etiqueta: 'Tipo de peligro', error: d.subtipo ? '' : 'elige el tipo' }, { el: $('pPeligro'), etiqueta: 'Descripción del peligro', error: d.peligro ? Valida.texto(d.peligro, 5) : 'falta' },
+    { el: $('pExp'), etiqueta: 'N.º de expuestos', error: $('pExp').value === '' ? 'falta' : Valida.numero($('pExp').value, { min: 1, entero: true }) },
+    { el: $('pFecha'), etiqueta: 'Fecha', error: Valida.pasada(d.fechaRevision) }], msg);
+  if (prob.length) return;
+  msg.textContent = 'Guardando…';
+  // Primero se guarda el peligro; las acciones van después (si el guardado falla no quedan acciones repetidas).
+  const r = await Registros.guardar('peligro', d.id, d, d.nuevo ? 0 : d.version);
+  if (typeof r === 'string') { msg.textContent = r; return; }
+  if (r.enCola) { show('scrLista'); cargar(); return; }
+  const sinAccion = Object.keys(d.medidas).filter((k)=> d.medidas[k].texto && d.medidas[k].estado === 'Por implementar' && !d.medidas[k].accionId);
+  if (sinAccion.length && await Dialogo.confirmar(sinAccion.length + ' medida(s) por implementar sin acción en el plan. ¿Crear las acciones ahora?')) {
+    const resp = await Dialogo.pedir('Responsable de las acciones:', '');
+    if (resp) {
+      const campos = { medidas: {} };
+      for (const k of sinAccion) {
+        const a = await UI.guardarAccion({ origen: 'Matriz de peligros', origenRef: d.id, hallazgo: d.peligro + ' (' + d.tarea + ') · nivel ' + d.nivel, accion: MEDIDAS.find((x)=> x[0] === k)[1] + ': ' + d.medidas[k].texto, responsable: resp,
+          prioridad: ['I', 'II'].indexOf(d.nivel) !== -1 ? 'Alta' : 'Media', fechaCompromiso: Festivos.sumarDias(UI.hoy(), d.nivel === 'I' ? 7 : d.nivel === 'II' ? 30 : 60), tipoAccion: 'Preventiva' });
+        if (a.ok) campos.medidas[k] = { accionId: a.id };
+      }
+      if (Object.keys(campos.medidas).length) await SGSST.enviar({ action: 'parche', tipo: 'peligro', id: d.id, campos });
+    }
+  }
+  UI.toast('✓ Guardado en la matriz.'); show('scrLista'); cargar();
+}
+/* ── Matriz desde Excel: se valora sola con GTC 45 (ND × NE × NC) ── */
+function importarPeligros(){
+  const cl = Object.keys(CLASES), o = (l)=> l.map((x)=> [x[0], String(x[0])]).concat(l.map((x)=> [x[0], x[1]]));
+  const cols = [{ k: 'proceso', l: 'Proceso', req: true, ej: 'Montaje de tubería' }, { k: 'zona', l: 'Zona', ej: 'Planta', vista: false }, { k: 'actividad', l: 'Actividad', ej: 'Soldadura', vista: false },
+    { k: 'tarea', l: 'Tarea', req: true, ej: 'Soldadura de bridas en altura' }, { k: 'rutinaria', l: 'Rutinaria', tipo: 'lista', op: ['Sí', 'No'], def: 'Sí', ej: 'Sí', vista: false },
+    { k: 'expuestos', l: 'Expuestos', tipo: 'numero', ej: '4', vista: false }, { k: 'cargos', l: 'Cargos expuestos', ej: 'Soldador', vista: false },
+    { k: 'clasificacion', l: 'Clasificación', req: true, tipo: 'lista', op: cl, ej: 'Condiciones de seguridad' }, { k: 'subtipo', l: 'Tipo de peligro', ej: 'Trabajo en alturas', vista: false },
+    { k: 'peligro', l: 'Descripción del peligro', req: true, ej: 'Caída a distinto nivel desde andamio a 4 m', sin: ['peligro'] }, { k: 'efectos', l: 'Efectos posibles', ej: 'Fracturas', vista: false },
+    { k: 'ctrlFuente', l: 'Control en la fuente', vista: false }, { k: 'ctrlMedio', l: 'Control en el medio', vista: false }, { k: 'ctrlIndividuo', l: 'Control en el individuo', ej: 'Arnés', vista: false },
+    { k: 'nd', l: 'ND', req: true, tipo: 'lista', op: o(ND), ej: '6', sin: ['nivel de deficiencia'] }, { k: 'ne', l: 'NE', req: true, tipo: 'lista', op: o(NE), ej: '3', sin: ['nivel de exposicion'] },
+    { k: 'nc', l: 'NC', req: true, tipo: 'lista', op: o(NC), ej: '60', sin: ['nivel de consecuencia'] }, { k: 'peorConsecuencia', l: 'Peor consecuencia', vista: false }, { k: 'requisitoLegal', l: 'Requisito legal', ej: 'Res. 4272 de 2021', vista: false }];
+  MEDIDAS.forEach(([k, n])=> cols.push({ k: 'm_' + k, l: n.split(',')[0], vista: false, ej: k === 'administrativos' ? 'Permiso de trabajo en alturas' : '' }));
+  cols.push({ k: 'estadoMedidas', l: 'Estado de las medidas', tipo: 'lista', op: ['Existente', 'Por implementar'], def: 'Existente', ej: 'Existente', vista: false });
+  const ya = (f)=> peligros.find((x)=> Importar.norm(x.resumen.proceso) === Importar.norm(f.proceso) && Importar.norm(x.resumen.tarea) === Importar.norm(f.tarea) && Importar.norm(x.resumen.peligro) === Importar.norm(f.peligro));
+  Importar.abrir({ titulo: 'Matriz de peligros desde Excel', archivo: 'matriz-peligros', columnas: cols, tipoDoc: 'peligro',
+    validar: (f)=> f.subtipo && !(CLASES[f.clasificacion] || []).some((s)=> Importar.norm(s) === Importar.norm(f.subtipo)) ? 'El tipo «' + f.subtipo + '» no es de ' + f.clasificacion + ' (GTC 45: ' + CLASES[f.clasificacion].join(', ') + ')' : '',
+    id: (f)=> { const e = ya(f); return e ? e.id : Importar.idDe('PEL', f.proceso, f.tarea, f.peligro); }, existe: (id)=> peligros.some((x)=> x.id === id),
+    armar: (f, existe)=> { const e = evaluar(f), medidas = {};
+      MEDIDAS.forEach(([k])=> { if (f['m_' + k]) medidas[k] = { texto: f['m_' + k], estado: f.estadoMedidas || 'Existente' }; });
+      const sub = (CLASES[f.clasificacion] || []).find((s)=> Importar.norm(s) === Importar.norm(f.subtipo)) || (CLASES[f.clasificacion] || [''])[0];
+      return { proceso: f.proceso, zona: f.zona, actividad: f.actividad, tarea: f.tarea, rutinaria: f.rutinaria || (existe ? '' : 'Sí'), expuestos: f.expuestos === '' || f.expuestos == null ? (existe ? '' : 0) : Number(f.expuestos) || 0, cargos: f.cargos, clasificacion: f.clasificacion, subtipo: sub,
+        peligro: f.peligro, efectos: f.efectos, ctrlFuente: f.ctrlFuente, ctrlMedio: f.ctrlMedio, ctrlIndividuo: f.ctrlIndividuo, nd: Number(f.nd), ne: Number(f.ne), nc: Number(f.nc), np: e.np, nr: e.nr, nivel: e.nivel, aceptabilidad: e.aceptabilidad,
+        peorConsecuencia: f.peorConsecuencia, requisitoLegal: f.requisitoLegal, medidas, fechaRevision: UI.hoy(),
+        controlesPendientes: Object.keys(medidas).length || !existe ? Object.keys(medidas).filter((k)=> medidas[k].estado === 'Por implementar').length : '' }; },
+    alTerminar: ()=> cargar() });
+}
+function pdfMatriz(){
+  const l = peligros.slice().sort((a, b)=> String(a.resumen.proceso).localeCompare(String(b.resumen.proceso)) || (Number(b.resumen.nr) || 0) - (Number(a.resumen.nr) || 0));
+  if (!l.length) { UI.toast('La matriz está vacía.'); return; }
+  Promise.all(l.map((x)=> SGSST.doc(x.id))).then((docs)=> {
+    // v148: anchos fijos (antes «Medidas» quedaba de una palabra por renglón y 8 peligros ocupaban 3 páginas)
+    const t = '<table style="font-size:6.5pt;table-layout:fixed;width:100%;"><colgroup><col style="width:6%"><col style="width:5%"><col style="width:8%"><col style="width:2%"><col style="width:5%"><col style="width:7%"><col style="width:7%"><col style="width:9%"><col style="width:2.5%"><col style="width:2.5%"><col style="width:2.5%"><col style="width:2.5%"><col style="width:3%"><col style="width:3%"><col style="width:5%"><col style="width:2.5%"><col style="width:6%"><col style="width:6%"><col style="width:15%"></colgroup><tr><th>Proceso</th><th>Zona</th><th>Actividad / tarea</th><th>R</th><th>Clasif.</th><th>Peligro</th><th>Efectos</th><th>Controles F / M / I</th><th>ND</th><th>NE</th><th>NP</th><th>NC</th><th>NR</th><th>Niv.</th><th>Acept.</th><th>N.º exp.</th><th>Peor consecuencia</th><th>Req. legal</th><th>Medidas de intervención</th></tr>' +
+      docs.filter(Boolean).map((d)=> '<tr><td>' + esc(d.proceso) + '</td><td>' + esc(d.zona || '') + '</td><td>' + esc([d.actividad, d.tarea].filter(Boolean).join(' / ')) + '</td><td>' + esc((d.rutinaria || '').charAt(0)) + '</td><td>' + esc(d.clasificacion) + '<br>' + esc(d.subtipo || '') + '</td><td>' + esc(d.peligro) + '</td><td>' + esc(d.efectos || '') + '</td>' +
+        '<td>' + esc([d.ctrlFuente, d.ctrlMedio, d.ctrlIndividuo].map((x)=> x || '—').join(' / ')) + '</td><td class="a">' + esc(d.nd) + '</td><td class="a">' + esc(d.ne) + '</td><td class="a">' + esc(d.np) + '</td><td class="a">' + esc(d.nc) + '</td><td class="a">' + esc(d.nr) + '</td><td class="a nv-' + esc(String(d.nivel || '').trim()) + '">' + esc(d.nivel) + '</td><td class="' + (/^no/i.test(d.aceptabilidad || '') ? 'ac-no' : /^acept/i.test(d.aceptabilidad || '') ? 'ac-si' : '') + '">' + esc(d.aceptabilidad) + '</td><td class="a">' + esc(d.expuestos || '') + '</td>' +
+        '<td>' + esc(d.peorConsecuencia || '') + '</td><td>' + esc(d.requisitoLegal || '') + '</td><td>' + MEDIDAS.map(([k, n])=> (d.medidas || {})[k] && d.medidas[k].texto ? '<b>' + esc(n.split(',')[0]) + ':</b> ' + esc(d.medidas[k].texto) + (d.medidas[k].estado === 'Por implementar' ? ' (por implementar)' : '') : '').filter(Boolean).join('<br>') + '</td></tr>').join('') + '</table>';
+    const ult = revisiones[0];
+    UI.imprimir([UI.cabecera('SG-MATRIZ-PELIGROS', 'MATRIZ DE IDENTIFICACIÓN DE PELIGROS, EVALUACIÓN Y VALORACIÓN DE RIESGOS', 'Metodología GTC 45 · corte ' + UI.corta(UI.hoy()) + (ult ? ' · última revisión con los trabajadores ' + UI.corta(ult.resumen.fecha) : '')) + t + UI.firmasAprobacion()], true);
+  });
+}
+
+/* ── Sustancias químicas (estándar 4.1.3) ── */
+function pintarSustancias(panel){
+  // El inventario completo (SGA, fichas, compatibilidad y Res. 773) está en su propio módulo.
+  const h = UI.hoy();
+  panel.innerHTML = '<div class="aviso info">El inventario de sustancias químicas ahora tiene su propio módulo: pictogramas del SGA, fichas de datos de seguridad adjuntas, compatibilidad de almacenamiento y requisitos de la Res. 773 de 2021. <a href="quimicos.html"><b>Abrir Sustancias químicas →</b></a></div>' +
+    (sustancias.length ? sustancias.slice().sort((a, b)=> (b.resumen.carcinogena || b.resumen.toxicidadAguda) - (a.resumen.carcinogena || a.resumen.toxicidadAguda)).map((x)=> { const s = x.resumen, ok = s.hojaSeguridad === 'Sí' && (!s.venceHoja || s.venceHoja >= h);
+      return '<a class="item ' + (s.estado === 'Fuera de uso' ? 'gris' : ok ? 'ok' : 'mal') + '" href="quimicos.html#' + encodeURIComponent(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.nombre) + '</div><div class="m">' + esc([s.uso, s.ubicacion].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="m">' + esc(s.pictogramas || 'Sin pictogramas') + '</div></div>' + (s.carcinogena || s.toxicidadAguda ? '<span class="chip mal">Prioritaria</span>' : '<span class="chip ' + (ok ? 'ok' : 'mal') + '">' + (ok ? 'Hoja vigente' : 'Sin hoja vigente') + '</span>') + '</div></a>'; }).join('') : '<div class="empty">Sin sustancias registradas.</div>') +
+    '<a class="btn amber" href="quimicos.html">⚗️ Ir a Sustancias químicas</a>';
+}
+/* ── Mediciones ambientales (estándar 4.1.4) ── */
+const C_MED = [{ k: 'agente', l: 'Agente', t: 'select', op: ['Ruido', 'Iluminación', 'Material particulado', 'Gases y vapores', 'Estrés térmico', 'Vibración', 'Radiación', 'Otro'] },
+  { k: 'area', l: 'Área / puesto', req: true, medio: true }, { k: 'fecha', l: 'Fecha de la medición', t: 'date', req: true, medio: true },
+  { k: 'proveedor', l: 'Quién midió (laboratorio / higienista)' }, { k: 'valor', l: 'Valor medido (con unidad)', medio: true, ph: 'Ej: 88 dB(A)' }, { k: 'limite', l: 'Valor límite', medio: true, ph: 'Ej: 85 dB(A) / 8 h' },
+  { k: 'resultado', l: 'Resultado', t: 'select', op: ['Cumple', 'No cumple', 'Requiere control'] }, { k: 'proxima', l: 'Próxima medición', t: 'date' }, { k: 'observaciones', l: 'Recomendaciones del informe', t: 'textarea' }];
+function pintarMediciones(panel){
+  const h = UI.hoy();
+  const lm = mediciones.filter((x)=> fPel.mediciones !== 'mal' || medMal(x));
+  panel.innerHTML = '<p class="ayuda">Mediciones de los agentes priorizados en la matriz, con su resultado frente al valor límite (estándar 4.1.4).</p>' +
+    (mediciones.length ? UI.chipsFiltro([['', 'Todas (' + mediciones.length + ')'], ['mal', 'Vencidas o que no cumplen (' + mediciones.filter(medMal).length + ')']], fPel.mediciones) : '') +
+    (lm.length ? lm.slice().sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha))).map((x)=> { const s = x.resumen, c = s.resultado === 'Cumple' ? UI.semaforo(s.proxima, 30) : 'mal';
+      return '<button type="button" class="item ' + c + '" data-med="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.agente) + ' · ' + esc(s.area) + '</div><div class="m">' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.valor || '—') + (s.limite ? ' (límite ' + esc(s.limite) + ')' : '') + '</div>' +
+        (s.proxima ? '<div class="m">Próxima: ' + esc(UI.corta(s.proxima)) + '</div>' : '') + '</div><span class="chip ' + (s.resultado === 'Cumple' ? 'ok' : 'mal') + '">' + esc(s.resultado) + '</span></div></button>'; }).join('') : '<div class="empty">' + (mediciones.length ? 'Ninguna medición vencida o que no cumpla ✓' : 'Sin mediciones registradas.') + '</div>') +
+    '<button type="button" class="btn amber" id="btnMed">+ Registrar medición</button>';
+  chipsPel(panel);
+  panel.querySelectorAll('[data-med]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.med); if (d) editarSimple('medicion', 'Medición ambiental', C_MED, d); }));
+  $('btnMed').addEventListener('click', ()=> editarSimple('medicion', 'Medición ambiental', C_MED, { id: SGSST.nuevoId('MED'), nuevo: true, fecha: UI.hoy(), resultado: 'Cumple' }));
+}
+function editarSimple(tipo, titulo, campos, d){
+  Registros.editar({ titulo: (d.nuevo ? 'Nueva: ' : '') + titulo, campos, datos: d,
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde la matriz'); if (ok) cargar(); return ok; },
+    alGuardar: async (v)=> {
+      const r = await Registros.guardar(tipo, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      if (tipo === 'medicion' && v.resultado !== 'Cumple' && d.nuevo && await Dialogo.confirmar('La medición no cumple. ¿Crear una acción en el plan de acción?')) UI.nuevaAccion({ origen: 'Matriz de peligros', origenRef: d.id, hallazgo: v.agente + ' en ' + v.area + ': ' + (v.valor || '') + ' (límite ' + (v.limite || '—') + ')', prioridad: 'Alta' });
+      cargar(); return true;
+    } });
+}
+function pdfTabla(formato, titulo, filas, cols){
+  if (!filas.length) { UI.toast('No hay registros.'); return; }
+  const t = '<table><tr>' + cols.map((c)=> '<th>' + esc(c[1]) + '</th>').join('') + '</tr>' + filas.map((x)=> '<tr>' + cols.map((c)=> '<td>' + esc(/fecha|Hoja$/i.test(c[0]) ? UI.corta(x.resumen[c[0]]) : x.resumen[c[0]] === true ? 'Sí' : x.resumen[c[0]] === false ? 'No' : x.resumen[c[0]]) + '</td>').join('') + '</tr>').join('') + '</table>';
+  UI.imprimir([UI.cabecera(formato, titulo, 'Corte ' + UI.corta(UI.hoy()) + ' · ' + filas.length + ' registro(s)') + t], true);
+}
+
+/* ── Revisiones con participación de los trabajadores (estándar 4.1.2) ── */
+/* ── Encuesta a los trabajadores: identifican los peligros por categorías (percepcion-peligros.html, sin usuario) ── */
+function enlaceEncuesta(area){
+  const base = location.href.split(/[?#]/)[0].replace(/[^/]*$/, ''), q = [];
+  if (typeof MultiEmpresa !== 'undefined' && MultiEmpresa.activo && EMPRESA.codigo) q.push('e=' + encodeURIComponent(EMPRESA.codigo));
+  if (area) q.push('area=' + encodeURIComponent(area));
+  return base + 'percepcion-peligros.html' + (q.length ? '?' + q.join('&') : '');
+}
+async function consolidadoEncuestas(){
+  const docs = (await Promise.all(encuestas.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+  const porTipo = {}, areas = {};
+  docs.forEach((d)=> { areas[d.area] = (areas[d.area] || 0) + 1; (d.peligros || []).forEach((p)=> { const k = p.clase + '|' + p.tipo; const x = porTipo[k] = porTipo[k] || { clase: p.clase, tipo: p.tipo, n: 0, areas: {}, diario: 0, coment: [] };
+    x.n++; x.areas[d.area] = 1; if (p.frecuencia === 'Todos los días') x.diario++; if (p.comentario) x.coment.push(p.comentario); }); });
+  const enMatriz = (x)=> peligros.some((p)=> UI.norm(p.resumen.clasificacion) === UI.norm(x.clase) && (UI.norm(p.resumen.peligro).includes(UI.norm(x.tipo).split(' ')[0]) || UI.norm(p.resumen.subtipo || '') === UI.norm(x.tipo)));
+  return { docs, areas, lista: Object.values(porTipo).sort((a, b)=> b.n - a.n).map((x)=> Object.assign(x, { enMatriz: enMatriz(x) })) };
+}
+/* v150: cruce de los peligros de los ATS (hoja «Peligros» del servidor de ATS) con la matriz GTC 45 */
+async function cruzarAts(){
+  const out = $('atsRes'), B = PORTAL_CONFIG.BACKENDS && PORTAL_CONFIG.BACKENDS.ats;
+  if (!B || !B.url) { out.innerHTML = '<div class="aviso amar u-mt8">El servidor de ATS no está configurado.</div>'; return; }
+  out.innerHTML = '<div class="status-msg">Leyendo los peligros de los ATS…</div>';
+  let rows;
+  try { const r = await fetchWithRetry(B.url + '?action=peligrosResumen&token=' + encodeURIComponent(PORTAL_CONFIG.API_TOKEN) + (SGSST._ses ? SGSST._ses() : '')); const j = await r.json(); if (!j.ok) throw new Error(j.error || 'sin respuesta'); rows = j.rows || []; }
+  catch (e) { out.innerHTML = '<div class="aviso mal u-mt8">No se pudo leer el servidor de ATS: ' + esc(e.message) + '</div>'; return; }
+  if (!rows.length) { out.innerHTML = '<div class="empty">Aún no hay peligros registrados en ATS.</div>'; return; }
+  const enMatriz = (x)=> peligros.some((p)=> UI.norm(p.resumen.clasificacion) === UI.norm(x.clase) && (!x.sub || UI.norm(p.resumen.subtipo || '') === UI.norm(x.sub) || UI.norm(p.resumen.peligro).includes(UI.norm(x.sub).split(' ')[0])));
+  const lista = rows.map((x)=> Object.assign(x, { enMatriz: enMatriz(x) })).sort((a, b)=> (a.enMatriz - b.enMatriz) || b.veces - a.veces);
+  const faltan = lista.filter((x)=> !x.enMatriz);
+  out.innerHTML = (faltan.length ? '<div class="aviso amar u-mt8">' + faltan.length + ' tipo(s) de peligro identificados en ATS no aparecen en la matriz.</div>' : '<div class="aviso ok u-mt8">Todos los peligros de los ATS están en la matriz.</div>') +
+    '<table class="tabla u-mt8"><tr><th>Peligro (GTC 45)</th><th>ATS</th><th>¿En la matriz?</th></tr>' + lista.map((x, i)=> '<tr><td><b>' + esc(x.sub || x.clase) + '</b><br><small>' + esc(x.clase) + (x.areas.length ? ' · ' + esc(x.areas.join(', ')) : '') + (x.ultimo ? ' · último ' + esc(UI.corta(x.ultimo)) : '') + '</small>' + (x.ejemplo ? '<br><small>«' + esc(x.ejemplo) + '»</small>' : '') + '</td><td class="u-centro">' + x.ats + '</td><td>' +
+      (x.enMatriz ? 'Sí' : '<button type="button" class="btn-mini" data-agrats="' + i + '">Agregar</button>') + '</td></tr>').join('') + '</table>';
+  out.querySelectorAll('[data-agrats]').forEach((b)=> b.addEventListener('click', ()=> { const x = lista[+b.dataset.agrats];
+    editarPeligro({ id: SGSST.nuevoId('PEL'), nuevo: true, rutinaria: 'Sí', clasificacion: x.clase, subtipo: x.sub, proceso: x.areas[0] || '', peligro: x.ejemplo || '', nd: 6, ne: 3, nc: 25, fechaRevision: UI.hoy(), medidas: {} }); }));
+}
+function pintarRevisiones(panel){
+  panel.innerHTML = '<div class="card"><h2>Encuesta a los trabajadores</h2><p class="ayuda u-mtn4">Cada trabajador marca, por categorías de la GTC 45, los peligros que ve en su trabajo. Sin usuario: se responde desde el enlace o el QR. Sirve como evidencia de participación en la revisión de la matriz.</p>' +
+    '<div class="acciones-top"><button type="button" class="btn amber" id="encQR">Enlace y QR de la encuesta</button><button type="button" class="btn ghost" id="encVer">Ver resultados (' + encuestas.length + ')</button></div><div id="encRes"></div></div>' +
+    '<div class="card"><h2>Peligros que aparecen en los ATS</h2><p class="ayuda u-mtn4">Cruza los peligros que los equipos identifican en sus ATS (clasificados por la GTC 45) con esta matriz. Lo que se identifica en campo y no está en la matriz es una señal para actualizarla.</p>' +
+    '<button type="button" class="btn ghost" id="atsCruce">Cruzar con los ATS</button><div id="atsRes"></div></div>' +
+    '<p class="ayuda">Cada revisión de la matriz queda con quiénes participaron (de todos los niveles) y su firma. Se hace por lo menos una vez al año y cuando hay accidentes mortales, eventos catastróficos o cambios en procesos e instalaciones.</p>' +
+    (revisiones.length ? revisiones.map((x)=> '<button type="button" class="item ok" data-rev="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen.alcance || 'Revisión de la matriz') + '</div><div class="m">' + esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.participantes) + ' participante(s)' + (x.resumen.responsable ? ' · ' + esc(x.resumen.responsable) : '') + '</div></div></div></button>').join('') : '<div class="empty">Sin revisiones registradas.</div>') +
+    '<button type="button" class="btn amber" id="btnRev">+ Registrar revisión</button>';
+  panel.querySelectorAll('[data-rev]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.rev); if (d) editarRevision(d); }));
+  $('encQR').addEventListener('click', ()=> {
+    const m = UI.modal('<h3>Encuesta de peligros para los trabajadores</h3><div class="field"><label>Área (opcional: la encuesta llega con el área ya escrita)</label><input type="text" id="encArea" list="dlProcE" placeholder="Todas"><datalist id="dlProcE">' + [...new Set(peligros.map((x)=> x.resumen.proceso).filter(Boolean))].map((p)=> '<option value="' + esc(p) + '">').join('') + '</datalist></div>' +
+      '<div class="u-centro"><canvas id="encCv" style="max-width:260px;width:100%;"></canvas></div><div class="texto-largo" id="encUrl" style="word-break:break-all;font-size:var(--fs-base);"></div>' +
+      '<button type="button" class="btn amber" id="encCopiar">Copiar el enlace</button><button type="button" class="btn ghost" id="encWa">Enviar por WhatsApp</button><button type="button" class="btn ghost" data-cerrar>Cerrar</button>');
+    const ver = ()=> { const u = enlaceEncuesta(m.el.querySelector('#encArea').value.trim()); m.el.querySelector('#encUrl').textContent = u; try { QR.dibujar(m.el.querySelector('#encCv'), u, { px: 520, margen: 2 }); } catch (e) {} return u; };
+    m.el.querySelector('#encArea').addEventListener('input', ver); ver();
+    m.el.querySelector('#encCopiar').addEventListener('click', async ()=> { try { await navigator.clipboard.writeText(ver()); UI.toast('✓ Enlace copiado.'); } catch (e) { UI.toast('Copia el enlace de la pantalla.'); } });
+    m.el.querySelector('#encWa').addEventListener('click', ()=> window.open('https://wa.me/?text=' + encodeURIComponent('Ayúdanos a identificar los peligros de tu trabajo (2 minutos, puede ser anónimo): ' + ver()), '_blank'));
+  });
+  $('atsCruce').addEventListener('click', cruzarAts);
+  $('encVer').addEventListener('click', async ()=> {
+    const out = $('encRes'); out.innerHTML = '<div class="status-msg">Juntando las respuestas…</div>';
+    const c = await consolidadoEncuestas();
+    if (!c.docs.length) { out.innerHTML = '<div class="empty">Aún no hay respuestas. Comparte el enlace o el QR.</div>'; return; }
+    const faltan = c.lista.filter((x)=> !x.enMatriz);
+    out.innerHTML = '<div class="dato"><span>Respuestas</span><b>' + c.docs.length + '</b></div><div class="dato"><span>Por área</span><b>' + esc(Object.keys(c.areas).map((a)=> a + ': ' + c.areas[a]).join(' · ')) + '</b></div>' +
+      (faltan.length ? '<div class="aviso amar u-mt8">' + faltan.length + ' peligro(s) que señalaron los trabajadores no aparecen en la matriz. Revísalos y agrégalos si aplican.</div>' : '<div class="aviso ok u-mt8">Todo lo que señalaron los trabajadores ya está en la matriz.</div>') +
+      '<table class="tabla u-mt8"><tr><th>Peligro</th><th>Lo señalaron</th><th>¿En la matriz?</th></tr>' + c.lista.map((x, i)=> '<tr><td><b>' + esc(x.tipo) + '</b><br><small>' + esc(x.clase) + ' · ' + esc(Object.keys(x.areas).join(', ')) + (x.diario ? ' · ' + x.diario + ' a diario' : '') + '</small>' + (x.coment.length ? '<br><small>«' + esc(x.coment.slice(0, 2).join('» «')) + '»</small>' : '') + '</td><td class="u-centro">' + x.n + '</td><td>' +
+        (x.enMatriz ? 'Sí' : '<button type="button" class="btn-mini" data-agr="' + i + '">Agregar</button>') + '</td></tr>').join('') + '</table>' +
+      '<button type="button" class="btn ghost" id="encPdf">Resultados de la encuesta (PDF)</button>';
+    out.querySelectorAll('[data-agr]').forEach((b)=> b.addEventListener('click', ()=> { const x = c.lista[+b.dataset.agr];
+      editarPeligro({ id: SGSST.nuevoId('PEL'), nuevo: true, rutinaria: 'Sí', clasificacion: x.clase, subtipo: x.tipo, proceso: Object.keys(x.areas)[0] || '', peligro: '', nd: 6, ne: x.diario ? 4 : 3, nc: 25, fechaRevision: UI.hoy(), medidas: {}, origenEncuesta: true }); }));
+    out.querySelector('#encPdf').addEventListener('click', ()=> UI.imprimir([UI.cabecera('SG-PERCEPCION-PELIGROS', 'IDENTIFICACIÓN DE PELIGROS CON LOS TRABAJADORES', c.docs.length + ' respuesta(s) · corte ' + UI.corta(UI.hoy())) +
+      UI.seccion('PARTICIPACIÓN POR ÁREA', UI.tablaDatos(Object.keys(c.areas).map((a)=> [a, String(c.areas[a]) + ' trabajador(es)']))) +
+      UI.seccion('PELIGROS SEÑALADOS', '<table><tr><td class="l">Clase (GTC 45)</td><td class="l">Peligro</td><td class="l a">N.º</td><td class="l">Áreas</td><td class="l">¿En la matriz?</td></tr>' + c.lista.map((x)=> '<tr><td>' + esc(x.clase) + '</td><td>' + esc(x.tipo) + '</td><td class="a">' + x.n + '</td><td>' + esc(Object.keys(x.areas).join(', ')) + '</td><td>' + (x.enMatriz ? 'Sí' : 'No: revisar') + '</td></tr>').join('') + '</table>') +
+      UI.seccion('SUGERENCIAS DE LOS TRABAJADORES', UI.textoLargo(c.docs.map((d)=> d.sugerencias).filter(Boolean).map((t)=> '• ' + t).join('\n') || '—'))]));
+  });
+  $('btnRev').addEventListener('click', ()=> editarRevision({ id: SGSST.nuevoId('RVM'), nuevo: true, fecha: UI.hoy(), alcance: 'Revisión anual de la matriz de peligros', participantes: [{ nombre: '', cargo: '', firma: '' }] }));
+}
+function editarRevision(d){
+  actual = d;
+  const s = $('scrRevision');
+  const pintarP = ()=> {
+    $('rvPart').innerHTML = d.participantes.map((p, i)=> '<div class="miembro" data-i="' + i + '"><div class="grid2"><div class="field"><label>Nombre</label><input type="text" data-k="nombre" value="' + esc(p.nombre) + '"></div><div class="field"><label>Cargo</label><input type="text" data-k="cargo" value="' + esc(p.cargo || '') + '"></div></div>' +
+      '<div class="field"><label>Firma</label>' + UI.padHTML('fRv_' + i) + '</div></div>').join('');
+    $('rvPart').querySelectorAll('.miembro').forEach((el)=> { const n = el.querySelector('[data-k="nombre"]'); UI.autocompletar(n, (p)=> { n.value = p.nombre; el.querySelector('[data-k="cargo"]').value = p.cargo || ''; }); });
+    d.participantes.forEach((p, i)=> UI.activarPad('fRv_' + i, p.firma));
+  };
+  const leerP = ()=> { d.participantes = [...$('rvPart').querySelectorAll('.miembro')].map((el, i)=> ({ nombre: el.querySelector('[data-k="nombre"]').value.trim(), cargo: el.querySelector('[data-k="cargo"]').value.trim(), firma: UI.firma('fRv_' + i) || (d.participantes[i] || {}).firma || '' })); };
+  s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">Matriz de peligros</div><h1>Revisión con los trabajadores</h1><p>Estándar 4.1.2</p></div>' +
+    '<div class="card"><div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="rvF" value="' + esc(d.fecha) + '"></div><div class="field"><label>Responsable</label><input type="text" id="rvR" value="' + esc(d.responsable || '') + '"></div></div>' +
+    '<div class="field"><label>Alcance</label><input type="text" id="rvA" value="' + esc(d.alcance || '') + '"></div>' +
+    '<div class="field"><label>Qué cambió en la matriz</label><textarea id="rvC">' + esc(d.cambios || '') + '</textarea></div></div>' +
+    '<div class="card"><h2>Participantes</h2><div id="rvPart"></div><button type="button" class="btn ghost" id="rvAdd">+ Agregar participante</button></div>' +
+    '<button type="button" class="btn amber" id="rvOk">Guardar</button><button type="button" class="btn ghost" id="rvPdf">🖨️ Registro de participación (PDF)</button><div class="status-msg" id="rvMsg"></div>';
+  UI.autocompletar($('rvR'), (p)=> { $('rvR').value = p.nombre; });
+  pintarP();
+  $('rvAdd').addEventListener('click', ()=> { leerP(); d.participantes.push({ nombre: '', cargo: '', firma: '' }); pintarP(); });
+  $('rvOk').addEventListener('click', async ()=> {
+    leerP(); d.participantes = d.participantes.filter((p)=> p.nombre);
+    Object.assign(d, { fecha: $('rvF').value, responsable: $('rvR').value.trim(), alcance: $('rvA').value.trim(), cambios: $('rvC').value.trim() });
+    if (!d.participantes.length) { $('rvMsg').textContent = 'Agrega a los participantes.'; return; }
+    const r = await Registros.guardar('revmatriz', d.id, d, d.nuevo ? 0 : d.version); if (typeof r === 'string') { $('rvMsg').textContent = r; return; }
+    UI.toast('✓ Revisión registrada.'); show('scrLista'); cargar();
+  });
+  $('rvPdf').addEventListener('click', ()=> { leerP();
+    UI.imprimir([UI.cabecera('SG-MATRIZ-PELIGROS', 'REVISIÓN DE LA MATRIZ DE PELIGROS CON PARTICIPACIÓN DE LOS TRABAJADORES', UI.corta($('rvF').value)) +
+      UI.seccion('DATOS', UI.tablaDatos([['Fecha', UI.corta($('rvF').value)], ['Responsable', $('rvR').value], ['Alcance', $('rvA').value], ['Cambios', $('rvC').value || '—']])) +
+      UI.seccion('PARTICIPANTES', '<table><tr><th style="width:5%">N°</th><th>Nombre</th><th style="width:25%">Cargo</th><th style="width:28%">Firma</th></tr>' + d.participantes.filter((p)=> p.nombre).map((p, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(p.nombre) + '</td><td>' + esc(p.cargo) + '</td><td>' + UI.firmaHoja(p.firma) + '</td></tr>').join('') + '</table>')]); });
+  show('scrRevision');
+}
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar().then(()=>{
+  // v157: desde un reporte cerrado («Revisar el peligro en la matriz») llega ?buscar=…
+  { const b = new URLSearchParams(location.search).get('buscar'), i = document.getElementById('buscar'); if (b && i) { i.value = b.split(' ')[0]; i.dispatchEvent(new Event('input', { bubbles: true })); UI.toast('Revisa la valoración y los controles del peligro relacionado.'); } } if (location.hash.length > 1 && !/^#ir=/.test(location.hash)) abrirPeligro(decodeURIComponent(location.hash.slice(1))); });
+</script>
+</body>
+</html>

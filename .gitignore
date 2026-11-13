@@ -1,0 +1,4 @@
+node_modules/
+sitio-demo/
+pruebas/_*
+*.log

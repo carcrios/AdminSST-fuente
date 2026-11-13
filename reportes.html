@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Reportes e investigación · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Reportes e investigación · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.clases{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:12px;}
+.clases button{border:2px solid var(--line);background:#fff;border-radius:var(--r-m);padding:12px 10px;text-align:left;cursor:pointer;font-family:inherit;color:var(--ink);min-height:74px;}
+.clases button b{display:block;font-size:var(--fs-base);}
+.clases button span{font-size:var(--fs-menor);color:var(--muted);line-height:1.3;display:block;margin-top:3px;}
+.clases button.on{border-color:var(--ink);background:var(--n-50);box-shadow:inset 0 0 0 1px var(--ink);}
+.clases button[data-c="Accidente de trabajo"].on{border-color:var(--mal);box-shadow:inset 0 0 0 1px var(--mal);background:var(--n-0);}
+.plazo{border-radius:var(--r-m);padding:12px 14px;margin-bottom:10px;font-size:var(--fs-base);line-height:1.45;border:1px solid var(--line);background:#fff;}
+.plazo b{display:block;font-size:var(--fs-base);margin-bottom:2px;}
+.plazo.mal{background:var(--rojo-50);border-color:var(--rojo-200);color:var(--rojo-900);}
+.plazo.pronto{background:var(--ambar-100);border-color:var(--ambar-200);color:var(--ambar-900);}
+.plazo.ok{background:var(--verde-50);border-color:var(--verde-100);color:var(--verde-700);}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--bg);font-size:var(--fs-base);line-height:1.35;cursor:pointer;}
+.checks input{width:20px;height:20px;flex:0 0 auto;margin-top:1px;}
+details.grupo{border:1px solid var(--line);border-radius:var(--r-m);padding:0 12px;margin-bottom:10px;background:#fff;}
+details.grupo summary{padding:12px 0;font-weight:700;font-size:var(--fs-base);cursor:pointer;}
+details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-menor);}
+.equipo-inv{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:10px;background:var(--n-0);}
+.equipo-inv .rol{font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.otra-causa{display:flex;gap:6px;margin-top:6px;}
+.otra-causa .btn-mini{min-height:44px;margin-left:0;padding:0 14px;}
+.otra-causa input{flex:1;min-width:0;min-height:44px;border:1.5px dashed var(--line);border-radius:var(--r-s);padding:9px 10px;font-size:var(--fs-titulo);font-family:inherit;background:#fff;}
+.checks label.propia span{font-style:italic;}
+.porque{margin-bottom:8px;}
+.porque label{display:block;font-size:var(--fs-menor);font-weight:700;color:var(--muted);margin-bottom:3px;}
+.porque input{width:100%;border:1.5px solid var(--line);border-radius:var(--r-s);padding:10px;font-size:var(--fs-titulo);font-family:inherit;background:var(--n-0);}
+.porque + .porque{padding-left:14px;border-left:3px solid var(--n-150);}
+.medida{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--n-150);font-size:var(--fs-base);}
+.medida span:first-child{flex:1;min-width:0;}
+.pasos-inv{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:12px;position:sticky;top:0;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,.05);}
+.pi-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:var(--fs-base);margin-bottom:6px;}
+.pi-top span{color:var(--muted);}
+.pi-pasos{display:flex;gap:4px;flex-wrap:wrap;}
+.pi-pasos span{font-size:var(--fs-menor);font-weight:600;border-radius:var(--r-s);padding:3px 7px;background:var(--bg);color:var(--n-600);}
+.pi-pasos span.ok{background:var(--verde-50);color:var(--verde-600);}
+/* v109: PQRS dentro de «Reportar un evento» */
+.clases button[data-c="PQRS"]{grid-column:1 / -1;min-height:60px;}
+.clases button[data-c="PQRS"].on{border-color:var(--azul-600);box-shadow:inset 0 0 0 1px var(--azul-600);background:var(--n-50);}
+.chips.grandes button{min-height:44px;font-size:var(--fs-base);}
+.tipo-ayuda{font-size:var(--fs-menor);color:var(--muted);line-height:1.4;margin-top:6px;}
+.gracias{text-align:center;padding:22px 16px;}
+.gracias .ico{font-size:var(--fs-hero);line-height:1;}
+.gracias h2{margin:10px 0 6px;font-size:var(--fs-subtitulo);}
+.codigo-seg{font-family:var(--font-display,inherit);font-size:var(--fs-subtitulo);font-weight:800;letter-spacing:.03em;background:var(--n-50);border:1.5px dashed var(--n-400);border-radius:var(--r-m);padding:12px;margin:12px 0 6px;word-break:break-all;user-select:all;-webkit-user-select:all;}
+.filtro-activo{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border:1px solid var(--n-300);color:var(--azul-800);border-radius:var(--r-m);padding:6px 6px 6px 12px;margin-bottom:10px;font-size:var(--fs-base);font-weight:600;}
+.filtro-activo button{min-height:44px;border:0;background:#fff;border-radius:var(--r-s);padding:0 12px;font-weight:700;font-family:inherit;color:var(--azul-800);cursor:pointer;}
+.chip.info{background:var(--azul-50);color:var(--azul-800);}
+/* v109: 5 porqués guiados */
+.pq-paso{border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;background:#fff;}
+.pq-paso.hecho{background:var(--n-0);}
+.pq-paso.raiz{border-color:var(--verde-600);background:var(--verde-50);}
+.pq-q{font-size:var(--fs-base);font-weight:700;line-height:1.35;color:var(--n-800);margin-bottom:6px;}
+.pq-q small{display:block;font-size:var(--fs-etiqueta);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;}
+.pq-paso textarea{width:100%;min-height:58px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:9px 10px;font-size:var(--fs-titulo);font-family:inherit;line-height:1.35;resize:vertical;background:var(--n-0);}
+.pq-r{font-size:var(--fs-titulo);line-height:1.4;}
+.pq-bots{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.pq-bots button{min-height:44px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-s);padding:0 12px;font-weight:700;font-size:var(--fs-base);font-family:inherit;cursor:pointer;color:var(--ink);}
+.pq-bots button.prim{background:var(--n-800);border-color:var(--n-800);color:#fff;flex:1 1 160px;}
+.pq-bots button.raizb{border-color:var(--verde-600);color:var(--verde-600);flex:1 1 160px;}
+.pq-bots button.quitar{color:var(--mal);}
+.pq-sug{margin-top:8px;}
+.pq-sug .t{font-size:var(--fs-menor);font-weight:700;color:var(--muted);margin-bottom:4px;}
+.pq-sug .chips button{min-height:44px;text-align:left;font-weight:600;font-size:var(--fs-menor);border-radius:var(--r-m);}
+.pq-alerta{font-size:var(--fs-menor);font-weight:700;line-height:1.35;border-radius:var(--r-s);padding:7px 9px;margin-top:6px;background:var(--ambar-100);color:var(--ambar-900);border:1px solid var(--ambar-200);}
+.pq-alerta.mal{background:var(--rojo-50);color:var(--rojo-900);border-color:var(--rojo-200);}
+.pq-paso details{margin-top:6px;font-size:var(--fs-menor);line-height:1.45;color:var(--n-700);}
+.pq-paso details summary{cursor:pointer;font-weight:700;color:var(--azul-600);min-height:36px;display:flex;align-items:center;}
+.pq-paso details p{margin:4px 0;}
+.pq-barra{display:flex;gap:4px;margin:0 0 10px;}
+.pq-barra span{flex:1;height:6px;border-radius:var(--r-xs);background:var(--n-150);}
+.pq-barra span.ok{background:#7fb08f;} .pq-barra span.r{background:var(--verde-600);}
+.raiz-caja{border:1.5px solid var(--verde-600);background:var(--verde-50);border-radius:var(--r-m);padding:10px 12px;margin:4px 0 10px;font-size:var(--fs-base);line-height:1.4;color:var(--verde-700);}
+.raiz-caja .btn{margin-top:8px;}
+.clases.v-falta{border:1.5px solid var(--mal);border-radius:var(--r-l);padding:6px;}
+/* v151: acción inmediata en casillas iguales (dos columnas, misma altura) */
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+#nAccionTomada.acc-grid label{display:flex;align-items:center;gap:10px;min-height:56px;margin:0;padding:10px 12px;border:1.5px solid var(--n-300);border-radius:var(--r-m);background:var(--paper);color:var(--ink);text-transform:none;letter-spacing:0;font-size:var(--fs-menor);line-height:1.25;cursor:pointer;}
+#nAccionTomada.acc-grid label:has(input:checked){border-color:var(--azul-600);background:var(--azul-50);font-weight:700;box-shadow:inset 0 0 0 1px var(--azul-600);}
+.acc-grid input{flex:none;width:20px;height:20px;margin:0;}
+@media (max-width:360px){.acc-grid{grid-template-columns:1fr;}}
+.fur-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 10px;margin-top:6px;}
+.fur-grid .field.ancho{grid-column:1/-1;}
+.fur-multi{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-menor);}
+.fur-multi label{display:flex;gap:4px;align-items:flex-start;font-weight:400;text-transform:none;}
+.testigo{border:1px solid var(--n-300);border-radius:var(--r-m);padding:8px;margin:6px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════ LISTA ═══════ -->
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Reportes e investigación</h1>
+    <p>Actos y condiciones inseguras, incidentes, accidentes de trabajo y PQRS</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="avisoCopia"></div>
+  <button type="button" class="btn amber" id="btnReportar" style="margin:0 0 12px;">⚠️ Reportar ahora</button>
+  <div class="kpis" id="kpis"></div>
+  <div id="pendLegales"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="abiertos">Abiertos <span class="n" id="nAb">0</span></button>
+    <button type="button" data-tab="accidentes">Accidentes <span class="n" id="nAt">0</span></button>
+    <button type="button" data-tab="investigaciones">Investigaciones <span class="n" id="nInv">0</span></button>
+    <button type="button" data-tab="todos">Todos <span class="n" id="nTo">0</span></button>
+    <button type="button" data-tab="pqrs">PQRS <span class="n" id="nPq">0</span></button>
+  </div>
+  <div id="filtroActivo"></div>
+  <input type="search" class="buscar" id="buscar" placeholder="Buscar por lugar, descripción o persona">
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<!-- ═══════ NUEVO REPORTE ═══════ -->
+<div class="screen" id="scrNuevo">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Volver</a>
+    <div class="eyebrow">Gestión SST</div>
+    <h1 id="nTitulo">Nuevo reporte</h1>
+    <p>Funciona sin señal: se envía solo al volver la conexión</p>
+  </div>
+  <div class="clases" id="clases" role="radiogroup" aria-label="Qué vas a reportar">
+    <button type="button" data-c="Acto seguro"><b>✅ Acto seguro</b><span>Alguien trabajó bien: reconócelo para que se repita</span></button>
+    <button type="button" data-c="Acto inseguro"><b>🙅 Acto inseguro</b><span>Algo que una persona hace mal (sin arnés, sin bloqueo…)</span></button>
+    <button type="button" data-c="Condición insegura"><b>⚠️ Condición insegura</b><span>Algo del sitio o equipo que puede causar daño</span></button>
+    <button type="button" data-c="Hallazgo ambiental"><b>🌱 Hallazgo ambiental</b><span>Derrames, residuos, vertimientos, emisiones, quemas, desperdicio de agua o energía</span></button>
+    <button type="button" data-c="Incidente"><b>😮 Incidente</b><span>Casi accidente: pudo haber lesión y no la hubo</span></button>
+    <button type="button" data-c="Accidente de trabajo"><b>🚑 Accidente de trabajo</b><span>Hubo lesión. Plazo de reporte a la ARL: 2 días hábiles</span></button>
+    <button type="button" data-c="PQRS"><b>💬 PQRS (petición, queja, reclamo o sugerencia)</b><span>De un cliente, trabajador, contratista o vecino. Te damos un código para hacerle seguimiento</span></button>
+  </div>
+  <div class="card" id="cardPqrs" hidden>
+    <h2>💬 PQRS</h2>
+    <div class="field"><label>¿Qué es? *</label>
+      <div class="chips grandes" id="pTipo"><button type="button" data-v="Petición">Petición</button><button type="button" data-v="Queja">Queja</button><button type="button" data-v="Reclamo">Reclamo</button><button type="button" data-v="Sugerencia">Sugerencia</button><button type="button" data-v="Felicitación">Felicitación</button></div>
+      <div class="tipo-ayuda" id="pTipoAyuda">Elige una opción: abajo te explicamos cada una.</div></div>
+    <div class="field"><label>¿Quién la presenta? *</label>
+      <div class="chips grandes" id="pPresenta"><button type="button" data-v="Cliente">Cliente</button><button type="button" data-v="Trabajador">Trabajador</button><button type="button" data-v="Contratista">Contratista</button><button type="button" data-v="Comunidad">Comunidad o vecino</button><button type="button" data-v="Otro">Otro</button></div></div>
+    <div class="checks u-mb6"><label><input type="checkbox" id="pAnonima"> <span>Presentarla de forma <b>anónima</b> (no podremos responderte directamente: guarda el código que te damos al final)</span></label></div>
+    <div id="pDatos">
+      <div class="field" id="pFilaEmpresa" hidden><label>Empresa (cliente o contratista)</label><input type="text" id="pEmpresa" maxlength="100" placeholder="Ej: Alimentos del Norte S.A.S."></div>
+      <div class="field"><label>Tu nombre (opcional)</label><input type="text" id="pNombre" maxlength="80" autocomplete="name"></div>
+      <div class="field"><label>Correo o teléfono para responderte (opcional)</label><input type="text" id="pContacto" maxlength="120" autocomplete="email" placeholder="nombre@empresa.com o 300 000 0000"></div>
+    </div>
+    <div class="field"><label>Área o proceso relacionado</label><input type="text" id="pArea" list="areasPqrs" maxlength="80" placeholder="Ej: Operaciones en obra, Compras, Atención al cliente"><datalist id="areasPqrs"></datalist></div>
+    <div class="field"><label>Cuéntanos qué pasa o qué propones *</label><textarea id="pDesc" maxlength="1500" placeholder="Qué pasó, cuándo y dónde. Si es una petición, qué necesitas."></textarea></div>
+    <div class="field"><label>Foto o soporte (opcional)</label><div id="pFotos"></div></div>
+    <p class="ayuda" id="pPlazo"></p>
+  </div>
+  <div class="card" id="cardEvento">
+    <div class="grid2">
+      <div class="field"><label>Fecha</label><input type="date" id="nFecha"></div>
+      <div class="field"><label>Hora</label><input type="time" id="nHora"></div>
+    </div>
+    <div class="field"><label>Lugar / área</label><input type="text" id="nLugar" placeholder="Ej: Cuarto de calderas, andamio norte"></div>
+    <div class="field"><label>Centro de costo / cliente</label><input type="text" id="nCentro" list="centros" placeholder="Opcional"><datalist id="centros"></datalist></div>
+    <div class="field" id="filaCategoria" hidden><label>Categoría del acto o condición observada *</label><select id="nCategoria"></select>
+      <input type="text" id="nCategoriaOtra" maxlength="150" placeholder="¿Cuál?" hidden class="u-mt6"></div>
+    <div class="field"><label>¿Qué sucedió? *</label><div class="ayuda" style="margin:-2px 0 6px;">Describe de forma clara y objetiva lo que viste: qué, dónde y cómo.</div><textarea id="nDesc" placeholder="Qué se vio, dónde y cómo"></textarea></div>
+    <div class="field" id="filaRelacionados" hidden><label>Persona(s), equipo(s), máquina(s) o instalaciones relacionadas *</label><textarea id="nRelacionados" maxlength="1000" class="u-alto56" placeholder="Ej.: pulidora PUL-03, área de corte, ayudante de turno"></textarea></div>
+    <div class="field"><label>Fotos</label><div id="nFotos"></div></div>
+    <div class="field" id="filaPot"><label id="lbPot">Potencial de daño</label><div class="chips" id="nPot" role="radiogroup" aria-labelledby="lbPot"><button type="button" data-v="Alto">Alto</button><button type="button" data-v="Medio" class="on">Medio</button><button type="button" data-v="Bajo">Bajo</button></div></div>
+    <div class="field" id="filaInmediataTxt"><label>Acción inmediata tomada</label><textarea id="nInmediata" placeholder="Ej: se suspendió la tarea y se aisló el área"></textarea></div>
+    <div class="field" id="filaAccionTomada" hidden><label>Acción inmediata tomada *</label>
+      <div class="checks acc-grid" id="nAccionTomada"></div>
+      <input type="text" id="nAccionOtra" maxlength="200" placeholder="¿Cuál otra?" hidden class="u-mt6"></div>
+    <div class="field" id="filaPlan" hidden><label>Plan de acción sugerido</label><div class="ayuda" style="margin:-2px 0 6px;">Acción inmediata para evitar que vuelva a ocurrir.</div><textarea id="nPlan" maxlength="1500" class="u-alto60"></textarea></div>
+    <div class="field" id="filaConsecuencias" hidden><label>¿Qué consecuencias se evitan con este reporte?</label><textarea id="nConsecuencias" maxlength="1500" class="u-alto60" placeholder="Ej.: una caída de altura, un derrame al alcantarillado"></textarea></div>
+  </div>
+  <div class="card" id="cardLesion" hidden>
+    <h2>🚑 Persona lesionada</h2>
+    <div class="field"><label>Nombre</label><input type="text" id="lNombre" placeholder="Escribe para buscar"></div>
+    <div class="grid2">
+      <div class="field"><label>Cédula</label><input type="text" id="lCedula" inputmode="numeric"></div>
+      <div class="field"><label>Cargo</label><input type="text" id="lCargo"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Parte del cuerpo</label><select id="lParte"></select></div>
+      <div class="field"><label>Tipo de lesión</label><select id="lTipo"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Mecanismo</label><select id="lMecanismo"></select></div>
+      <div class="field"><label>Agente</label><select id="lAgente"></select></div>
+    </div>
+    <div class="field"><label>Atención</label><select id="lAtencion"><option>Primeros auxilios en sitio</option><option>Remitido a IPS / urgencias</option><option>Hospitalizado</option><option>Sin atención</option></select></div>
+    <div class="checks">
+      <label><input type="checkbox" id="lGrave"> <span><b>Accidente grave</b> (amputación, fractura de huesos largos, trauma craneoencefálico, quemadura de 2.º o 3.º grado, lesión severa de mano, columna u ojos…)</span></label>
+      <label><input type="checkbox" id="lMortal"> <span><b>Accidente mortal</b></span></label>
+    </div>
+  </div>
+  <div class="card" id="cardQuien">
+    <div class="field"><label for="nQuien">Quién reporta *</label><input type="text" id="nQuien" placeholder="Tu nombre (escribe para buscar)"></div>
+    <label class="checks" id="filaAnonimo"><label style="border:0;padding:0;"><input type="checkbox" id="nAnonimo"> <span>Reportar de forma anónima (solo actos y condiciones)</span></label></label>
+  </div>
+  <button type="button" class="btn amber" id="btnEnviar">Enviar reporte</button>
+  <div class="status-msg" id="msgNuevo"></div>
+</div>
+
+<!-- ═══════ GRACIAS (PQRS) ═══════ -->
+<div class="screen" id="scrGracias">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Volver</a>
+    <div class="eyebrow">PQRS</div>
+    <h1>¡Gracias!</h1>
+    <p>Recibimos tu PQRS</p>
+  </div>
+  <div class="card gracias">
+    <div class="ico">✅</div>
+    <h2 id="gTitulo">Tu PQRS quedó registrada</h2>
+    <div class="m u-nota">Este es tu código de seguimiento. Guárdalo (tómale foto) para preguntar por ella:</div>
+    <div class="codigo-seg" id="gCodigo">—</div>
+    <button type="button" class="btn ghost" id="gCopiar">Copiar el código</button>
+    <div class="aviso info" id="gPlazo" style="text-align:left;margin-top:10px;"></div>
+  </div>
+  <div class="fila-btn">
+    <button type="button" class="btn ghost" id="gOtra">Reportar otra cosa</button>
+    <a class="btn u-centro" href="index.html">Ir al inicio</a>
+  </div>
+</div>
+
+<!-- ═══════ DETALLE ═══════ -->
+<div class="screen" id="scrDetalle">
+  <div class="hdr">
+    <a class="back" href="#" data-volver>← Volver a la lista</a>
+    <div class="eyebrow" id="dCodigo">—</div>
+    <h1 id="dTitulo">—</h1>
+    <p id="dSub">—</p>
+  </div>
+  <div id="dPlazos"></div>
+  <div class="card" id="dDatos"></div>
+  <div class="card" id="dFurat" hidden></div>
+  <div class="card" id="dInv" hidden></div>
+  <div class="card">
+    <h2>Acciones del plan de acción</h2>
+    <div id="dAcciones"><div class="status-msg">Cargando…</div></div>
+    <button type="button" class="btn ghost" id="btnAccion">+ Agregar acción</button>
+  </div>
+  <div class="fila-btn">
+    <button type="button" class="btn ghost" id="btnPdfRep">🖨️ PDF</button>
+    <button type="button" class="btn" id="btnCerrarRep">✅ Cerrar reporte</button>
+  </div>
+  <div class="status-msg" id="msgDet"></div>
+  <div class="card"><div id="dAdj"></div><div id="dHist"></div></div>
+</div>
+
+<!-- ═══════ INVESTIGACIÓN ═══════ -->
+<div class="screen" id="scrInv">
+  <div class="hdr">
+    <a class="back" href="#" id="volverInv">← Volver al reporte</a>
+    <div class="eyebrow" id="iCodigo">—</div>
+    <h1>Investigación</h1>
+    <p>Res. 1401 de 2007: dentro de los 15 días siguientes al evento</p>
+  </div>
+  <div class="pasos-inv" id="iPasos"></div>
+  <!-- v161: datos del FURAT (secciones I y II del formato de investigación, Res. 1401 de 2007) -->
+  <div class="card" id="iFuratCard">
+    <h2>Datos del FURAT</h2>
+    <p class="ayuda mt-menos4">Salen del reporte y de Personal habilitado; revisa y completa lo que falte (son los mismos datos del FURAT que se radicó en la ARL).</p>
+    <details class="grupo" open><summary>I. Persona que se accidentó</summary><div id="iFurPersona" class="fur-grid"></div></details>
+    <details class="grupo"><summary>II. Información sobre el accidente</summary><div id="iFurAccidente" class="fur-grid"></div></details>
+    <details class="grupo"><summary>Testigos <span class="n" id="nTestigos"></span></summary><div id="iTestigos"></div><button type="button" class="btn ghost mini" id="btnMasTestigo">+ Agregar testigo</button></details>
+    <details class="grupo"><summary>Responsable del informe</summary><div id="iFurResp" class="fur-grid"></div></details>
+  </div>
+  <div class="card">
+    <h2>Equipo investigador</h2>
+    <p class="ayuda mt-menos4">Jefe inmediato o supervisor, un representante del COPASST o vigía, y el responsable de SST. Si fue grave o mortal, también un profesional con licencia en SST.</p>
+    <div id="iEquipo"></div>
+    <button type="button" class="btn ghost" id="btnMasEquipo">+ Agregar integrante</button>
+  </div>
+  <div class="card">
+    <h2>Descripción de los hechos</h2>
+    <div class="field"><textarea id="iHechos" style="min-height:110px;"></textarea></div>
+  </div>
+  <div class="card">
+    <h2>Causas</h2>
+    <details class="grupo" open><summary>Inmediatas · actos subestándar <span class="n" data-n="actos"></span></summary><div class="checks" id="cActos"></div></details>
+    <details class="grupo"><summary>Inmediatas · condiciones subestándar <span class="n" data-n="condiciones"></span></summary><div class="checks" id="cCondiciones"></div></details>
+    <details class="grupo"><summary>Básicas · factores personales <span class="n" data-n="personales"></span></summary><div class="checks" id="cPersonales"></div></details>
+    <details class="grupo"><summary>Básicas · factores del trabajo <span class="n" data-n="trabajo"></span></summary><div class="checks" id="cTrabajo"></div></details>
+    <p class="ayuda">Marca las que apliquen. Si la causa no está en la lista, escríbela en «Otra» de cada grupo.</p>
+  </div>
+  <div class="card">
+    <h2>¿Por qué pasó? · 5 porqués</h2>
+    <p class="ayuda mt-menos4">Escribe qué pasó y responde «¿por qué?» paso a paso: cada respuesta se vuelve la siguiente pregunta. Para cuando llegues a la causa raíz (lo que, si se corrige, evita que se repita); no hace falta llegar a 5.</p>
+    <div class="pq-barra" id="iPqBarra" aria-hidden="true"></div>
+    <div id="iPorques"></div>
+    <div id="iRaizCaja"></div>
+    <div class="field"><label>Causa raíz (puedes ajustarla)</label><input type="text" id="iRaiz" maxlength="300" placeholder="Ej.: la compra de discos no exige revisar que sirvan para el equipo"></div>
+    <div class="field"><label for="iLicencia">N.º de licencia en SST del profesional (obligatorio si el AT es grave o mortal)</label><input type="text" id="iLicencia" maxlength="60" placeholder="Ej.: Resolución 1234 de 2020 · Secretaría de Salud"></div>
+    <div class="grid2"><div class="field"><label for="iLicExp">Licencia expedida por</label><input type="text" id="iLicExp" maxlength="80" placeholder="Ej.: Secretaría de Salud" data-no-ac></div>
+    <div class="field"><label for="iRepLegal">Representante legal</label><input type="text" id="iRepLegal" maxlength="80" data-no-ac></div></div>
+    <div class="field"><label>Análisis adicional (opcional)</label><textarea id="iAnalisis" style="min-height:80px;"></textarea></div>
+    <div class="field"><label>Conclusiones y lecciones aprendidas</label><textarea id="iConclusiones"></textarea></div>
+  </div>
+  <div class="card">
+    <h2>Medidas por causa</h2>
+    <p class="ayuda mt-menos4">Cada causa encontrada necesita su medida. Toca «+ Acción» y queda en el plan de acción con responsable y fecha.</p>
+    <div id="iMedidas"></div>
+  </div>
+  <div class="fila-btn">
+    <button type="button" class="btn ghost" id="btnGuardarInv">Guardar avance</button>
+    <button type="button" class="btn verde" id="btnCerrarInv">Terminar investigación</button>
+    <button type="button" class="btn ghost" id="btnFormatoInv">📄 Formato de investigación (PDF)</button>
+  </div>
+  <div class="status-msg" id="msgInv"></div>
+</div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="reportes.app.js"></script>
+</body>
+</html>

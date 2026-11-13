@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Maskm9qJWZNp9HXBKCMHCAQMMxNKvxlXZE37dCsLu8w='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>¿Qué peligros ves en tu trabajo? · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="¿Qué peligros ves en tu trabajo? · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.clase{border:1px solid var(--line);border-radius:var(--r-l);background:#fff;margin-bottom:10px;overflow:hidden;}
+.clase > summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;gap:10px;align-items:center;}
+.clase > summary::-webkit-details-marker{display:none;}
+.clase .bola{width:14px;height:14px;border-radius:50%;flex:0 0 auto;}
+.clase .ct{flex:1;min-width:0;}
+.clase .ct b{display:block;font-size:var(--fs-campo);}
+.clase .ct span{display:block;font-size:var(--fs-base);color:var(--muted);line-height:1.35;margin-top:2px;}
+.clase .n{font-size:var(--fs-menor);font-weight:700;border-radius:var(--r-s);padding:3px 8px;background:var(--bg);color:var(--n-600);}
+.clase .n.on{background:var(--verde-50);color:var(--verde-600);}
+.tipos{padding:0 12px 12px;}
+.tipo{border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:8px;cursor:pointer;display:block;background:var(--n-0);}
+.tipo.on{border-color:var(--verde-600);background:var(--verde-50);}
+.tipo > div{display:flex;gap:10px;align-items:flex-start;}
+.tipo input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin-top:1px;}
+.tipo b{display:block;font-size:var(--fs-titulo);}
+.tipo small{display:block;font-size:var(--fs-menor);color:var(--muted);line-height:1.35;}
+.tipo .det{margin-top:8px;display:none;}
+.tipo.on .det{display:block;}
+.tipo .det select,.tipo .det input{width:100%;min-height:44px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:0 10px;font-size:var(--fs-titulo);font-family:inherit;background:#fff;margin-top:6px;}
+.otro-p{display:flex;gap:6px;}
+.otro-p input{flex:1;min-width:0;min-height:44px;border:1.5px dashed var(--line);border-radius:var(--r-s);padding:0 10px;font-size:var(--fs-titulo);font-family:inherit;}
+.listo{text-align:center;padding:30px 10px;}
+.listo .ic{font-size:var(--fs-hero);}
+.barra-env{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg,var(--bg)) 30%);padding:14px 0 calc(10px + env(safe-area-inset-bottom));}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrEnc">
+  <div class="hdr">
+    <a class="back" href="index.html">← Portal</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Empresa"></span><div><div class="eyebrow">Matriz de peligros · participación</div>
+    <h1>¿Qué peligros ves en tu trabajo?</h1>
+    <p>Marca lo que te puede hacer daño en tu día a día. Tu opinión sirve para actualizar la matriz de peligros.</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div class="card">
+    <div class="grid2"><div class="field"><label>¿En qué área o proceso trabajas? *</label><input type="text" id="eArea" maxlength="80" placeholder="Ej.: Taller de soldadura"></div>
+    <div class="field"><label>Tu cargo</label><input type="text" id="eCargo" maxlength="80" placeholder="Ej.: Soldador"></div></div>
+    <label class="check"><input type="checkbox" id="eAnon" checked> Responder sin mi nombre (anónimo)</label>
+    <div class="field" id="eNomF" hidden><label>Tu nombre</label><input type="text" id="eNom" maxlength="80"></div>
+  </div>
+  <p class="ayuda">Toca cada grupo y marca los peligros que ves. Si marcas uno, dinos cada cuánto y, si quieres, un comentario. Si no está en la lista, escríbelo en «Otro».</p>
+  <div id="clases"></div>
+  <div class="card"><div class="field"><label>¿Qué propones para trabajar más seguro? (opcional)</label><textarea id="eSug" maxlength="1000" placeholder="Ej.: poner una baranda en la escalera del tanque"></textarea></div></div>
+  <div class="barra-env"><div class="status-msg" id="eMsg"></div><button type="button" class="btn amber" id="eEnviar">Enviar mis respuestas</button></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrListo"><div class="card listo"><div class="ic">✓</div><h2>¡Gracias!</h2><p id="lTxt">Tus respuestas llegaron al área de SST.</p><button type="button" class="btn ghost" id="lOtra">Responder otra vez (otra persona)</button></div></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="gtc45-catalogo.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* Encuesta pública (sin usuario): los trabajadores identifican los peligros de su trabajo por
+   las categorías de la GTC 45. Lo que envían llega al SG-SST (tipo encpeligro: solo se crea; el
+   servidor limpia y acota todo) y en la Matriz de peligros → Revisiones se ve el consolidado. */
+const $ = UI.$;
+const params = new URLSearchParams(location.search);
+if (params.get('area')) $('eArea').value = params.get('area').slice(0, 80);
+$('eAnon').addEventListener('change', ()=> { $('eNomF').hidden = $('eAnon').checked; });
+function pintar(){
+  $('clases').innerHTML = GTC45.CLASES.map((c, ci)=> '<details class="clase" data-c="' + ci + '"><summary><span class="bola" style="background:' + c.color + '"></span><span class="ct"><b>' + esc(c.nombre) + '</b><span>' + esc(c.simple) + '</span></span><span class="n" data-n>0</span></summary><div class="tipos">' +
+    c.tipos.map((t, ti)=> '<label class="tipo" data-t="' + ti + '"><div><input type="checkbox"><span><b>' + esc(t.nombre) + '</b><small>' + esc(t.simple || t.desc || '') + '</small></span></div>' +
+      '<div class="det"><select aria-label="Cada cuánto"><option value="">¿Cada cuánto?</option>' + GTC45.FRECUENCIAS.map((f)=> '<option>' + esc(f) + '</option>').join('') + '</select><input type="text" maxlength="300" placeholder="Comentario (opcional): dónde o cuándo pasa"></div></label>').join('') +
+    '<div class="otro-p"><input type="text" maxlength="120" placeholder="Otro peligro de este grupo" aria-label="Otro peligro de ' + esc(c.nombre) + '"><button type="button" class="btn-mini">Agregar</button></div></div></details>').join('');
+}
+pintar();
+function contar(){ document.querySelectorAll('.clase').forEach((d)=> { const n = d.querySelectorAll('.tipo input[type=checkbox]:checked').length, b = d.querySelector('[data-n]'); b.textContent = n; b.classList.toggle('on', n > 0); }); }
+document.addEventListener('change', (e)=> { const t = e.target.closest('.tipo'); if (t && e.target.type === 'checkbox') { t.classList.toggle('on', e.target.checked); contar(); } });
+document.addEventListener('click', (e)=> {
+  const b = e.target.closest('.otro-p button'); if (!b) return;
+  const inp = b.parentElement.querySelector('input'), t = inp.value.replace(/\s+/g, ' ').trim(); if (!t) { inp.focus(); return; }
+  const l = document.createElement('label'); l.className = 'tipo on'; l.dataset.otro = t;
+  l.innerHTML = '<div><input type="checkbox" checked><span><b>' + esc(t) + '</b><small>Escrito por ti</small></span></div><div class="det"><select aria-label="Cada cuánto"><option value="">¿Cada cuánto?</option>' + GTC45.FRECUENCIAS.map((f)=> '<option>' + esc(f) + '</option>').join('') + '</select><input type="text" maxlength="300" placeholder="Comentario (opcional)"></div>';
+  b.parentElement.insertAdjacentElement('beforebegin', l); inp.value = ''; contar();
+});
+function leer(){
+  const peligros = [];
+  document.querySelectorAll('.clase').forEach((d)=> { const c = GTC45.CLASES[+d.dataset.c];
+    d.querySelectorAll('.tipo').forEach((t)=> { if (!t.querySelector('input[type=checkbox]').checked) return;
+      peligros.push({ clase: c.nombre, tipo: t.dataset.otro || c.tipos[+t.dataset.t].nombre, frecuencia: t.querySelector('select').value, comentario: t.querySelector('.det input').value.trim() }); }); });
+  return { area: $('eArea').value.trim(), cargo: $('eCargo').value.trim(), anonima: $('eAnon').checked, nombre: $('eAnon').checked ? '' : $('eNom').value.trim(), peligros, sugerencias: $('eSug').value.trim() };
+}
+$('eEnviar').addEventListener('click', async ()=> {
+  const d = leer(), msg = $('eMsg');
+  const prob = Valida.revisar($('scrEnc'), [{ el: $('eArea'), etiqueta: 'Área o proceso', error: d.area ? Valida.texto(d.area, 3) : 'falta' }], null);
+  if (!d.peligros.length) prob.push('Marca por lo menos un peligro');
+  const sinFrec = d.peligros.filter((x)=> !x.frecuencia);
+  if (sinFrec.length) prob.push('Dinos cada cuánto en: ' + sinFrec.map((x)=> x.tipo).join(', '));
+  if (prob.length) { msg.innerHTML = '<div class="v-resumen"><b>Falta:</b><br>• ' + prob.map(esc).join('<br>• ') + '</div>'; return; }
+  if (!SGSST.url()) { msg.textContent = 'El portal no tiene servidor configurado.'; return; }
+  const b = $('eEnviar'); b.disabled = true; msg.textContent = 'Enviando…';
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'encpeligro', id: SGSST.nuevoId('EPL'), doc: d });
+  b.disabled = false;
+  if (!r.ok) { msg.textContent = Errores.texto('pudo enviar', r); return; }
+  msg.textContent = '';
+  $('lTxt').textContent = r.enCola ? 'Quedaron guardadas en este celular y se envían solas cuando haya señal.' : 'Tus respuestas llegaron al área de SST. Marcaste ' + d.peligros.length + ' peligro(s).';
+  document.querySelectorAll('.screen').forEach((s)=> s.classList.toggle('active', s.id === 'scrListo')); window.scrollTo(0, 0);
+});
+$('lOtra').addEventListener('click', ()=> { pintar(); $('eSug').value = ''; $('eNom').value = ''; $('eCargo').value = ''; document.querySelectorAll('.screen').forEach((s)=> s.classList.toggle('active', s.id === 'scrEnc')); window.scrollTo(0, 0); });
+UI.avisoServidor($('avisoSrv'));
+</script>
+</body>
+</html>

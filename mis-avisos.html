@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-DWvf+x+mlGi+QTIx44LhZFVCeVtkZN9jGy8esBoxDZ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Tus avisos · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tus avisos · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Tu usuario</div>
+    <h1>Tus avisos por correo</h1>
+    <p>Elige cuándo te llegan los pendientes</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="msg"></div>
+  <div class="card" id="cardAvisos" hidden></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+const $ = UI.$;
+const ROLES = { admin: 'Administrador', sst: 'SST', supervisor: 'Supervisor / campo', comite: 'Integrante de comité', consulta: 'Solo consulta' };
+/* v162 · Cada persona elige cómo recibe los avisos (el administrador además define los de cada rol). */
+const FREC = [['diario', 'Cada día, lo que vence hoy y mañana'], ['semanal', 'Los lunes, lo de la semana'], ['criticos', 'Solo lo vencido'], ['no', 'No quiero correos']];
+async function cargarMisAvisos(){
+  let j; try { j = await SGSST.consultar({ action: 'misAvisos' }); } catch (e) { return; } if (!j.ok) return;
+  const c = $('cardAvisos'); c.hidden = false;
+  c.innerHTML = '<h2>Tus avisos por correo</h2>' + (j.correo ? '' : '<div class="aviso amar">Tu usuario no tiene correo: pídele al administrador que lo agregue para recibir avisos.</div>') +
+    '<div class="field"><label for="avFrec">Cuándo</label><select id="avFrec">' + FREC.map(([k, t])=> '<option value="' + k + '"' + (j.pref.frec === k ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="avFinde"' + (j.pref.finde ? ' checked' : '') + '> También sábados y domingos</label>' +
+    '<button type="button" class="btn ghost u-mt8" id="avGuardar">Guardar</button><span class="status-msg" id="avMsg"></span>' +
+    (j.roles ? '<h3 class="u-mt10">Por rol (lo que reciben quienes no han elegido)</h3><div class="grid2">' + Object.keys(ROLES).map((r)=> '<div class="field"><label for="avR' + r + '">' + esc(ROLES[r]) + '</label><select id="avR' + r + '" data-rol="' + r + '">' + FREC.map(([k, t])=> '<option value="' + k + '"' + ((j.roles[r] || {}).frec === k || (!j.roles[r] && k === 'diario') ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>' +
+      '<input type="text" class="u-mt8" id="avC' + r + '" data-correos="' + r + '" aria-label="Correos adicionales para ' + esc(ROLES[r]) + '" placeholder="Correos que también reciben (separa con coma)" value="' + esc(((j.roles[r] || {}).correos || []).join(', ')) + '"></div>').join('') +
+      '</div><p class="ayuda">Los correos adicionales reciben el resumen de ese rol aunque no tengan usuario en el portal (por ejemplo, el gerente o el correo del COPASST).</p><button type="button" class="btn ghost" id="avRoles">Guardar por rol</button><span class="status-msg" id="avRMsg"></span>' : '');
+  $('avGuardar').addEventListener('click', async ()=> { const r = await SGSST.enviar({ action: 'guardarMisAvisos', frec: $('avFrec').value, finde: $('avFinde').checked }, null, { sinCola: true }); $('avMsg').textContent = r.ok ? ' ✓ Guardado' : ' ' + (r.error || 'No se pudo'); });
+  if ($('avRoles')) $('avRoles').addEventListener('click', async ()=> { const roles = {}; c.querySelectorAll('[data-rol]').forEach((s)=> { roles[s.dataset.rol] = s.value; }); const correos = {}; c.querySelectorAll('[data-correos]').forEach((s)=> { correos[s.dataset.correos] = s.value; });
+    const r = await SGSST.enviar({ action: 'avisosPorRol', roles, correos }, null, { sinCola: true }); $('avRMsg').textContent = r.ok ? ' ✓ Guardado' : ' ' + (r.error || 'No se pudo'); });
+}
+
+(async ()=> { if (UI.avisoServidor($('avisoSrv'))) return;
+  if (!(Sesion.modo() && Sesion.yo())) { $('msg').innerHTML = '<div class="aviso info">Entra con tu usuario para elegir tus avisos.</div>'; Sesion.pedir && Sesion.pedir(); return; }
+  cargarMisAvisos(); })();
+</script>
+</body>
+</html>

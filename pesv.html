@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8zaYSfB58Cw7sHMETJtdnAUj0/5eMIsSo+Aa+BvC/0k='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>PESV · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PESV · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.paso{border-bottom:1px dashed var(--n-150);padding:9px 0;}
+.paso .pt{font-size:var(--fs-base);font-weight:600;line-height:1.35;}
+.paso .pt small{font-weight:500;color:var(--muted);}
+.paso textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:var(--r-s);padding:8px;font-size:var(--fs-base);font-family:inherit;min-height:38px;margin-top:6px;}
+.fase{font-family:var(--font-display);font-size:var(--fs-base);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:14px 0 2px;}
+.nivel{font-size:var(--fs-subtitulo);font-weight:800;}
+.paso .nv,.ind .nv{font-size:var(--fs-etiqueta);font-weight:600;color:var(--muted);background:var(--bg);border-radius:var(--r-xs);padding:1px 6px;margin-left:4px;white-space:nowrap;}
+.paso.no-aplica-n{filter:grayscale(1);}
+.paso.no-aplica-n .seg-btn,.paso.no-aplica-n textarea{display:none;}
+.paso .no-ap{font-size:var(--fs-menor);color:var(--muted);margin:4px 0;}
+.faltan-r{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:4px 0 10px;font-size:var(--fs-base);color:var(--rojo-900);font-weight:600;}
+.faltan-r .ok{color:var(--ok);}
+.faltan-r button{font:inherit;font-size:var(--fs-menor);font-weight:700;border:1px solid var(--rojo-200);background:var(--rojo-50);color:var(--rojo-800);border-radius:var(--r-s);min-width:32px;min-height:30px;cursor:pointer;}
+.ind{border-bottom:1px dashed var(--n-150);padding:9px 0;}
+.ind input{width:100%;min-height:44px;border:1.5px solid var(--line);border-radius:var(--r-s);padding:0 10px;font-size:var(--fs-titulo);font-family:inherit;margin-top:6px;}
+.ind .grid2{gap:8px;}
+.ind-auto,.ind-r{font-size:var(--fs-base);margin-top:5px;color:var(--azul-700);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
+    <h1>PESV · Seguridad vial</h1>
+    <p>Plan estratégico de seguridad vial (Ley 2050 de 2020 y Res. 40595 de 2022), vehículos, conductores y siniestros</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="plan">Plan (pasos)</button>
+    <button type="button" data-tab="vehiculos">Vehículos <span class="n" id="nVeh">0</span></button>
+    <button type="button" data-tab="conductores">Conductores <span class="n" id="nCon">0</span></button>
+    <button type="button" data-tab="siniestros">Siniestros <span class="n" id="nSin">0</span></button>
+    <button type="button" data-tab="indicadores">Indicadores</button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* Los 24 pasos de la metodología del PESV (Res. 40595 de 2022, compilada en la Res. 20223040045295 de 2022)
+   con su fase y desde qué nivel aplican: B = básico, estándar y avanzado; E = estándar y avanzado; A = solo avanzado. */
+const PASOS = [
+  ['Planear', 'Líder del diseño e implementación del PESV', 'B'], ['Planear', 'Comité de seguridad vial', 'E'], ['Planear', 'Política de seguridad vial de la organización', 'B'],
+  ['Planear', 'Liderazgo, compromiso y corresponsabilidad del nivel directivo', 'B'], ['Planear', 'Diagnóstico', 'B'], ['Planear', 'Caracterización, evaluación y control de riesgos', 'B'],
+  ['Planear', 'Objetivos y metas del PESV', 'B'], ['Planear', 'Programas de gestión de riesgos críticos y factores de desempeño', 'B'],
+  ['Hacer', 'Plan anual de trabajo', 'B'], ['Hacer', 'Competencia y plan anual de formación', 'B'], ['Hacer', 'Responsabilidad y comportamiento seguro', 'A'],
+  ['Hacer', 'Plan de preparación y respuesta ante emergencias viales', 'B'], ['Hacer', 'Investigación interna de siniestros viales', 'E'], ['Hacer', 'Vías seguras administradas por la organización', 'B'],
+  ['Hacer', 'Planificación de desplazamientos laborales', 'B'], ['Hacer', 'Inspección de vehículos y equipos', 'B'], ['Hacer', 'Mantenimiento y control de vehículos seguros y equipos', 'B'],
+  ['Hacer', 'Gestión del cambio y gestión de contratistas', 'E'], ['Hacer', 'Archivo y retención documental', 'E'],
+  ['Verificar', 'Indicadores y reporte de autogestión', 'B'], ['Verificar', 'Registro y análisis estadístico de siniestros viales', 'A'], ['Verificar', 'Auditoría anual', 'B'],
+  ['Actuar', 'Mejora continua, acciones preventivas y correctivas', 'B'], ['Actuar', 'Mecanismos de comunicación y participación', 'B']];
+const aplicaPaso = (ps, niv)=> ps[2] === 'B' || (ps[2] === 'E' && (niv === 'Estándar' || niv === 'Avanzado')) || (ps[2] === 'A' && niv === 'Avanzado');
+/* Indicadores del PESV (manual de indicadores de Supertransporte, paso 20). auto: lo calcula el portal. */
+const INDICADORES = [
+  { k: 'siniestros', n: 'Tasa de siniestros viales', f: 'siniestros del periodo × 1.000.000 ÷ km recorridos', per: 'Trimestral', tipo: 'Resultado' },
+  { k: 'costos', n: 'Costos de los siniestros viales', f: 'costos directos e indirectos del periodo ($)', per: 'Trimestral', tipo: 'Resultado', solo: true },
+  { k: 'riesgos', n: 'Riesgos de seguridad vial', f: 'riesgos con valoración alta al final ÷ al inicio del año × 100', per: 'Anual', tipo: 'Resultado' },
+  { k: 'metas', n: 'Cumplimiento de metas del PESV', f: 'metas alcanzadas ÷ metas definidas × 100', per: 'Trimestral', tipo: 'Actividad' },
+  { k: 'plan', n: 'Cumplimiento del plan anual de trabajo', f: 'actividades ejecutadas ÷ programadas × 100', per: 'Trimestral', tipo: 'Actividad' },
+  { k: 'jornada', n: 'Exceso de jornada laboral', f: 'días con exceso de jornada ÷ días trabajados × 100', per: 'Mensual', tipo: 'Resultado' },
+  { k: 'velocidadCob', n: 'Cobertura del programa de gestión de la velocidad', f: 'vehículos en el programa ÷ vehículos que operan × 100', per: 'Mensual', tipo: 'Actividad' },
+  { k: 'velocidad', n: 'Exceso de los límites de velocidad', f: 'desplazamientos con exceso ÷ desplazamientos × 100', per: 'Mensual', tipo: 'Resultado' },
+  { k: 'preop', n: 'Inspecciones preoperacionales', f: 'vehículos inspeccionados ÷ vehículos que operan × 100', per: 'Mensual', tipo: 'Actividad', auto: true },
+  { k: 'mantenimiento', n: 'Cumplimiento del mantenimiento preventivo', f: 'mantenimientos ejecutados ÷ programados × 100', per: 'Trimestral', tipo: 'Actividad' },
+  { k: 'formacion', n: 'Cumplimiento del plan de formación', f: 'capacitaciones ejecutadas ÷ programadas × 100', per: 'Trimestral', tipo: 'Actividad' },
+  { k: 'cobertura', n: 'Cobertura del plan de formación', f: 'conductores capacitados en el año ÷ conductores × 100', per: 'Trimestral', tipo: 'Actividad', auto: true },
+  { k: 'auditoria', n: 'No conformidades de la auditoría cerradas', f: 'no conformidades cerradas ÷ identificadas × 100', per: 'Anual', tipo: 'Resultado' }];
+const ESTADOS = ['Cumple', 'Parcial', 'No cumple', 'No aplica'];
+const ID_PESV = 'PESV-EMPRESA';
+let rows = [], tab = 'plan';
+/* v109: filtro de cada lista (lo dejan las cifras de arriba). */
+const fPesv = { vehiculos: '', conductores: '', siniestros: '' };
+window.filtrarKpi = (v)=> { if (tab in fPesv) fPesv[tab] = v || ''; pintar(); };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('pesv,vehiculo,conductor,siniestro,inspeccion');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+/** Nivel del PESV (Res. 40595 de 2022, tabla 1). Misionalidad 1: empresas de transporte; 2: las demás.
+    Se toma el nivel mayor que den los vehículos o los conductores. */
+function nivel(veh, con, mis){
+  const v = Number(veh) || 0, c = Number(con) || 0, m1 = String(mis) === '1';
+  const porV = m1 ? (v > 50 ? 3 : v >= 20 ? 2 : v >= 11 ? 1 : 0) : (v > 100 ? 3 : v >= 50 ? 2 : v >= 11 ? 1 : 0);
+  const porC = m1 ? (c > 50 ? 3 : c >= 20 ? 2 : c >= 2 ? 1 : 0) : (c > 100 ? 3 : c >= 50 ? 2 : c >= 2 ? 1 : 0);
+  return ['No obligado', 'Básico', 'Estándar', 'Avanzado'][Math.max(porV, porC)];
+}
+const minFecha = (l)=> l.filter((x)=> /^\d{4}-\d{2}-\d{2}$/.test(x || '')).sort()[0] || '';
+function pintar(){
+  const h = UI.hoy(), p = de('pesv')[0], veh = de('vehiculo').filter((x)=> x.estado !== 'INACTIVO'), con = de('conductor').filter((x)=> x.estado !== 'INACTIVO');
+  const vehMal = veh.filter((x)=> x.vence && x.vence < h), conMal = con.filter((x)=> x.vence && x.vence < h), anio = h.slice(0, 4), sin = de('siniestro').filter((x)=> String(x.fecha).slice(0, 4) === anio);
+  const preop = de('inspeccion').filter((x)=> x.resumen.plantilla === 'vehiculo' && String(x.resumen.fecha).slice(0, 7) === h.slice(0, 7)).length;
+  $('nVeh').textContent = veh.length; $('nCon').textContent = con.length; $('nSin').textContent = de('siniestro').length;
+  $('kpis').innerHTML = '<div class="kpi ' + (p && Number(p.resumen.cumplimiento) >= 90 ? 'ok' : p ? 'pronto' : 'mal') + '" data-ir="tab:plan"><div class="v">' + (p ? esc(p.resumen.cumplimiento) + '%' : '—') + '</div><div class="n">avance del PESV</div>' + (p ? '<div class="f">nivel ' + esc(p.resumen.nivel) + '</div>' : '') + '</div>' +
+    '<div class="kpi ' + (vehMal.length ? 'mal' : 'ok') + '" data-ir="tab:vehiculos|filtro:' + (vehMal.length ? 'vencidos' : '') + '"><div class="v">' + (veh.length - vehMal.length) + ' / ' + veh.length + '</div><div class="n">vehículos con SOAT, revisión y mantenimiento al día</div></div>' +
+    '<div class="kpi ' + (conMal.length ? 'mal' : 'ok') + '" data-ir="tab:conductores|filtro:' + (conMal.length ? 'vencidos' : '') + '"><div class="v">' + (con.length - conMal.length) + ' / ' + con.length + '</div><div class="n">conductores al día</div></div>' +
+    '<div class="kpi" data-ir="url:inspecciones.html#ir=tab:historial|filtro:vehmes"><div class="v">' + preop + '</div><div class="n">preoperacionales de vehículos este mes</div></div>' +
+    '<div class="kpi ' + (sin.length ? 'mal' : 'ok') + '" data-ir="tab:siniestros|filtro:' + (sin.length ? 'anio' : '') + '"><div class="v">' + sin.length + '</div><div class="n">siniestros viales en ' + anio + '</div></div>';
+  ({ plan: pintarPlan, vehiculos: pintarVeh, conductores: pintarCon, siniestros: pintarSin, indicadores: pintarInd })[tab]($('panel'));
+}
+function item(x, titulo, sub, chip, clase){ return '<button type="button" class="item ' + (clase || '') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + titulo + '</div>' + (sub || []).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' + (chip ? '<span class="chip ' + (clase || '') + '">' + chip + '</span>' : '') + '</div></button>'; }
+
+/* ── Plan: nivel y pasos ── */
+let plan = null;
+async function pintarPlan(panel){
+  const x = de('pesv')[0];
+  plan = x ? await Registros.abrir(x.id) : { id: ID_PESV, nuevo: true, pasos: {}, vehiculos: de('vehiculo').filter((v)=> v.estado !== 'INACTIVO').length, conductores: de('conductor').filter((c)=> c.estado !== 'INACTIVO').length };
+  if (!plan) { panel.innerHTML = '<div class="aviso">No se pudo abrir el PESV.</div>'; return; }
+  plan.pasos = plan.pasos || {};
+  let fase = '';
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="pOk">Guardar el PESV</button><button type="button" class="btn ghost" id="pPdf">Estado del PESV (PDF)</button></div>' +
+    '<div class="card"><h2>Nivel del PESV</h2><div class="field"><label>Misionalidad</label><select id="pMis"><option value="2">2 · La empresa NO es de transporte (usa vehículos para su actividad)</option><option value="1">1 · Empresa de transporte (su actividad es transportar personas o carga)</option></select></div>' +
+    '<div class="grid2"><div class="field"><label>Vehículos (propios, arrendados y de terceros al servicio)</label><input type="number" min="0" step="1" id="pVeh" value="' + esc(plan.vehiculos || 0) + '"></div>' +
+    '<div class="field"><label>Conductores (propios y contratados)</label><input type="number" min="0" step="1" id="pCon" value="' + esc(plan.conductores || 0) + '"></div></div>' +
+    '<div>Nivel: <span class="nivel" id="pNivel"></span> · <span id="pPasosN"></span></div><p class="ayuda">Res. 40595 de 2022, tabla 1. Misionalidad 2: básico de 11 a 49 vehículos o 2 a 49 conductores, estándar de 50 a 100, avanzado más de 100. Misionalidad 1: básico 11 a 19 vehículos o 2 a 19 conductores, estándar 20 a 50, avanzado más de 50. Obligados: más de 10 vehículos o más de 1 conductor contratado (Ley 2050 de 2020). Reporte: vigilados por la Supertransporte en VIGIA 2 (Res. 1455 de 2025); misionalidad 2 al Ministerio del Trabajo (Circular 0034 de 2026).</p>' +
+    '<div class="grid2"><div class="field"><label>Líder del PESV</label><input type="text" id="pLider" value="' + esc(plan.lider || '') + '"></div><div class="field"><label>Última auditoría anual</label><input type="date" id="pAud" value="' + esc(plan.ultimaAuditoria || '') + '"></div></div></div>' +
+    '<div class="card"><h2>Pasos de la metodología</h2><p class="ayuda">Marca cada paso y anota la evidencia. Según el nivel, algunos pasos no aplican: márcalos «No aplica».</p>' +
+    '<div class="faltan-r" id="pFaltan"></div>' +
+    PASOS.map((ps, i)=> { const v = plan.pasos[i] || {}; const f = ps[0] !== fase ? '<div class="fase">' + esc((fase = ps[0])) + '</div>' : '';
+      return f + '<div class="paso" data-i="' + i + '" id="paso-' + i + '"><div class="pt">' + (i + 1) + '. ' + esc(ps[1]) + ' <span class="nv">' + ({ B: 'todos los niveles', E: 'estándar y avanzado', A: 'solo avanzado' })[ps[2]] + '</span></div><div class="no-ap" hidden></div><div class="seg-btn">' + ESTADOS.map((o)=> '<button type="button" data-v="' + o + '" class="' + (v.estado === o ? 'on' : '') + '">' + o + '</button>').join('') + '</div>' +
+        '<textarea data-ev placeholder="Evidencia (documento, acta, registro)">' + esc(v.evidencia || '') + '</textarea></div>'; }).join('') + '<div id="pAdj"></div></div>' +
+    '<div id="pHist"></div><div class="status-msg" id="pMsg"></div>';
+  $('pMis').value = String(plan.misionalidad || 2);
+  const contarFaltan = ()=> { const f = [...panel.querySelectorAll('.paso:not(.no-aplica-n)')].filter((d)=> !d.querySelector('.seg-btn .on'));
+    $('pFaltan').innerHTML = f.length ? '<span>Faltan ' + f.length + ' pasos por calificar:</span>' + f.slice(0, 8).map((d)=> '<button type="button" data-ir="' + d.dataset.i + '">' + (+d.dataset.i + 1) + '</button>').join('') + (f.length > 8 ? '<span>…</span>' : '') : '<span class="ok">Todos los pasos que aplican están calificados ✓</span>';
+    $('pFaltan').querySelectorAll('[data-ir]').forEach((b)=> b.addEventListener('click', ()=> $('paso-' + b.dataset.ir).scrollIntoView({ block: 'center', behavior: 'smooth' }))); };
+  const verNivel = ()=> { const niv = nivel($('pVeh').value, $('pCon').value, $('pMis').value); $('pNivel').textContent = niv;
+    let n = 0; panel.querySelectorAll('.paso').forEach((d)=> { const ap = niv !== 'No obligado' && aplicaPaso(PASOS[+d.dataset.i], niv); if (ap) n++;
+      d.classList.toggle('no-aplica-n', !ap); d.querySelector('.no-ap').hidden = ap; d.querySelector('.no-ap').textContent = 'No le aplica al nivel ' + niv.toLowerCase() + '.'; });
+    $('pPasosN').textContent = n + ' pasos le aplican'; contarFaltan(); };
+  $('pVeh').addEventListener('input', verNivel); $('pCon').addEventListener('input', verNivel); $('pMis').addEventListener('change', verNivel); verNivel();
+  panel.addEventListener('click', (e)=> { if (e.target.closest('.seg-btn')) setTimeout(contarFaltan, 0); });
+  panel.querySelectorAll('.seg-btn').forEach((g)=> g.addEventListener('click', (e)=> { const b = e.target.closest('[data-v]'); if (!b) return; g.querySelectorAll('button').forEach((y)=> y.classList.toggle('on', y === b)); }));
+  if (!plan.nuevo) { const refs = {}; PASOS.forEach((ps, i)=> { refs['p' + i] = (i + 1) + '. ' + ps[1]; }); refs.otro = 'Otro soporte';
+    UI.adjuntos($('pAdj'), { id: plan.id, lista: plan.adjuntos || [], refs, titulo: 'Evidencias del PESV' }); $('pHist').appendChild(UI.botonHistorial(plan.id, 'PESV')); }
+  else UI.adjuntos($('pAdj'), {});
+  $('pOk').addEventListener('click', guardarPlan);
+  $('pPdf').addEventListener('click', ()=> pdfPlan(leerPlan()));
+}
+function leerPlan(){
+  const pasos = {};
+  document.querySelectorAll('.paso').forEach((d)=> { const on = d.querySelector('.seg-btn .on'); pasos[d.dataset.i] = { estado: on ? on.dataset.v : '', evidencia: d.querySelector('[data-ev]').value.trim() }; });
+  const niv = nivel($('pVeh').value, $('pCon').value, $('pMis').value);
+  Object.keys(pasos).forEach((i)=> { if (niv === 'No obligado' || !aplicaPaso(PASOS[i], niv)) pasos[i].estado = 'No aplica'; });
+  const ap = Object.keys(pasos).filter((i)=> pasos[i].estado !== 'No aplica'), pts = ap.reduce((a, i)=> a + (pasos[i].estado === 'Cumple' ? 1 : pasos[i].estado === 'Parcial' ? 0.5 : 0), 0);
+  const aud = $('pAud').value;
+  return Object.assign({}, plan, { misionalidad: Number($('pMis').value), vehiculos: Number($('pVeh').value) || 0, conductores: Number($('pCon').value) || 0, nivel: niv, lider: $('pLider').value.trim(), ultimaAuditoria: aud,
+    proximaAuditoria: aud ? Festivos.sumarMeses(aud, 12) : '', pasos, pasosAplican: ap.length, pasosCumplen: ap.filter((i)=> pasos[i].estado === 'Cumple').length, cumplimiento: ap.length ? Math.round(pts * 100 / ap.length) : 0 });
+}
+async function guardarPlan(){
+  const v = leerPlan(), msg = $('pMsg');
+  v.fechaRevision = UI.hoy(); v.estado = v.nivel === 'No obligado' ? 'NO OBLIGADO' : v.cumplimiento >= 90 ? 'IMPLEMENTADO' : 'EN IMPLEMENTACIÓN';
+  msg.textContent = 'Guardando…';
+  const r = await Registros.guardar('pesv', v.id, v, v.nuevo ? 0 : v.version);
+  if (typeof r === 'string') { msg.textContent = r; return; }
+  const creadas = Object.assign({}, plan.accionesPor || {});
+  const faltan = Object.keys(v.pasos).filter((i)=> /No cumple|Parcial/.test(v.pasos[i].estado) && !creadas[i]);
+  if (!r.enCola && faltan.length && await Dialogo.confirmar(faltan.length + ' paso(s) sin cumplir del todo. ¿Crear las acciones en el plan de acción?')) {
+    const resp = await Dialogo.pedir('Responsable de las acciones:', v.lider || '');
+    if (resp) { for (const i of faltan) { const a = await UI.guardarAccion({ origen: 'PESV', origenRef: v.id, hallazgo: 'PESV paso ' + (+i + 1) + ': ' + PASOS[i][1] + ' (' + v.pasos[i].estado + ')', accion: 'Implementar: ' + PASOS[i][1], responsable: resp, tipoAccion: 'Preventiva' }); if (a.ok) creadas[i] = a.id; else break; }
+      await SGSST.enviar({ action: 'parche', tipo: 'pesv', id: v.id, campos: { accionesPor: creadas } }); }
+  }
+  UI.toast(r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : '✓ PESV guardado.'); cargar();
+}
+function pdfPlan(v){
+  const veh = de('vehiculo').filter((x)=> x.estado !== 'INACTIVO'), con = de('conductor').filter((x)=> x.estado !== 'INACTIVO');
+  UI.imprimir([UI.cabecera('SG-PESV', 'PLAN ESTRATÉGICO DE SEGURIDAD VIAL — ESTADO', 'Nivel ' + v.nivel + ' · avance ' + v.cumplimiento + '% · corte ' + UI.corta(UI.hoy())) +
+    UI.seccion('DATOS', UI.tablaDatos([['Vehículos', String(v.vehiculos)], ['Conductores', String(v.conductores)], ['Líder', v.lider || ''], ['Última auditoría', UI.corta(v.ultimaAuditoria || '')]])) +
+    UI.seccion('PASOS', '<table><tr><td class="l">Fase</td><td class="l">Paso</td><td class="l">Estado</td><td class="l">Evidencia</td></tr>' + PASOS.map((ps, i)=> { const x = v.pasos[i] || {}; const ap = aplicaPaso(ps, v.nivel); return '<tr><td>' + esc(ps[0]) + '</td><td>' + (i + 1) + '. ' + esc(ps[1]) + '</td><td>' + esc(ap ? (x.estado || '—') : 'No aplica al nivel') + '</td><td>' + esc(x.evidencia || '') + '</td></tr>'; }).join('') + '</table>') +
+    UI.seccion('VEHÍCULOS', '<table><tr><td class="l">Placa</td><td class="l">Tipo</td><td class="l">SOAT</td><td class="l">Revisión técnico-mecánica</td><td class="l">Mantenimiento</td><td class="l">Conductor</td></tr>' + veh.map((x)=> '<tr><td>' + esc(x.titulo) + '</td><td>' + esc(x.resumen.tipoVehiculo || '') + '</td><td>' + esc(UI.corta(x.resumen.soat)) + '</td><td>' + esc(UI.corta(x.resumen.rtm)) + '</td><td>' + esc(UI.corta(x.resumen.mantenimiento)) + '</td><td>' + esc(x.resumen.conductor || '') + '</td></tr>').join('') + '</table>') +
+    UI.seccion('CONDUCTORES', '<table><tr><td class="l">Nombre</td><td class="l">Categoría</td><td class="l">Licencia vence</td><td class="l">Comparendos (SIMIT)</td><td class="l">Capacitación vial</td></tr>' + con.map((x)=> '<tr><td>' + esc(x.titulo) + '</td><td>' + esc(x.resumen.categoria || '') + '</td><td>' + esc(UI.corta(x.resumen.venceLicencia)) + '</td><td>' + esc(UI.corta(x.resumen.simit)) + '</td><td>' + esc(UI.corta(x.resumen.capacitacionVial)) + '</td></tr>').join('') + '</table>')], true);
+}
+
+/* ── Vehículos, conductores y siniestros (formularios) ── */
+const C_VEH = [{ k: 'placa', l: 'Placa', req: true, medio: true }, { k: 'tipoVehiculo', l: 'Tipo', t: 'select', op: ['Automóvil', 'Camioneta', 'Camión', 'Furgón', 'Motocicleta', 'Bus / buseta', 'Maquinaria amarilla', 'Montacargas', 'Otro'], medio: true },
+  { k: 'marca', l: 'Marca', medio: true }, { k: 'modelo', l: 'Modelo (año)', medio: true }, { k: 'propiedad', l: 'Propiedad', t: 'select', op: ['Propio', 'Arrendado (renting)', 'De un tercero al servicio de la empresa', 'Del trabajador al servicio de la empresa'] },
+  { k: 'conductor', l: 'Conductor habitual', t: 'persona' }, { k: 'soat', l: 'SOAT vence', t: 'date', medio: true }, { k: 'rtm', l: 'Revisión técnico-mecánica vence', t: 'date', medio: true },
+  { k: 'poliza', l: 'Póliza todo riesgo vence', t: 'date', medio: true }, { k: 'mantenimiento', l: 'Próximo mantenimiento', t: 'date', medio: true }, { k: 'km', l: 'Kilometraje actual', t: 'number', medio: true },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['ACTIVO', 'INACTIVO'], medio: true }];
+const C_CON = [{ k: 'nombre', l: 'Conductor', t: 'persona', req: true }, { k: 'cedula', l: 'Cédula', req: true, medio: true }, { k: 'cargo', l: 'Cargo', medio: true },
+  { k: 'categoria', l: 'Categoría de la licencia', ph: 'Ej: C2, B1, A2', medio: true }, { k: 'venceLicencia', l: 'Licencia vence', t: 'date', medio: true },
+  { k: 'simit', l: 'Consulta de comparendos (SIMIT) el', t: 'date', medio: true, ayuda: 'Se recomienda consultar cada mes.' }, { k: 'comparendos', l: 'Comparendos pendientes', t: 'number', medio: true },
+  { k: 'capacitacionVial', l: 'Última capacitación en seguridad vial', t: 'date', medio: true }, { k: 'pruebaConduccion', l: 'Prueba teórica y práctica de conducción', t: 'date', medio: true },
+  { k: 'estado', l: 'Estado', t: 'select', op: ['ACTIVO', 'INACTIVO'] }];
+const C_SIN = [{ k: 'fecha', l: 'Fecha', t: 'date', req: true, medio: true }, { k: 'hora', l: 'Hora', medio: true }, { k: 'placa', l: 'Placa', medio: true, req: true }, { k: 'conductor', l: 'Conductor', t: 'persona', medio: true },
+  { k: 'tipoSiniestro', l: 'Tipo', t: 'select', op: ['Choque', 'Atropello', 'Volcamiento', 'Caída de ocupante', 'Incendio', 'Otro'], medio: true }, { k: 'lugar', l: 'Lugar', medio: true },
+  { k: 'lesionados', l: 'Lesionados', t: 'number', medio: true }, { k: 'fallecidos', l: 'Fallecidos', t: 'number', medio: true }, { k: 'danos', l: 'Daños materiales', t: 'select', op: ['Sin daños', 'Leves', 'Graves'], medio: true },
+  { k: 'enMision', l: '¿En misión de trabajo?', t: 'select', op: ['Sí', 'No (desplazamiento in itinere)'], medio: true },
+  { k: 'descripcion', l: 'Qué pasó', t: 'textarea', req: true }, { k: 'causas', l: 'Causas encontradas en la investigación', t: 'textarea' },
+  { k: 'investigacion', l: 'Investigación', t: 'select', op: ['Pendiente', 'En curso', 'Cerrada'], medio: true }, { k: 'estado', l: 'Estado', t: 'select', op: ['ABIERTO', 'CERRADO'], medio: true }];
+function editar(tipo, titulo, campos, d, alistar){
+  Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + titulo, campos, datos: d,
+    alElegirPersona: (i, p, el, pref)=> { const c = el.querySelector('#' + pref + 'cedula'), g = el.querySelector('#' + pref + 'cargo'); if (c) c.value = p.cedula || ''; if (g) g.value = p.cargo || ''; },
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde PESV'); if (ok) cargar(); return ok; },
+    alGuardar: async (v)=> { const e = alistar ? alistar(v) : null; if (typeof e === 'string') return e;
+      const r = await Registros.guardar(tipo, d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r;
+      if (tipo === 'siniestro' && d.nuevo && (Number(v.lesionados) || Number(v.fallecidos)) && await Dialogo.confirmar('Hubo personas lesionadas. Si es un accidente de trabajo, ¿abrir Reportes para registrarlo e investigarlo (FURAT)?')) location.href = 'reportes.html';
+      cargar(); return true; } });
+}
+function pintarLista(panel, tipo, campos, titulo, prefijo, fila, alistar, base, filtros){
+  const todos = de(tipo), fx = (filtros || []).find((f)=> f[0] === fPesv[tab]);
+  const l = todos.filter(fx ? fx[2] : ()=> true).sort((a, b)=> String(b.fecha || a.titulo).localeCompare(String(a.fecha || b.titulo)));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nuevoReg">+ ' + titulo + '</button></div>' +
+    (todos.length && filtros ? UI.chipsFiltro([['', 'Todos (' + todos.length + ')']].concat(filtros.map((f)=> [f[0], f[1] + ' (' + todos.filter(f[2]).length + ')'])), fx ? fx[0] : '') : '') +
+    (l.length ? l.map(fila).join('') : '<div class="empty">' + (todos.length ? 'Ninguno en este filtro ✓' : 'Sin registros.') + '</div>');
+  panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editar(tipo, titulo, campos, d, alistar); }));
+  $('nuevoReg').addEventListener('click', ()=> editar(tipo, titulo, campos, Object.assign({ id: SGSST.nuevoId(prefijo), nuevo: true }, base || {}), alistar));
+}
+const estadoVence = (v)=> v ? UI.semaforo(v, 30) : 'gris';
+const filtrosVence = [['vencidos', 'Vencidos', (x)=> x.estado !== 'INACTIVO' && x.vence && x.vence < UI.hoy()], ['pronto', 'Por vencer en 30 días', (x)=> x.estado !== 'INACTIVO' && estadoVence(x.vence) === 'pronto']];
+function pintarVeh(panel){
+  pintarLista(panel, 'vehiculo', C_VEH, 'Vehículo', 'VEH', (x)=> { const c = x.estado === 'INACTIVO' ? 'gris' : estadoVence(x.vence);
+    return item(x, esc(x.titulo) + ' · ' + esc(x.resumen.tipoVehiculo || ''), [esc([x.resumen.marca, x.resumen.modelo, x.resumen.propiedad].filter(Boolean).join(' · ')), 'SOAT ' + esc(UI.corta(x.resumen.soat)) + ' · RTM ' + esc(UI.corta(x.resumen.rtm)) + ' · mant. ' + esc(UI.corta(x.resumen.mantenimiento))],
+      x.estado === 'INACTIVO' ? 'Inactivo' : c === 'mal' ? 'Vencido' : c === 'pronto' ? 'Por vencer' : 'Al día', c); },
+    (v)=> { v.placa = String(v.placa).toUpperCase().replace(/\s+/g, ''); v.venceDocs = minFecha([v.soat, v.rtm, v.poliza, v.mantenimiento]); if (!v.soat) return 'Falta la fecha del SOAT.'; }, { estado: 'ACTIVO', tipoVehiculo: 'Camioneta', propiedad: 'Propio' }, filtrosVence);
+}
+function pintarCon(panel){
+  pintarLista(panel, 'conductor', C_CON, 'Conductor', 'CON', (x)=> { const c = x.estado === 'INACTIVO' ? 'gris' : estadoVence(x.vence);
+    return item(x, esc(x.titulo), [esc([x.resumen.cargo, x.resumen.categoria && 'licencia ' + x.resumen.categoria].filter(Boolean).join(' · ')), 'Licencia ' + esc(UI.corta(x.resumen.venceLicencia)) + ' · SIMIT ' + esc(UI.corta(x.resumen.simit)) + ' · capacitación ' + esc(UI.corta(x.resumen.capacitacionVial))],
+      x.estado === 'INACTIVO' ? 'Inactivo' : c === 'mal' ? 'Vencido' : c === 'pronto' ? 'Por vencer' : 'Al día', c); },
+    (v)=> { if (!v.venceLicencia) return 'Falta el vencimiento de la licencia.';
+      // Vence lo primero: la licencia, la consulta de comparendos (mensual) o la capacitación (anual).
+      v.vence = minFecha([v.venceLicencia, v.simit ? Festivos.sumarMeses(v.simit, 1) : '', v.capacitacionVial ? Festivos.sumarMeses(v.capacitacionVial, 12) : '']);
+      v.fechaEvaluacion = v.pruebaConduccion || ''; }, { estado: 'ACTIVO' }, filtrosVence);
+}
+function pintarSin(panel){
+  pintarLista(panel, 'siniestro', C_SIN, 'Siniestro vial', 'SIN', (x)=> { const c = x.estado === 'CERRADO' ? 'ok' : 'mal';
+    return item(x, esc(UI.corta(x.fecha)) + ' · ' + esc(x.titulo) + ' · ' + esc(x.resumen.tipoSiniestro || ''), [esc(x.resumen.conductor || ''), (Number(x.resumen.lesionados) || 0) + ' lesionado(s) · ' + (Number(x.resumen.fallecidos) || 0) + ' fallecido(s) · investigación ' + esc(x.resumen.investigacion || '—')], esc(x.estado), c); },
+    null, { fecha: UI.hoy(), estado: 'ABIERTO', investigacion: 'Pendiente', lesionados: 0, fallecidos: 0, danos: 'Leves', enMision: 'Sí', tipoSiniestro: 'Choque' },
+    [['anio', 'Este año', (x)=> String(x.fecha).slice(0, 4) === UI.hoy().slice(0, 4)], ['abiertos', 'Abiertos', (x)=> x.estado !== 'CERRADO']]);
+}
+/* ── Indicadores del PESV (paso 20): el portal calcula los que puede; los demás se anotan por periodo ── */
+async function pintarInd(panel){
+  const x = de('pesv')[0], d = x ? await Registros.abrir(x.id) : null;
+  if (!d) { panel.innerHTML = '<div class="empty">Primero guarda el PESV (pestaña Plan).</div>'; return; }
+  const h = UI.hoy(), anio = h.slice(0, 4), mes = h.slice(0, 7);
+  const veh = de('vehiculo').filter((v)=> v.estado !== 'INACTIVO'), con = de('conductor').filter((c)=> c.estado !== 'INACTIVO');
+  const insp = new Set(de('inspeccion').filter((i)=> i.resumen.plantilla === 'vehiculo' && String(i.resumen.fecha).slice(0, 7) === mes).map((i)=> i.resumen.equipo || i.resumen.titulo));
+  const capac = con.filter((c)=> String(c.resumen.capacitacionVial || '').slice(0, 4) === anio).length;
+  const auto = { preop: veh.length ? Math.round(Math.min(insp.size, veh.length) * 100 / veh.length) : null, cobertura: con.length ? Math.round(capac * 100 / con.length) : null };
+  const per = d.periodoInd || anio + '-T' + Math.ceil(Number(h.slice(5, 7)) / 3), vals = ((d.indicadores || {})[per]) || {};
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="iOk">Guardar los indicadores</button><button type="button" class="btn ghost" id="iPdf">Indicadores del PESV (PDF)</button></div>' +
+    '<div class="card"><div class="field"><label>Periodo</label><input type="text" id="iPer" value="' + esc(per) + '" placeholder="2026-T3 o 2026-09"></div>' +
+    '<p class="ayuda">Los 13 indicadores del PESV (manual de Supertransporte). Los marcados «automático» los calcula el portal con los vehículos, conductores y preoperacionales; los demás se anotan con su numerador y denominador.</p>' +
+    INDICADORES.map((ind)=> { const v = vals[ind.k] || {}, a = ind.auto ? auto[ind.k] : null;
+      return '<div class="ind" data-k="' + ind.k + '"><div class="pt">' + esc(ind.n) + ' <span class="nv">' + esc(ind.tipo + ' · ' + ind.per) + '</span></div><div class="ayuda">' + esc(ind.f) + '</div>' +
+        (ind.auto ? '<div class="ind-auto">Automático: <b>' + (a == null ? '—' : a + ' %') + '</b></div>' :
+          ind.solo ? '<input type="number" min="0" data-n placeholder="Valor ($)" value="' + esc(v.n == null ? '' : v.n) + '">' :
+          '<div class="grid2"><input type="number" min="0" data-n placeholder="Numerador" value="' + esc(v.n == null ? '' : v.n) + '"><input type="number" min="0" data-d placeholder="Denominador" value="' + esc(v.d == null ? '' : v.d) + '"></div><div class="ind-r" data-r></div>') + '</div>'; }).join('') + '</div>';
+  const calc = (el)=> { const n = el.querySelector('[data-n]'), dd = el.querySelector('[data-d]'), r = el.querySelector('[data-r]'); if (!dd || !r) return;
+    const k = el.dataset.k, nv = Number(n.value), dv = Number(dd.value); r.textContent = n.value !== '' && dv > 0 ? 'Resultado: ' + (k === 'siniestros' ? (nv * 1000000 / dv).toFixed(2).replace('.', ',') + ' por millón de km' : Math.round(nv * 100 / dv) + ' %') : ''; };
+  panel.querySelectorAll('.ind').forEach((el)=> { calc(el); el.addEventListener('input', ()=> calc(el)); });
+  const leerInd = ()=> { const o = {}; panel.querySelectorAll('.ind').forEach((el)=> { const n = el.querySelector('[data-n]'), dd = el.querySelector('[data-d]'), k = el.dataset.k;
+    if (INDICADORES.find((i)=> i.k === k).auto) o[k] = { n: auto[k], auto: true }; else o[k] = { n: n.value === '' ? null : Number(n.value), d: dd ? (dd.value === '' ? null : Number(dd.value)) : null }; }); return o; };
+  $('iOk').addEventListener('click', async ()=> { const p = $('iPer').value.trim(); if (!/^\d{4}(-(T[1-4]|\d{2}))?$/.test(p)) { UI.toast('Escribe el periodo como 2026-T3 o 2026-09.', 'mal'); return; }
+    const o = leerInd(), malo = Object.keys(o).find((k)=> o[k].d === 0 && o[k].n); if (malo) { UI.toast('Un denominador está en cero.', 'mal'); return; }
+    const ind = {}; ind[p] = o; const r = await SGSST.enviar({ action: 'parche', tipo: 'pesv', id: d.id, campos: { indicadores: Object.assign({}, d.indicadores || {}, ind), periodoInd: p } });
+    UI.toast(r.ok ? '✓ Indicadores guardados.' : Errores.texto('guardó', r), r.ok ? '' : 'mal'); if (r.ok) cargar(); });
+  $('iPdf').addEventListener('click', ()=> { const o = leerInd(), p = $('iPer').value.trim();
+    UI.imprimir([UI.cabecera('SG-PESV', 'INDICADORES DEL PLAN ESTRATÉGICO DE SEGURIDAD VIAL', 'Periodo ' + p + ' · nivel ' + (d.nivel || '')) + '<table><tr><td class="l">Indicador</td><td class="l">Tipo</td><td class="l">Fórmula</td><td class="l a">Numerador</td><td class="l a">Denominador</td><td class="l a">Resultado</td></tr>' +
+      INDICADORES.map((ind)=> { const v = o[ind.k] || {}; const res = ind.auto ? (v.n == null ? '—' : v.n + ' %') : ind.solo ? (v.n == null ? '—' : '$ ' + Number(v.n).toLocaleString('es-CO')) : (v.n != null && v.d ? (ind.k === 'siniestros' ? (v.n * 1000000 / v.d).toFixed(2) : Math.round(v.n * 100 / v.d) + ' %') : '—');
+        return '<tr><td>' + esc(ind.n) + '</td><td>' + esc(ind.tipo) + '</td><td>' + esc(ind.f) + '</td><td class="a">' + esc(v.n == null ? '' : v.n) + '</td><td class="a">' + esc(v.d == null ? '' : v.d) + '</td><td class="a">' + esc(res) + '</td></tr>'; }).join('') + '</table>'], true); });
+}
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

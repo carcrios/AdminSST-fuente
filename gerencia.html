@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mhFEchcApRZUvApXmiLC8oeUazwcSA5Wb/evxh5xLLk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Tablero de la gerencia · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tablero de la gerencia · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.tablero{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin-bottom:14px;}
+.resumen-g a{color:var(--rojo-800,#7a1010);font-weight:700;}   /* v148: enlaces de la alerta con el estilo del portal */
+.resumen-g ul{padding-left:18px;margin:4px 0 0;}
+.tab-c .n,.tab-c .f{overflow:visible;white-space:normal;}
+.tab-c{display:block;background:var(--paper,#fff);border:1px solid var(--line);border-top:5px solid var(--n-300);border-radius:var(--r-m);padding:10px 11px;color:inherit;text-decoration:none;}
+.tab-c.ok{border-top-color:var(--ok);} .tab-c.pronto{border-top-color:var(--amber);} .tab-c.mal{border-top-color:var(--mal);}
+.tab-c .v{font-family:var(--font-display);font-size:var(--fs-subtitulo);font-weight:800;line-height:1.1;}
+.tab-c .n{font-size:var(--fs-menor);font-weight:700;margin-top:2px;line-height:1.25;}
+.tab-c .f{font-size:var(--fs-etiqueta);color:var(--muted);margin-top:4px;line-height:1.3;}
+.sec-t{font-family:var(--font-display);font-size:var(--fs-menor);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:14px 0 6px;}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--n-150);font-size:var(--fs-base);line-height:1.35;}
+.chk b{flex:0 0 22px;text-align:center;}
+</style>
+</head>
+<body data-i18n>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Para la gerencia</div>
+    <h1>Tablero del SG-SST</h1>
+    <p>Todo el sistema en una pantalla, y el reporte anual de estándares mínimos</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="acciones-top">
+    <button type="button" class="btn ghost" id="btnPdf">Informe para la gerencia (PDF)</button>
+    <a class="btn ghost" href="informe.html">Informe con gráficas y sugerencias</a>
+  </div>
+  <div id="tablero"><div class="empty">Cargando…</div></div>
+  <div class="card" id="cardAnual" hidden></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="i18n-en.js"></script>
+<script src="i18n.js"></script>
+<script src="informe-reglas.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const AT = 'Accidente de trabajo';
+const TIPOS = 'aprobrec,empresa,auditoria,reporte,mes,accion,plananual,trabajador,examen,contratista,entrega,comite,reunion,queja,programa,pesv,aspecto,residuo,reporteanual,induccion,vehiculo,conductor';
+let rows = [], secciones = [], perfil = null;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const pct = (a, b)=> b ? Math.round(a * 100 / b) : null;
+const fmt = (v, d)=> v === null || v === undefined || isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', { maximumFractionDigits: d == null ? 1 : d });
+const esSst = ()=> !Sesion.modo() || !Sesion.yo() || ['admin', 'sst'].indexOf(Sesion.rol()) !== -1;
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('tablero').innerHTML = ''; return; }
+  const r = await SGSST.listar(TIPOS);
+  UI.avisoCopia($('avisoCopia'), r);
+  if (r.sinSesion) { $('tablero').innerHTML = ''; return; }
+  rows = r.rows; perfil = await UI.perfilEmpresa(rows); pintar(); pintarAnual();
+}
+/** v148: los mismos cálculos de Indicadores, Cierre del mes e Informe (informe-reglas.js). */
+const mesInd = (m)=> INFORME.mesInd(rows, m);
+const mesesDe = (anio)=> [...Array(12)].map((_, i)=> anio + '-' + String(i + 1).padStart(2, '0'));
+const anual = (anio)=> INFORME.anual(rows, anio, UI.hoy());
+
+function ultimaAuto(anio){ return de('auditoria').filter((x)=> /^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && (!anio || String(x.resumen.fechaEjecucion).slice(0, 4) === anio)).sort((a, b)=> String(b.resumen.fechaEjecucion).localeCompare(String(a.resumen.fechaEjecucion)))[0]; }
+function c(t, v, n, f, cl, href){ return { t, v, n, f, cl, href }; }
+function pintar(){
+  setTimeout(()=> { const b = $('btnPerfilG'); if (b) b.addEventListener('click', ()=> UI.editarPerfil(()=> cargar())); }, 0);
+  setTimeout(()=> { const b = $('btnRecursos'); if (b) b.addEventListener('click', ()=> Registros.editar({ titulo: 'Aprobar recursos para el SG-SST',
+    campos: [{ k: 'concepto', l: 'Para qué (actividad, compra, capacitación…)', req: true }, { k: 'monto', l: 'Monto aprobado ($)', t: 'number', req: true }, { k: 'fecha', l: 'Fecha', t: 'date', req: true }, { k: 'aprobo', l: 'Aprueba (nombre)', req: true }, { k: 'cargo', l: 'Cargo', req: true }, { k: 'observaciones', l: 'Observaciones', t: 'textarea' }],
+    datos: { id: SGSST.nuevoId('REC'), nuevo: true, fecha: UI.hoy(), aprobo: (Sesion.nombre && Sesion.nombre()) || '', estado: 'APROBADO' },
+    alGuardar: async (v)=> { v.estado = 'APROBADO'; const r = await Registros.guardar('aprobrec', SGSST.nuevoId('REC'), v, 0); if (typeof r === 'string') return r; UI.toast('Recursos aprobados y registrados.'); cargar(); return true; } })); }, 0);
+  const h = UI.hoy(), anio = h.slice(0, 4), A = anual(anio), mesAnt = (()=> { const d = new Date(h + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 7); })(), MA = mesInd(mesAnt);
+  const au = ultimaAuto(), acc = de('accion'), abiertas = acc.filter((x)=> x.estado !== 'CERRADA'), vencidas = abiertas.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h);
+  const pat = de('plananual').find((x)=> String(x.resumen.anio) === anio);
+  const trab = de('trabajador').filter((x)=> x.resumen.activo !== false), hab = trab.filter((x)=> Habilitacion.revisar(x.resumen.cedula, []).estado !== 'mal');
+  const ultEx = {}; de('examen').forEach((x)=> { const k = Habilitacion.clave(x.resumen.cedula); if (!ultEx[k] || String(x.resumen.fecha) > String(ultEx[k].resumen.fecha)) ultEx[k] = x; });
+  const exV = Object.keys(ultEx).map((k)=> ultEx[k]).filter((x)=> x.resumen.tipoExamen !== 'Egreso' && x.resumen.proxima && x.resumen.proxima < h).length;
+  const ctr = de('contratista').filter((x)=> x.estado !== 'INACTIVO'), ctrOk = ctr.filter((x)=> !(Number(x.resumen.docsFaltan) > 0) && !(x.resumen.venceDocs && x.resumen.venceDocs < h));
+  const repEpp = {}; de('entrega').forEach((x)=> String(x.resumen.vencimientos || '').split(/\s*;\s*/).forEach((v)=> { const p = v.split('|'); if (p.length < 2) return; const k = Habilitacion.clave(x.resumen.cedula) + '|' + p[0].toLowerCase(); if (!repEpp[k] || String(x.fecha) > repEpp[k].f) repEpp[k] = { f: String(x.fecha), v: p[1] }; }));
+  const eppV = Object.keys(repEpp).filter((k)=> repEpp[k].v < h).length;
+  const ind = trab.filter((x)=> { const q = (x.resumen.req || {}).induccion; return q && (!q.vence || q.vence >= h); }).length;
+  const cop = de('comite').find((x)=> x.resumen.comite === 'copasst'), copReu = de('reunion').filter((x)=> x.resumen.comite === 'copasst' && x.resumen.tipo === 'Ordinaria' && String(x.resumen.fecha).slice(0, 4) === anio).length;
+  const quejas = de('queja').filter((x)=> x.estado === 'ABIERTA');
+  const progs = de('programa').filter((x)=> x.estado !== 'NO APLICA'), progProm = progs.length ? Math.round(progs.reduce((a, x)=> a + (Number(x.resumen.cumplimiento) || 0), 0) / progs.length) : null;
+  const pesv = de('pesv')[0], veh = de('vehiculo').filter((x)=> x.estado !== 'INACTIVO'), vehV = veh.filter((x)=> x.vence && x.vence < h).length;
+  const asp = de('aspecto').filter((x)=> x.estado === 'SIGNIFICATIVO').length, resp = de('residuo').filter((x)=> /Peligroso/.test(x.estado) && String(x.fecha).slice(0, 4) === anio && !x.resumen.certificado).length;
+  const v0312 = au ? valoracion0312(Number(au.resumen.puntaje) || 0) : null;
+  secciones = [
+    ['Resultado', [
+      c('Autoevaluación 0312', au ? fmt(au.resumen.puntaje, 1) + '%' : '—', 'estándares mínimos', au ? v0312.n + ' · ' + UI.corta(au.resumen.fechaEjecucion) : 'Sin autoevaluación cerrada', au ? v0312.c : 'mal', 'auditorias.html'),
+      c('Accidentes de trabajo ' + anio, String(A.at), 'accidentes en el año', A.mort ? A.mort + ' mortal(es)' : 'Ninguno mortal', A.mort ? 'mal' : A.at ? 'pronto' : 'ok', 'reportes.html'),
+      c('Frecuencia ' + mesAnt, fmt(MA.frecuencia, 2), 'AT por cada 100 trabajadores', 'Acumulado del año: ' + fmt(A.frecuenciaAcum, 2), MA.frecuencia ? 'pronto' : MA.trab ? 'ok' : '', 'indicadores.html'),
+      c('Severidad ' + mesAnt, fmt(MA.severidad, 1), 'días perdidos por cada 100 trabajadores', 'Acumulado del año: ' + fmt(A.severidadAcum, 1), MA.severidad ? 'pronto' : MA.trab ? 'ok' : '', 'indicadores.html'),
+      c('Ausentismo ' + mesAnt, MA.ausentismo === null ? '—' : fmt(MA.ausentismo, 1) + '%', 'por causa médica', 'Promedio del año: ' + (A.ausentismoProm === null ? '—' : fmt(A.ausentismoProm, 1) + '%'), MA.ausentismo === null ? '' : MA.ausentismo > 3 ? 'pronto' : 'ok', 'indicadores.html')]],
+    ['Gestión', [
+      c('Plan de acción', String(vencidas.length), 'acciones vencidas', abiertas.length + ' abiertas en total', vencidas.length ? 'mal' : 'ok', 'plan-accion.html'),
+      c('Plan anual ' + anio, pat ? fmt(pat.resumen.cumplimiento, 0) + '%' : '—', 'cumplimiento', pat ? (pat.resumen.firmado === true ? 'Firmado' : 'Sin firmas') : 'Sin plan anual', pat ? (Number(pat.resumen.cumplimiento) >= 90 ? 'ok' : Number(pat.resumen.cumplimiento) >= 70 ? 'pronto' : 'mal') : 'mal', 'plan-anual.html'),
+      c('COPASST', cop ? copReu + ' / ' + Number(h.slice(5, 7)) : '—', 'reuniones ordinarias en el año', cop && cop.resumen.periodo ? 'Periodo hasta ' + UI.corta(cop.resumen.periodo.fin) : 'Sin conformar', cop && copReu >= Number(h.slice(5, 7)) - 1 ? 'ok' : 'pronto', 'copasst.html'),
+      c('Convivencia', String(quejas.length), 'quejas abiertas', 'Solo el código: el contenido es reservado', quejas.length ? 'pronto' : 'ok', 'convivencia.html'),
+      c('Programas de alto riesgo', progProm === null ? '—' : progProm + '%', 'cumplimiento promedio', progs.length + ' programa(s) evaluados', progProm === null ? 'mal' : progProm >= 90 ? 'ok' : progProm >= 70 ? 'pronto' : 'mal', 'programas.html'),
+      c('PESV', pesv ? fmt(pesv.resumen.cumplimiento, 0) + '%' : '—', 'avance del plan vial', veh.length ? vehV + ' vehículo(s) con documentos vencidos' : 'Sin vehículos registrados', pesv ? (vehV ? 'mal' : Number(pesv.resumen.cumplimiento) >= 90 ? 'ok' : 'pronto') : '', 'pesv.html')]],
+    ['Personas y contratistas', [
+      c('Personal habilitado', pct(hab.length, trab.length) === null ? '—' : pct(hab.length, trab.length) + '%', 'del personal activo', hab.length + ' de ' + trab.length, trab.length && hab.length === trab.length ? 'ok' : 'mal', 'habilitacion.html'),
+      c('Inducción vigente', pct(ind, trab.length) === null ? '—' : pct(ind, trab.length) + '%', 'del personal activo', (trab.length - ind) + ' por hacer o vencida', trab.length && ind === trab.length ? 'ok' : 'pronto', 'induccion.html'),
+      esSst() ? c('Exámenes médicos', String(exV), 'periódicos vencidos', 'Solo cantidades: sin nombres ni diagnósticos', exV ? 'mal' : 'ok', 'salud.html') : c('Exámenes médicos', '🔒', 'reservado', 'Solo para Administrador y SST', '', ''),
+      c('EPP', String(eppV), 'elementos con reposición vencida', Object.keys(repEpp).length + ' elementos entregados con control', eppV ? 'mal' : 'ok', 'entrega-epp.html'),
+      c('Contratistas', ctr.length ? ctrOk.length + ' / ' + ctr.length : '—', 'con documentos al día', 'Control de ingreso a obra', ctr.length && ctrOk.length === ctr.length ? 'ok' : ctr.length ? 'mal' : '', 'contratistas.html')]],
+    ['Ambiental', [
+      c('Aspectos significativos', String(asp), 'en la matriz ambiental', de('aspecto').length + ' aspectos identificados', de('aspecto').length ? 'pronto' : 'mal', 'ambiental.html'),
+      c('RESPEL sin certificado', String(resp), 'entregas en ' + anio, 'Certificados de disposición final', resp ? 'mal' : 'ok', 'ambiental.html')]]
+  ];
+  // v148: veredicto en una frase, lo que se arriesga y lo que el gerente debe decidir (antes: 20 tarjetas sin conclusión).
+  const criticos = secciones.flatMap((s)=> s[1]).filter((x)=> x.cl === 'mal'), atencion = secciones.flatMap((s)=> s[1]).filter((x)=> x.cl === 'pronto');
+  const nT = Number((perfil || {}).trabajadores) || trab.length, SMMLV = 1750905;   // salario mínimo 2026 (Dec. 1469 de 2025)
+  const rango = nT <= 10 ? [1, 5, 'microempresa'] : nT <= 50 ? [6, 20, 'pequeña empresa'] : nT <= 200 ? [21, 100, 'mediana empresa'] : [101, 500, 'gran empresa'];
+  const pesos = (n)=> '$' + Math.round(n * SMMLV / 1e6).toLocaleString('es-CO') + ' millones';
+  const veredicto = criticos.length ? { c: 'mal', t: 'Requiere acción: ' + criticos.length + ' tema(s) crítico(s) pueden generar sanción' } : atencion.length ? { c: 'pronto', t: 'Aceptable con ajustes: ' + atencion.length + ' tema(s) para atender' } : { c: 'ok', t: 'Al día: no hay temas críticos' };
+  const decidir = [];
+  if (!de('revision').some((x)=> String(x.resumen.anio || x.resumen.fecha || '').slice(0, 4) === anio && /firmad|cerrad/i.test(x.estado || ''))) decidir.push('<a href="revision-direccion.html">Revisar y firmar la revisión por la dirección de ' + anio + '</a>');
+  if (vencidas.length) decidir.push('<a href="plan-accion.html">Asignar recursos o reprogramar ' + vencidas.length + ' acción(es) vencida(s)</a>');
+  if (!au) decidir.push('<a href="auditorias.html">Ordenar la autoevaluación de estándares mínimos</a>');
+  criticos.slice(0, 3).forEach((x)=> { if (x.href && decidir.length < 5) decidir.push('<a href="' + x.href + '">Atender: ' + esc(x.t) + '</a>'); });
+  const resumenG = '<div class="aviso resumen-g ' + (veredicto.c === 'mal' ? 'mal' : veredicto.c === 'pronto' ? 'amar' : 'ok') + '" style="font-size:var(--fs-base);"><b style="font-size:1.15em;">' + esc(veredicto.t) + '</b>' +
+    (criticos.length ? '<div class="u-mt8">Multa posible por incumplir normas de SST para una ' + rango[2] + ' (' + nT + ' trabajadores): de ' + rango[0] + ' a ' + rango[1] + ' salarios mínimos, es decir ' + pesos(rango[0]) + ' a ' + pesos(rango[1]) + ' (Dec. 472 de 2015, art. 5; Ley 1562 de 2012, art. 13). Un accidente mortal por incumplimiento puede llegar a 1.000 salarios mínimos y al cierre.</div>' : '') +
+    '<div class="u-mt8"><button type="button" class="btn ghost mini" id="btnRecursos">Aprobar recursos para el SG-SST</button> <span class="ayuda">' + de('aprobrec').filter((x)=> String(x.resumen.fecha).slice(0, 4) === anio).length + ' aprobación(es) en ' + anio + ' (estándar 1.1.3)</span></div>' +
+    (decidir.length ? '<div class="u-mt8"><b>Lo que usted debe decidir este mes:</b><ul style="margin:4px 0 0 18px;">' + decidir.map((d)=> '<li>' + d + '</li>').join('') + '</ul></div>' : '') + '</div>';
+  $('tablero').innerHTML = resumenG + (perfil ? '<div class="aviso info">🏢 ' + esc(perfil.trabajadores) + ' trabajadores · riesgo ' + esc(perfil.claseRiesgo) + ' · le aplican ' + esc(UI.textoGrupo(Number(perfil.grupo0312))) + '</div>'
+    : '<div class="aviso amar">🏢 Falta el perfil de la empresa (trabajadores y clase de riesgo) para saber si le aplican 7, 21 o 60 estándares. <button type="button" class="btn-mini" id="btnPerfilG">Definirlo</button></div>') + secciones.map((s)=> '<div class="sec-t">' + esc(s[0]) + '</div><div class="tablero">' + s[1].map((x)=> '<' + (x.href ? 'a href="' + x.href + '"' : 'div') + ' class="tab-c ' + (x.cl || '') + '"><div class="f" style="margin:0 0 3px;">' + esc(x.t) + '</div><div class="v">' + esc(x.v) + '</div><div class="n">' + esc(x.n) + '</div><div class="f">' + esc(x.f) + '</div></' + (x.href ? 'a' : 'div') + '>').join('') + '</div>').join('');
+}
+
+/* ── Reporte anual de estándares mínimos (Res. 0312 de 2019) ── */
+let repAnual = null;
+async function pintarAnual(){
+  const card = $('cardAnual'), anio = UI.hoy().slice(0, 4), x = de('reporteanual').find((r)=> String(r.resumen.anio) === anio);
+  repAnual = x ? await Registros.abrir(x.id) : { id: 'RAN-' + anio, nuevo: true, anio };
+  if (!repAnual) return;
+  const au = ultimaAuto(anio), plan = de('accion').filter((a)=> /Autoevaluación/.test(a.resumen.origen) && (!au || a.resumen.origenRef === au.id));
+  const pasos = [
+    [!!au, 'Autoevaluación de estándares mínimos ' + anio + ' cerrada', au ? fmt(au.resumen.puntaje, 1) + '% · ' + valoracion0312(Number(au.resumen.puntaje) || 0).n + ' · ' + UI.corta(au.resumen.fechaEjecucion) : 'Hazla en Auditorías → Autoevaluación Res. 0312'],
+    [!!au && plan.length > 0 || (au && Number(au.resumen.puntaje) >= 100), 'Plan de mejoramiento con responsables y fechas', plan.length + ' acción(es) en el plan de acción (' + plan.filter((a)=> a.estado === 'CERRADA').length + ' cerradas)'],
+    [!!repAnual.fechaRegistro, 'Registrada en la plataforma del Ministerio del Trabajo / Fondo de Riesgos Laborales', repAnual.fechaRegistro ? UI.corta(repAnual.fechaRegistro) + (repAnual.radicado ? ' · ' + repAnual.radicado : '') : 'Pendiente (revisa la fecha límite que fije el Ministerio)'],
+    [!!repAnual.fechaArl, 'Reporte de avances del plan de mejoramiento a la ARL (si la valoración no fue aceptable)', repAnual.fechaArl ? UI.corta(repAnual.fechaArl) : au && Number(au.resumen.puntaje) > 85 ? 'No se exige (aceptable)' : 'Crítico: 3 meses · moderado: 6 meses']];
+  card.hidden = false;
+  card.innerHTML = '<h2>📦 Reporte anual de estándares mínimos ' + esc(anio) + '</h2>' +
+    pasos.map((p)=> '<div class="chk"><b>' + (p[0] ? '✅' : '⬜') + '</b><div>' + esc(p[1]) + '<div class="m" style="font-size:var(--fs-menor);color:var(--muted);">' + esc(p[2]) + '</div></div></div>').join('') +
+    '<div class="grid2 u-mt10"><div class="field"><label>Registrada en la plataforma el</label><input type="date" id="raReg" value="' + esc(repAnual.fechaRegistro || '') + '"></div><div class="field"><label>N.º de radicado o constancia</label><input type="text" id="raRad" value="' + esc(repAnual.radicado || '') + '"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Avances enviados a la ARL el</label><input type="date" id="raArl" value="' + esc(repAnual.fechaArl || '') + '"></div><div class="field"><label>Responsable</label><input type="text" id="raResp" value="' + esc(repAnual.responsable || Sesion.nombre() || '') + '"></div></div>' +
+    '<div id="raAdj"></div><button type="button" class="btn amber" id="raOk">Guardar</button><button type="button" class="btn ghost" id="raPdf">🖨️ Paquete del reporte anual (PDF)</button><div class="status-msg" id="raMsg"></div>' +
+    '<p class="ayuda">El PDF trae la autoevaluación con los estándares que le aplican a la empresa, el plan de mejoramiento y los indicadores mínimos del año (art. 30), listos para cargar en la plataforma y guardar como evidencia.</p>';
+  if (!repAnual.nuevo) UI.adjuntos($('raAdj'), { id: repAnual.id, lista: repAnual.adjuntos || [], titulo: 'Constancias (registro, envío a la ARL)' }); else UI.adjuntos($('raAdj'), {});
+  $('raOk').addEventListener('click', async ()=> {
+    const v = Object.assign({}, repAnual, { fechaRegistro: $('raReg').value, radicado: $('raRad').value.trim(), fechaArl: $('raArl').value, responsable: $('raResp').value.trim(),
+      puntaje: au ? Number(au.resumen.puntaje) : '', valoracion: au ? valoracion0312(Number(au.resumen.puntaje) || 0).n : '', fechaAutoevaluacion: au ? au.resumen.fechaEjecucion : '', acciones: plan.length });
+    v.estado = v.fechaRegistro ? 'REGISTRADO' : au ? 'POR REGISTRAR' : 'SIN AUTOEVALUACIÓN';
+    $('raMsg').textContent = 'Guardando…';
+    const r = await Registros.guardar('reporteanual', v.id, v, v.nuevo ? 0 : v.version);
+    if (typeof r === 'string') { $('raMsg').textContent = r; return; }
+    UI.toast('✓ Guardado'); cargar();
+  });
+  $('raPdf').addEventListener('click', ()=> pdfAnual(anio, au, plan));
+}
+async function pdfAnual(anio, au, plan){
+  const A = anual(anio), d = au ? await SGSST.doc(au.id) : null;
+  const items = d && d.items ? d.items : [];
+  const v = au ? valoracion0312(Number(au.resumen.puntaje) || 0) : null;
+  UI.imprimir([UI.cabecera('SG-REPORTE-ANUAL-0312', 'REPORTE ANUAL DE ESTÁNDARES MÍNIMOS DEL SG-SST ' + anio, EMPRESA.nombre || '') +
+    UI.seccion('RESULTADO DE LA AUTOEVALUACIÓN', au ? UI.tablaDatos([['Fecha', UI.corta(au.resumen.fechaEjecucion)], ['Calificación', fmt(au.resumen.puntaje, 2) + ' %'], ['Valoración', v.n], ['Qué sigue', v.que], ['Auditor', au.resumen.auditor || '']]) : '<table><tr><td>No hay autoevaluación cerrada en ' + esc(anio) + '.</td></tr></table>') +
+    (items.length ? UI.seccion('ESTÁNDARES', '<table><tr><td class="l">Estándar</td><td class="l">Ciclo</td><td class="l">Requisito</td><td class="l">Valor</td><td class="l">Calificación</td><td class="l">Justificación / evidencia</td></tr>' +
+      items.map((i)=> '<tr><td>' + esc(i.id) + '</td><td>' + esc(i.grupo) + '</td><td>' + esc(i.texto) + '</td><td>' + esc(String(i.valor).replace('.', ',')) + '</td><td>' + esc(i.r === 'C' ? 'Cumple' : i.r === 'NA' ? 'No aplica' : i.r === 'NC' ? 'No cumple' : '—') + '</td><td>' + esc([i.just, i.evid].filter(Boolean).join(' · ')) + '</td></tr>').join('') + '</table>') : '') +
+    UI.seccion('PLAN DE MEJORAMIENTO', plan.length ? '<table><tr><td class="l">Hallazgo</td><td class="l">Acción</td><td class="l">Responsable</td><td class="l">Fecha</td><td class="l">Estado</td></tr>' + plan.map((a)=> '<tr><td>' + esc(a.resumen.hallazgo) + '</td><td>' + esc(a.resumen.accion) + '</td><td>' + esc(a.resumen.responsable) + '</td><td>' + esc(UI.corta(a.resumen.fechaCompromiso)) + '</td><td>' + esc(a.estado) + '</td></tr>').join('') + '</table>' : '<table><tr><td>Sin acciones registradas.</td></tr></table>') +
+    UI.seccion('INDICADORES MÍNIMOS (RES. 0312, ART. 30)', '<table><tr><td class="l">Mes</td><td class="l">Trabajadores</td><td class="l">AT</td><td class="l">Frecuencia</td><td class="l">Severidad</td><td class="l">Ausentismo causa médica</td></tr>' +
+      A.ms.map((m)=> '<tr><td>' + esc(m.m) + '</td><td>' + (m.trab || '—') + '</td><td>' + m.at + '</td><td>' + fmt(m.frecuencia, 2) + '</td><td>' + fmt(m.severidad, 1) + '</td><td>' + (m.ausentismo === null ? '—' : fmt(m.ausentismo, 2) + '%') + '</td></tr>').join('') + '</table>' +
+      UI.tablaDatos([['Promedio de trabajadores', fmt(A.prom, 1)], ['Accidentes del año', String(A.at)], ['Proporción de AT mortales', (A.mortalidad === null ? 'Sin accidentes' : fmt(A.mortalidad, 1) + ' %')], ['Prevalencia de enfermedad laboral (× 100.000)', fmt(A.prevalencia, 1)], ['Incidencia de enfermedad laboral (× 100.000)', fmt(A.incidencia, 1)], ['Registro en la plataforma', repAnual && repAnual.fechaRegistro ? UI.corta(repAnual.fechaRegistro) + ' ' + (repAnual.radicado || '') : 'Pendiente']]))], true);
+}
+$('btnPdf').addEventListener('click', ()=> {
+  UI.imprimir([UI.cabecera('SG-TABLERO-GERENCIA', 'INFORME DEL SG-SST PARA LA GERENCIA', 'Corte ' + UI.corta(UI.hoy())) +
+    secciones.map((s)=> UI.seccion(s[0].toUpperCase(), '<table>' + s[1].map((x)=> '<tr><td style="width:28%;"><b>' + esc(x.t) + '</b></td><td style="width:14%;">' + esc(x.v) + '</td><td>' + esc(x.n) + '</td><td>' + esc(x.f) + '</td><td style="width:9%;">' + ({ ok: 'Bien', pronto: 'Atención', mal: 'Crítico' }[x.cl] || '') + '</td></tr>').join('') + '</table>')).join('')]);
+});
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

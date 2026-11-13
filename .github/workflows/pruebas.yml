@@ -1,0 +1,134 @@
+# Pruebas del Portal SSTA en cada subida.
+#
+# Si algo sale en rojo, GitHub marca la subida con ✗ y NO publica el sitio:
+# la publicación (GitHub Pages) depende de que las pruebas pasen.
+#
+# Para activarlo una sola vez en el repositorio:
+#   Settings → Pages → Build and deployment → Source: «GitHub Actions».
+# (Con «Deploy from a branch» GitHub publica sin esperar las pruebas.)
+
+name: Pruebas y publicación
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pruebas:
+    name: Pruebas (código y navegador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # v163: el lint de seguridad (ESLint) es parte de pruebas.js; sin esto, en un clon limpio
+      # no existe herramientas/lint/node_modules, las pruebas fallan y no se publica.
+      - name: Instalar ESLint (lint de seguridad)
+        working-directory: herramientas/lint
+        run: npm ci --no-audit --no-fund
+
+      - name: Pruebas del código (más de mil comprobaciones)
+        run: node pruebas/pruebas.js
+
+      # v165: la versión completa y consistente (misma versión en todos lados, CSP, núcleo sin señal,
+      # servidor generado igual a backends/). Si el servidor generado cambia aquí, faltó regenerarlo y subirlo.
+      - name: Versión completa y consistente
+        run: |
+          node herramientas/armar-common.js --check
+          node herramientas/verificar-release.js --sin-guia
+          git diff --exit-code -- servidor-unico servidor-todo-en-uno || (echo "::error::El servidor generado no coincide con backends/: corre node herramientas/armar-servidor-unico.js y súbelo" && exit 1)
+
+      - name: Instalar Playwright y Chromium
+        working-directory: pruebas
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Pruebas en navegador (celular, permisos, sin señal, firmas)
+        working-directory: pruebas
+        run: node navegador.js
+
+  # v165: el mismo navegador en el motor de Safari (iPhone). Por ahora AVISA pero no frena la publicación:
+  # cuando salga en verde varias veces seguidas, quitar «continue-on-error» para exigirlo.
+  iphone:
+    name: Pruebas en WebKit (Safari / iPhone)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Playwright y WebKit
+        working-directory: pruebas
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps webkit
+      - name: Pruebas en navegador con WebKit
+        working-directory: pruebas
+        env:
+          SSTA_MOTOR: webkit
+        run: node navegador.js
+
+  seguridad:
+    name: Dependencias y secretos
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vulnerabilidades conocidas en las herramientas de prueba y lint
+        run: |
+          (cd herramientas/lint && npm audit --audit-level=high) || true
+          (cd pruebas && npm install --no-audit --no-fund && npm audit --audit-level=high) || true
+      - name: Que no se haya colado un token o una clave
+        run: |
+          ! grep -rInE "AKfyc[A-Za-z0-9_-]{30,}|-----BEGIN (EC |RSA )?PRIVATE KEY|ssta-licencia-privada" --include=*.js --include=*.html --include=*.gs --exclude-dir=node_modules --exclude-dir=pruebas --exclude-dir=herramientas . || (echo "::error::Hay un posible secreto en el código" && exit 1)
+
+  publicar:
+    name: Publicar en GitHub Pages
+    needs: pruebas
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Se publica solo el sitio: lo de desarrollo no va a internet
+      # (mismas carpetas que excluye INSTALAR-NUEVA-EMPRESA.md).
+      - name: Preparar el sitio
+        run: |
+          mkdir -p _sitio
+          rsync -a ./ _sitio/ --exclude .git --exclude .github --exclude _sitio \
+            --exclude backends --exclude pruebas --exclude herramientas --exclude sitio-demo --exclude comercial --exclude fuente \
+            --exclude node_modules --exclude '*.md' --exclude '*.docx' --exclude servidor-unico   # v145: documentos internos fuera del sitio público. v167: servidor-todo-en-uno SÍ va: es lo que copia el instalador (instalar.html)
+          touch _sitio/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _sitio
+
+      - id: despliegue
+        uses: actions/deploy-pages@v4

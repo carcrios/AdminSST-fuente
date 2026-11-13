@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LmI6I1vNYD09CY69+yc4UNJujQT55vTtroS5TfRRM7s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#10213a">
+<meta name="robots" content="noindex, nofollow">
+<title>Instalar paso a paso · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Instalar paso a paso · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+/* v119: instalación guiada. Un camino a la vez, un paso a la vez, y la prueba del servidor aquí mismo. */
+:root{--suave:#4d5f78;--linea:#dbe3ee;--morado:#5b3fd9;--ok:var(--verde-400);--mal:var(--rojo-500);}
+*{box-sizing:border-box;}
+html body{margin:0;background:var(--bg);color:var(--tinta);font-family:var(--font-family,-apple-system,sans-serif);padding-bottom:80px;}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px;}
+.cab{padding:22px 0 8px;}
+.cab a{color:var(--azul);font-weight:700;text-decoration:none;font-size:var(--fs-base);}
+.cab h1{font-size:var(--fs-h1);letter-spacing:-.02em;margin:10px 0 6px;}
+.cab p{margin:0;color:var(--suave);font-size:var(--fs-titulo);line-height:1.5;}
+.caminos{display:grid;gap:12px;margin:16px 0;}
+.camino{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;border:2px solid var(--linea);border-radius:var(--r-xl);padding:18px;background:#fff;cursor:pointer;font:inherit;color:inherit;}
+.camino:hover{border-color:var(--azul);}
+.camino .ico{width:54px;height:54px;flex:0 0 54px;border-radius:var(--r-l);display:grid;place-items:center;font-size:var(--fs-h1);}
+.camino.a .ico{background:var(--tinta);color:#fff;} .camino.b .ico{background:var(--azul);color:#fff;} .camino .ico svg,.franja .ico svg{stroke:currentColor;color:inherit;}   /* v162: sin degradados, la misma identidad del portal */
+.camino b{display:block;font-size:var(--fs-display);margin-bottom:4px;}
+.camino > span:last-child > span{display:block;color:var(--suave);font-size:var(--fs-base);line-height:1.45;}
+.camino em{display:inline-block;margin-top:8px;font-style:normal;font-size:var(--fs-menor);font-weight:800;border-radius:var(--r-pill);padding:3px 10px;background:var(--bg);}
+.franja{position:sticky;top:0;z-index:20;margin:0 -16px 14px;padding:12px 16px;color:#fff;display:flex;gap:12px;align-items:center;box-shadow:0 8px 20px rgba(16,33,58,.18);}
+.franja.a{background:var(--tinta);} .franja.b{background:var(--azul);}
+.franja .ico{font-size:var(--fs-subtitulo);} .franja small{display:block;font-size:var(--fs-etiqueta);letter-spacing:.1em;text-transform:uppercase;font-weight:800;opacity:.85;}
+.franja b{display:block;font-size:var(--fs-titulo);} .franja .av{font-size:var(--fs-menor);opacity:.92;}
+.franja button{margin-left:auto;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:var(--r-pill);padding:8px 12px;font:700 13px inherit;font-family:inherit;cursor:pointer;min-height:40px;}
+.barra{height:6px;border-radius:var(--r-xs);background:rgba(255,255,255,.3);margin-top:6px;overflow:hidden;} .barra i{display:block;height:100%;background:#fff;border-radius:var(--r-xs);transition:width .3s;}
+.paso{background:#fff;border-radius:var(--r-xl);padding:16px 16px 14px;margin-bottom:12px;border:2px solid transparent;}
+.paso.hecho{opacity:.65;border-color:var(--verde-100);}
+.paso.actual{border-color:var(--azul);box-shadow:0 10px 26px rgba(47,107,255,.15);}
+.paso h2{display:flex;gap:10px;align-items:flex-start;font-size:var(--fs-display);margin:0 0 8px;line-height:1.35;}
+.paso h2 .n{flex:0 0 32px;height:32px;border-radius:50%;background:var(--tinta);color:#fff;display:grid;place-items:center;font-size:var(--fs-titulo);}
+.paso.hecho h2 .n{background:var(--ok);}
+.paso ol,.paso ul{margin:6px 0 4px 20px;padding:0;font-size:var(--fs-titulo);line-height:1.55;}
+.paso li{margin:5px 0;}
+.paso p{font-size:var(--fs-titulo);line-height:1.55;margin:6px 0;}
+.paso code{background:var(--bg);border-radius:var(--r-xs);padding:1px 6px;font-size:var(--fs-base);}
+.ojo{background:var(--ambar-50);border:1px solid var(--ambar-200);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);line-height:1.5;margin:8px 0;}
+.bien{background:var(--verde-50);border:1px solid var(--verde-100);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);line-height:1.5;margin:8px 0;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;border-radius:var(--r-l);padding:10px 16px;font:800 15px inherit;font-family:inherit;border:0;cursor:pointer;text-decoration:none;}
+.btn.p{background:var(--azul);color:#fff;} .btn.g{background:var(--bg);color:var(--tinta);}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px;}
+.listo{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:800;font-size:var(--fs-titulo);cursor:pointer;}
+.listo input{width:24px;height:24px;accent-color:var(--ok);}
+.prueba input{width:100%;border:1.5px solid var(--linea);border-radius:var(--r-m);padding:12px;font:600 15px inherit;font-family:inherit;margin-top:6px;}
+.res{margin-top:8px;}
+.fin{background:var(--verde-600);color:#fff;border-radius:var(--r-xl);padding:18px;margin-top:6px;}
+.fin a{color:#fff;font-weight:800;}
+</style>
+</head>
+<body data-ayuda-corta>
+<div class="wrap">
+  <div class="cab">
+    <a href="index.html" id="volver">← Volver</a>
+    <h1>Instalar paso a paso</h1>
+    <p>Un paso a la vez. Marca cada uno cuando lo termines; esta página recuerda dónde ibas.</p>
+  </div>
+
+  <div id="elegir">
+    <div class="caminos">
+      <button type="button" class="camino a" data-camino="a"><span class="ico">🛡️</span><span><b>A. Mi sitio — soy el administrador</b><span>Tu marca, tu servidor y tu consola. Se hace <u>una sola vez</u>, antes del primer cliente.</span><em>Una vez</em></span></button>
+      <button type="button" class="camino b" data-camino="b"><span class="ico">🏢</span><span><b>B. Una empresa cliente</b><span>Cada empresa a la que le vendes el portal. Su servidor va en la cuenta de Google de esa empresa.</span><em>Cada cliente nuevo</em></span></button>
+    </div>
+    <p style="color:var(--suave);font-size:var(--fs-base);line-height:1.5;">¿No sabes cuál? Si todavía no tienes tu consola (<code>admin.html</code>) funcionando, empieza por la <b>A</b>.</p>
+  </div>
+
+  <div id="guia" hidden></div>
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const K = 'ssta-instalar';
+  const RAIZ = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+  const ARCHIVO = 'servidor-todo-en-uno/Portal-SSTA.gs';
+  let estado = {}; try { estado = JSON.parse(localStorage.getItem(K) || '{}') || {}; } catch (e) {}
+  const guardar = () => { try { localStorage.setItem(K, JSON.stringify(estado)); } catch (e) {} };
+
+  /* ── Los pasos del servidor: iguales para tu sitio y para un cliente (cambia de quién es la cuenta) ── */
+  const servidor = (cuenta) => [
+    { t: 'Abre Google Apps Script con la cuenta ' + cuenta,
+      h: '<ol><li>Entra a <a href="https://script.google.com/home" target="_blank" rel="noopener">script.google.com</a> con la cuenta de Google ' + cuenta + '.</li><li>Toca <b>Nuevo proyecto</b>.</li><li>Arriba a la izquierda, donde dice «Proyecto sin título», escribe <b>Portal SSTA</b>.</li><li>En <b>⚙️ Configuración del proyecto</b> (a la izquierda), pon la zona horaria <b>(GMT-05:00) Bogotá</b>.</li></ol>' },
+    { t: 'Pega el servidor (un solo archivo)',
+      h: '<div class="btns"><button type="button" class="btn p" data-copiar>📋 Copiar el servidor</button><a class="btn g" href="' + ARCHIVO + '" download>⬇️ Descargar el archivo</a></div>' +
+        '<ol><li>En el editor, borra todo lo que trae el archivo <code>Código.gs</code>.</li><li>Pega (Ctrl + V). Es largo: espera a que termine.</li><li>Arriba del archivo, en <b>DATOS DE LA EMPRESA</b>, cambia solo 3 cosas: el <b>nombre de la empresa</b>, los <b>correos</b> que reciben avisos y el <b>WhatsApp</b> de quien aprueba la reposición de EPP.</li><li>Toca <b>💾 Guardar</b>.</li></ol><div class="res" data-res-copiar></div>' },
+    { t: 'Instala (crea las hojas y la clave)',
+      h: '<ol><li>Arriba, en la lista de funciones, elige <b>instalar</b> y toca <b>▶ Ejecutar</b>.</li><li>Google pide permisos: <b>Revisar permisos</b> → elige la cuenta ' + cuenta + ' → <b>Configuración avanzada</b> → <b>Ir a Portal SSTA (no seguro)</b> → <b>Permitir</b>.</li><li>Espera. Abajo, en el registro, sale <b>«✅ Instalado…»</b> y la <b>clave del portal</b> (por ejemplo <code>KQRT-4827</code>). Anótala.</li></ol>' +
+        '<div class="ojo">«No seguro» es normal: es tu propio código, no una aplicación publicada por Google.</div>' },
+    { t: 'Publícalo como aplicación web',
+      h: '<ol><li>Arriba a la derecha: <b>Implementar → Nueva implementación</b>.</li><li>En el engranaje ⚙️ elige <b>Aplicación web</b>.</li><li><b>Ejecutar como: Yo</b>.</li><li><b>Quién tiene acceso: Cualquier usuario</b>. <u>Este es el paso que más se olvida</u>: si queda otra opción, todo sale caído.</li><li>Toca <b>Implementar</b> y copia la <b>URL de la aplicación web</b> (termina en <code>/exec</code>).</li></ol>' },
+    { t: 'Prueba que el servidor responde', prueba: true,
+      h: '<p>Pega la URL que copiaste (la que termina en <code>/exec</code>) y toca Probar.</p><div class="prueba"><input type="url" data-url placeholder="https://script.google.com/macros/s/…/exec"><div class="btns"><button type="button" class="btn p" data-probar>Probar mi servidor</button></div><div class="res" data-res></div></div>' },
+    { t: 'Copia la configuración',
+      h: '<ol><li>En Apps Script, elige la función <b>verConfiguracion</b> y toca <b>▶ Ejecutar</b>.</li><li>En el registro salen unas líneas entre rayas (<code>servidor:</code>, <code>apiToken:</code>, <code>clave:</code>, <code>llaveProveedor:</code>, <code>scriptId:</code>). <b>Cópialas todas.</b> Las pegas en el paso siguiente.</li></ol>' }
+  ];
+  const CAMINOS = {
+    a: { nombre: 'TU SITIO · administrador general', ico: '🛡️', pasos: [
+      { t: 'Tu sitio ya está en GitHub', h: '<p>Si estás viendo esta página desde tu dirección de GitHub (<code>' + RAIZ.replace(/</g, '') + '</code>), este paso ya está hecho. Si no, sigue primero la guía en Word, parte «Subir el sitio a GitHub».</p>' }
+    ].concat(servidor('TUYA (la de tu negocio)')).concat([
+      { t: 'Tu marca', h: '<p>Abre el configurador en «Mi sitio», llena tu marca y tus datos, y en el paso del servidor pega lo que copiaste. Descarga <code>empresa.js</code> y <code>manifest.json</code>.</p><div class="btns"><a class="btn p" href="configurar-empresa.html?tipo=proveedor">Abrir «Mi sitio» en el configurador</a></div>' },
+      { t: 'Sube tus dos archivos a GitHub', h: '<ol><li>En tu repositorio de GitHub: <b>Add file → Upload files</b>.</li><li>Arrastra <code>empresa.js</code> y <code>manifest.json</code> y toca <b>Commit changes</b> (reemplazan los que hay).</li><li>Espera 1 o 2 minutos y recarga esta página.</li></ol>' },
+      { t: 'Entra a tu consola', h: '<ol><li>En Apps Script, elige <b>sgsst__codigoAdministrador</b> y ▶ Ejecutar. Sale un código como <code>ABCDE-12345</code> (vale 2 horas).</li><li>Abre tu consola, escribe ese código, tu usuario y una contraseña.</li><li>Guarda la consola en favoritos.</li></ol><div class="btns"><a class="btn p" href="admin.html">Abrir mi consola</a></div>' },
+      { t: 'Activa la vigilancia diaria', h: '<p>En Apps Script, elige <b>sgsst__instalarVigilancia</b> y ▶ Ejecutar. Cada mañana tu servidor revisa los de tus clientes y te escribe si algo falla.</p>' }
+    ]), fin: '<b>¡Tu sitio quedó listo!</b> Ahora instala tu primer cliente con el camino <a href="#" data-ir="b">B. Una empresa cliente</a>.' },
+    b: { nombre: 'UNA EMPRESA CLIENTE', ico: '🏢', pasos: [
+      { t: 'Ten a mano la cuenta de Google de la empresa', h: '<p>Una cuenta de Google <b>de la empresa</b> (por ejemplo <code>sst@empresa.com</code>), no la tuya: ahí quedan su servidor y sus datos. Pídele a la empresa que te deje entrar o hazlo con ellos.</p><div class="ojo">Si usas tu cuenta, los datos de la empresa quedarían en tu Drive. No lo hagas.</div>' }
+    ].concat(servidor('DE LA EMPRESA')).concat([
+      { t: 'Regístrala en tu consola', h: '<ol><li>Abre tu consola → <b>Instalar empresa nueva</b>.</li><li>Arriba dirá en azul «Estás instalando una empresa cliente». Llena: código (por ejemplo <code>acme-sas</code>), datos, trabajadores y riesgo (0312) y módulos.</li><li>En el paso del servidor, pega lo que copiaste de <code>verConfiguracion</code>.</li><li>Toca <b>Guardar en tu consola y publicar</b>. Sale su enlace y su QR.</li></ol><div class="btns"><a class="btn p" href="configurar-empresa.html?nueva=1&amp;tipo=cliente">Instalar la empresa en mi consola</a></div>' },
+      { t: 'Pruébalo en un celular', h: '<ol><li>Abre su enlace (o escanea el QR) en un celular.</li><li>Toca <b>Estado</b> (arriba): todo debe salir en verde.</li><li>Haz un reporte de prueba y mira que llegue a la hoja de Google de la empresa.</li></ol>' },
+      { t: 'Entrégala', h: '<ul><li>El <b>enlace o el QR</b> para todos los celulares.</li><li>La <b>clave del portal</b> del paso 4, solo para quien la necesite.</li></ul><p><b>Obligatorio antes de entregar:</b></p><ol><li><b>Crear el administrador:</b> en el Apps Script de la empresa, <b>sgsst__codigoAdministrador</b>; con ese código el responsable de SST crea su usuario en <b>Gestión → Usuarios</b> y luego los de su equipo. Sin administrador, salud y buzón quedan cerrados y lo demás se abre solo con la clave.</li><li><b>Respaldo fuera de la cuenta:</b> Propiedades del script → <code>RESPALDO_EXTERNO</code> con un correo de la empresa (otra cuenta).</li><li><b>Probar la restauración:</b> ▶ <b>sgsst__respaldoSemanal</b> y luego ▶ <b>sgsst__probarRestauracion</b> (debe decir «✓ El respaldo se puede restaurar»).</li></ol>' }
+    ]), fin: '<b>¡La empresa quedó instalada!</b> La ves en tu consola. Para la siguiente empresa, vuelve a empezar el camino B.' }
+  };
+
+  let camino = new URLSearchParams(location.search).get('para') === 'cliente' ? 'b' : (estado.camino || '');
+  // Desde la consola, un cliente nuevo empieza en blanco si el anterior ya se terminó.
+  if (camino === 'b' && new URLSearchParams(location.search).get('para') === 'cliente' && (estado.b || []).length >= CAMINOS.b.pasos.length) { estado.b = []; }
+  function abrir(c) { camino = c; estado.camino = c; guardar(); pintar(); window.scrollTo(0, 0); }
+  function pintar() {
+    if (!CAMINOS[camino]) { $('elegir').hidden = false; $('guia').hidden = true; return; }
+    $('elegir').hidden = true; $('guia').hidden = false;
+    const C = CAMINOS[camino], hechos = estado[camino] || [], total = C.pasos.length, n = C.pasos.filter((_, i) => hechos.indexOf(i) !== -1).length;
+    const actual = C.pasos.findIndex((_, i) => hechos.indexOf(i) === -1);
+    $('guia').innerHTML = '<div class="franja ' + camino + '"><span class="ico">' + C.ico + '</span><span style="flex:1;min-width:0;"><small>Estás instalando</small><b>' + C.nombre + '</b><span class="av">' + n + ' de ' + total + ' pasos</span><div class="barra"><i style="width:' + Math.round(n * 100 / total) + '%"></i></div></span><button type="button" data-cambiar>Cambiar</button></div>' +
+      C.pasos.map((p, i) => '<section class="paso' + (hechos.indexOf(i) !== -1 ? ' hecho' : '') + (i === actual ? ' actual' : '') + '" data-i="' + i + '"><h2><span class="n">' + (hechos.indexOf(i) !== -1 ? '✓' : i + 1) + '</span><span>' + p.t + '</span></h2>' + p.h +
+        '<label class="listo"><input type="checkbox" data-hecho="' + i + '"' + (hechos.indexOf(i) !== -1 ? ' checked' : '') + '> Listo, ya lo hice</label></section>').join('') +
+      (actual === -1 ? '<div class="fin">' + C.fin + '</div>' : '') +
+      '<div class="btns"><button type="button" class="btn g" data-reiniciar>Empezar este camino de nuevo</button></div>';
+    const s = $('guia').querySelector('.paso.actual'); if (s && n) setTimeout(() => s.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50);
+  }
+  document.addEventListener('click', async (e) => {
+    const t = e.target;
+    const c = t.closest('[data-camino]'); if (c) { abrir(c.dataset.camino); return; }
+    const ir = t.closest('[data-ir]'); if (ir) { e.preventDefault(); abrir(ir.dataset.ir); return; }
+    if (t.closest('[data-cambiar]')) { camino = ''; estado.camino = ''; guardar(); pintar(); window.scrollTo(0, 0); return; }
+    if (t.closest('[data-reiniciar]')) { estado[camino] = []; guardar(); pintar(); return; }
+    if (t.closest('[data-copiar]')) {
+      const r = t.closest('.paso').querySelector('[data-res-copiar]');
+      try { const txt = await (await fetch(ARCHIVO, { cache: 'no-store' })).text(); await navigator.clipboard.writeText(txt); r.innerHTML = '<div class="bien">✓ Copiado (' + Math.round(txt.length / 1024) + ' KB). Ahora pégalo en Apps Script.</div>'; }
+      catch (err) { r.innerHTML = '<div class="ojo">No se pudo copiar aquí. Usa «Descargar el archivo», ábrelo, selecciona todo (Ctrl + A), copia y pega.</div>'; }
+      return;
+    }
+    if (t.closest('[data-probar]')) { probar(t.closest('.paso')); return; }
+  });
+  document.addEventListener('change', (e) => {
+    const h = e.target.closest('[data-hecho]'); if (!h) return;
+    const i = Number(h.dataset.hecho), l = estado[camino] = estado[camino] || [];
+    if (h.checked) { if (l.indexOf(i) === -1) l.push(i); } else estado[camino] = l.filter((x) => x !== i);
+    guardar(); pintar();
+  });
+
+  /* ── Probar el servidor desde aquí: dice qué está mal según lo que pase ── */
+  async function probar(paso) {
+    const url = paso.querySelector('[data-url]').value.trim().replace(/\/+$/, ''), res = paso.querySelector('[data-res]');
+    const mal = (m) => { res.innerHTML = '<div class="ojo">' + m + '</div>'; };
+    if (!/^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[\w-]+\/(exec|dev)$/.test(url)) return mal('Esa no parece la URL de una aplicación web de Apps Script. Debe verse así: <code>https://script.google.com/macros/s/…/exec</code>. Cópiala de <b>Implementar → Gestionar implementaciones</b>.');
+    if (/\/dev$/.test(url)) return mal('Esa URL termina en <b>/dev</b>: solo le funciona a la cuenta dueña. Usa la que termina en <b>/exec</b> (Implementar → Gestionar implementaciones).');
+    res.innerHTML = '<div class="bien">Probando…</div>';
+    try {
+      const r = await Promise.race([fetch(url), new Promise((_, no) => setTimeout(() => no(new Error('tardó más de 25 s')), 25000))]);
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (j && j.ok && j.servicio === 'Portal SSTA') {
+        res.innerHTML = '<div class="bien">✓ <b>¡Funciona!</b> Servidor de <b>' + esc(j.empresa || '—') + '</b>, versión ' + esc(j.version || '') + ', con ' + ((j.modulos || []).length) + ' módulos.' + (/^Empresa$/.test(j.empresa || '') ? '<br>⚠ Todavía dice «Empresa»: escribe el nombre en DATOS DE LA EMPRESA, guarda y vuelve a ejecutar <b>instalar</b>.' : '') + '</div>';
+        const box = paso.querySelector('[data-hecho]'); if (box && !box.checked) { box.checked = true; box.dispatchEvent(new Event('change', { bubbles: true })); }
+        return;
+      }
+      if (j && j.ok) return mal('Responde, pero no es el servidor del Portal SSTA. ¿Pegaste el archivo completo?');
+      mal('Respondió con un error: ' + esc((j && j.error) || 'sin detalle') + '. Ejecuta <b>instalar</b> otra vez en Apps Script.');
+    } catch (e) {
+      mal('<b>No responde.</b> Ábrela en una ventana de incógnito y mira qué sale:<ul>' +
+        '<li><b>Pide iniciar sesión</b> o «no tienes permiso» → Implementar → Gestionar implementaciones → ✏️ → <b>Quién tiene acceso: Cualquier usuario</b> → Implementar.</li>' +
+        '<li><b>«Se necesita autorización»</b> → ejecuta <b>instalar</b> otra vez y acepta los permisos.</li>' +
+        '<li><b>«No se encontró»</b> → esa implementación ya no existe: copia la URL de nuevo en Gestionar implementaciones.</li>' +
+        '<li><b>Un texto con "ok":true</b> → funciona: la red de este equipo lo bloquea. Prueba con los datos del celular.</li></ul>');
+    }
+  }
+  pintar();
+})();
+</script>
+</body>
+</html>

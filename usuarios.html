@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Tf1/ppW2Lzgj+UEfLuiMFOuAOavKgIsR/ofTyfFSVcA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Usuarios y respaldo · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Usuarios y respaldo · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.roles{width:100%;border-collapse:collapse;font-size:var(--fs-menor);}
+.roles td{border-bottom:1px solid var(--line);padding:7px 4px;vertical-align:top;line-height:1.4;}
+.roles td:first-child{font-weight:700;white-space:nowrap;padding-right:10px;}
+.temporal{font:800 22px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;text-align:center;background:var(--ambar-50);border:1.5px dashed var(--ambar-200);border-radius:var(--r-m);padding:14px;margin:10px 0;user-select:all;}
+.paso{display:flex;gap:10px;font-size:var(--fs-base);line-height:1.45;margin-bottom:8px;}
+.paso b.n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);}
+code{background:var(--bg);border-radius:var(--r-xs);padding:1px 5px;font-size:var(--fs-menor);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Administración</div>
+    <h1>Usuarios y respaldo</h1>
+    <p>Quién entra al SG-SST, con qué permisos, y la copia semanal de las hojas</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="card" id="cardRespaldo" hidden></div>
+  <div class="card" id="cardAvisos" hidden></div>
+  <div class="card">
+    <h2>Qué puede hacer cada rol</h2>
+    <p class="ayuda">Sin usuario solo se hacen <b>los preoperacionales y los reportes</b> (evento, PQRS y «¿Qué peligros ves?»). Todo lo demás, incluidos los permisos de trabajo, el ATS, las charlas, la inspección de EPP y el personal autorizado, está en el <b>Sistema de gestión</b>: pide entrar y cada rol ve solo sus módulos (el Supervisor siempre tiene lo de la obra):</p>
+    <table class="roles" id="tablaRoles">
+      <tr><td>Administrador</td><td>Todo, y además crea usuarios, cambia roles y hace el respaldo.</td></tr>
+      <tr><td>SST</td><td>Todo el sistema de gestión, incluidos los datos de salud.</td></tr>
+      <tr><td>Supervisor / campo</td><td data-rol="supervisor">Registra en sus módulos. No ve exámenes médicos ni ausentismo.</td></tr>
+      <tr><td>Integrante de comité</td><td data-rol="comite">Actas y conformación de COPASST y Convivencia, quejas (con la clave del comité). No ve datos de salud.</td></tr>
+      <tr><td>Solo consulta</td><td data-rol="consulta">Mira, no cambia nada (gerencia, auditor externo). No ve datos de salud individuales.</td></tr>
+    </table>
+    <p class="ayuda mt-8">Para darle o quitarle módulos a un rol se cambia <code>acceso</code> en empresa.js (ver la guía de instalación). Las claves de las personas no se guardan en ninguna parte: ni el administrador las puede ver.</p>
+  </div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const ROLES = { admin: 'Administrador', sst: 'SST (todo el SG-SST)', supervisor: 'Supervisor / campo', comite: 'Integrante de comité', consulta: 'Solo consulta (gerencia, auditor)' };
+let usuarios = [], modo = false;
+let fUsu = '';   // v109: filtro de la lista (lo dejan las cifras de arriba)
+window.filtrarKpi = (v)=> { fUsu = v || ''; pintarUsuarios(); };
+/* Módulos que ve cada rol en el Sistema de gestión (de empresa.js). */
+(function pintarRoles(){
+  const N = { habilitacion: 'Habilitación del personal', inspecciones: 'Inspecciones y equipos', plan: 'Plan de acción', contratistas: 'Contratistas', dotacion: 'Entrega de dotación', induccion: 'Inducción', emergencias: 'Emergencias y simulacros', pesv: 'PESV', programas: 'Programas', quimicos: 'Sustancias químicas', peligros: 'Matriz de peligros', copasst: 'COPASST', convivencia: 'Convivencia', indicadores: 'Indicadores', auditorias: 'Auditorías', plananual: 'Plan anual', gerencia: 'Tablero de la gerencia', cierre: 'Cierre del mes', evidencias: 'Carpeta de evidencias', revision: 'Revisión por la dirección', documental: 'Documentos del SG', kit: 'Kit documental', calidad: 'Calidad', ambiental: 'Ambiental', salud: 'Salud', asesor: 'Asesor', usuarios: 'Usuarios', proveedores: 'Evaluación de proveedores', comiteemergencias: 'Comité de emergencias' };
+  if (typeof Empresa === 'undefined' || !Empresa.tablaAcceso) return;
+  const t = Empresa.tablaAcceso();
+  document.querySelectorAll('#tablaRoles [data-rol]').forEach((td)=> {
+    const ms = (t[td.dataset.rol] || []).filter((m)=> Empresa.moduloActivo(m)).map((m)=> N[m] || m);
+    td.insertAdjacentHTML('afterbegin', '<b>Ve:</b> ' + esc(ms.length ? ms.join(', ') : 'solo lo de campo') + '. ');
+  });
+})();
+
+/** Clave temporal fácil de dictar (sin 0/O ni 1/l), con letras y números. */
+function temporal(){
+  const L = 'ABCDEFGHJKMNPQRSTUVWXYZ', N = '23456789', r = (a)=> a.charAt(crypto.getRandomValues(new Uint32Array(1))[0] % a.length);
+  return r(L) + r(L) + r(L) + r(L) + '-' + r(N) + r(N) + r(N) + r(N);
+}
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  if (!navigator.onLine) { $('panel').innerHTML = '<div class="aviso">Esta página necesita conexión.</div>'; return; }
+  let ping;
+  try { ping = await SGSST.consultar({ action: 'ping' }); } catch (e) { $('panel').innerHTML = '<div class="aviso">No hubo respuesta del servidor SG-SST.</div>'; return; }
+  if (!ping.ok) { $('panel').innerHTML = '<div class="aviso">' + esc(ping.error || 'Error del servidor') + '</div>'; return; }
+  modo = !!ping.usuarios;
+  Sesion.marcar(ping);
+  if (!modo) { pintarSinUsuarios(); cargarRespaldo(); return; }
+  const yo = Sesion.yo();
+  if (!yo) { $('panel').innerHTML = '<div class="card"><h2>Entra con tu usuario</h2><p class="ayuda">Esta página es para el administrador del portal.</p><button type="button" class="btn amber" id="btnEntrar">Entrar</button></div>' + tarjetaCodigo(); $('btnEntrar').addEventListener('click', ()=> Sesion.pedir()); activarCodigo(); return; }
+  cargarMisAvisos();
+  if (yo.rol !== 'admin') { $('panel').innerHTML = '<div class="aviso info">Entraste como <b>' + esc(yo.nombre) + '</b> (' + esc(ROLES[yo.rol] || yo.rol) + '). Solo un administrador maneja los usuarios.</div>'; if (yo.rol === 'sst') cargarRespaldo(); return; }
+  const j = await SGSST.consultar({ action: 'usuarios' });
+  if (!j.ok) { $('panel').innerHTML = '<div class="aviso">' + esc(j.error || 'No se pudo cargar') + '</div>'; return; }
+  usuarios = j.usuarios; pintarUsuarios(); cargarRespaldo();
+}
+
+/* ── Activar los usuarios (o recuperar el administrador) con el código del Apps Script ── */
+function tarjetaCodigo(abierta){
+  return '<' + (abierta ? 'div' : 'details') + ' class="card">' + (abierta ? '<h2>Crear el administrador</h2>' : '<summary style="font-weight:700;cursor:pointer;">¿Nadie recuerda la clave del administrador?</summary>') +
+    '<div class="paso"><b class="n">1</b><div>En Google Apps Script, abre el proyecto del <b>SG-SST</b> y ejecuta <code>codigoAdministrador</code> (▶ Ejecutar' + (EMPRESA && EMPRESA.servidor ? '; en el servidor único se llama <code>sgsst__codigoAdministrador</code>' : '') + '). En el registro de ejecución sale un código como <code>ABCDE-12345</code>; vale 2 horas y sirve una sola vez.</div></div>' +
+    '<div class="paso"><b class="n">2</b><div>Escríbelo aquí con los datos de quien va a administrar. Si el usuario ya existe, se le pone esta clave y queda como administrador.</div></div>' +
+    '<div class="grid2"><div class="field"><label>Código</label><input type="text" id="caCodigo" autocapitalize="characters" placeholder="ABCDE-12345"></div>' +
+    '<div class="field"><label>Usuario</label><input type="text" id="caUsuario" autocapitalize="none" placeholder="ej: carlos.rios"></div></div>' +
+    '<div class="field"><label>Nombre completo</label><input type="text" id="caNombre"></div>' +
+    '<div class="grid2"><div class="field"><label>Cargo</label><input type="text" id="caCargo"></div><div class="field"><label>Correo</label><input type="text" id="caCorreo" inputmode="email"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Clave (8 o más, letras y números)</label><input type="password" id="caClave" autocomplete="new-password"></div><div class="field"><label>Repite la clave</label><input type="password" id="caClave2" autocomplete="new-password"></div></div>' +
+    '<button type="button" class="btn amber" id="btnCodigo">' + (abierta ? 'Crear el administrador y activar los usuarios' : 'Recuperar el acceso') + '</button><div class="status-msg" id="msgCodigo"></div>' +
+    '</' + (abierta ? 'div' : 'details') + '>';
+}
+function activarCodigo(){
+  const b = $('btnCodigo'); if (!b) return;
+  b.addEventListener('click', async ()=>{
+    const v = (id)=> $(id).value.trim(), msg = $('msgCodigo');
+    if (!v('caCodigo') || !v('caUsuario') || !v('caNombre')) { msg.textContent = 'Faltan el código, el usuario o el nombre.'; return; }
+    if (Sesion.claveDebil($('caClave').value)) { msg.textContent = 'La clave necesita mínimo 8 caracteres, con letras y números.'; return; }
+    if ($('caClave').value !== $('caClave2').value) { msg.textContent = 'Las claves no coinciden.'; return; }
+    b.disabled = true; msg.textContent = 'Creando…';
+    try {
+      const r = await Sesion._post(Object.assign({ action: 'primerAdmin', codigo: v('caCodigo'), usuario: v('caUsuario'), nombre: v('caNombre'), cargo: v('caCargo'), correo: v('caCorreo') }, await Sesion.datosClave($('caClave').value)));
+      if (!r.ok) { msg.textContent = r.error || 'No se pudo.'; b.disabled = false; return; }
+      Sesion._guardar(r);
+      UI.toast('✓ Listo: entraste como administrador.');
+      cargar();
+    } catch (e) { msg.textContent = 'Sin conexión con el servidor.'; b.disabled = false; }
+  });
+}
+function pintarSinUsuarios(){
+  $('panel').innerHTML = '<div class="aviso info">Hoy el SG-SST funciona con la <b>clave del portal</b>: todos entran igual y en la bitácora no queda quién hizo cada cambio (solo las firmas). ' +
+    'Con <b>usuarios con nombre</b>, cada persona entra con su usuario, cada cambio queda con su nombre y cada rol ve y cambia solo lo suyo. Es opcional y se activa una sola vez.</div>' + tarjetaCodigo(true);
+  activarCodigo();
+}
+
+/* ── Lista de usuarios ── */
+function pintarUsuarios(){
+  const act = usuarios.filter((u)=> u.activo), ina = usuarios.filter((u)=> !u.activo);
+  const fila = (u)=> '<button type="button" class="item ' + (!u.activo ? 'gris' : u.bloqueado ? 'mal' : u.debeCambiar ? 'pronto' : 'ok') + '" data-u="' + esc(u.usuario) + '"><div class="fila"><div><div class="t">' + esc(u.nombre) + '</div>' +
+    '<div class="m">' + esc(u.usuario) + (u.cargo ? ' · ' + esc(u.cargo) : '') + '</div><div class="m">' + (u.ultimoIngreso ? 'Último ingreso: ' + esc(new Date(u.ultimoIngreso).toLocaleString('es-CO')) : 'Nunca ha entrado') +
+    (u.debeCambiar ? ' · debe cambiar la clave temporal' : '') + (u.bloqueado ? ' · BLOQUEADO 15 min por intentos fallidos' : '') + '</div></div>' +
+    '<span class="chip ' + (u.activo ? 'ok' : '') + '">' + esc((ROLES[u.rol] || u.rol).split(' (')[0]) + '</span></div></button>';
+  const sinEntrar = (u)=> u.debeCambiar || !u.ultimoIngreso, FU = { admin: (u)=> u.rol === 'admin', pendientes: sinEntrar, bloqueados: (u)=> u.bloqueado };
+  const nPend = act.filter(sinEntrar).length, nBloq = act.filter((u)=> u.bloqueado).length, lu = act.filter(FU[fUsu] || (()=> true));
+  $('panel').innerHTML = '<div class="kpis"><div class="kpi ok" data-ir="filtro:"><div class="v">' + act.length + '</div><div class="n">usuarios activos</div></div><div class="kpi" data-ir="filtro:admin"><div class="v">' + act.filter((u)=> u.rol === 'admin').length + '</div><div class="n">administradores</div></div>' +
+    '<div class="kpi ' + (nPend ? 'pronto' : 'ok') + '" data-ir="filtro:' + (nPend ? 'pendientes' : '') + '"><div class="v">' + nPend + '</div><div class="n">sin entrar o con clave temporal</div></div>' +
+    (nBloq ? '<div class="kpi mal" data-ir="filtro:bloqueados"><div class="v">' + nBloq + '</div><div class="n">bloqueados por intentos fallidos</div></div>' : '') + '</div>' +
+    '<button type="button" class="btn amber" id="btnNuevo">+ Nuevo usuario</button>' +
+    (act.length ? UI.chipsFiltro([['', 'Todos (' + act.length + ')'], ['admin', 'Administradores (' + act.filter(FU.admin).length + ')'], ['pendientes', 'Sin entrar o clave temporal (' + nPend + ')']].concat(nBloq ? [['bloqueados', 'Bloqueados (' + nBloq + ')']] : []), fUsu) : '') +
+    (lu.length ? lu.map(fila).join('') : '<div class="empty">Nadie en este filtro ✓</div>') +
+    (ina.length ? '<details class="u-mt8"><summary style="font-weight:700;cursor:pointer;">' + ina.length + ' inactivo(s)</summary>' + ina.map(fila).join('') + '</details>' : '') + tarjetaCodigo(false);
+  $('btnNuevo').addEventListener('click', ()=> editar(null));
+  $('panel').querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  $('panel').querySelectorAll('[data-u]').forEach((b)=> b.addEventListener('click', ()=> editar(usuarios.find((u)=> u.usuario === b.dataset.u))));
+  activarCodigo();
+}
+function editar(u){
+  const nuevo = !u; u = u || { rol: 'supervisor', activo: true };
+  const esYo = !nuevo && Sesion.yo() && Sesion.yo().usuario === u.usuario;
+  const m = UI.modal('<h3>' + (nuevo ? 'Nuevo usuario' : esc(u.nombre)) + '</h3>' +
+    '<div class="grid2"><div class="field"><label>Usuario *</label><input type="text" id="uU" autocapitalize="none" spellcheck="false" placeholder="nombre.apellido" value="' + esc(u.usuario || '') + '"' + (nuevo ? '' : ' readonly') + '></div>' +
+    '<div class="field"><label>Rol</label><select id="uR">' + Object.keys(ROLES).map((k)=> '<option value="' + k + '"' + (k === u.rol ? ' selected' : '') + '>' + esc(ROLES[k]) + '</option>').join('') + '</select></div></div>' +
+    '<div class="field"><label>Nombre completo *</label><input type="text" id="uN" value="' + esc(u.nombre || '') + '"></div>' +
+    '<div class="grid2"><div class="field"><label>Cédula</label><input type="text" id="uC" inputmode="numeric" value="' + esc(u.cedula || '') + '"></div><div class="field"><label>Cargo</label><input type="text" id="uCa" value="' + esc(u.cargo || '') + '"></div></div>' +
+    '<div class="field"><label>Correo</label><input type="text" id="uM" inputmode="email" value="' + esc(u.correo || '') + '"></div>' +
+    '<div class="field" id="uComF"><label>Comités a los que pertenece (rol Comité)</label><div class="chips">' + [['copasst', 'COPASST'], ['convivencia', 'Convivencia'], ['emergencias', 'Emergencias']].map(([k, t])=> '<label class="check"><input type="checkbox" data-com="' + k + '"' + (String(u.comites || '').split(',').indexOf(k) !== -1 ? ' checked' : '') + '> ' + t + '</label>').join('') + '</div><div class="ayuda">Solo quien es de Convivencia ve sus quejas, actas y buzón (Res. 3461 de 2025).</div></div>' +
+    (nuevo ? '' : '<label class="check"><input type="checkbox" id="uA"' + (u.activo ? ' checked' : '') + '> Activo (si lo desactivas, sus sesiones se cierran de una vez)</label>') +
+    (nuevo ? '<div class="aviso amar u-mt8">Al guardar se crea una <b>clave temporal</b>. Dásela a la persona: la primera vez que entre tendrá que cambiarla por una suya.</div>' :
+      (esYo ? '<p class="ayuda">Para cambiar tu propia clave usa el botón 👤 → Cambiar mi clave.</p>' : '<div class="fila-btn"><button type="button" class="btn ghost" id="uReset">Nueva clave temporal</button><button type="button" class="btn ghost" id="uCerrar">Cerrar sus sesiones</button></div>')) +
+    '<button type="button" class="btn amber" id="uGuardar">Guardar</button>' + (nuevo ? '' : '<button type="button" class="btn ghost" id="uHist">🕘 Movimientos del usuario</button>') +
+    '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="uMsg"></div>', true);
+  const v = (id)=> m.el.querySelector(id).value.trim(), msg = m.el.querySelector('#uMsg');
+  const enviar = async (extra, okTxt)=>{
+    const body = Object.assign({ action: 'guardarUsuario', usuario: v('#uU').toLowerCase(), nombre: v('#uN'), rol: v('#uR'), cedula: v('#uC'), cargo: v('#uCa'), correo: v('#uM'), comites: [...m.el.querySelectorAll('[data-com]:checked')].map((c)=> c.dataset.com).join(','),
+      activo: nuevo ? true : m.el.querySelector('#uA').checked }, extra || {});
+    if (!body.usuario || !body.nombre) { msg.textContent = 'Faltan el usuario y el nombre.'; return null; }
+    msg.textContent = 'Guardando…';
+    const r = await SGSST.enviar(body, null, { sinCola: true });
+    if (!r.ok) { msg.textContent = r.error || 'No se guardó.'; return null; }
+    if (!r.usuario) { msg.textContent = 'Ya se había guardado. Recargando la lista…'; cargar(); return null; }
+    msg.textContent = okTxt || '✓ Guardado';
+    const i = usuarios.findIndex((x)=> x.usuario === r.usuario.usuario);
+    if (i === -1) usuarios.push(r.usuario); else usuarios[i] = r.usuario;
+    pintarUsuarios();
+    return r;
+  };
+  const mostrarTemporal = (t, quien)=>{
+    m.el.innerHTML = '<h3>Clave temporal de ' + esc(quien) + '</h3><p class="ayuda">Dásela a la persona (en persona o por un mensaje privado). Solo se muestra esta vez; si se pierde, genera otra.</p>' +
+      '<div class="temporal">' + esc(t) + '</div><p class="ayuda">Usuario: <b>' + esc(v('#uU') || '') + '</b> · Al entrar, el portal le pedirá crear su propia clave.</p><button type="button" class="btn amber" data-cerrar>Listo</button>';
+  };
+  m.el.querySelector('#uGuardar').addEventListener('click', async ()=>{
+    const usr = v('#uU').toLowerCase(), quien = v('#uN');
+    if (nuevo) {
+      if (!/^[a-z0-9._-]{3,30}$/.test(usr)) { msg.textContent = 'El usuario va en minúsculas y sin espacios (letras, números, punto o guion).'; return; }
+      const t = temporal(); msg.textContent = 'Preparando la clave…';
+      const r = await enviar(Object.assign({ nuevo: true }, await Sesion.datosClave(t)));
+      if (r) mostrarTemporal(t, quien);
+    } else if (await enviar()) m.cerrar();
+  });
+  if (!nuevo) {
+    if (m.el.querySelector('#uReset')) m.el.querySelector('#uReset').addEventListener('click', async ()=>{
+      if (!await Dialogo.confirmar('¿Crear una clave temporal nueva para ' + u.nombre + '? Su clave actual deja de servir y se cierran sus sesiones.')) return;
+      const t = temporal(), quien = u.nombre;
+      const r = await enviar(await Sesion.datosClave(t), '✓ Clave temporal nueva');
+      if (r) mostrarTemporal(t, quien);
+    });
+    if (m.el.querySelector('#uCerrar')) m.el.querySelector('#uCerrar').addEventListener('click', async ()=>{ if (await enviar({ cerrarSesiones: true }, '✓ Sus sesiones se cerraron: tendrá que volver a entrar.')) {} });
+    m.el.querySelector('#uHist').addEventListener('click', ()=> UI.historial(u.usuario, 'Lo que ha hecho ' + u.nombre, { action: 'actividad', usuario: u.usuario }));
+  }
+}
+
+/* ── Respaldo ── */
+async function cargarRespaldo(){
+  const c = $('cardRespaldo');
+  let j;
+  try { j = await SGSST.consultar({ action: 'respaldo' }); } catch (e) { return; }
+  if (!j.ok) return;
+  c.hidden = false;
+  const u = j.ultimo, viejo = !u || !u.fecha || u.fecha < Festivos.sumarDias(UI.hoy(), -9);
+  c.innerHTML = '<h2>💾 Respaldo semanal de las hojas</h2>' +
+    (j.instalado ? '<div class="aviso ' + (viejo ? '' : u.errores && u.errores.length ? 'amar' : 'ok') + '">' +
+      (u ? 'Último respaldo: <b>' + esc(UI.corta(u.fecha)) + '</b> · ' + u.libros + ' hoja(s) copiadas' + (u.errores && u.errores.length ? '<br>⚠ Errores: ' + esc(u.errores.join(' | ')) : '') : 'Todavía no se ha hecho el primer respaldo.') +
+      (viejo ? '<br>⚠ Hace más de 9 días que no se respalda: revisa en Apps Script → Activadores que exista «respaldoSemanal».' : '') + '</div>' +
+      (j.carpeta ? '<p class="ayuda">Las copias están en la carpeta <a href="' + esc(j.carpeta) + '" target="_blank" rel="noopener">Respaldos SG-SST</a> de Google Drive (solo la ve la cuenta dueña).</p>' : '') +
+      '<p class="ayuda">Cada domingo a las 2 a. m. se copian ' + j.libros + ' hoja(s). Se guardan las copias de las últimas 8 semanas y, <b>para siempre</b>, la primera de cada mes (hay registros que se conservan 20 años: Dec. 1072, art. 2.2.4.6.13).</p>' +
+      '<button type="button" class="btn ghost" id="btnRespaldar">Respaldar ahora</button><div class="status-msg" id="msgResp"></div>' +
+      '<h3 class="u-mt10">Descargar todo</h3><p class="ayuda">Un .zip con TODOS los registros (JSON por tipo, índice en Excel, bitácora y un LEAME con el esquema). Es tuyo: sirve de respaldo fuera de Google o para llevarte los datos.</p>' +
+      '<label class="u-mt8" style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="expAdj"> Incluir los soportes adjuntos (más pesado)</label>' +
+      '<button type="button" class="btn ghost" id="btnExportar">⬇️ Descargar todo</button><div class="status-msg" id="msgExp"></div>'
+    : '<div class="aviso amar">El respaldo automático <b>no está instalado</b>. En Google Apps Script, en el proyecto del SG-SST, ejecuta una vez <code>instalarRespaldo</code> (▶ Ejecutar; pedirá permiso para usar Google Drive). Desde ese momento, cada domingo se copian las hojas a la carpeta «Respaldos SG-SST».</div>' +
+      '<p class="ayuda">Para que también se copien las hojas de los permisos, ATS, EPP, charlas y anexo, pega sus URL en <code>RESPALDAR_TAMBIEN</code> (arriba en el código del SG-SST). En el servidor único ya van todas.</p>');
+  const bx = $('btnExportar');
+  if (bx) bx.addEventListener('click', async ()=>{
+    bx.disabled = true; $('msgExp').textContent = 'Armando el archivo… (puede tardar un par de minutos)';
+    let r; try { r = await SGSST.enviar({ action: 'exportarTodo', adjuntos: $('expAdj').checked }, null, { sinCola: true }); } catch (e) { r = { ok: false, error: e.message }; }
+    bx.disabled = false;
+    if (!r.ok) { $('msgExp').textContent = r.error || 'No se pudo.'; return; }
+    if (r.base64) { const bin = atob(r.base64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([u8], { type: 'application/zip' })), a = document.createElement('a'); a.href = url; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=> URL.revokeObjectURL(url), 60000); }
+    $('msgExp').innerHTML = '✓ ' + r.registros + ' registro(s) de ' + r.tipos + ' tipo(s). ' + (r.base64 ? 'Se descargó. ' : '') + '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">Abrir en Drive</a>' + (r.omitidos && r.omitidos.length ? '<br>No cupieron: ' + esc(r.omitidos.slice(0, 5).join(', ')) : '');
+  });
+  const b = $('btnRespaldar');
+  if (b) b.addEventListener('click', async ()=>{
+    b.disabled = true; $('msgResp').textContent = 'Copiando las hojas… (puede tardar un minuto)';
+    const r = await SGSST.enviar({ action: 'respaldar' }, null, { sinCola: true });
+    b.disabled = false;
+    if (!r.ok) { $('msgResp').textContent = r.error || 'No se pudo.'; return; }
+    $('msgResp').textContent = '✓ ' + r.libros + ' hoja(s) copiadas.'; cargarRespaldo();
+  });
+}
+/* v162 · Preferencias de avisos por correo: cada quien elige; el administrador pone lo de cada rol. */
+const FREC = [['diario', 'Cada día, lo que vence hoy y mañana'], ['semanal', 'Los lunes, lo de la semana'], ['criticos', 'Solo lo vencido'], ['no', 'No quiero correos']];
+async function cargarMisAvisos(){
+  let j; try { j = await SGSST.consultar({ action: 'misAvisos' }); } catch (e) { return; } if (!j.ok) return;
+  const c = $('cardAvisos'); c.hidden = false;
+  c.innerHTML = '<h2>Tus avisos por correo</h2>' + (j.correo ? '' : '<div class="aviso amar">Tu usuario no tiene correo: pídele al administrador que lo agregue para recibir avisos.</div>') +
+    '<div class="field"><label for="avFrec">Cuándo</label><select id="avFrec">' + FREC.map(([k, t])=> '<option value="' + k + '"' + (j.pref.frec === k ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="avFinde"' + (j.pref.finde ? ' checked' : '') + '> También sábados y domingos</label>' +
+    '<button type="button" class="btn ghost u-mt8" id="avGuardar">Guardar</button><span class="status-msg" id="avMsg"></span>' +
+    (j.roles ? '<h3 class="u-mt10">Por rol (lo que reciben quienes no han elegido)</h3><div class="grid2">' + Object.keys(ROLES).map((r)=> '<div class="field"><label for="avR' + r + '">' + esc(ROLES[r]) + '</label><select id="avR' + r + '" data-rol="' + r + '">' + FREC.map(([k, t])=> '<option value="' + k + '"' + ((j.roles[r] || {}).frec === k || (!j.roles[r] && k === 'diario') ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>' +
+      '<input type="text" class="u-mt8" id="avC' + r + '" data-correos="' + r + '" aria-label="Correos adicionales para ' + esc(ROLES[r]) + '" placeholder="Correos que también reciben (separa con coma)" value="' + esc(((j.roles[r] || {}).correos || []).join(', ')) + '"></div>').join('') +
+      '</div><p class="ayuda">Los correos adicionales reciben el resumen de ese rol aunque no tengan usuario en el portal (por ejemplo, el gerente o el correo del COPASST).</p><button type="button" class="btn ghost" id="avRoles">Guardar por rol</button><span class="status-msg" id="avRMsg"></span>' : '');
+  $('avGuardar').addEventListener('click', async ()=> { const r = await SGSST.enviar({ action: 'guardarMisAvisos', frec: $('avFrec').value, finde: $('avFinde').checked }, null, { sinCola: true }); $('avMsg').textContent = r.ok ? ' ✓ Guardado' : ' ' + (r.error || 'No se pudo'); });
+  if ($('avRoles')) $('avRoles').addEventListener('click', async ()=> { const roles = {}; c.querySelectorAll('[data-rol]').forEach((s)=> { roles[s.dataset.rol] = s.value; }); const correos = {}; c.querySelectorAll('[data-correos]').forEach((s)=> { correos[s.dataset.correos] = s.value; });
+    const r = await SGSST.enviar({ action: 'avisosPorRol', roles, correos }, null, { sinCola: true }); $('avRMsg').textContent = r.ok ? ' ✓ Guardado' : ' ' + (r.error || 'No se pudo'); });
+}
+cargar();
+</script>
+</body>
+</html>

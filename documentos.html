@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-xFt3Nzur7AYEznoVe2llI6SsH12d29n0/iflfoXwi24='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Kit documental · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kit documental · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.doc-item .acc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.grupo-t{font-size:var(--fs-menor);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;}
+.vista-doc{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:14px;font-size:var(--fs-base);line-height:1.5;max-height:60vh;overflow:auto;}
+.vista-doc h3{font-size:var(--fs-base);margin:12px 0 4px;} .vista-doc table{width:100%;border-collapse:collapse;font-size:var(--fs-menor);margin:6px 0;} .vista-doc td,.vista-doc th{border:1px solid var(--n-300);padding:4px 6px;vertical-align:top;text-align:left;} .vista-doc th{background:var(--bg);}
+.vista-doc ul,.vista-doc ol{padding-left:20px;margin:4px 0 8px;}
+.hp .kit-doc{font-size:var(--fs-etiqueta);line-height:1.5;}
+.hp .kit-doc p{margin:0 0 6px;} .hp .kit-doc h3{font-size:var(--fs-etiqueta);margin:10px 0 4px;text-transform:uppercase;}
+.hp .kit-doc ul,.hp .kit-doc ol{margin:2px 0 6px;padding-left:18px;} .hp .kit-doc li{margin-bottom:2px;}
+.hp .kit-doc td,.hp .kit-doc th{font-size:9.5px;line-height:1.35;} .hp .kit-doc th{text-transform:none;font-size:9.5px;}
+.hp .kit-doc td ul{margin:0;padding-left:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear · Documentos</div>
+    <h1>Kit documental del SG-SST</h1>
+    <p>Política, objetivos, reglamento, procedimientos y programas con los datos de la empresa · PDF y Word</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card" id="cardDatos"></div>
+  <div id="fKit"></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <div class="fila-btn"><button type="button" class="btn amber" id="btnTodoPdf">🖨️ Todos en un PDF</button><button type="button" class="btn ghost" id="btnTodoWord">📝 Todos en Word</button></div>
+  <p class="ayuda">Los documentos son una base técnica según el Decreto 1072 de 2015 y la Resolución 0312 de 2019. La empresa los revisa, los ajusta a su realidad (en Word) y los aprueba; al aprobar uno, queda en el listado maestro de Documental, donde se adjunta la versión firmada.</p>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script src="auditorias-plantillas.js"></script>
+<script src="kit-documental.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+const ID_PERFIL = 'EMPRESA-PERFIL';
+const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const C_DATOS = [{ k: 'representante', l: 'Representante legal', medio: true }, { k: 'repCedula', l: 'Cédula del representante', medio: true },
+  { k: 'ciudad', l: 'Ciudad', medio: true }, { k: 'direccion', l: 'Dirección', medio: true }, { k: 'arl', l: 'ARL', medio: true, ph: 'Ej: Positiva, Sura, Colmena…' }, { k: 'sedes', l: 'Centros de trabajo / sedes', medio: true, ph: 'Ej: planta Funza y oficina Bogotá' },
+  { k: 'responsableSST', l: 'Responsable del SG-SST', t: 'persona', medio: true }, { k: 'responsableCedula', l: 'Cédula del responsable', medio: true },
+  { k: 'responsableLicencia', l: 'Licencia en SST (n.º y fecha)', medio: true }, { k: 'responsableCurso', l: 'Curso de 50 horas (fecha del certificado)', medio: true }];
+let perfil = null, rows = [];
+let fKit = '';   // v109: filtro de la lista (lo dejan las cifras de arriba)
+window.filtrarKpi = (v)=> { fKit = v || ''; pintar(); };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const fechaLarga = (iso)=> { const p = String(iso || UI.hoy()).split('-'); return Number(p[2]) + ' de ' + MESES_L[Number(p[1]) - 1] + ' de ' + p[0]; };
+const codigoDe = (id)=> { const f = Empresa.formato(id); return f.codigo && f.codigo !== id ? f.codigo : ''; };
+/* Estándares que le aplican (7, 21 o 60) según el perfil. */
+function aplica(estandar){
+  if (!estandar) return null;
+  const g = Number((perfil || {}).grupo0312) || 60, P = PLANTILLAS_AUDITORIA[g === 60 ? 'RES0312' : 'RES0312_' + g];
+  return P.items.some((i)=> i[0] === estandar);
+}
+function contexto(){
+  const pf = perfil || {}, trab = Number(pf.trabajadores) || 0;
+  // Peligros de la matriz: por clasificación, los de mayor nivel de riesgo primero.
+  const g = {};
+  de('peligro').forEach((x)=> { const r = x.resumen, k = r.clasificacion || 'Otros'; (g[k] = g[k] || { clase: k, max: 0, l: [] }).l.push(r); g[k].max = Math.max(g[k].max, Number(r.nr) || 0); });
+  const peligros = Object.values(g).sort((a, b)=> b.max - a.max).map((x)=> ({ clase: x.clase, ejemplos: x.l.sort((a, b)=> (Number(b.nr) || 0) - (Number(a.nr) || 0)).slice(0, 4).map((r)=> r.peligro).filter(Boolean) }));
+  const vigia = trab > 0 && trab < 10;
+  return { emp: pf.nombre || EMPRESA.nombre || 'La empresa', nit: pf.nit || EMPRESA.nit || '', act: pf.actividad || '', trab: trab || '—', riesgo: pf.claseRiesgo || '—', grupo: Number(pf.grupo0312) || 60,
+    ciudad: pf.ciudad || '', dir: pf.direccion || '', arl: pf.arl || '', sedes: pf.sedes || '', rep: pf.representante || '', repCc: pf.repCedula || '',
+    resp: pf.responsableSST || '', respCc: pf.responsableCedula || '', respLic: pf.responsableLicencia || '', respCurso: pf.responsableCurso || '',
+    fechaLarga: fechaLarga(UI.hoy()), anio: UI.hoy().slice(0, 4), peligros, comite: vigia ? 'Vigía de SST' : 'COPASST',
+    comiteTxt: vigia ? 'el Vigía de Seguridad y Salud en el Trabajo' : 'el Comité Paritario de Seguridad y Salud en el Trabajo (COPASST)', cod: codigoDe };
+}
+const registro = (d)=> de('documento').find((x)=> x.id === 'DOC-KIT-' + d.id);
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; return; }
+  const r = await SGSST.listar('peligro,documento,empresa');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows;
+  perfil = (await SGSST.doc(ID_PERFIL)) || UI.perfilInstalacion();
+  pintar();
+}
+function faltanDatos(){ const p = perfil || {}; return ['representante', 'ciudad', 'arl', 'responsableSST'].filter((k)=> !p[k]); }
+function pintar(){
+  const c = contexto(), faltan = faltanDatos(), apr = KIT_DOCUMENTOS.filter((d)=> registro(d)).length;
+  const obl = KIT_DOCUMENTOS.filter((d)=> aplica(d.estandar));
+  const sinAp = KIT_DOCUMENTOS.filter((d)=> !registro(d)), faltanAp = sinAp.filter((d)=> aplica(d.estandar));
+  $('kpis').innerHTML = '<div class="kpi" data-ir="filtro:"><div class="v">' + KIT_DOCUMENTOS.length + '</div><div class="n">documentos en el kit</div><div class="f">' + obl.length + ' de estándares que le aplican (' + c.grupo + ')</div></div>' +
+    '<div class="kpi ' + (apr === KIT_DOCUMENTOS.length ? 'ok' : apr ? '' : 'mal') + '" data-ir="filtro:' + (sinAp.length ? 'sinaprobar' : '') + '"><div class="v">' + apr + '</div><div class="n">aprobados en el listado maestro</div></div>' +
+    '<div class="kpi ' + (faltanAp.length ? 'mal' : 'ok') + '" data-ir="filtro:' + (faltanAp.length ? 'faltan' : '') + '"><div class="v">' + faltanAp.length + '</div><div class="n">de los que le aplican, sin aprobar</div></div>';
+  $('fKit').innerHTML = UI.chipsFiltro([['', 'Todos (' + KIT_DOCUMENTOS.length + ')'], ['sinaprobar', 'Sin aprobar (' + sinAp.length + ')'], ['faltan', 'Le aplican y faltan (' + faltanAp.length + ')']], fKit);
+  $('fKit').querySelectorAll('[data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  const verDoc = (d)=> fKit === 'sinaprobar' ? !registro(d) : fKit === 'faltan' ? !registro(d) && aplica(d.estandar) : true;
+  $('cardDatos').innerHTML = !perfil ? '<h2>Datos de la empresa</h2><div class="aviso amar">Primero define el perfil de la empresa (número de trabajadores y clase de riesgo).</div><button type="button" class="btn amber" id="bPerfil">Definir el perfil</button>'
+    : '<h2>Datos que van en los documentos</h2><div class="m" style="font-size:var(--fs-base);line-height:1.5;"><b>' + esc(c.emp) + '</b>' + (c.nit ? ' · NIT ' + esc(c.nit) : '') + ' · ' + esc(c.trab) + ' trabajadores · riesgo ' + esc(c.riesgo) + ' · ' + esc(c.grupo) + ' estándares<br>' +
+      'Representante: ' + esc(c.rep || '—') + ' · Responsable SG-SST: ' + esc(c.resp || '—') + ' · ARL: ' + esc(c.arl || '—') + ' · ' + esc(c.ciudad || '—') + '<br>Peligros de la matriz: ' + (c.peligros.length ? esc(c.peligros.map((x)=> x.clase).join(', ')) : '<i>la matriz está vacía (el reglamento los toma de ahí)</i>') + '</div>' +
+      (faltan.length ? '<div class="aviso amar u-mt8">Faltan datos para los documentos: ' + esc(faltan.map((k)=> C_DATOS.find((x)=> x.k === k).l).join(', ')) + '.</div>' : '') +
+      '<button type="button" class="btn ' + (faltan.length ? 'amber' : 'ghost') + '" id="bDatos">✏️ Completar datos</button>';
+  if ($('bPerfil')) $('bPerfil').addEventListener('click', ()=> UI.editarPerfil(()=> cargar()));
+  if ($('bDatos')) $('bDatos').addEventListener('click', editarDatos);
+  const grupos = ['Política', 'Documento', 'Procedimiento', 'Programa', 'Manual'];
+  $('lista').innerHTML = grupos.map((gname)=> { const l = KIT_DOCUMENTOS.filter((d)=> d.tipo === gname && verDoc(d)); if (!l.length) return '';
+    return '<div class="grupo-t">' + esc(gname === 'Documento' ? 'Documentos de la estructura' : gname + (gname === 'Política' ? '' : 's')) + '</div>' + l.map((d)=> { const reg = registro(d), ap = aplica(d.estandar), cod = codigoDe(d.formato);
+      return '<div class="item ' + (reg ? 'ok' : ap ? 'pronto' : 'gris') + ' doc-item"><div class="fila"><div><div class="t">' + esc(d.titulo) + '</div>' +
+        '<div class="m">' + esc([cod, d.norma].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="m">' + (d.estandar ? (ap ? '<b>Estándar ' + esc(d.estandar) + ': le aplica</b>' : 'Estándar ' + esc(d.estandar) + ' (no está en sus ' + esc(c.grupo) + '; buena práctica)') : 'Buena práctica / exigencia legal general') + (reg ? ' · aprobado v' + esc(reg.resumen.versionDoc) + ' el ' + esc(UI.corta(reg.resumen.fechaAprobacion)) : '') + '</div></div>' +
+        '<span class="chip ' + (reg ? 'ok' : ap ? 'pronto' : 'gris') + '">' + (reg ? 'Aprobado' : 'Sin aprobar') + '</span></div>' +
+        '<div class="acc"><button type="button" class="btn-mini" data-ver="' + d.id + '">👁 Ver</button><button type="button" class="btn-mini" data-pdf="' + d.id + '">🖨️ PDF</button><button type="button" class="btn-mini" data-word="' + d.id + '">📝 Word</button>' +
+        '<button type="button" class="btn-mini" style="background:var(--verde-600);" data-aprobar="' + d.id + '">' + (reg ? '↻ Nueva versión' : '✓ Aprobar') + '</button></div></div>'; }).join(''); }).join('') || '<div class="empty">Todos los documentos de este filtro están aprobados ✓</div>';
+}
+async function editarDatos(){
+  const d = (await SGSST.doc(ID_PERFIL)) || {};
+  Registros.editar({ titulo: 'Datos para los documentos', campos: C_DATOS, datos: Object.assign({}, d), adjuntos: false,
+    alGuardar: async (v)=> { const campos = {}; C_DATOS.forEach((c)=> { campos[c.k] = v[c.k] || ''; });
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'empresa', id: ID_PERFIL, campos }); if (!r.ok) return Errores.texto('guardó', r);
+      await cargar(); return true; } });
+}
+/* ── Armar un documento ── */
+const docDe = (id)=> KIT_DOCUMENTOS.find((d)=> d.id === id);
+function version(d){ const r = registro(d); return r ? { v: r.resumen.versionDoc || '1', f: r.resumen.fechaAprobacion } : { v: '1', f: '' }; }
+function cuerpo(d, c){
+  return d.generar(c).map(([t, h])=> (t ? '<h3>' + esc(t) + '</h3>' : '') + h).join('');
+}
+function firmas(c){
+  return '<table style="margin-top:16px;"><tr><th style="width:33%">Elaboró</th><th style="width:33%">Revisó</th><th>Aprobó</th></tr><tr><td style="height:46px;"></td><td></td><td></td></tr>' +
+    '<tr><td>' + esc(c.resp || '') + '<br>Responsable del SG-SST</td><td><br>' + esc(c.comite) + '</td><td>' + esc(c.rep || '') + '<br>Representante legal</td></tr></table>';
+}
+function controlCambios(d){
+  const v = version(d);
+  return '<table class="u-mt10"><tr><th style="width:14%">Versión</th><th style="width:20%">Fecha</th><th>Descripción del cambio</th></tr><tr><td>' + esc(v.v) + '</td><td>' + esc(UI.corta(v.f || UI.hoy())) + '</td><td>' + (Number(v.v) > 1 ? 'Actualización del documento' : 'Emisión inicial') + '</td></tr></table>';
+}
+function hojaPdf(d, c){
+  const v = version(d);
+  return UI.cabecera(d.formato, d.titulo.toUpperCase(), c.emp + ' · versión ' + v.v + (v.f ? ' · ' + UI.corta(v.f) : '')) +
+    '<div class="kit-doc">' + cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c)) + controlCambios(d) + '</div>';
+}
+function htmlWord(d, c){
+  const v = version(d), cod = codigoDe(d.formato);
+  return '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;"><tr><td style="border:1px solid #000;padding:6px;width:28%;font-weight:bold;">' + esc(c.emp) + (c.nit ? '<br><span style="font-weight:normal;font-size:9pt;">NIT ' + esc(c.nit) + '</span>' : '') + '</td>' +
+    '<td style="border:1px solid #000;padding:6px;text-align:center;font-weight:bold;">' + esc(d.titulo.toUpperCase()) + '</td><td style="border:1px solid #000;padding:6px;width:24%;font-size:9pt;">' + (cod ? 'Código: ' + esc(cod) + '<br>' : '') + 'Versión: ' + esc(v.v) + '<br>Fecha: ' + esc(UI.corta(v.f || UI.hoy())) + '</td></tr></table>' +
+    cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c)) + controlCambios(d);
+}
+function descargarWord(nombre, html){
+  const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(nombre) + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.4;} h3{font-size:11.5pt;margin:14pt 0 4pt;text-transform:uppercase;} table{border-collapse:collapse;width:100%;} td,th{border:1px solid #000;padding:4pt;vertical-align:top;font-size:10pt;} th{background:var(--line);text-align:left;} .salto{page-break-before:always;}</style></head><body>' + html + '</body></html>';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + doc], { type: 'application/msword' }));
+  a.download = nombre.replace(/[\\/:*?"<>|]/g, '') + '.doc'; document.body.appendChild(a); a.click();
+  setTimeout(()=> { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const listo = ()=> { if (!perfil) { UI.toast('Primero define el perfil de la empresa.', 'mal'); return false; } return true; };
+function ver(d){
+  const c = contexto();
+  const m = UI.modal('<h3>' + esc(d.titulo) + '</h3><div class="m" style="font-size:var(--fs-menor);margin-bottom:8px;">' + esc(d.norma) + '</div><div class="vista-doc">' + cuerpo(d, c) + '</div>' +
+    '<div class="fila-btn u-mt10"><button type="button" class="btn" data-p>🖨️ PDF</button><button type="button" class="btn ghost" data-w>📝 Word</button></div><button type="button" class="btn ghost" data-cerrar>Cerrar</button>', true);
+  m.el.querySelector('[data-p]').addEventListener('click', ()=> { m.cerrar(); UI.imprimir([hojaPdf(d, contexto())]); });
+  m.el.querySelector('[data-w]').addEventListener('click', ()=> descargarWord(d.titulo, htmlWord(d, contexto())));
+}
+async function aprobar(d){
+  const reg = registro(d), c = contexto();
+  const prev = reg ? await Registros.abrir(reg.id) : null; if (reg && !prev) return;
+  const v = prev ? String((Number(prev.versionDoc) || 1) + 1) : '1';
+  if (!await Dialogo.confirmar((prev ? 'Se registra la versión ' + v + ' de' : 'Se aprueba') + ' «' + d.titulo + '» en el listado maestro (Documental), con fecha de hoy y próxima revisión en un año. Después adjunta allí la versión firmada. ¿Seguir?')) return;
+  const campos = { codigo: codigoDe(d.formato) || d.formato, tipoDoc: d.tipo === 'Documento' ? 'Otro' : d.tipo, nombre: d.titulo, versionDoc: v, fechaAprobacion: UI.hoy(), aprobo: c.rep || (prev && prev.aprobo) || '',
+    proximaRevision: Festivos.sumarMeses(UI.hoy(), 12), retencion: 20, ubicacion: 'Kit documental del portal (documentos.html)' + (prev && prev.ubicacion && !/Kit documental/.test(prev.ubicacion) ? ' · ' + prev.ubicacion : ''), estado: 'Vigente' };
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'documento', id: 'DOC-KIT-' + d.id, campos }, { resumen: campos, titulo: d.titulo });
+  if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+  UI.toast('✓ ' + d.titulo + ' v' + v + ' en el listado maestro.'); cargar();
+}
+$('lista').addEventListener('click', (ev)=> {
+  const b = ev.target.closest('[data-ver],[data-pdf],[data-word],[data-aprobar]'); if (!b || !listo()) return;
+  const d = docDe(b.dataset.ver || b.dataset.pdf || b.dataset.word || b.dataset.aprobar);
+  if (b.dataset.ver) ver(d); else if (b.dataset.pdf) UI.imprimir([hojaPdf(d, contexto())]); else if (b.dataset.word) descargarWord(d.titulo, htmlWord(d, contexto())); else aprobar(d);
+});
+$('btnTodoPdf').addEventListener('click', ()=> { if (!listo()) return; const c = contexto(); UI.imprimir(KIT_DOCUMENTOS.map((d)=> hojaPdf(d, c))); });
+$('btnTodoWord').addEventListener('click', ()=> { if (!listo()) return; const c = contexto(); descargarWord('Kit documental SG-SST - ' + c.emp, KIT_DOCUMENTOS.map((d, i)=> '<div' + (i ? ' class="salto"' : '') + '>' + htmlWord(d, c) + '</div>').join('')); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

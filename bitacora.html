@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ttfrEqa5YAv+wBNzKJkkfddxqC3frJfwQ2lWFSHnhgU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Bitácora · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bitácora · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.bt-f{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 10px;}
+.bt-l{margin:0;padding:0;list-style:none;}
+.bt-l li{border-bottom:1px solid var(--n-150);padding:8px 0;font-size:var(--fs-menor);}
+.bt-l .t{font-weight:700;font-size:var(--fs-base);}
+.bt-l .m{color:var(--tenue,var(--ink-muted));}
+.bt-ok{color:var(--ok);} .bt-mal{color:var(--mal);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Revisar y mejorar</div>
+    <h1>Bitácora</h1>
+    <p>Quién hizo qué y cuándo, con la prueba de que nadie la alteró</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div class="card">
+    <h2>Integridad</h2>
+    <p class="ayuda u-mtn4">Cada fila de la bitácora lleva una huella (SHA-256) encadenada con la anterior. Si alguien edita, borra o agrega una fila a mano en la hoja, la verificación dice desde cuál.</p>
+    <button type="button" class="btn" id="btVerificar">🔒 Verificar la bitácora</button>
+    <div id="btVer" class="u-mt8"></div>
+  </div>
+  <div class="card">
+    <h2>Buscar</h2>
+    <div class="bt-f">
+      <div class="field"><label for="btQ">Registro o texto</label><input type="search" id="btQ" placeholder="Ej.: REP-2026, cerró" data-no-ac></div>
+      <div class="field"><label for="btU">Usuario</label><input type="search" id="btU" placeholder="Ej.: sandra" data-no-ac></div>
+      <div class="field"><label for="btA">Acción</label><select id="btA"><option value="">Todas</option><option>CREAR</option><option>ACTUALIZAR</option><option>PARCHE</option><option>GUARDAR</option><option>BORRAR</option><option>ENTRAR</option><option>CORREO</option><option>ACCION</option></select></div>
+      <div class="field"><label for="btR">Resultado</label><select id="btR"><option value="">Todos</option><option>APLICADO</option><option>RECHAZADO</option><option>DUPLICADO</option><option>CREADO</option></select></div>
+      <div class="field"><label for="btD">Desde</label><input type="date" id="btD"></div>
+      <div class="field"><label for="btH">Hasta</label><input type="date" id="btH"></div>
+    </div>
+    <button type="button" class="btn ghost" id="btBuscar">Buscar</button>
+  </div>
+  <div class="card"><div id="btLista"><div class="empty">Cargando…</div></div></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v162 · Visor de la bitácora (hoja «Eventos») con filtros y verificación de la cadena de huellas. */
+async function buscar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  $('btLista').innerHTML = '<div class="empty">Buscando…</div>';
+  const p = { action: 'bitacora', q: $('btQ').value.trim(), usuario: $('btU').value.trim(), accion: $('btA').value, resultado: $('btR').value, desde: $('btD').value, hasta: $('btH').value };
+  let r; try { r = await SGSST.consultar(p); } catch (e) { r = { ok: false, error: navigator.onLine ? 'No responde el servidor.' : 'La bitácora necesita señal.' }; }
+  if (!r.ok) { $('btLista').innerHTML = '<div class="aviso mal">' + esc(r.error || 'No se pudo leer la bitácora.') + '</div>'; return; }
+  const l = r.eventos || [];
+  $('btLista').innerHTML = '<p class="ayuda">' + l.length + (l.length === 300 ? '+ (las más recientes)' : '') + ' de ' + (r.total || 0) + ' fila(s) de la bitácora.</p>' +
+    (l.length ? '<ul class="bt-l">' + l.map((x)=> '<li><div class="t">' + esc(x.accion) + ' · <span class="' + (x.resultado === 'RECHAZADO' ? 'bt-mal' : 'bt-ok') + '">' + esc(x.resultado) + '</span> · ' + esc(x.ref) + (x.tipo ? ' <small>(' + esc(x.tipo) + ')</small>' : '') + '</div>' +
+      '<div class="m">' + esc(x.ts) + (x.usuario ? ' · ' + esc(x.usuario) : '') + (x.version ? ' · versión ' + esc(x.version) : '') + ' · fila ' + x.fila + (x.sellada ? ' · 🔒' : '') + '</div>' + (x.detalle ? '<div>' + esc(x.detalle) + '</div>' : '') + '</li>').join('') + '</ul>' : '<div class="empty">Nada con esos filtros.</div>');
+}
+$('btBuscar').addEventListener('click', buscar);
+['btQ', 'btU'].forEach((id)=> $(id).addEventListener('keydown', (e)=> { if (e.key === 'Enter') buscar(); }));
+$('btVerificar').addEventListener('click', async ()=> {
+  $('btVer').innerHTML = '<div class="status-msg">Verificando…</div>';
+  let r; try { r = await SGSST.consultar({ action: 'verificarBitacora' }); } catch (e) { r = { ok: false, error: 'No responde el servidor.' }; }
+  if (!r.ok) { $('btVer').innerHTML = '<div class="aviso mal">' + esc(r.error || 'No se pudo verificar.') + '</div>'; return; }
+  const v = r.resultado || {};
+  $('btVer').innerHTML = v.ok ? '<div class="aviso ok"><b>Bitácora íntegra.</b> ' + v.filas + ' fila(s) encadenadas' + (v.sinCadena ? ' · ' + v.sinCadena + ' anteriores a la cadena (de antes de esta versión)' : '') + '.</div>'
+    : '<div class="aviso mal"><b>La bitácora fue alterada</b> desde la fila ' + esc(v.primeraRota) + ' de la hoja «Eventos»: ' + esc(v.motivo) + '. Revisa el historial de versiones de la hoja en Google Sheets para ver quién la cambió.</div>';
+});
+buscar();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mdC2+DlrvtSqnrVepE/KurUXGIIQGW2XMtuEaumLPbI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Comité de emergencias · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Comité de emergencias · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+</head>
+<body>
+<div class="wrap" id="raizComite"></div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="qr.js"></script>
+<script src="comites.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* Comité de emergencias (comité operativo de emergencias): coordina el plan de prevención,
+   preparación y respuesta ante emergencias (Dec. 1072 de 2015, art. 2.2.4.6.25), la brigada y los
+   simulacros. Usa el mismo motor que el COPASST y Convivencia (comites.js): conformación, actas
+   con quórum, compromisos y PDF con firmas. */
+const NOMBRE_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+async function datosMes(fechaActa) {
+  const d = new Date(fechaActa + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() - 3);
+  const desde = d.toISOString().slice(0, 10), hasta = fechaActa;
+  const [rs, re, ri, rr] = await Promise.all([SGSST.listar('simulacro'), SGSST.listar('emergencia'), SGSST.listar('inspeccion'), SGSST.listar('reporte')]);
+  const enRango = (f) => f && String(f) >= desde && String(f) <= hasta;
+  const sim = rs.rows.filter((x) => enRango(x.resumen.fecha));
+  const planes = re.rows;
+  const brig = planes.reduce((a, x) => a + (Number(x.resumen.brigadistas) || 0), 0), cap = planes.reduce((a, x) => a + (Number(x.resumen.brigadistasCapacitados) || 0), 0);
+  const insp = ri.rows.filter((x) => enRango(x.resumen.fecha) && /extintor|botiqu|camilla|emergenc|gabinete|alarma|ruta/i.test([x.resumen.plantilla, x.resumen.titulo, x.resumen.equipo].join(' ')));
+  const ev = rr.rows.filter((x) => enRango(x.resumen.fecha) && /emergenc|incendio|derrame|evacu/i.test([x.resumen.clase, x.resumen.descripcion, x.resumen.titulo].join(' ')));
+  const l = ['Datos del portal (' + UI.corta(desde) + ' a ' + UI.corta(hasta) + '):'];
+  l.push('• Planes de emergencia: ' + planes.length + ' sede(s) · ' + planes.filter((x) => x.resumen.proximaRevision && x.resumen.proximaRevision < UI.hoy()).length + ' con revisión vencida.');
+  l.push('• Brigada: ' + cap + ' de ' + brig + ' brigadistas con capacitación vigente.');
+  l.push('• Simulacros realizados: ' + sim.length + (sim.length ? ' (' + sim.map((x) => UI.corta(x.resumen.fecha) + ' ' + (x.resumen.tipo || x.resumen.escenario || '')).join('; ') + ')' : ''));
+  l.push('• Inspecciones de equipos de emergencia: ' + insp.length + ' · con no conformidades: ' + insp.filter((x) => Number(x.resumen.nc) > 0).length + '.');
+  l.push('• Eventos o emergencias reportados: ' + ev.length + '.');
+  return l.join('\n');
+}
+function alertas(ctx) {
+  const out = [], u = ctx.reuniones.filter((r) => r.resumen.tipo === 'Ordinaria')[0];
+  const lim = Festivos.sumarDias(UI.hoy(), -92);
+  if (ctx.comite && (!u || u.resumen.fecha < lim)) out.push('<div class="aviso amar">El comité no registra reunión ordinaria en los últimos 3 meses. Se recomienda reunirse por lo menos cada trimestre y después de cada simulacro o emergencia.</div>');
+  return out;
+}
+Comite.iniciar({
+  clave: 'emergencias', id: 'CMT-EMERGENCIAS', nombre: 'Comité de emergencias', corto: 'Comité de emergencias', origen: 'Comité de emergencias',
+  subtitulo: 'Comité operativo de emergencias y brigada',
+  norma: 'Dec. 1072 de 2015, art. 2.2.4.6.25 · Res. 0312 de 2019 (estándares 5.1.1 y 5.1.2) · Ley 1523 de 2012',
+  formatoActa: 'SG-EMERGENCIAS-ACTA', formatoConformacion: 'SG-COMITE-CONFORMACION',
+  trimestral: true,
+  regla: () => ({ porParte: 0, sinConteo: true, texto: 'Integrantes recomendados: coordinador de emergencias (preside), jefe o líder de la brigada, coordinadores de evacuación por área o sede, un representante de la alta dirección y el responsable del SG-SST. La norma no fija un número: depende de las sedes, turnos y amenazas del plan.' }),
+  ayudaReuniones: 'Se recomienda reunirse por lo menos cada trimestre, antes y después de cada simulacro y después de toda emergencia real, para revisar el plan, la dotación, la capacitación de la brigada y los compromisos (Dec. 1072, art. 2.2.4.6.25).',
+  ayudaConformacion: 'La alta dirección designa al coordinador de emergencias. Define funciones antes, durante y después de la emergencia, y el periodo del comité (sugerido: 2 años).',
+  ayudaCapacitacion: 'Estándar 5.1.2 de la Res. 0312: la brigada debe estar conformada, capacitada y dotada. El comité vela por el plan de capacitación de la brigada.',
+  ejemploCapacitacion: 'Ej: Sistema comando de incidentes, primeros auxilios, control de incendios',
+  ejemploMotivo: 'Ej: conato de incendio del 14/10 en la bodega',
+  ordenOrdinaria: ['Verificación del quórum', 'Lectura del acta anterior y seguimiento a compromisos', 'Revisión del plan de emergencias y del análisis de vulnerabilidad', 'Brigada: integrantes, capacitación y dotación', 'Inspección de equipos (extintores, botiquines, alarmas, rutas)', 'Simulacros: programación y lecciones aprendidas', 'Compromisos y varios'],
+  ordenExtraordinaria: ['Verificación del quórum', 'Descripción de la emergencia o del simulacro', 'Respuesta: qué funcionó y qué no', 'Necesidades de dotación o capacitación', 'Compromisos'],
+  botonDatosMes: 'Traer los datos de emergencias del último trimestre (simulacros, brigada, equipos)',
+  datosMes,
+  alertas
+});
+</script>
+</body>
+</html>

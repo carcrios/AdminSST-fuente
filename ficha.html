@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-SlS3mmL3ai0UIZU1K90uVafUyqyqxt92jEon7062ph8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Ficha · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ficha · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.fx-sem{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0;}
+.fx-s{border-left:4px solid var(--n-300);background:var(--paper);border-radius:var(--r-m);padding:8px 10px;box-shadow:var(--sombra-1,0 1px 3px rgba(0,0,0,.08));}
+.fx-s .n{font-size:var(--fs-menor);font-weight:700;}.fx-s .v{font-weight:800;}.fx-s .f{font-size:.78rem;color:var(--n-600);}
+.fx-s.ok{border-color:var(--ok);}.fx-s.ok .v{color:var(--ok);}.fx-s.mal{border-color:var(--mal);}.fx-s.mal .v{color:var(--mal);}.fx-s.pronto{border-color:var(--ambar-500);}.fx-s.pronto .v{color:var(--ambar-500);}
+.fx-l{margin:0;padding:0;list-style:none;}.fx-l li{border-bottom:1px solid var(--n-150);padding:7px 0;font-size:var(--fs-menor);}.fx-l li:last-child{border-bottom:0;}
+.fx-l b{font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow" id="fxTipo">Ficha</div>
+    <h1 id="fxNom">Ficha</h1>
+    <p id="fxSub">Elige un área o un contratista</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="card"><div class="grid2"><div class="field"><label for="fxClase">Ver la ficha de</label><select id="fxClase"><option value="area">Un área o departamento</option><option value="contratista">Un contratista</option></select></div>
+    <div class="field"><label for="fxBus">Cuál</label><select id="fxBus"></select></div></div></div>
+  <div id="fx"></div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v162 · Fichas 360 de ÁREA y de CONTRATISTA: todo lo que el portal sabe de cada una en un solo lugar.
+   Área: peligros, reportes y accidentes, inspecciones, acciones, personas, equipos e indicadores.
+   Contratista: documentos, trabajadores y su habilitación, accidentes, inducciones y evaluación. */
+let rows = [];
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const N = (t)=> String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const cedK = (c)=> String(c || '').replace(/\D/g, '');
+const fila = (t, m, c)=> '<li><b>' + t + '</b>' + (m ? '<br>' + m : '') + (c ? ' <span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>' : '') + '</li>';
+const bloque = (titulo, items, vacio)=> '<div class="card"><h2>' + titulo + ' <small>(' + items.length + ')</small></h2>' + (items.length ? '<ul class="fx-l">' + items.slice(0, 15).join('') + '</ul>' : '<div class="empty">' + vacio + '</div>') + '</div>';
+const kpi = (n, v, c)=> '<div class="fx-s ' + (c || '') + '"><div class="n">' + esc(n) + '</div><div class="v">' + esc(v) + '</div></div>';
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) return;
+  const r = await SGSST.listar('trabajador,equipo,peligro,reporte,inspeccion,accion,contratista,induccion,empresa');
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || [];
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('tipo')) $('fxClase').value = qs.get('tipo') === 'contratista' ? 'contratista' : 'area';
+  opciones(qs.get('v') || '');
+  $('fxClase').addEventListener('change', ()=> opciones(''));
+  $('fxBus').addEventListener('change', ver);
+  if (qs.get('v')) ver();
+}
+function areasConocidas(){
+  const m = {}; const add = (a)=> { a = String(a || '').trim(); if (a) m[N(a)] = m[N(a)] || a; };
+  (typeof Areas !== 'undefined' ? Areas.lista() : []).forEach(add);
+  de('trabajador').forEach((x)=> add(x.resumen.area)); de('equipo').forEach((x)=> add(x.resumen.area)); de('peligro').forEach((x)=> add(x.resumen.area || x.resumen.proceso));
+  return Object.values(m).sort((a, b)=> a.localeCompare(b));
+}
+function opciones(sel){
+  const l = $('fxClase').value === 'area' ? areasConocidas() : de('contratista').map((x)=> x.resumen.nombre).filter(Boolean).sort();
+  $('fxBus').innerHTML = '<option value="">Elige…</option>' + l.map((x)=> '<option' + (N(x) === N(sel) ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
+  if (!sel) $('fx').innerHTML = '';
+}
+function ver(){
+  const v = $('fxBus').value; if (!v) { $('fx').innerHTML = ''; return; }
+  try { history.replaceState(history.state, '', location.pathname + '?tipo=' + $('fxClase').value + '&v=' + encodeURIComponent(v)); } catch (e) {}
+  if ($('fxClase').value === 'area') verArea(v); else verContratista(v);
+}
+function verArea(a){
+  const k = N(a), en = (...t)=> t.some((x)=> { const n = N(x); return n && (n === k || n.includes(k)); }), h = UI.hoy(), anio = h.slice(0, 4);
+  $('fxTipo').textContent = 'Ficha del área'; $('fxNom').textContent = a;
+  const per = de('trabajador').filter((x)=> x.resumen.activo !== false && N(x.resumen.area) === k);
+  const eq = de('equipo').filter((x)=> x.resumen.activo !== false && N(x.resumen.area) === k);
+  const pel = de('peligro').filter((x)=> en(x.resumen.area, x.resumen.proceso, x.resumen.zona));
+  const ced = new Set(per.map((x)=> cedK(x.resumen.cedula)));
+  const rep = de('reporte').filter((x)=> en(x.resumen.lugar, x.resumen.centro, x.resumen.area) || ced.has(cedK(x.resumen.lesionadoCc)));
+  const ins = de('inspeccion').filter((x)=> en(x.resumen.lugar, x.resumen.area) || eq.some((e)=> e.id === x.resumen.equipoId));
+  const acc = de('accion').filter((x)=> en(x.resumen.centro, x.resumen.area, x.resumen.hallazgo) || rep.some((r)=> r.id === x.resumen.origenRef) || ins.some((r)=> r.id === x.resumen.origenRef));
+  const at = rep.filter((x)=> x.resumen.clase === 'Accidente de trabajo' && String(x.resumen.fecha).startsWith(anio));
+  const abiertas = acc.filter((x)=> x.estado !== 'CERRADA'), venc = abiertas.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h);
+  const altos = pel.filter((x)=> /^(I|II)$/.test(String(x.resumen.nivel || '')) || /no acept/i.test(x.resumen.aceptabilidad || ''));
+  $('fxSub').textContent = per.length + ' persona(s) · ' + eq.length + ' equipo(s)';
+  $('fx').innerHTML = '<div class="card"><h2>Resumen ' + anio + '</h2><div class="fx-sem">' + kpi('Accidentes del año', at.length, at.length ? 'mal' : 'ok') + kpi('Días de incapacidad', at.reduce((s, x)=> s + (Number(x.resumen.diasIncapacidad) || 0), 0)) +
+      kpi('Peligros altos', altos.length, altos.length ? 'pronto' : 'ok') + kpi('Acciones abiertas', abiertas.length + (venc.length ? ' (' + venc.length + ' vencidas)' : ''), venc.length ? 'mal' : abiertas.length ? 'pronto' : 'ok') + '</div></div>' +
+    bloque('Peligros de la matriz', pel.map((x)=> fila(esc(x.resumen.peligro || x.titulo), esc([x.resumen.proceso, x.resumen.actividad].filter(Boolean).join(' · ')), altos.indexOf(x) !== -1 ? ['mal', 'Nivel ' + (x.resumen.nivel || 'alto')] : null)), 'Sin peligros registrados para el área.') +
+    bloque('Reportes y accidentes', rep.sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha))).map((x)=> fila(esc(x.resumen.clase) + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(String(x.resumen.descripcion || '').slice(0, 140)))), 'Sin reportes.') +
+    bloque('Inspecciones', ins.sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha))).map((x)=> fila(esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.plantilla || x.resumen.categoria || 'Inspección'), '', x.resumen.resultado === 'NO CONFORME' ? ['mal', 'No conforme'] : ['ok', 'Conforme'])), 'Sin inspecciones.') +
+    bloque('Acciones', acc.map((x)=> fila(esc(x.resumen.accion || x.titulo), esc(x.resumen.responsable || '') + (x.resumen.fechaCompromiso ? ' · ' + esc(UI.corta(x.resumen.fechaCompromiso)) : ''), x.estado === 'CERRADA' ? ['ok', 'Cerrada'] : venc.indexOf(x) !== -1 ? ['mal', 'Vencida'] : ['pronto', 'Abierta'])), 'Sin acciones.') +
+    bloque('Personas', per.map((x)=> fila('<a href="persona.html?ced=' + esc(cedK(x.resumen.cedula)) + '">' + esc(x.resumen.nombre) + '</a>', esc(x.resumen.cargo || ''))), 'Sin personas con esta área.') +
+    bloque('Equipos', eq.map((x)=> fila('<a href="equipo.html?id=' + esc(x.id) + '">' + esc((x.resumen.codigo ? x.resumen.codigo + ' · ' : '') + (x.resumen.nombre || '')) + '</a>', '')), 'Sin equipos con esta área.');
+}
+function verContratista(nombre){
+  const c = de('contratista').find((x)=> N(x.resumen.nombre) === N(nombre)); if (!c) return;
+  const s = c.resumen, k = N(s.nombre), h = UI.hoy();
+  $('fxTipo').textContent = 'Ficha del contratista'; $('fxNom').textContent = s.nombre; $('fxSub').textContent = (s.nit ? 'NIT ' + s.nit : '') + (s.servicio ? ' · ' + s.servicio : '');
+  const tr = de('trabajador').filter((x)=> x.resumen.activo !== false && N(x.resumen.empresa) === k), ced = new Set(tr.map((x)=> cedK(x.resumen.cedula)));
+  const hab = tr.map((x)=> ({ x, r: Habilitacion.revisar(x.resumen.cedula, 'general') }));
+  const rep = de('reporte').filter((x)=> ced.has(cedK(x.resumen.lesionadoCc)));
+  const ind = de('induccion').filter((x)=> ced.has(cedK(x.resumen.cedula)));
+  const ok = hab.filter((y)=> y.r.estado === 'ok').length;
+  $('fx').innerHTML = '<div class="card"><h2>Resumen</h2><div class="fx-sem">' + kpi('Personal habilitado', tr.length ? Math.round(ok * 100 / tr.length) + ' % de ' + tr.length : '—', tr.length && ok === tr.length ? 'ok' : 'pronto') +
+      kpi('Documentos', s.docsVencidos ? 'Vencidos' : s.docsFaltan ? 'Faltan' : 'Al día', s.docsVencidos ? 'mal' : s.docsFaltan ? 'pronto' : 'ok') + kpi('Accidentes', rep.filter((x)=> x.resumen.clase === 'Accidente de trabajo').length) + kpi('Evaluación', s.evalPuntaje ? s.evalPuntaje + ' · ' + (s.evalResultado || '') : 'Sin evaluar') + '</div>' +
+      '<a class="btn ghost mini" href="contratistas.html">Abrir Contratistas →</a></div>' +
+    bloque('Trabajadores', hab.map((y)=> fila('<a href="persona.html?ced=' + esc(cedK(y.x.resumen.cedula)) + '">' + esc(y.x.resumen.nombre) + '</a>', esc(y.x.resumen.cargo || '') + (y.r.problemas.length ? ' · ' + esc(y.r.problemas[0]) : ''), y.r.estado === 'ok' ? ['ok', 'Habilitado'] : y.r.estado === 'pronto' ? ['pronto', 'Por vencer'] : ['mal', 'No habilitado'])), 'Sin trabajadores con esta empresa en Personal habilitado.') +
+    bloque('Accidentes e incidentes de su personal', rep.map((x)=> fila(esc(x.resumen.clase) + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(x.resumen.lesionado || ''))), 'Sin eventos.') +
+    bloque('Inducciones', ind.map((x)=> fila(esc(x.resumen.nombre || '') + ' · ' + esc(UI.corta(x.fecha || x.resumen.fecha)), esc(x.resumen.tipoInduccion || ''))), 'Sin inducciones registradas.');
+}
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-rfNETD2OP/BhS+R5o54wDIvOAf+i9Ax33Cl6XsCfciw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Responder la inducción · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Responder la inducción · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.pasos-ind{display:flex;gap:6px;margin:4px 0 14px;}
+.pasos-ind span{flex:1;height:6px;border-radius:var(--r-xs);background:var(--line);}
+.pasos-ind span.on{background:var(--verde-600);}
+.paso-tit{font-size:var(--fs-menor);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.tema{border:1.5px solid var(--line);border-radius:var(--r-m);padding:12px;margin-bottom:9px;background:#fff;display:block;cursor:pointer;}
+.tema.on{border-color:var(--verde-600);background:var(--verde-50);}
+.tema > div{display:flex;gap:10px;align-items:flex-start;}
+.tema input{width:22px;height:22px;flex:0 0 22px;margin-top:1px;}
+.tema b{display:block;font-size:var(--fs-titulo);line-height:1.3;}
+.tema small{display:block;font-size:var(--fs-base);color:var(--muted);line-height:1.4;margin-top:4px;}
+.pq{border:1px solid var(--line);border-radius:var(--r-m);padding:12px;margin-bottom:10px;background:#fff;}
+.pq.sin-resp{border-color:#d99a8f;background:var(--n-0);}
+.pq .q{font-weight:700;font-size:var(--fs-titulo);line-height:1.35;margin-bottom:8px;}
+.pq .op{display:flex;flex-direction:column;gap:7px;}
+.pq .op button{min-height:46px;text-align:left;border:1.5px solid var(--line);border-radius:var(--r-m);background:var(--n-0);padding:9px 12px;font:inherit;font-size:var(--fs-base);line-height:1.3;color:var(--ink);cursor:pointer;}
+.pq .op button.on{border-color:var(--azul-800);background:var(--bg);font-weight:700;}
+.pq.revisada .op button.correcta{border-color:var(--verde-600);background:var(--verde-50);}
+.pq.revisada .op button.on:not(.correcta){border-color:var(--rojo-700);background:var(--rojo-50);}
+.cuenta{font-size:var(--fs-base);color:var(--muted);margin:-4px 0 10px;}
+.nota{font-size:var(--fs-hero);font-weight:800;text-align:center;margin:6px 0 2px;}
+.listo{text-align:center;padding:22px 8px;}
+.listo .ic{font-size:var(--fs-hero);}
+.nav-ind{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:6px;}
+.nav-ind .btn{margin:0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrInd">
+  <div class="hdr">
+    <a class="back" href="index.html">← Portal</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Inducción en SST</div>
+    <h1>Responder la inducción</h1>
+    <p>Tus datos, los temas, una evaluación corta y tu firma. Toma unos 10 minutos.</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div class="pasos-ind" id="barra" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div id="paso"></div>
+  <div class="status-msg" id="msg"></div>
+  <div class="nav-ind"><button type="button" class="btn ghost" id="atras">← Atrás</button><button type="button" class="btn amber" id="sig">Siguiente →</button></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<div class="screen" id="scrListo"><div class="card listo" id="listo"></div></div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="induccion-banco.js"></script>
+<script src="autorizacion-datos.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* Inducción que responde la persona desde el inicio, sin usuario (v109).
+   El área SST la ve en Sistema de gestión → Inducción y reinducción, marcada «respondida en el portal».
+   El servidor (tipo induccion, solo crear) pone la fecha de hoy, acota los textos y recalcula la nota. */
+const $ = UI.$;
+const d = { tipoInduccion: 'Inducción', nombre: '', cedula: '', cargo: '', empresa: '', dicto: '', temas: [], resp: {} };
+let paso = 0, revisada = false;
+/* v148: el avance se guarda en el celular (una llamada o recargar la página no hace empezar de cero). Se borra al enviar. */
+const CLAVE_AVANCE = 'ssta-induccion-avance';
+try { const g = JSON.parse(localStorage.getItem(CLAVE_AVANCE) || 'null'); if (g && g.d && Date.now() - (g.en || 0) < 86400000) { Object.assign(d, g.d); paso = Math.min(Number(g.paso) || 0, 2); } } catch (e) {}
+const guardarAvance = ()=> { try { localStorage.setItem(CLAVE_AVANCE, JSON.stringify({ d, paso, en: Date.now() })); } catch (e) {} };
+/* v148: en cada intento las preguntas y las opciones cambian de orden (no se aprueba memorizando la posición). */
+let orden = null;
+function barajar(n){ const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const NOMBRES = ['Tus datos', 'Los temas', 'Evaluación', 'Tu firma'];
+const visitante = ()=> d.tipoInduccion === 'Visitante';
+function barra(){ $('barra').querySelectorAll('span').forEach((s, i)=> s.classList.toggle('on', i <= paso)); }
+function pintar(){
+  guardarAvance();
+  barra(); $('msg').textContent = ''; $('atras').style.visibility = paso ? 'visible' : 'hidden';
+  $('sig').textContent = paso === 3 ? 'Enviar mi inducción' : 'Siguiente →';
+  const c = $('paso');
+  if (paso === 0) {
+    c.innerHTML = '<div class="card"><div class="paso-tit">Paso 1 de 4 · ' + NOMBRES[0] + '</div>' +
+      '<div class="field"><label>¿Qué inducción es? *</label><select id="fTipo">' + TIPOS.map((t)=> '<option' + (t === d.tipoInduccion ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Nombre completo *</label><input type="text" id="fNom" maxlength="120" autocomplete="name" value="' + esc(d.nombre) + '"></div>' +
+      '<div class="grid2"><div class="field"><label>Cédula *</label><input type="text" id="fCed" inputmode="numeric" value="' + esc(d.cedula) + '"></div>' +
+      '<div class="field"><label>Cargo</label><input type="text" id="fCargo" maxlength="80" value="' + esc(d.cargo) + '"></div></div>' +
+      '<div class="field" id="fEmpF"><label>Empresa (si eres contratista o visitante)</label><input type="text" id="fEmp" maxlength="120" value="' + esc(d.empresa) + '"></div>' +
+      '<div class="field"><label>¿Quién te dio la inducción? (opcional)</label><input type="text" id="fDicto" maxlength="120" value="' + esc(d.dicto) + '" placeholder="Nombre de la persona de SST o del supervisor"></div></div>';
+    Valida.soloNombre($('fNom')); Valida.soloDigitos($('fCed'), 10);
+  } else if (paso === 1) {
+    c.innerHTML = '<div class="card"><div class="paso-tit">Paso 2 de 4 · ' + NOMBRES[1] + '</div><p class="ayuda">Lee cada tema y márcalo cuando lo hayas entendido. Si tienes dudas, pregúntale al área SST antes de seguir.</p>' +
+      TEMAS.map((t, i)=> '<label class="tema' + (d.temas.indexOf(t) !== -1 ? ' on' : '') + '"><div><input type="checkbox" data-t="' + i + '"' + (d.temas.indexOf(t) !== -1 ? ' checked' : '') + '><span><b>' + esc(t) + '</b>' +
+        (DETALLE_TEMAS[t] ? '<small>' + esc(DETALLE_TEMAS[t]) + '</small>' : '') + '</span></div></label>').join('') +
+      '<button type="button" class="btn ghost" id="todos">Los leí y entendí todos</button></div>';
+    // El contenedor se reutiliza en los otros pasos: si ya no están los temas, no hace nada.
+    const marcar = ()=> { if (!c.querySelector('[data-t]')) return; d.temas = TEMAS.filter((t, i)=> c.querySelector('[data-t="' + i + '"]').checked); c.querySelectorAll('.tema').forEach((l)=> l.classList.toggle('on', l.querySelector('input').checked)); };
+    c.addEventListener('change', marcar);
+    $('todos').addEventListener('click', ()=> { c.querySelectorAll('[data-t]').forEach((x)=> { x.checked = true; }); marcar(); });
+  } else if (paso === 2) {
+    if (visitante()) { c.innerHTML = '<div class="card"><div class="paso-tit">Paso 3 de 4 · ' + NOMBRES[2] + '</div><p>Los visitantes no presentan evaluación. Sigue a la firma.</p></div>'; return; }
+    c.innerHTML = '<div class="card"><div class="paso-tit">Paso 3 de 4 · ' + NOMBRES[2] + '</div><p class="ayuda">Elige una respuesta en cada pregunta. Apruebas con ' + APRUEBA + '% o más.</p><div class="cuenta" id="cuenta"></div>' +
+      (orden || (orden = { q: barajar(PREGUNTAS.length), o: PREGUNTAS.map((q)=> barajar(q[1].length)) })).q.map((i, n)=> { const q = PREGUNTAS[i]; return '<div class="pq' + (revisada ? ' revisada' : '') + (revisada && d.resp[i] !== q[2] ? ' fallada' : '') + '" data-q="' + i + '"><div class="q">' + (n + 1) + '. ' + esc(q[0]) + (revisada && d.resp[i] !== q[2] ? ' <b class="u-mal">(revísala)</b>' : '') + '</div><div class="op">' +
+        orden.o[i].map((j)=> '<button type="button" data-o="' + j + '" class="' + (d.resp[i] === j ? 'on' : '') + '">' + esc(q[1][j]) + '</button>').join('') + '</div></div>'; }).join('') + '</div>';
+    const contar = ()=> { $('cuenta').textContent = Object.keys(d.resp).length + ' de ' + PREGUNTAS.length + ' respondidas'; };
+    c.addEventListener('click', (e)=> { const b = e.target.closest('[data-o]'); if (!b || revisada) return; const pq = b.closest('[data-q]'), i = +pq.dataset.q;
+      d.resp[i] = +b.dataset.o; pq.querySelectorAll('[data-o]').forEach((x)=> x.classList.toggle('on', x === b)); pq.classList.remove('sin-resp'); contar(); });
+    contar();
+  } else {
+    c.innerHTML = '<div class="card"><div class="paso-tit">Paso 4 de 4 · ' + NOMBRES[3] + '</div>' + (visitante() ? '' : resultadoHTML()) +
+      '</div>' + AutorizacionDatos.html('aut') +
+      '<div class="card"><div class="field"><label>Firma de ' + esc(d.nombre) + ' *</label>' + UI.padHTML('fFirma') + '</div>' +
+      '<p class="ayuda">Con tu firma declaras que recibiste la inducción, entendiste los temas y que lo que marcaste en la autorización de datos es tu decisión.</p></div>';
+    UI.activarPad('fFirma');
+  }
+}
+function nota(){ const bien = PREGUNTAS.filter((q, i)=> d.resp[i] === q[2]).length; return Math.round(bien * 100 / PREGUNTAS.length); }
+function resultadoHTML(){ const n = nota(), ok = n >= APRUEBA;
+  return '<div class="nota" style="color:' + (ok ? 'var(--ok)' : 'var(--mal)') + ';">' + n + '%</div><p style="text-align:center;margin:0 0 12px;">' + (ok ? '¡Aprobaste la evaluación!' : 'No alcanzaste el ' + APRUEBA + '%.') + '</p>'; }
+function validar(){
+  const prob = [];
+  if (paso === 0) {
+    d.tipoInduccion = $('fTipo').value; d.nombre = $('fNom').value.trim(); d.cedula = $('fCed').value.trim(); d.cargo = $('fCargo').value.trim(); d.empresa = $('fEmp').value.trim(); d.dicto = $('fDicto').value.trim();
+    return Valida.revisar($('paso'), [{ el: $('fNom'), etiqueta: 'Nombre completo', error: Valida.nombre(d.nombre) }, { el: $('fCed'), etiqueta: 'Cédula', error: Valida.cedula(d.cedula) },
+      { el: $('fEmp'), etiqueta: 'Empresa', error: (d.tipoInduccion === 'Inducción de contratista' || visitante()) && !d.empresa ? 'falta' : '' }], null);
+  }
+  if (paso === 1 && d.temas.length < TEMAS.length) {
+    const faltan = TEMAS.filter((t)=> d.temas.indexOf(t) === -1);
+    prob.push('Marca los temas que faltan: ' + faltan.join('; '));
+  }
+  if (paso === 2 && !visitante()) {
+    const sin = PREGUNTAS.map((q, i)=> i).filter((i)=> d.resp[i] == null);
+    $('paso').querySelectorAll('.pq').forEach((el)=> el.classList.toggle('sin-resp', sin.indexOf(+el.dataset.q) !== -1));
+    if (sin.length) { prob.push('Faltan las preguntas ' + sin.map((i)=> i + 1).join(', ')); const p0 = $('paso').querySelector('.pq.sin-resp'); if (p0) p0.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    else if (!revisada && nota() < APRUEBA) {
+      revisada = true; pintar();
+      $('msg').innerHTML = '<div class="aviso amar">Tu nota es ' + nota() + '% (apruebas con ' + APRUEBA + '%). Las marcadas con «revísala» están mal. Vuelve a leer esos temas (Paso 2) y vuelve a intentarlo: las preguntas cambiarán de orden.</div>' +
+        '<button type="button" class="btn" id="otraVez">Volver a intentarlo</button><button type="button" class="btn ghost" id="asi">Enviar sin aprobar (el área SST te llamará antes de que entres a la obra)</button>';
+      $('otraVez').addEventListener('click', ()=> { revisada = false; d.resp = {}; orden = null; pintar(); window.scrollTo(0, 0); });
+      $('asi').addEventListener('click', ()=> { paso = 3; pintar(); window.scrollTo(0, 0); });
+      return ['__revisar'];
+    }
+  }
+  return prob;
+}
+async function enviar(){
+  const firma = UI.firma('fFirma');
+  const faltan = [AutorizacionDatos.falta('aut'), firma ? '' : 'Tu firma'].filter(Boolean);
+  if (faltan.length) { $('msg').innerHTML = '<div class="v-resumen"><b>Falta:</b><br>• ' + faltan.map(esc).join('<br>• ') + '</div>';
+    // v148: lleva la pantalla hasta lo que falta (la autorización quedaba arriba, entre párrafos largos)
+    const ir = AutorizacionDatos.falta('aut') ? document.querySelector('[id^="aut"] input, #aut') : document.getElementById('fFirma');
+    if (ir) ir.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  if (!SGSST.url()) { $('msg').textContent = 'El portal no tiene servidor configurado. Pídele al área SST que haga tu inducción.'; return; }
+  const respuestas = visitante() ? [] : PREGUNTAS.map((q, i)=> ({ pregunta: q[0], respuesta: q[1][d.resp[i]], correcta: d.resp[i] === q[2] }));
+  const doc = { tipoInduccion: d.tipoInduccion, fecha: UI.hoy(), nombre: d.nombre, cedula: d.cedula, cargo: d.cargo, empresa: d.empresa, dicto: d.dicto, temas: d.temas,
+    preguntas: respuestas.length, respuestas, puntaje: visitante() ? '' : nota(), aprueba: APRUEBA, resultado: visitante() ? 'REALIZADA' : nota() >= APRUEBA ? 'APROBADA' : 'REPROBADA',
+    vence: '', firma, autoservicio: true, autorizacionDatos: AutorizacionDatos.valor('aut'), autorizaDatos: AutorizacionDatos.valor('aut').general ? 'SÍ' : 'NO', autorizaSalud: AutorizacionDatos.valor('aut').sensibles ? 'SÍ' : 'NO' };
+  const b = $('sig'); b.disabled = true; $('msg').textContent = 'Enviando…';
+  const r = await SGSST.enviar({ action: 'guardar', tipo: 'induccion', id: SGSST.nuevoId('IND'), doc });
+  b.disabled = false;
+  if (!r.ok) { $('msg').textContent = Errores.texto('pudo enviar', r); return; }
+  try { localStorage.removeItem(CLAVE_AVANCE); } catch (e) {}
+  $('listo').innerHTML = '<div class="ic">✓</div><h2>¡Gracias, ' + esc(d.nombre.split(' ')[0]) + '!</h2>' +
+    '<p>' + (r.enCola ? 'Tu inducción quedó guardada en este celular y se envía sola cuando haya señal.' : 'Tu inducción llegó al área SST.') + '</p>' +
+    (visitante() ? '' : '<p><b>' + doc.resultado.replace('REPROBADA', 'NO APROBADA') + '</b> · nota ' + doc.puntaje + '%</p>') +
+    '<a class="btn ghost" href="index.html">Volver al portal</a><button type="button" class="btn" id="otra">Responder otra persona</button>';
+  document.querySelectorAll('.screen').forEach((s)=> s.classList.toggle('active', s.id === 'scrListo')); window.scrollTo(0, 0);
+  $('otra').addEventListener('click', ()=> location.reload());
+}
+$('sig').addEventListener('click', async ()=> {
+  if (paso === 3) { await enviar(); return; }
+  const prob = validar();
+  if (prob[0] === '__revisar') return;
+  if (prob.length) { $('msg').innerHTML = '<div class="v-resumen"><b>Para seguir falta:</b><br>• ' + prob.map(esc).join('<br>• ') + '</div>'; return; }
+  paso++; pintar(); window.scrollTo(0, 0);
+});
+$('atras').addEventListener('click', ()=> { if (paso === 0) return; paso--; revisada = false; pintar(); window.scrollTo(0, 0); });
+UI.avisoServidor($('avisoSrv'));
+pintar();
+</script>
+</body>
+</html>

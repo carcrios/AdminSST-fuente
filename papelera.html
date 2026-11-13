@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+65oIfgKxDENJNeFcsx/iGs4CDn/NS++EqNUanp+8tE='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Papelera · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Papelera · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.pap-item{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--n-100);}
+.pap-item div{flex:1 1 220px;min-width:0}
+.pap-item .btn{width:auto;flex:none;margin:0;padding:10px 18px}
+.pap-item b{display:block;font-size:var(--fs-titulo);overflow-wrap:anywhere}
+.pap-item small{display:block;color:var(--tenue);font-size:var(--fs-menor)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="usuarios.html">← Volver</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Usuarios y respaldo</div>
+    <h1>Papelera</h1>
+    <p>Lo eliminado en los últimos 30 días, para recuperarlo</p></div></div>
+  </div>
+  <div class="card">
+    <p class="ayuda u-mt0">Nada se pierde al eliminar: queda en el historial. Aquí puedes devolverlo a las listas con un toque. Solo ves lo que tu usuario puede eliminar.</p>
+    <div id="avisoSrv"></div>
+    <div class="field"><label for="papBuscar">Buscar</label><input type="search" id="papBuscar" placeholder="Nombre, tipo o quien lo eliminó"></div>
+    <div id="lista"><div class="empty">Cargando…</div></div>
+  </div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+/* v139 · Papelera: lo borrado en los últimos 30 días, con «Recuperar». */
+const $ = (id)=> document.getElementById(id);
+const NOMBRES = { reporte: 'Reporte', accion: 'Acción', inspeccion: 'Inspección', equipo: 'Equipo', trabajador: 'Persona', reunion: 'Reunión', mes: 'Mes', auditoria: 'Auditoría', documento: 'Documento', preop: 'Preoperacional', plantillaform: 'Plantilla' };
+let filas = [];
+function pintar(){
+  const q = $('papBuscar').value.trim().toLowerCase();
+  const l = filas.filter((x)=> !q || (x.titulo + ' ' + x.tipo + ' ' + x.motivo + ' ' + x.responsable).toLowerCase().indexOf(q) !== -1);
+  if (!l.length) { $('lista').innerHTML = '<div class="empty">' + (filas.length ? 'Nada coincide con la búsqueda.' : 'La papelera está vacía. Lo que se elimine aparece aquí durante 30 días.') + '</div>'; return; }
+  $('lista').innerHTML = l.map((x)=> '<div class="pap-item"><div><b>' + esc(x.titulo || x.id) + '</b><small>' + esc(NOMBRES[x.tipo] || x.tipo) + (x.fecha ? ' · ' + esc(x.fecha) : '') + ' · eliminado el ' + esc(formatSavedAt(x.borradoEn)) + (x.motivo ? ' · ' + esc(x.motivo) : '') + '</small></div><button type="button" class="btn btn-sec" data-id="' + esc(x.id) + '">Recuperar</button></div>').join('');
+  $('lista').querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> {
+    b.disabled = true; b.textContent = 'Recuperando…';
+    const r = await SGSST.enviar({ action: 'restaurar', id: b.dataset.id });
+    if (r && r.ok) { UI.toast(r.enCola ? 'Se recupera al volver la señal.' : 'Recuperado. Volvió a las listas.'); filas = filas.filter((x)=> x.id !== b.dataset.id); pintar(); }
+    else { UI.toast((r && r.error) || 'No se pudo recuperar.', 'mal'); b.disabled = false; b.textContent = 'Recuperar'; }
+  }));
+}
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = '<div class="empty">Sin servidor no hay papelera.</div>'; return; }
+  const j = await SGSST.consultar({ action: 'papelera' }).catch((e)=> ({ ok: false, error: e.message }));
+  if (!j || !j.ok) { $('lista').innerHTML = '<div class="empty">' + esc((j && j.error) || 'No se pudo leer la papelera.') + '</div>'; return; }
+  filas = j.rows || []; pintar();
+}
+$('papBuscar').addEventListener('input', pintar);
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "portal-ssta-pruebas",
+  "private": true,
+  "description": "Pruebas del Portal SSTA. pruebas.js no necesita nada; navegador.js necesita Playwright.",
+  "scripts": {
+    "pruebas": "node pruebas.js",
+    "navegador": "node navegador.js",
+    "todo": "node pruebas.js && node navegador.js"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.2",
+    "playwright": "1.63.0"
+  }
+}

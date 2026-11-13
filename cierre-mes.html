@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ejJ3S+5i/zGaSnPNBdHPJuPlWsT4tMxxa8/40r3Fnwg='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Cerrar el mes · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cerrar el mes · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.paso{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--n-150);}
+.paso:last-child{border-bottom:0;}
+.paso .m{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:700;color:#fff;background:var(--rojo-700);margin-top:1px;}
+.paso.ok .m{background:var(--ok);}
+.paso.na .m{background:var(--n-300);}
+.paso .t{font-weight:600;font-size:var(--fs-titulo);line-height:1.35;}
+.paso .d{font-size:var(--fs-base);color:var(--muted);margin-top:2px;line-height:1.4;}
+.paso .ir{margin-left:auto;flex:0 0 auto;font-size:var(--fs-base);font-weight:600;color:var(--azul-600);text-decoration:none;padding:4px 0;white-space:nowrap;}
+.cifras{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 4px;}
+.cifra{border:1px solid var(--line);border-radius:var(--r-m);padding:9px 11px;background:#fff;}
+.cifra .v{font-size:var(--fs-subtitulo);font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;}
+.cifra .n{font-size:var(--fs-menor);color:var(--muted);margin-top:2px;line-height:1.3;}
+.estado-mes{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Paso 4 del mes</div>
+    <h1>Cerrar el mes</h1>
+    <p>Lo que debe quedar listo antes de pasar al mes siguiente, y el informe del mes</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="field"><label for="mes">Mes</label><select id="mes"></select></div>
+  <div id="contenido"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="informe-reglas.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* ── Cerrar el mes ──
+   Revisa con los datos del portal lo que debe quedar listo cada mes (indicadores,
+   accidentes, inspecciones, COPASST, plan anual, acciones), arma el informe del mes
+   y deja guardada la foto del cierre (tipo "cierremes", CIE-AAAA-MM). */
+const $ = UI.$;
+const AT = 'Accidente de trabajo';
+const TIPOS = 'mes,reporte,inspeccion,proginsp,comite,reunion,plananual,accion,trabajador,induccion,entrega,examen,simulacro,auditoria,revision,revmatriz,pqrs,cierremes';
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+let rows = [], mesSel = '', plan = null, calc = null, cierre = null;
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const fmt = (v, d)=> v === null || v === undefined || isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', { maximumFractionDigits: d == null ? 1 : d });
+const nombreMes = (m)=> MESES[Number(m.slice(5, 7)) - 1] + ' de ' + m.slice(0, 4);
+const finMes = (m)=> { const d = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0); return m + '-' + String(d.getDate()).padStart(2, '0'); };
+const enMes = (f, m)=> String(f || '').slice(0, 7) === m;
+const esSst = ()=> !Sesion.modo() || !Sesion.yo() || ['admin', 'sst'].indexOf(Sesion.rol()) !== -1;
+
+function opcionesMes(){
+  const hoy = UI.hoy(), lista = [];
+  const d = new Date(hoy.slice(0, 7) + '-15T12:00:00');
+  for (let i = 0; i < 13; i++) { lista.push(d.toISOString().slice(0, 7)); d.setMonth(d.getMonth() - 1); }
+  let pedido = ''; try { pedido = new URLSearchParams(location.search).get('mes') || ''; } catch (e) {}
+  // Por defecto: los primeros 10 días, el mes pasado (es el que se está cerrando); después, el mes en curso.
+  mesSel = /^\d{4}-\d{2}$/.test(pedido) && lista.indexOf(pedido) !== -1 ? pedido : (Number(hoy.slice(8, 10)) <= 10 ? lista[1] : lista[0]);
+  $('mes').innerHTML = lista.map((m)=> '<option value="' + m + '"' + (m === mesSel ? ' selected' : '') + '>' + nombreMes(m).replace(/^./, (c)=> c.toUpperCase()) + '</option>').join('');
+}
+$('mes').addEventListener('change', ()=> { mesSel = $('mes').value; pintar(); });
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('contenido').innerHTML = ''; return; }
+  const r = await SGSST.listar(TIPOS);
+  UI.avisoCopia($('avisoCopia'), r);
+  if (r.sinSesion) { $('contenido').innerHTML = ''; return; }
+  rows = r.rows;
+  await Habilitacion.cargar();
+  pintar();
+}
+
+/* ¿Hecho por el portal? (las mismas reglas que el plan anual) */
+function hechoAuto(auto, m){
+  return rows.some((x)=> { const s = x.resumen || {};
+    if (auto === 'inspecciones') return x.tipo === 'inspeccion' && enMes(s.fecha, m);
+    if (auto === 'copasst' || auto === 'convivencia') return x.tipo === 'reunion' && s.tipo === 'Ordinaria' && s.comite === auto && enMes(s.fecha, m);
+    if (auto === 'simulacro') return x.tipo === 'simulacro' && enMes(s.fecha, m);
+    if (auto === 'auditoria') return x.tipo === 'auditoria' && x.estado === 'CERRADA' && enMes(s.fechaEjecucion, m);
+    if (auto === 'revision') return x.tipo === 'revision' && enMes(s.fecha, m);
+    if (auto === 'revmatriz') return x.tipo === 'revmatriz' && enMes(s.fecha, m);
+    if (auto === 'examenes') return x.tipo === 'examen' && enMes(s.fecha, m);
+    if (auto === 'indicadores') return x.tipo === 'mes' && s.mes === m && s.trabajadores;
+    return false; });
+}
+
+async function calcular(m){
+  const fin = finMes(m), hoy = UI.hoy(), cerradoYa = fin < hoy;
+  const dm = (de('mes').find((x)=> x.resumen.mes === m) || {}).resumen || null, trab = dm ? Number(dm.trabajadores) || 0 : 0;
+  const rep = de('reporte').filter((x)=> enMes(x.resumen.fecha, m)), at = rep.filter((x)=> x.resumen.clase === AT), inc = rep.filter((x)=> x.resumen.clase === 'Incidente');
+  const dias = INFORME.diasAT(rows, m).total;   // v148: mismo cálculo que Indicadores, Gerencia e Informe
+  const furatPend = at.filter((x)=> !(x.resumen.furat || {}).radicado);
+  const invPend = rep.filter((x)=> (x.resumen.clase === AT || x.resumen.clase === 'Incidente') && (x.resumen.investigacion || {}).estado !== 'CERRADA');
+  // Inspecciones programadas (cronograma) y hechas en el mes
+  const insp = de('inspeccion').filter((x)=> enMes(x.resumen.fecha, m));
+  const progs = de('proginsp').filter((x)=> x.resumen.activo !== false && String(x.resumen.meses || '').split(/\s*,\s*/).some((v)=> v === m || (String(x.resumen.anio) === m.slice(0, 4) && /^\d{1,2}$/.test(v) && Number(v) === Number(m.slice(5, 7)))));
+  const progHechas = progs.filter((p)=> insp.some((h)=> h.resumen.progId === p.id || (!h.resumen.progId && !h.resumen.equipoId && p.resumen.tipoInspeccion && p.resumen.tipoInspeccion !== 'Rutinaria' && h.resumen.tipoInspeccion === p.resumen.tipoInspeccion && h.resumen.plantilla === p.resumen.plantilla)));
+  // COPASST
+  const cop = de('comite').find((x)=> x.resumen.comite === 'copasst'), reuCop = de('reunion').filter((x)=> x.resumen.comite === 'copasst' && x.resumen.tipo === 'Ordinaria' && enMes(x.resumen.fecha, m));
+  // Plan anual: lo programado ese mes
+  const pat = de('plananual').find((x)=> String(x.resumen.anio) === m.slice(0, 4));
+  plan = pat ? await SGSST.doc(pat.id) : null;
+  const nm = Number(m.slice(5, 7)), acts = ((plan && plan.actividades) || []).filter((a)=> (a.meses || []).indexOf(nm) !== -1);
+  const actHechas = acts.filter((a)=> { const e = ((plan.ejec || {})[a.uid] || {})[nm]; return (e && e.hecho) || (a.auto && hechoAuto(a.auto, m)); });
+  // Acciones
+  const acc = de('accion'), abiertas = acc.filter((x)=> x.estado !== 'CERRADA'), vencidas = abiertas.filter((x)=> x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < (cerradoYa ? fin : hoy));
+  const cerradasMes = acc.filter((x)=> x.estado === 'CERRADA' && enMes(x.resumen.fechaCierre, m)), nuevasMes = acc.filter((x)=> enMes(x.fecha, m));
+  // Personas
+  const trabAct = de('trabajador').filter((x)=> x.resumen.activo !== false), noHab = trabAct.filter((x)=> Habilitacion.revisar(x.resumen.cedula, []).estado === 'mal');
+  const ind = de('induccion').filter((x)=> enMes(x.resumen.fecha, m)), ent = de('entrega').filter((x)=> enMes(x.resumen.fecha || x.fecha, m)), exa = de('examen').filter((x)=> enMes(x.resumen.fecha, m));
+  const pqrs = de('pqrs').filter((x)=> enMes(x.resumen.fecha, m));
+  const pasos = [
+    { ok: !!(dm && trab), t: 'Datos del mes para los indicadores', d: dm && trab ? trab + ' trabajadores' + (dm.diasProgramados ? ', ' + fmt(dm.diasAusencia, 0) + ' días de ausencia por causa médica' : '') : 'Faltan el número de trabajadores, los días programados y los de ausencia (Res. 0312, art. 30).', href: 'indicadores.html' },
+    { ok: !furatPend.length && !invPend.length, t: 'Accidentes e incidentes reportados e investigados', d: !rep.filter((x)=> x.resumen.clase === AT || x.resumen.clase === 'Incidente').length ? 'Sin accidentes ni incidentes en el mes.' : [at.length + ' accidente(s), ' + inc.length + ' incidente(s)', furatPend.length ? furatPend.length + ' FURAT sin radicar' : '', invPend.length ? invPend.length + ' investigación(es) sin cerrar' : ''].filter(Boolean).join('; ') + '.', href: 'reportes.html' },
+    { ok: progs.length ? progHechas.length === progs.length : true, na: !progs.length, t: 'Inspecciones programadas del mes', d: progs.length ? progHechas.length + ' de ' + progs.length + ' hechas' + (progs.length > progHechas.length ? ' (faltan: ' + progs.filter((p)=> progHechas.indexOf(p) === -1).map((p)=> p.resumen.titulo).join(', ') + ')' : '') + '. En total, ' + insp.length + ' inspección(es) en el mes.' : 'No hay inspecciones en el cronograma de este mes. Se hicieron ' + insp.length + '.', href: 'inspecciones.html#cronograma' },
+    { ok: cop ? reuCop.length > 0 : true, na: !cop, t: 'Reunión ordinaria del COPASST', d: !cop ? 'No hay COPASST conformado en el portal (con menos de 10 trabajadores es el Vigía de SST).' : reuCop.length ? 'Hecha el ' + UI.corta(reuCop[0].resumen.fecha) + ', con su acta.' : 'Falta la reunión del mes con su acta (Res. 2013 de 1986).', href: 'copasst.html' },
+    { ok: acts.length ? actHechas.length === acts.length : !!plan, na: !!plan && !acts.length, t: 'Actividades del plan anual de este mes', d: !plan ? 'No hay plan anual de ' + m.slice(0, 4) + '.' : acts.length ? actHechas.length + ' de ' + acts.length + ' hechas' + (acts.length > actHechas.length ? ' (faltan: ' + acts.filter((a)=> actHechas.indexOf(a) === -1).map((a)=> a.actividad).slice(0, 4).join('; ') + (acts.length - actHechas.length > 4 ? '…' : '') + ')' : '') + '.' : 'No hay actividades programadas este mes.', href: 'plan-anual.html' },
+    { ok: !vencidas.length, t: 'Acciones del plan de acción al día', d: vencidas.length ? vencidas.length + ' acción(es) vencida(s) de ' + abiertas.length + ' abiertas. ' + cerradasMes.length + ' cerrada(s) en el mes.' : abiertas.length + ' abiertas, ninguna vencida. ' + cerradasMes.length + ' cerrada(s) en el mes.', href: 'plan-accion.html' },
+    { ok: !noHab.length, na: !trabAct.length, t: 'Personal habilitado (cursos, aptitud y seguridad social)', d: !trabAct.length ? 'No hay personal registrado.' : noHab.length ? noHab.length + ' de ' + trabAct.length + ' personas con algo vencido o faltante (hoy).' : 'Las ' + trabAct.length + ' personas activas están al día (hoy).', href: 'habilitacion.html' }
+  ];
+  // v148: un AT en un mes sin número de trabajadores se pierde de la frecuencia y la severidad: no se cierra así.
+  if (at.length && !trab) pasos.unshift({ ok: false, t: 'Número de trabajadores del mes', d: 'Hay ' + at.length + ' accidente(s) en el mes pero no está el número de trabajadores: sin él la frecuencia y la severidad no se calculan.', href: 'indicadores.html' });
+  const cuentan = pasos.filter((p)=> !p.na);
+  return { m, trab, dm, at: at.length, inc: inc.length, dias, frecuencia: trab ? at.length / trab * 100 : null, severidad: trab ? dias / trab * 100 : null,
+    ausentismo: dm && Number(dm.diasProgramados) ? (Number(dm.diasAusencia) || 0) / Number(dm.diasProgramados) * 100 : null,
+    insp: insp.length, progs: progs.length, progHechas: progHechas.length, reuCop: reuCop.length, acts: acts.length, actHechas: actHechas.length, actFaltan: acts.filter((a)=> actHechas.indexOf(a) === -1),
+    abiertas: abiertas.length, vencidas: vencidas.length, cerradasMes: cerradasMes.length, nuevasMes: nuevasMes.length, ind: ind.length, ent: ent.length, exa: exa.length, pqrs: pqrs.length,
+    rep, pasos, pasosOk: cuentan.filter((p)=> p.ok).length, pasosTotal: cuentan.length, vencidasL: vencidas };
+}
+
+async function pintar(){
+  const c = $('contenido');
+  calc = await calcular(mesSel);
+  const cf = de('cierremes').find((x)=> x.resumen.mes === mesSel || x.id === 'CIE-' + mesSel);
+  cierre = cf ? Object.assign({ id: cf.id, version: cf.version }, cf.resumen) : null;
+  const k = calc, faltan = k.pasosTotal - k.pasosOk;
+  const cifra = (v, n)=> '<div class="cifra"><div class="v">' + v + '</div><div class="n">' + esc(n) + '</div></div>';
+  c.innerHTML = '<div class="card"><div class="estado-mes"><h2 class="u-m0">' + esc(nombreMes(mesSel).replace(/^./, (x)=> x.toUpperCase())) + '</h2>' +
+      (cierre ? '<span class="chip ok">Cerrado el ' + esc(UI.corta(cierre.fechaCierre)) + (cierre.cerradoPor ? ' por ' + esc(cierre.cerradoPor) : '') + '</span>' : '<span class="chip ' + (faltan ? 'pronto' : 'ok') + '">' + (faltan ? faltan + ' por resolver' : 'Listo para cerrar') + '</span>') + '</div>' +
+      '<p class="ayuda u-mt6">' + k.pasosOk + ' de ' + k.pasosTotal + ' puntos de la lista al día. Lo que falte se puede cerrar igual: queda anotado en el informe.</p>' +
+      k.pasos.map((p)=> '<div class="paso ' + (p.na ? 'na' : p.ok ? 'ok' : '') + '"><span class="m" aria-hidden="true">' + (p.na ? '–' : p.ok ? '✓' : '!') + '</span><div><div class="t">' + esc(p.t) + '</div><div class="d">' + esc(p.d) + '</div></div><a class="ir" href="' + esc(p.href) + '">Abrir</a></div>').join('') + '</div>' +
+    '<div class="card"><h2>Cifras del mes</h2><div class="cifras">' +
+      cifra(k.trab || '—', 'trabajadores') + cifra(k.at, 'accidentes de trabajo') + cifra(fmt(k.frecuencia, 2), 'frecuencia (AT por 100 trabajadores)') + cifra(fmt(k.severidad, 1), 'severidad (días por 100 trabajadores)') +
+      cifra(k.ausentismo === null ? '—' : fmt(k.ausentismo, 1) + '%', 'ausentismo por causa médica') + cifra(k.inc, 'incidentes') + cifra(k.insp, 'inspecciones hechas') +
+      cifra(k.acts ? k.actHechas + '/' + k.acts : '—', 'actividades del plan anual') + cifra(k.cerradasMes, 'acciones cerradas en el mes') + cifra(k.vencidas, 'acciones vencidas') +
+      cifra(k.ind, 'inducciones y reinducciones') + cifra(k.ent, 'entregas de EPP') + (esSst() ? cifra(k.exa, 'exámenes médicos') : '') + (EMPRESA.modulos && EMPRESA.modulos.calidad === false ? '' : cifra(k.pqrs, 'PQRS de clientes')) +
+    '</div></div>' +
+    '<div class="card"><h2>Cierre</h2><div class="field"><label for="obs">Observaciones del mes (qué pasó, qué queda pendiente y por qué)</label><textarea id="obs" rows="4">' + esc((cierre && cierre.observaciones) || '') + '</textarea></div>' +
+      '<button type="button" class="btn amber" id="btnCerrar">' + (cierre ? 'Actualizar el cierre' : 'Cerrar el mes') + '</button>' +
+      '<button type="button" class="btn ghost" id="btnPdf">🖨️ Informe del mes (PDF)</button><div class="status-msg" id="msg"></div>' +
+      '<p class="ayuda">El informe trae la lista de cierre, los indicadores del mes, los accidentes e incidentes, las inspecciones, el plan anual y las acciones vencidas. Sirve para la gerencia, el COPASST, la ARL o el cliente.</p></div>';
+  $('btnPdf').addEventListener('click', ()=> pdf());
+  $('btnCerrar').addEventListener('click', ()=> cerrar());
+}
+
+async function cerrar(){
+  const k = calc, msg = $('msg');
+  if (k.pasosOk < k.pasosTotal && !cierre && !await Dialogo.confirmar('Quedan ' + (k.pasosTotal - k.pasosOk) + ' punto(s) sin resolver. ¿Cerrar el mes igual? Quedarán anotados en el informe.')) return;
+  const doc = { mes: k.m, fechaCierre: UI.hoy(), cerradoPor: Sesion.nombre() || '', trabajadores: k.trab, accidentes: k.at, frecuencia: k.frecuencia === null ? '' : Math.round(k.frecuencia * 100) / 100,
+    severidad: k.severidad === null ? '' : Math.round(k.severidad * 10) / 10, ausentismo: k.ausentismo === null ? '' : Math.round(k.ausentismo * 100) / 100,
+    inspProgramadas: k.progs, inspHechas: k.progHechas, planProgramadas: k.acts, planHechas: k.actHechas, accionesAbiertas: k.abiertas, accionesVencidas: k.vencidas, accionesCerradas: k.cerradasMes,
+    pasosOk: k.pasosOk, pasosTotal: k.pasosTotal, pasos: k.pasos.map((p)=> ({ t: p.t, ok: !!p.ok, na: !!p.na, d: p.d })), observaciones: $('obs').value.trim(),
+    estado: k.pasosOk === k.pasosTotal ? 'CERRADO' : 'CERRADO CON PENDIENTES' };
+  msg.textContent = 'Guardando…';
+  const r = await Registros.guardar('cierremes', cierre ? cierre.id : 'CIE-' + k.m, doc, cierre ? cierre.version : 0);
+  if (typeof r === 'string') { msg.textContent = r; return; }
+  UI.toast('✓ ' + nombreMes(k.m).replace(/^./, (x)=> x.toUpperCase()) + ' cerrado.'); cargar();
+}
+
+function pdf(){
+  const k = calc, T = (cab, filas)=> '<table><tr>' + cab.map((x)=> '<td class="l">' + esc(x) + '</td>').join('') + '</tr>' + filas.join('') + '</table>';
+  const fila = (cs)=> '<tr>' + cs.map((x)=> '<td>' + esc(x) + '</td>').join('') + '</tr>';
+  UI.imprimir([UI.cabecera('SG-CIERRE-MES', 'INFORME MENSUAL DEL SG-SST', nombreMes(k.m).replace(/^./, (x)=> x.toUpperCase()) + ' · ' + (EMPRESA.nombre || '')) +
+    UI.seccion('LISTA DE CIERRE', T(['Punto', 'Estado', 'Detalle'], k.pasos.map((p)=> fila([p.t, p.na ? 'No aplica' : p.ok ? 'Al día' : 'Pendiente', p.d])))) +
+    UI.seccion('INDICADORES DEL MES (RES. 0312, ART. 30)', UI.tablaDatos([['Trabajadores', String(k.trab || '—')], ['Accidentes de trabajo', String(k.at)], ['Días de incapacidad y cargados', String(k.dias)],
+      ['Frecuencia de accidentalidad', fmt(k.frecuencia, 2)], ['Severidad de accidentalidad', fmt(k.severidad, 1)], ['Ausentismo por causa médica', k.ausentismo === null ? '—' : fmt(k.ausentismo, 2) + ' %'],
+      ['Incidentes', String(k.inc)], ['Inspecciones hechas', String(k.insp) + (k.progs ? ' (' + k.progHechas + ' de ' + k.progs + ' programadas)' : '')]])) +
+    UI.seccion('ACCIDENTES E INCIDENTES', k.rep.filter((x)=> x.resumen.clase === AT || x.resumen.clase === 'Incidente').length ? T(['Fecha', 'Clase', 'Descripción', 'FURAT', 'Investigación'],
+      k.rep.filter((x)=> x.resumen.clase === AT || x.resumen.clase === 'Incidente').map((x)=> fila([UI.corta(x.resumen.fecha), x.resumen.clase, x.resumen.descripcion, x.resumen.clase === AT ? ((x.resumen.furat || {}).radicado ? 'Radicado' : 'Pendiente') : 'No aplica', (x.resumen.investigacion || {}).estado || 'Pendiente']))) : '<table><tr><td>Sin accidentes ni incidentes en el mes.</td></tr></table>') +
+    UI.seccion('PLAN ANUAL DE TRABAJO DEL MES', k.acts ? UI.tablaDatos([['Programadas', String(k.acts)], ['Hechas', String(k.actHechas)]]) + (k.actFaltan.length ? T(['Actividad sin hacer', 'Responsable'], k.actFaltan.map((a)=> fila([a.actividad, a.responsable || '—']))) : '') : '<table><tr><td>Sin actividades programadas este mes.</td></tr></table>') +
+    UI.seccion('PLAN DE ACCIÓN', UI.tablaDatos([['Abiertas', String(k.abiertas)], ['Vencidas', String(k.vencidas)], ['Nuevas en el mes', String(k.nuevasMes)], ['Cerradas en el mes', String(k.cerradasMes)]]) +
+      (k.vencidasL.length ? T(['Acción vencida', 'Responsable', 'Fecha compromiso'], k.vencidasL.slice(0, 25).map((x)=> fila([x.resumen.accion || x.resumen.hallazgo, x.resumen.responsable, UI.corta(x.resumen.fechaCompromiso)]))) : '')) +
+    UI.seccion('OTRAS ACTIVIDADES DEL MES', UI.tablaDatos([['Inducciones y reinducciones', String(k.ind)], ['Entregas de EPP', String(k.ent)], ['Reuniones del COPASST', String(k.reuCop)]].concat(esSst() ? [['Exámenes médicos', String(k.exa)]] : []))) +
+    UI.seccion('OBSERVACIONES', UI.textoLargo(($('obs') && $('obs').value.trim()) || (cierre && cierre.observaciones) || '')) +
+    UI.seccion('CIERRE', UI.tablaDatos([['Cerrado el', cierre ? UI.corta(cierre.fechaCierre) : 'Sin cerrar'], ['Por', (cierre && cierre.cerradoPor) || '']]))]);
+}
+
+window.addEventListener('outbox-enviado', ()=> cargar());
+opcionesMes();
+cargar();
+</script>
+</body>
+</html>

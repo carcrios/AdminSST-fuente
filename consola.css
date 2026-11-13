@@ -1,0 +1,35 @@
+/* ============================================================
+   consola.css — Aspecto de la consola del administrador (v116)
+   Lo usan admin.html, asesor.html y el configurador cuando se abre
+   desde la consola: oscuro, para que nunca se confunda con el
+   portal de los clientes. Las tarjetas siguen blancas.
+   ============================================================ */
+html body.consola{
+  background:radial-gradient(1200px 600px at 10% -10%,#1d3b74 0%,rgba(29,59,116,0) 60%),radial-gradient(900px 500px at 110% 0%,#3b2a7a 0%,rgba(59,42,122,0) 55%),var(--ink);
+  background-attachment:fixed;color:var(--azul-50);min-height:100vh;
+}
+body.consola .hdr{background:transparent;border:0;box-shadow:none;color:var(--azul-50);}
+body.consola .hdr h1{color:#fff;}
+body.consola .hdr p{color:var(--pizarra-300);}
+body.consola .hdr .eyebrow{color:#8fb0ff;letter-spacing:.12em;}
+body.consola .hdr .back{color:var(--azul-100);}
+body.consola .hdr .marca{display:none;}
+body.consola .sello-consola{display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;background:rgba(143,176,255,.14);border:1px solid rgba(143,176,255,.3);color:var(--azul-100);border-radius:var(--r-pill);padding:4px 10px;font-size:var(--fs-menor);font-weight:700;}
+body.consola .version-portal,body.consola .nota{color:#7f8fa8;}
+body.consola .filtro button:not(.on){background:rgba(255,255,255,.08);color:var(--azul-50);border-color:rgba(255,255,255,.18);}
+body.consola .kpi{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:var(--azul-50);}
+body.consola .kpi .n,body.consola .kpi .f{color:var(--pizarra-300);}
+body.consola .kpi .v{color:#fff;}
+body.consola .empty{background:rgba(255,255,255,.06);color:var(--n-300);border-radius:var(--r-l);}
+body.consola .buscar,body.consola select.buscar{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.18);}
+body.consola .buscar::placeholder{color:#93a3bd;}
+body.consola .aviso.info.como{background:rgba(143,176,255,.12);color:var(--azul-50);border-color:rgba(143,176,255,.3);}
+body.consola .aviso.info.como a{color:#9fc2ff;}
+body.consola .acciones-top .btn.ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+body.consola .card .btn.ghost,body.consola .modal .btn.ghost{background:#fff;color:var(--tinta);}
+body.consola .card,body.consola .cli{color:var(--tinta);}
+@media print{html body.consola{background:#fff;color:#000;}}
+/* v125: las ventanas de la consola son claras: su texto va oscuro (antes heredaba el blanco del fondo). */
+body.consola .modal{color:var(--tinta);}
+body.consola .modal h3,body.consola .modal h4,body.consola .modal label,body.consola .modal b{color:var(--tinta);}
+body.consola .modal .ayuda,body.consola .modal small{color:var(--ink-soft);}

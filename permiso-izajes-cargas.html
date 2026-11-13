@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-yc6mLx/A0PG0BvqHn4yiPy+CJ0eCjI6GRgQId9OIoyY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSTA-F-118 · Permiso de Izajes de Cargas</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSTA-F-118 · Permiso de Izajes de Cargas">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{
+  --ember:#0f7a72;--ember-dark:#0a5a54;--steel:#1f2a33;--steel-mid:#3a4753;
+  --paper:#f6f3ec;--paper-panel:#ffffff;--line:#d8d2c4;--ok:#2f6b45;--warn:#b8860b;
+  --ink:#20242a;--muted:#6b6459;font-family:var(--font-family, 'Segoe UI', system-ui, sans-serif);
+}
+
+body{margin:0;background:repeating-linear-gradient(135deg, rgba(200,70,26,0.035) 0 2px, transparent 2px 14px),var(--paper);color:var(--ink);padding:24px 16px 80px;}
+
+/* Modo "agregar personal": solo se ve la sección de ejecutantes y un pie propio con Guardar. */
+
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+@media(max-width:600px){
+  body{padding:20px 14px 100px;}
+  .hdr{padding:20px 18px;flex-direction:column;align-items:flex-start;gap:10px;}
+  .hdr .meta{text-align:left;}
+  .hdr h1{font-size:var(--fs-display);line-height:1.35;}
+  .section{margin-top:20px;}
+  .section-body{padding:20px 16px;}
+  .section-title{padding:12px 16px;font-size:var(--fs-menor);}
+  .check-item{flex-direction:column;align-items:stretch;gap:10px;padding:14px 4px;}
+  .toggle{align-self:flex-start;}
+  .close-q{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 0;}
+  .grid2, .grid3{gap:16px;}
+  .field{margin-bottom:2px;}
+  .footer-actions{padding:10px 14px;}
+  .footer-actions .status{font-size:10px;}
+
+  /* Tabla de ejecutantes: de tabla ancha a tarjetas apiladas */
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+  .exec-table td.helper{display:flex;align-items:center;gap:10px;}
+  .exec-table td.helper::before{margin-bottom:0;}
+
+  /* Evita que iOS Safari haga zoom automático al enfocar un campo (ocurre cuando
+     el font-size es menor a 16px) y se quede la página "zoomeada" cortando el contenido */
+  input,select,textarea{font-size:var(--fs-campo) !important;}
+}
+
+/* La tabla de ejecutantes también debe apilarse en tarjetas al girar el celular
+   a horizontal — de lo contrario, el ancho de pantalla supera los 600px y la
+   tabla vuelve a columnas angostas justo cuando se buscaba más espacio para
+   firmar. Se repiten aquí solo las reglas de la tabla (no todo el bloque móvil,
+   para no apilar innecesariamente el resto de secciones que sí caben side-by-side
+   en horizontal). */
+@media (orientation:landscape) and (max-width:960px){
+  .exec-table thead{display:none;}
+  .exec-table, .exec-table tbody, .exec-table tr, .exec-table td{display:block;width:100%;}
+  .exec-table{border:none;}
+  .exec-table tr{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:16px;background:var(--n-0);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .exec-table td{border:none;padding:9px 0;}
+  .exec-table td[data-label]::before{
+    content: attr(data-label);
+    display:block;
+    font-size:var(--fs-etiqueta);
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .exec-table td.idx{display:none;}
+  canvas.mini-pad{height:170px !important;}
+}
+.field label{display:block;font-size:var(--fs-menor);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;}
+
+.field input[type=date],.field input[type=time]{overflow:hidden;-webkit-appearance:none;appearance:none;min-height:40px;line-height:1.3;}
+.field input[type=date]::-webkit-calendar-picker-indicator,.field input[type=time]::-webkit-calendar-picker-indicator{border-radius:var(--r-xs);padding:2px;cursor:pointer;}
+.field input[type=date]::-webkit-datetime-edit,.field input[type=time]::-webkit-datetime-edit{border-radius:var(--r-xs);}
+.field textarea{min-height:110px;resize:vertical;line-height:1.5;}
+
+.radio-row label{display:flex;align-items:center;gap:8px;font-size:var(--fs-titulo);font-weight:500;padding:4px 0;}
+
+.toggle button{border:1.5px solid var(--line);background:transparent;padding:6px 12px;font-size:var(--fs-menor);font-weight:600;border-radius:var(--radius-sm, 7px);cursor:pointer;color:var(--n-400);min-width:44px;transition:.14s;}
+.toggle button.active-c{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(29,122,76,.3);}
+.toggle button.active-na{background:var(--warn);border-color:var(--warn);color:#fff;font-weight:700;}
+
+.sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.sig-actions button{background:none;border:none;color:var(--ember-dark);font-size:var(--fs-menor);font-weight:700;cursor:pointer;text-decoration:underline;}
+
+.sig-status{font-size:var(--fs-etiqueta);color:var(--muted);}
+
+.footer-actions{margin-top:24px;max-width:980px;margin-left:auto;margin-right:auto;background:var(--steel);border-radius:var(--radius-lg, 14px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-card);}
+
+.btn-secondary{background:transparent;color:var(--n-300);border:1px solid var(--n-600);padding:9px 16px;border-radius:var(--radius-sm, 7px);font-size:var(--fs-menor);font-weight:600;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--n-300);color:#fff;}
+/* LANDING */
+
+.landing-choices{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:560px){.landing-choices{grid-template-columns:1fr;}}
+.choice-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:24px 18px;cursor:pointer;transition:.15s;}
+.choice-card:hover{border-color:var(--ember);box-shadow:0 4px 14px rgba(200,70,26,.15);}
+.choice-card .icon{font-size:var(--fs-h1);margin-bottom:10px;}
+.choice-card h3{margin:0 0 6px;font-size:var(--fs-titulo);color:var(--steel);}
+.choice-card p{margin:0;font-size:var(--fs-menor);color:var(--muted);}
+.file-input-wrap{margin-top:10px;}
+.file-input-wrap input{font-size:var(--fs-menor);}
+
+.validation-banner{display:none;background:var(--rojo-50);border:1px solid var(--rojo-300);color:var(--rojo-900);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;}
+.validation-banner.show{display:block;}
+.validation-banner strong{display:block;margin-bottom:4px;font-size:var(--fs-menor);}
+.validation-banner ul{margin:0;padding-left:18px;}
+.draft-banner{display:none;background:var(--azul-50);border:1px solid var(--azul-200);color:var(--azul-700);padding:10px 14px;border-radius:var(--r-s);margin-bottom:14px;font-size:var(--fs-menor);line-height:1.5;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.draft-banner.show{display:flex;}
+
+@media print{
+  .footer-actions,.add-row-btn,.sig-actions,#landing,.validation-banner,.draft-banner{display:none !important;}
+  body{background:#fff;padding:0;}
+  .wrap{max-width:100%;}
+  .hdr{background:#fff !important;color:var(--ink) !important;border:2px solid var(--steel);box-shadow:none;}
+  .hdr::before{display:none;}
+  .hdr .brand{color:var(--ember);}
+  .hdr .meta{color:var(--n-650);}
+  .hdr-logo{background:var(--ember) !important;color:#fff !important;}
+  .section{box-shadow:none;border:1px solid var(--n-450);break-inside:avoid;}
+  .section-title{background:var(--bg) !important;color:var(--ink) !important;}
+  .toggle button.on{background:var(--ember) !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  canvas.pad,canvas.mini-pad{border:1px solid var(--n-450) !important;}
+  @page{margin:14mm 10mm;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LANDING -->
+  <div id="landing">
+    <div class="hdr mb-26">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Permiso de Izajes de Cargas</h1></div></div>
+      <div class="meta">Código: <b>SSTA-F-118</b></div>
+    </div>
+    <h2>¿Qué deseas hacer?</h2>
+    <p>Este permiso se guarda en una Google Sheet compartida: se abre desde un dispositivo y se cierra desde otro, buscando el permiso por su código.</p>
+
+    <div class="landing-choices">
+      <div class="choice-card" id="cardNew">
+        <div class="icon" data-senal="izajes" aria-hidden="true"></div>
+        <h3>Abrir nuevo permiso</h3>
+        <p>Diligenciar la descripción, lista de verificación del equipo de izaje y firmas de apertura. Se guarda directo en la hoja de cálculo.</p>
+      </div>
+      <div class="choice-card" id="cardClose">
+        <div class="icon" data-senal="cerrar" aria-hidden="true"></div>
+        <h3>Cerrar un permiso existente</h3>
+        <p>Escribe el código del permiso (o elígelo de la lista de abiertos) para revisar los datos y diligenciar el cierre.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="codeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadCodeBtn" type="button">Buscar permiso</button>
+          <button class="btn-secondary btn-menu" id="listOpenBtn" type="button">Ver permisos abiertos</button>
+          <button class="btn-secondary btn-menu" id="listClosedBtn" type="button">Ver historial (cerrados)</button>
+          <div class="lista-permisos" id="openList"></div>
+          <div id="historyPanel" style="display:none;margin-top:10px;text-align:left;">
+            <input class="entrada-buscar" type="text" id="historySearch" placeholder="Buscar por código o responsable...">
+            <div class="lista-historial" id="closedList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="choice-card" id="cardAddPeople">
+        <div class="icon" data-senal="agregar" aria-hidden="true"></div>
+        <h3>Agregar personal</h3>
+        <p>Para un permiso ya abierto en ejecución: suma más ejecutantes que se van uniendo al trabajo, sin cerrar el permiso.</p>
+        <div class="file-input-wrap">
+          <input class="entrada-codigo" type="text" id="addPeopleCodeInput" placeholder="Ej. PT-20260715-4821">
+          <button class="btn-secondary btn-menu" id="loadAddPeopleBtn" type="button">Cargar permiso y agregar personal</button>
+          <button class="btn-secondary btn-menu" id="listOpenForAddBtn" type="button">Ver permisos abiertos</button>
+          <div class="lista-permisos" id="openListForAdd"></div>
+        </div>
+      </div>
+    </div>
+    <a href="index.html" style="display:block;margin-top:18px;font-size:var(--fs-menor);color:var(--n-450);text-decoration:none;">← Atrás SSTA</a>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <div class="hdr">
+      <div class="hdr-left"><div class="hdr-logo" role="img" aria-label="Logo de la empresa"></div><div><div class="brand" data-empresa="marca">Portal SSTA</div><h1>Permiso para Izajes de Cargas</h1></div></div>
+      <div class="meta" data-meta="largo">Código: <b>SSTA-F-118</b></div>
+    </div>
+    <div class="status-banner open" id="statusBanner">
+      <span id="statusBannerText">Permiso nuevo — aún no guardado</span>
+      <span>Código: <code id="permitCodeDisplay">—</code></span>
+    </div>
+
+    <!-- QR del permiso: se llena al guardar y sale en la impresión. -->
+    <div class="qr-permiso" id="qrPermiso"></div>
+
+    <div class="draft-banner" id="draftBanner">
+      <span id="draftBannerText"></span>
+      <span style="display:flex;gap:8px;">
+        <button type="button" id="draftRestoreBtn">Continuar borrador</button>
+        <button type="button" id="draftDiscardBtn">Descartar</button>
+      </span>
+    </div>
+    <div class="validation-banner" id="validationBanner"></div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec1">1. Descripción específica del trabajo a realizar</div>
+      <div class="section-body">
+        <div class="field"><textarea id="descripcion" placeholder="Describe el trabajo a realizar"></textarea></div>
+        <div class="mt-14">
+          <label style="display:block;font-size:var(--fs-etiqueta);font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">¿Requiere un permiso adicional?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="permAdicional" value="No" checked> No</label>
+            <label><input type="radio" name="permAdicional" value="Si"> Sí</label>
+          </div>
+          <div class="mt-8" id="cualPermisoSel"></div><input type="hidden" id="cualPermiso">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec2">2. Duración del permiso y área de trabajo</div>
+      <div class="section-body">
+        <div class="grid2">
+          <div class="field"><label>Desde — Fecha</label><input type="date" id="desdeFecha"></div>
+          <div class="field"><label>Desde — Hora</label><input type="time" id="desdeHora"></div>
+          <div class="field"><label>Hasta — Fecha</label><input type="date" id="hastaFecha"></div>
+          <div class="field"><label>Hasta — Hora</label><input type="time" id="hastaHora"></div>
+          <div class="field"><label>Área de trabajo</label><input type="text" id="sitio"></div>
+          <div class="field"><label>Responsable del trabajo</label><input type="text" id="responsable"></div>
+        </div>
+        <div class="grid3 mt-14">
+          <div class="field"><label>Peso aproximado de la carga (Kg)</label><input type="text" id="pesoCarga"></div>
+          <div class="field"><label>Dimensiones — Alto / Ancho / Largo (mm)</label><input type="text" id="dimCarga" placeholder="Ej. 800 / 600 / 1200"></div>
+          <div class="field"><label>Capacidad nominal de la diferencial (Kg)</label><input type="text" id="capDiferencial"></div>
+        </div>
+        <div class="grid3 mt-6">
+          <div class="field"><label>Fecha última verificación de la diferencial</label><input type="date" id="fechaVerifDiferencial"></div>
+          <div class="field"><label>Longitud entre los dos apoyos del riel (mts)</label><input type="text" id="longRiel"></div>
+          <div class="field"><label>Equipos requeridos (troller, estrobos, manilas, riel, cáncamos — tipo y cantidad)</label><div id="equiposReqSel"></div><input type="hidden" id="equiposReq"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec3">3. Lista de verificación — Diferencial y área de trabajo <span class="progress-pill ml-auto" id="checklistProgress">0/0</span></div>
+      <div class="section-body" id="checklistContainer"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec4">4. Verificación de estrobos, manilas, riel y cáncamos <span class="progress-pill ml-auto" id="equiposProgress">0/0</span></div>
+      <div class="section-body">
+        <div id="equiposContainer"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec5">5. Observaciones y recomendaciones</div>
+      <div class="section-body"><div class="field"><textarea id="observaciones"></textarea></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="titleSec6">6. Término de responsabilidades y autorización (apertura)</div>
+      <div class="section-body">
+        <p class="nota-suave">Declaro que me encuentro en buen estado de salud (físico y mental), libre de efectos de alcohol, medicamentos o SPA, consciente de mi responsabilidad, y me comprometo a cumplir las recomendaciones acordadas en este permiso.</p>
+        <div id="responsablesSigs" style="display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+    </div>
+
+    <div class="section" id="execSection">
+      <div class="section-title" id="titleSecExec">Ejecutantes de la actividad</div>
+      <div class="section-body">
+        <div class="exec-cards" id="execBody"></div>
+        <button class="add-row-btn" id="addRowBtn" type="button">+ Agregar ejecutante</button>
+      </div>
+    </div>
+
+    <!-- SECTION 7: CLOSE -->
+    <div class="section">
+      <div class="section-title locked" id="titleSec7">7. Cierre del permiso</div>
+      <div class="section-body" id="closeSectionBody">
+        <p class="texto-suave" id="closeLockedMsg">Esta sección se habilita al importar el permiso desde el archivo generado en la apertura.</p>
+        <div id="closeFields" class="hidden">
+          <div class="grid3">
+            <div class="field"><label>Fecha real del cierre</label><input type="date" id="cierreFecha"></div>
+            <div class="field"><label>Hora de cierre</label><input type="time" id="cierreHora"></div>
+            <div class="field"><label>Motivo del cierre</label>
+              <select id="motivoCierre"><option value="">Elige…</option><option>Actividad Finalizada</option><option>Actividad Cancelada</option><option>Evento no deseado</option><option>Lluvia / Tormenta</option><option>Condiciones y/o actos inseguros</option></select>
+            </div>
+          </div>
+          <div class="mt-14">
+            <div class="close-q"><p>¿Se aplicaron las tres primeras "S" en el área antes de entregar el equipo?</p><div class="radio-row"><label><input type="radio" name="q1" value="Si"> Sí</label><label><input type="radio" name="q1" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿El personal que se encontraba interviniendo el equipo fue retirado?</p><div class="radio-row"><label><input type="radio" name="q2" value="Si"> Sí</label><label><input type="radio" name="q2" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han inspeccionado y almacenado correctamente los EPP utilizados?</p><div class="radio-row"><label><input type="radio" name="q3" value="Si"> Sí</label><label><input type="radio" name="q3" value="No"> No</label></div></div>
+            <div class="close-q"><p>¿Se han recogido y almacenado correctamente las herramientas usadas?</p><div class="radio-row"><label><input type="radio" name="q4" value="Si"> Sí</label><label><input type="radio" name="q4" value="No"> No</label></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px;">
+            <div class="sig-block">
+              <h5>Trabajador autorizado responsable del trabajo</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre1nombre"><input type="text" placeholder="Cédula" id="cierre1cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre1cargo"></div>
+              <canvas class="pad" id="padCierre1"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre1">Borrar firma</button><button type="button" data-undo="padCierre1">Deshacer trazo</button><span class="sig-status" id="statusCierre1">Sin firmar</span></div>
+            </div>
+            <div class="sig-block">
+              <h5>Supervisor SSTA</h5>
+              <div class="sig-fields"><input type="text" placeholder="Nombre completo (escribe para buscar)" id="cierre2nombre"><input type="text" placeholder="Cédula" id="cierre2cc" inputmode="numeric"><input type="text" placeholder="Cargo" id="cierre2cargo"></div>
+              <canvas class="pad" id="padCierre2"></canvas>
+              <div class="sig-actions"><button type="button" data-clear="padCierre2">Borrar firma</button><button type="button" data-undo="padCierre2">Deshacer trazo</button><span class="sig-status" id="statusCierre2">Sin firmar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<div class="footer-actions" style="display:none" id="footerActions">
+  <span class="status" id="footerStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="printBtn" type="button">Imprimir / PDF</button>
+    <button class="btn-secondary no-print" id="historyBtn" type="button">Ver historial</button>
+    <div class="historial-permiso" id="historialPermiso"></div>
+    <button class="btn-secondary" id="backToStartBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="mainActionBtn" type="button">Guardar y exportar apertura</button>
+  </div>
+</div>
+
+<div id="footerAddPeople">
+  <span class="status" id="addPeopleStatus">—</span>
+  <div class="u-fila">
+    <button class="btn-secondary" id="backFromAddPeopleBtn" type="button">Volver al inicio</button>
+    <button class="btn-main" id="saveAddPeopleBtn" type="button">Guardar personal agregado</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="qr.js"></script>
+<script src="permiso-core.js"></script>
+<script>
+/* ================= DATA DEFINITIONS ================= */
+const checklistData = [
+  {cat:"Diferencial", items:[
+    "Verifique que la cadena esté sin torceduras, deformaciones o fisuras.",
+    "Los eslabones no están estirados ni con desgaste excesivo.",
+    "La cadena se encuentra libre de corrosión y está lubricada.",
+    "La fresa de cargue está en buen estado y no presenta grietas.",
+    "El gancho de sujeción de la diferencial (superior) tiene seguro, gira 360°, sin deformaciones ni fisuras.",
+    "El gancho de sujeción de la cadena de trabajo (inferior) tiene seguro, gira 360°, sin deformaciones ni fisuras.",
+    "Se realizó prueba de operación validando ascenso, descenso y freno correctamente."
+  ]},
+  {cat:"Verificación del área para desplazar la carga", items:[
+    "Acordonamiento adecuado para desplazar la carga.",
+    "Se verifica que las condiciones climáticas sean acordes para trabajos en exteriores.",
+    "Se encuentra el plan de izaje autorizado por el emisor.",
+    "Se verifica un correcto punto de anclaje para aparejos/equipos de elevación suspendidos.",
+    "La carga requiere ser guiada con manilas y requiere de vientos."
+  ]}
+];
+const equiposData = [
+  {cat:"Troller o carro para desplazar en riel", items:[
+    "El troller está sin fisuras, deformaciones ni corrosión.",
+    "Está correctamente asegurado con el pasador.",
+    "Las roldanas se encuentran sin fisuras y están lubricadas en sus rodamientos."
+  ]},
+  {cat:"Estrobos", items:["Están libres de corrosión y fisuras."]},
+  {cat:"Manilas certificadas", items:[
+    "La longitud de las manilas es adecuada para la actividad.",
+    "La manila está en buen estado, sin quemaduras ni ataque químico.",
+    "No presenta fibras sueltas."
+  ]},
+  {cat:"Riel para desplazar el troller", items:[
+    "El tamaño del riel de carga es adecuado para soportar la carga.",
+    "Se revisaron las soldaduras y el estado de corrosión del equipo.",
+    "El riel tiene topes en los extremos para evitar la salida del troller al desplazarlo."
+  ]},
+  {cat:"Cáncamos", items:[
+    "Los cáncamos son suficientes para el levantamiento de la carga.",
+    "Están libres de corrosión y fisuras.",
+    "Los pasadores están sin desgastes y bien instalados."
+  ]}
+];
+
+/* ================= CONFIGURACIÓN DE ESTE TIPO DE PERMISO ================= */
+const cfg = {
+  key: 'izajes',
+  codePrefix: 'PIC',
+  draftSlug: 'izajes',
+  themeColor: '#0f7a72',
+  toggleStates: PermisoCore.TOGGLE_2STATE,
+
+  // v148: Res. 4272 / ASME B30 — carga, capacidad y personal certificado.
+  criticosApertura: [
+    { id:'wllEquipo', label:'Capacidad nominal (WLL) del equipo y aparejos (kg)', req:true, ph:'Ej: 2000' },
+    { id:'usoCapacidad', label:'¿Qué parte de la capacidad usa la carga?', tipo:'select', op:['Hasta 75 %','Más de 75 % (izaje crítico: plan de izaje firmado y adjunto)'], req:true },
+    { id:'riggerNombre', label:'Aparejador (rigger) — nombre y certificado', req:true, ph:'Ej: Carlos Díaz · SENA 12345' },
+    { id:'operadorNombre', label:'Operador del equipo — nombre y certificado', req:true },
+    { id:'senalero', label:'Señalero', ph:'Nombre' }
+  ],
+  validarCriticos(v, missing, fase){
+    if (fase !== 'apertura') return;
+    const p = parseFloat(String((document.getElementById('pesoCarga') || {}).value || '').replace(',', '.'))   /* el peso ya está en la sección del trabajo */, w = parseFloat(String(v.wllEquipo || '').replace(',', '.'));
+    if (p > 0 && w > 0 && p > w) missing.push({ msg:'La carga pesa más que la capacidad del equipo: no se iza', el: document.getElementById('pesoCarga') });
+    else if (p > 0 && w > 0 && p > 0.75 * w && !/más de 75/i.test(v.usoCapacidad || '')) missing.push({ msg:'La carga usa más del 75 % de la capacidad: es izaje crítico (marca la opción y adjunta el plan firmado)', el: document.getElementById('usoCapacidad') });
+  },
+  checklistGroups: [
+    { data: checklistData, statePrefix:'chk', stateKey:'checklist', containerId:'checklistContainer',
+      progressId:'checklistProgress', label:'la Lista de verificación', sectionLabel:'sección 3' },
+    { data: equiposData, statePrefix:'eq', stateKey:'equipos', containerId:'equiposContainer',
+      progressId:'equiposProgress', label:'Verificación de equipos', sectionLabel:'sección 4' }
+  ],
+
+  responsables: ["Encargado del área turno 1","Encargado del área turno 2","Supervisor SSTA","Supervisor de obra"],
+  responsablesOpcionales: ["Encargado del área turno 1","Encargado del área turno 2"],
+  responsableDashboardIndex: 2,
+  responsablesSectionLabel: 'sección 6',
+
+  lockSectionIds: ['titleSec1','titleSec2','titleSec3','titleSec4','titleSec5','titleSec6','titleSecExec'],
+  closeSectionTitleId: 'titleSec7',
+
+  requiredOpenFields: [
+    { id:'descripcion', label:'Descripción del trabajo (sección 1)' },
+    { id:'sitio',        label:'Sitio exacto del trabajo (sección 2)' },
+    { id:'responsable',  label:'Responsable del trabajo (sección 2)' }
+  ],
+  cualPermisoLabel: '¿Cuál permiso adicional? (sección 1)',
+  dateRange: { desdeFecha:'desdeFecha', desdeHora:'desdeHora', hastaFecha:'hastaFecha', hastaHora:'hastaHora', sectionLabel:'sección 2' },
+
+  extraOnInitRender(){
+    initSel_equiposReq();
+    initSelCualPermiso();
+  },
+  extraSetFieldValues(vals){
+    initSel_equiposReq();
+    if (sel_equiposReq) {
+      sel_equiposReq.set(vals.equiposReq || '');
+      document.getElementById('equiposReq').value = sel_equiposReq.get();
+    }
+    // Fichas de permisos adicionales (ver initSelCualPermiso más abajo)
+    initSelCualPermiso();
+    if (selCualPermiso) {
+      selCualPermiso.set(vals.cualPermiso || '');
+      document.getElementById('cualPermiso').value = selCualPermiso.get();
+    }
+    document.getElementById('pesoCarga').value=vals.pesoCarga||'';
+    document.getElementById('dimCarga').value=vals.dimCarga||'';
+    document.getElementById('capDiferencial').value=vals.capDiferencial||'';
+    document.getElementById('fechaVerifDiferencial').value=vals.fechaVerifDiferencial||'';
+    document.getElementById('longRiel').value=vals.longRiel||'';
+    document.getElementById('equiposReq').value=vals.equiposReq||'';
+  },
+  extraCollectOpenData(){
+    return {
+      pesoCarga: document.getElementById('pesoCarga').value,
+      dimCarga: document.getElementById('dimCarga').value,
+      capDiferencial: document.getElementById('capDiferencial').value,
+      fechaVerifDiferencial: document.getElementById('fechaVerifDiferencial').value,
+      longRiel: document.getElementById('longRiel').value,
+      equiposReq: document.getElementById('equiposReq').value
+    };
+  }
+};
+
+PermisoCore.init(cfg);
+
+/* ── Permisos adicionales: fichas en vez de escribir a mano ──
+   El campo #cualPermiso sigue existiendo (oculto) con el texto combinado, así
+   que permiso-core.js lo lee y lo valida igual que antes, sin cambios, y lo ya
+   guardado en la hoja se sigue leyendo tal cual. */
+let selCualPermiso = null;
+function initSelCualPermiso(){
+  const cont = document.getElementById('cualPermisoSel');
+  if(!cont || selCualPermiso) return;
+  const oculto = document.getElementById('cualPermiso');
+  selCualPermiso = SeleccionMultiple.crear(cont, {
+    opciones: ['Trabajo en alturas', 'Trabajo en caliente', 'Espacios confinados', 'Trabajo eléctrico', 'Bloqueo y etiquetado (LOTO)'],
+    placeholderLibre: 'Otro permiso (escribe aquí)…',
+    onChange: ()=>{ oculto.value = selCualPermiso.get(); }
+  });
+}
+
+/* ── Equipos requeridos (troller, estrobos, manilas, riel, cáncamos — tipo y cantidad): fichas + campo libre ──
+   Se conserva #equiposReq oculto con el texto combinado, para que lo que ya está
+   guardado en la hoja se siga leyendo igual y el resto del código no cambie. */
+let sel_equiposReq = null;
+function initSel_equiposReq(){
+  const cont = document.getElementById('equiposReqSel');
+  if(!cont || sel_equiposReq) return;
+  const oculto = document.getElementById('equiposReq');
+  sel_equiposReq = SeleccionMultiple.crear(cont, {
+    opciones: ['Troller', 'Estrobos', 'Manilas', 'Riel', 'Cáncamos', 'Grilletes', 'Eslingas', 'Diferencial', 'Poleas', 'Tecle'],
+    placeholderLibre: 'Otros equipos, tipo y cantidad…',
+    onChange: ()=>{ oculto.value = sel_equiposReq.get(); }
+  });
+}
+</script>
+</body>
+</html>

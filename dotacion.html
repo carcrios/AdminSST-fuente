@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-kk6OjX/eMeMUVx5svfOWWVTiFqfy8/GjsENSX2D4WUo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Entrega de dotación · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Entrega de dotación · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.items-dot{display:grid;gap:8px;}
+.it-dot{display:grid;grid-template-columns:auto 1fr 110px;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:var(--r-m,10px);padding:8px 10px;min-height:52px;background:var(--paper);}
+.it-dot input[type=checkbox]{width:24px;height:24px;}
+.it-dot input[type=text]{min-height:40px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Talento humano · Código Sustantivo del Trabajo, art. 230</div>
+    <h1>Entrega de dotación</h1>
+    <p>Calzado y vestido de labor tres veces al año, con firma de quien recibe</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div id="kpis" class="kpis"></div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+const $ = UI.$;
+/* v149: dotación (CST art. 230, Ley 11 de 1984): quien gana hasta 2 salarios mínimos y lleva más de 3 meses
+   recibe un par de zapatos y un vestido de labor el 30 de abril, el 31 de agosto y el 20 de diciembre.
+   No se paga en dinero (art. 234) y el trabajador debe usarla (art. 233). */
+const ENTREGAS = [['1', '30 de abril', '04-30'], ['2', '31 de agosto', '08-31'], ['3', '20 de diciembre', '12-20']];
+const ITEMS = ['Camisa o blusa de labor', 'Pantalón de labor', 'Calzado de labor', 'Overol', 'Chaqueta o buzo', 'Delantal o bata'];
+let rows = [], tab = 'pendientes';
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+const anio = ()=> UI.hoy().slice(0, 4);
+/** Entrega que toca hoy: la primera fecha del año que aún no pasó (o la última si ya pasaron todas). */
+function periodoActual(){ const h = UI.hoy(), a = anio(); const e = ENTREGAS.find((x)=> a + '-' + x[2] >= h) || ENTREGAS[2]; return { n: e[0], nombre: e[1], fecha: a + '-' + e[2], clave: a + '-' + e[0] }; }
+const ced = (c)=> String(c || '').replace(/\D/g, '');
+function perfilDe(c){ return de('dotaperfil').find((x)=> ced(x.resumen.cedula) === ced(c)); }
+function conDerecho(){
+  const h = UI.hoy(), tres = Festivos.sumarDias(h, -90);
+  return de('trabajador').filter((x)=> x.resumen.activo !== false).filter((x)=> { const p = perfilDe(x.resumen.cedula); return !(p && p.resumen.derecho === 'No') && (!x.resumen.fechaIngreso || x.resumen.fechaIngreso <= tres); });
+}
+function entregado(c, clave){ return de('dotacion').some((x)=> ced(x.resumen.cedula) === ced(c) && x.resumen.periodo === clave); }
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('dotacion,dotaperfil,trabajador');
+  UI.avisoCopia($('avisoCopia'), r); rows = r.rows || []; pintar();
+}
+function pintar(){
+  const P = periodoActual(), lista = conDerecho(), faltan = lista.filter((x)=> !entregado(x.resumen.cedula, P.clave));
+  const dias = Math.round((Date.parse(P.fecha) - Date.parse(UI.hoy())) / 864e5);
+  $('kpis').innerHTML = '<div class="kpi ' + (faltan.length && dias < 0 ? 'mal' : faltan.length && dias <= 15 ? 'pronto' : 'ok') + '"><div class="v">' + (lista.length - faltan.length) + ' / ' + lista.length + '</div><div class="n">dotación del ' + esc(P.nombre) + ' ' + anio() + '</div><div class="f">' + (dias >= 0 ? 'faltan ' + dias + ' días' : 'venció hace ' + (-dias) + ' días') + '</div></div>';
+  $('tabs').innerHTML = [['pendientes', 'Por entregar (' + faltan.length + ')'], ['entregas', 'Entregas'], ['tallas', 'Tallas y derecho']].map(([k, t])=> '<button type="button" role="tab" aria-selected="' + (k === tab) + '" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + esc(t) + '</button>').join('');
+  const p = $('panel');
+  if (tab === 'pendientes') {
+    p.innerHTML = '<p class="ayuda">Quien gana hasta 2 salarios mínimos y lleva más de 3 meses en la empresa. Marca «No tiene derecho» en Tallas para quien gana más.</p><div class="acciones-top"><button type="button" class="btn amber" id="bNueva">Registrar entrega</button><button type="button" class="btn ghost" id="bPlanilla">Planilla del periodo (PDF)</button></div>' +
+      (faltan.length ? faltan.map((x)=> '<button type="button" class="item" data-ent="' + esc(x.resumen.cedula) + '"><div class="t">' + esc(x.resumen.nombre) + '</div><div class="m">' + esc(x.resumen.cargo || '') + ' · C.C. ' + esc(x.resumen.cedula) + '</div></button>').join('') : '<div class="empty">Todos recibieron la dotación de este periodo.</div>');
+  } else if (tab === 'entregas') {
+    const l = de('dotacion').sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+    p.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="bNueva">Registrar entrega</button></div>' + (l.length ? l.map((x)=> '<button type="button" class="item" data-id="' + esc(x.id) + '"><div class="t">' + esc(x.resumen.nombre) + '</div><div class="m">' + esc(UI.corta(x.resumen.fecha)) + ' · ' + esc(x.resumen.periodoNombre || '') + ' · ' + esc(x.resumen.itemsTexto || '') + '</div></button>').join('') : '<div class="empty">Sin entregas registradas.</div>');
+  } else {
+    const l = de('trabajador').filter((x)=> x.resumen.activo !== false);
+    p.innerHTML = '<p class="ayuda">Tallas de cada persona (se llenan solas en la entrega) y si tiene derecho a dotación.</p>' + l.map((x)=> { const pf = perfilDe(x.resumen.cedula), s = pf ? pf.resumen : {}; return '<button type="button" class="item" data-talla="' + esc(x.resumen.cedula) + '"><div class="t">' + esc(x.resumen.nombre) + '</div><div class="m">' + (s.derecho === 'No' ? 'No tiene derecho · ' : '') + 'Camisa ' + esc(s.camisa || '—') + ' · Pantalón ' + esc(s.pantalon || '—') + ' · Calzado ' + esc(s.calzado || '—') + '</div></button>'; }).join('');
+  }
+  const bn = $('bNueva'); if (bn) bn.addEventListener('click', ()=> entrega({}));
+  const bp = $('bPlanilla'); if (bp) bp.addEventListener('click', planilla);
+  p.querySelectorAll('[data-ent]').forEach((b)=> b.addEventListener('click', ()=> { const t = de('trabajador').find((x)=> x.resumen.cedula === b.dataset.ent); entrega(t ? { nombre: t.resumen.nombre, cedula: t.resumen.cedula, cargo: t.resumen.cargo } : {}); }));
+  p.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await SGSST.doc(b.dataset.id); if (d) acta(d); }));
+  p.querySelectorAll('[data-talla]').forEach((b)=> b.addEventListener('click', ()=> tallas(b.dataset.talla)));
+}
+$('tabs').addEventListener('click', (e)=> { const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; pintar(); });
+function tallas(c){
+  const t = de('trabajador').find((x)=> x.resumen.cedula === c), pf = perfilDe(c);
+  Registros.editar({ titulo: 'Tallas de ' + (t ? t.resumen.nombre : ''), datos: Object.assign({ derecho: 'Sí' }, pf ? pf.resumen : {}),
+    campos: [{ k: 'derecho', l: '¿Tiene derecho a dotación? (gana hasta 2 salarios mínimos)', t: 'select', op: ['Sí', 'No'] }, { k: 'camisa', l: 'Talla de camisa', medio: true }, { k: 'pantalon', l: 'Talla de pantalón', medio: true }, { k: 'calzado', l: 'Talla de calzado', medio: true }, { k: 'otras', l: 'Otras tallas o notas', medio: true }],
+    alGuardar: async (v)=> { v.cedula = c; v.nombre = t ? t.resumen.nombre : ''; const r = await Registros.guardar('dotaperfil', pf ? pf.id : 'DOTP-' + ced(c), v, pf ? pf.version : 0); if (typeof r === 'string') return r; cargar(); return true; } });
+}
+function entrega(pre){
+  const P = periodoActual(), pf = perfilDe(pre.cedula), s = pf ? pf.resumen : {};
+  const talla = (it)=> /camisa|blusa|chaqueta|buzo|overol|bata|delantal/i.test(it) ? s.camisa || '' : /pantal/i.test(it) ? s.pantalon || '' : /calzado/i.test(it) ? s.calzado || '' : '';
+  const m = UI.modal('<h3>Entrega de dotación</h3>' +
+    '<div class="field"><label>Trabajador *</label><input type="text" id="dNom" value="' + esc(pre.nombre || '') + '" placeholder="Escribe para buscar"></div>' +
+    '<div class="grid2"><div class="field"><label>Cédula *</label><input type="text" id="dCed" inputmode="numeric" value="' + esc(pre.cedula || '') + '"></div><div class="field"><label>Cargo</label><input type="text" id="dCargo" value="' + esc(pre.cargo || '') + '"></div></div>' +
+    '<div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="dFecha" value="' + UI.hoy() + '"></div><div class="field"><label>Entrega</label><select id="dPer">' + ENTREGAS.map((e)=> '<option value="' + anio() + '-' + e[0] + '"' + (e[0] === P.n ? ' selected' : '') + '>' + e[1] + ' ' + anio() + '</option>').join('') + '</select></div></div>' +
+    '<div class="field"><label>Elementos y talla</label><div class="items-dot">' + ITEMS.map((it, i)=> '<label class="it-dot"><input type="checkbox" data-it="' + i + '"' + (i < 3 ? ' checked' : '') + '><span>' + esc(it) + '</span><input type="text" data-tl="' + i + '" placeholder="Talla" value="' + esc(talla(it)) + '" aria-label="Talla de ' + esc(it) + '"></label>').join('') + '</div></div>' +
+    '<label class="check"><input type="checkbox" id="dUso" checked> Se le explicó que debe usarla en el trabajo (CST, art. 233) y que no se cambia por dinero (art. 234)</label>' +
+    '<div class="field"><label>Firma de quien recibe *</label>' + UI.padHTML('dFirma') + '</div>' +
+    '<div class="field"><label>Entregó</label><input type="text" id="dEnt" value="' + esc((Sesion.nombre && Sesion.nombre()) || '') + '"></div>' +
+    '<button type="button" class="btn amber" id="dOk">Guardar entrega</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="dMsg"></div>');
+  UI.activarPad('dFirma');
+  UI.autocompletar(m.el.querySelector('#dNom'), (p)=> { m.el.querySelector('#dNom').value = p.nombre; m.el.querySelector('#dCed').value = p.cedula || ''; m.el.querySelector('#dCargo').value = p.cargo || ''; });
+  m.el.querySelector('#dOk').addEventListener('click', async ()=> {
+    const v = (id)=> m.el.querySelector(id).value.trim(), msg = m.el.querySelector('#dMsg');
+    const items = ITEMS.map((it, i)=> ({ elemento: it, talla: m.el.querySelector('[data-tl="' + i + '"]').value.trim(), va: m.el.querySelector('[data-it="' + i + '"]').checked })).filter((x)=> x.va).map((x)=> ({ elemento: x.elemento, talla: x.talla }));
+    const firma = UI.firma('dFirma');
+    if (!v('#dNom') || ced(v('#dCed')).length < 5) { msg.textContent = 'Faltan el trabajador y su cédula.'; return; }
+    if (!items.length) { msg.textContent = 'Marca al menos un elemento.'; return; }
+    if (!firma) { msg.textContent = 'Falta la firma de quien recibe.'; return; }
+    const per = v('#dPer');
+    if (entregado(v('#dCed'), per) && !await Dialogo.confirmar('Esta persona ya recibió la dotación de esa entrega. ¿Registrar otra?')) return;
+    const doc = { nombre: v('#dNom'), cedula: v('#dCed'), cargo: v('#dCargo'), fecha: v('#dFecha'), periodo: per, periodoNombre: (ENTREGAS.find((e)=> per.endsWith('-' + e[0])) || [])[1] + ' ' + per.slice(0, 4),
+      items, itemsTexto: items.map((x)=> x.elemento + (x.talla ? ' (' + x.talla + ')' : '')).join(', '), explicoUso: m.el.querySelector('#dUso').checked, firma, entrego: v('#dEnt') };
+    const b = m.el.querySelector('#dOk'); b.disabled = true; msg.textContent = 'Guardando…';
+    const r = await Registros.guardar('dotacion', SGSST.nuevoId('DOT'), doc, 0);
+    b.disabled = false;
+    if (typeof r === 'string') { msg.textContent = r; return; }
+    m.cerrar(); UI.toast('Entrega de dotación guardada.'); cargar();
+  });
+}
+function acta(d){
+  UI.imprimir([UI.cabecera('SG-DOTACION', 'ACTA DE ENTREGA DE DOTACIÓN', d.periodoNombre || '') +
+    UI.seccion('TRABAJADOR', UI.tablaDatos([['Nombre', d.nombre], ['Cédula', d.cedula], ['Cargo', d.cargo || ''], ['Fecha', UI.corta(d.fecha)]])) +
+    UI.seccion('ELEMENTOS ENTREGADOS', '<table><tr><th>Elemento</th><th>Talla</th></tr>' + (d.items || []).map((x)=> '<tr><td>' + esc(x.elemento) + '</td><td>' + esc(x.talla || '') + '</td></tr>').join('') + '</table>') +
+    UI.seccion('DECLARACIÓN', UI.textoLargo('Recibí la dotación de labor descrita. Me comprometo a usarla durante el trabajo (Código Sustantivo del Trabajo, art. 233). La dotación no se compensa en dinero (art. 234).')) +
+    UI.firmasAprobacion({ 'Recibe': { nombre: d.nombre, firma: d.firma, fecha: UI.corta(d.fecha) }, 'Entrega': { nombre: d.entrego || '' } }, ['Recibe', 'Entrega'])], false, { registro: { id: d.id, version: d.version } });
+}
+async function planilla(){
+  const P = periodoActual(), l = de('dotacion').filter((x)=> x.resumen.periodo === P.clave);
+  const docs = (await Promise.all(l.map((x)=> SGSST.doc(x.id)))).filter(Boolean);
+  const pend = conDerecho().filter((x)=> !entregado(x.resumen.cedula, P.clave));
+  UI.imprimir([UI.cabecera('SG-DOTACION', 'PLANILLA DE ENTREGA DE DOTACIÓN', P.nombre + ' ' + anio() + ' · CST art. 230') +
+    '<table><tr><th>#</th><th>Trabajador</th><th>Cédula</th><th>Cargo</th><th>Fecha</th><th>Elementos y tallas</th><th>Firma</th></tr>' +
+    docs.map((d, i)=> '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(d.nombre) + '</td><td>' + esc(d.cedula) + '</td><td>' + esc(d.cargo || '') + '</td><td>' + esc(UI.corta(d.fecha)) + '</td><td>' + esc(d.itemsTexto || '') + '</td><td>' + UI.firmaHoja(d.firma) + '</td></tr>').join('') + '</table>' +
+    (pend.length ? UI.seccion('PENDIENTES (' + pend.length + ')', '<table>' + pend.map((x)=> '<tr><td>' + esc(x.resumen.nombre) + '</td><td>' + esc(x.resumen.cedula) + '</td><td>' + esc(x.resumen.cargo || '') + '</td></tr>').join('') + '</table>') : '') +
+    UI.firmasAprobacion(null, ['Elaboró (talento humano)', 'Responsable del SG-SST'])], true);
+}
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar();
+</script>
+</body>
+</html>

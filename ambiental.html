@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LJi9PiL66/32DIdrqNGGZWVaOkNAh673yUuHCfccuuI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Gestión ambiental · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gestión ambiental · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.graf{width:100%;height:auto;display:block;margin:6px 0 2px;}
+.graf text{font-family:Arial,Helvetica,sans-serif;}
+.leyenda{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-menor);color:var(--muted);margin:2px 0 6px;}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:var(--r-xs);margin-right:4px;vertical-align:-1px;}
+.cat-respel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 8px;}
+.cat-respel .big{font-family:var(--font-display);font-size:var(--fs-subtitulo);font-weight:800;line-height:1.1;}
+.cat-respel .sub{font-size:var(--fs-menor);color:var(--muted);}
+.escala{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 10px;}
+.escala div{border:1.5px solid var(--line);border-radius:var(--r-s);padding:6px 4px;text-align:center;font-size:var(--fs-etiqueta);line-height:1.25;color:var(--muted);}
+.escala div b{display:block;color:var(--ink);font-size:var(--fs-menor);}
+.escala div.on{border-color:var(--n-800);background:var(--n-800);color:var(--line);} .escala div.on b{color:#fff;}
+.conclu{margin:4px 0 0;padding-left:18px;font-size:var(--fs-base);line-height:1.45;}
+.conclu li{margin-bottom:4px;}
+.recs{margin:6px 0 0;padding-left:18px;font-size:var(--fs-menor);line-height:1.45;color:var(--azul-700);}
+.resumen-c{font-weight:700;font-size:var(--fs-base);line-height:1.35;margin:2px 0 6px;}
+.resumen-c.sube{color:var(--mal);} .resumen-c.baja{color:var(--ok);}
+.chips.sel button{min-height:44px;text-align:left;}
+.chips.sel button.tip{border-color:#7fb08f;}
+.chips.sel button.on{background:var(--n-800);border-color:var(--n-800);color:#fff;}
+.seg-btn{flex-wrap:wrap;}
+.seg-btn button{flex:1 1 0;min-height:44px;padding:4px 6px;}
+.valor-asp{border-radius:var(--r-m);padding:10px 12px;margin:8px 0;font-size:var(--fs-base);line-height:1.4;background:var(--azul-50);color:var(--azul-700);}
+.valor-asp.mal{background:var(--rojo-50);color:var(--rojo-900);} .valor-asp.ok{background:var(--verde-50);color:var(--verde-700);}
+.valor-asp b{font-size:var(--fs-titulo);}
+.desc-esc{font-size:var(--fs-menor);color:var(--muted);margin-top:4px;min-height:15px;}
+.lista-sinkg{font-size:var(--fs-menor);margin:4px 0 0;padding-left:18px;}
+.btn-mini{min-height:44px;margin:4px 6px 0 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">HSEQ · Ambiental</div>
+    <h1>Gestión ambiental</h1>
+    <p>Aspectos e impactos (ISO 14001), residuos y categoría de generador de RESPEL, consumos de agua, energía y combustible con su análisis</p></div></div>
+  </div>
+  <div id="avisoSrv"></div><div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="aspectos">Aspectos e impactos <span class="n" id="nAsp">0</span></button>
+    <button type="button" data-tab="residuos">Residuos <span class="n" id="nRes">0</span></button>
+    <button type="button" data-tab="consumos">Consumos <span class="n" id="nCon">0</span></button>
+  </div>
+  <div id="panel"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="registros.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+/* PURO-INICIO (lo que sigue no toca la pantalla: lo prueba pruebas.js) */
+const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const mesMas = (m, n)=> { const p = String(m).split('-').map(Number); const d = new Date(Date.UTC(p[0], p[1] - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+const nombreMes = (m)=> m ? MESES_C[Number(String(m).slice(5, 7)) - 1] + ' ' + String(m).slice(0, 4) : '';
+const num = (v, d)=> (Number(v) || 0).toLocaleString('es-CO', { maximumFractionDigits: d == null ? 1 : d });
+const pctTxt = (p)=> Math.round(Math.abs(p)) + ' %';
+const media = (l)=> l.length ? l.reduce((a, b)=> a + b, 0) / l.length : 0;
+const mediana = (l)=> { if (!l.length) return 0; const s = l.slice().sort((a, b)=> a - b), k = Math.floor(s.length / 2); return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; };
+
+/* ── Aspectos e impactos: catálogo (actividad → aspectos típicos → impactos típicos) ──
+   Es una guía para no empezar en blanco: cada lista tiene «Otro» para escribir lo propio. */
+const IMPACTOS = ['Agotamiento del recurso hídrico', 'Agotamiento de recursos naturales', 'Agotamiento de recursos no renovables', 'Contribución al cambio climático (gases de efecto invernadero)',
+  'Contaminación del suelo', 'Contaminación del agua', 'Contaminación del aire', 'Contaminación auditiva', 'Afectación a la comunidad (molestias, salud)', 'Afectación a la salud de las personas',
+  'Afectación a la flora y la fauna', 'Presión sobre rellenos sanitarios', 'Pérdida o erosión del suelo', 'Alteración del paisaje', 'Aprovechamiento de residuos (positivo)', 'Ahorro de recursos (positivo)'];
+const ASPECTOS = [
+  { a: 'Consumo de agua', g: 'Consumo de recursos', i: [0, 6] },
+  { a: 'Consumo de energía eléctrica', g: 'Consumo de recursos', i: [1, 3] },
+  { a: 'Consumo de combustibles (ACPM, gasolina, gas)', g: 'Consumo de recursos', i: [2, 3, 6] },
+  { a: 'Consumo de papel y materiales', g: 'Consumo de recursos', i: [1, 11] },
+  { a: 'Uso de sustancias químicas', g: 'Sustancias químicas', i: [4, 5, 9] },
+  { a: 'Generación de residuos peligrosos (RESPEL)', g: 'Residuos', i: [4, 5, 9] },
+  { a: 'Generación de residuos aprovechables (reciclables)', g: 'Residuos', i: [14, 11] },
+  { a: 'Generación de residuos orgánicos', g: 'Residuos', i: [11, 6, 4] },
+  { a: 'Generación de residuos ordinarios', g: 'Residuos', i: [11, 4] },
+  { a: 'Generación de residuos especiales (escombros, voluminosos)', g: 'Residuos', i: [11, 13, 4] },
+  { a: 'Generación de RAEE (aparatos eléctricos y electrónicos)', g: 'Residuos', i: [4, 5] },
+  { a: 'Emisiones de gases de combustión (motores, plantas eléctricas)', g: 'Emisiones', i: [6, 3, 8] },
+  { a: 'Emisión de humos metálicos y material particulado', g: 'Emisiones', i: [6, 8, 9] },
+  { a: 'Emisión de vapores de solventes y pinturas', g: 'Emisiones', i: [6, 9, 8] },
+  { a: 'Emisión de ruido', g: 'Emisiones', i: [7, 8] },
+  { a: 'Olores', g: 'Emisiones', i: [8] },
+  { a: 'Vertimiento de aguas residuales domésticas', g: 'Vertimientos', i: [5] },
+  { a: 'Vertimiento de aguas residuales con aceites, químicos o sólidos', g: 'Vertimientos', i: [5, 4] },
+  { a: 'Derrame de sustancias químicas o combustibles', g: 'Emergencias', i: [4, 5, 10], c: 'Emergencia' },
+  { a: 'Fuga de gases (refrigerantes, cilindros)', g: 'Emergencias', i: [6, 3, 9], c: 'Emergencia' },
+  { a: 'Incendio o explosión', g: 'Emergencias', i: [6, 8, 10], c: 'Emergencia' },
+  { a: 'Remoción de cobertura vegetal o de suelo', g: 'Uso del suelo', i: [10, 12, 13] },
+  { a: 'Siembra, reforestación o zonas verdes', g: 'Uso del suelo', i: [10] }];
+const ACTIVIDADES = {
+  'Labores administrativas (oficina)': [1, 3, 0, 6, 8, 10],
+  'Cafetería, baños y aseo': [0, 7, 8, 16, 4],
+  'Mantenimiento de equipos y vehículos': [5, 4, 17, 18, 6, 1, 0],
+  'Soldadura y corte': [12, 1, 5, 14, 20, 19],
+  'Pintura y recubrimientos': [13, 4, 5, 18, 20],
+  'Obra civil y construcción': [9, 14, 12, 21, 0, 2, 6],
+  'Montaje mecánico o eléctrico': [6, 9, 10, 14, 1, 5],
+  'Almacenamiento de químicos y combustibles': [4, 18, 20, 19, 5],
+  'Transporte y conducción de vehículos': [2, 11, 14, 18],
+  'Operación de planta eléctrica o compresores': [2, 11, 14, 18, 5],
+  'Lavado de equipos, piezas o vehículos': [0, 17, 4, 5],
+  'Producción o proceso industrial': [1, 0, 6, 8, 5, 11, 16, 14, 15],
+  'Manejo de zonas verdes': [22, 7, 4] };
+const NORMAS_AMB = ['Decreto 1076 de 2015 (Único Reglamentario del Sector Ambiente)', 'Decreto 1076 de 2015, residuos peligrosos (antes Decreto 4741 de 2005)', 'Resolución 2184 de 2019 (código de colores de los residuos)',
+  'Ley 1672 de 2013 (RAEE)', 'Resolución 0631 de 2015 (vertimientos)', 'Resolución 0627 de 2006 (ruido ambiental)', 'Resolución 0909 de 2008 (emisiones de fuentes fijas)', 'Ley 373 de 1997 (uso eficiente del agua)',
+  'Ley 1715 de 2014 (energía)', 'Resolución 0472 de 2017 (residuos de construcción y demolición)', 'Resolución 0839 de 2023 (Registro Único Ambiental, RUA)', 'Decreto 1496 de 2018 (SGA de productos químicos)'];
+const aspectoCat = (t)=> ASPECTOS.find((x)=> x.a === t) || null;
+const impactosDe = (t)=> { const a = aspectoCat(t); return a ? a.i.map((k)=> IMPACTOS[k]) : []; };
+const aspectosDe = (act)=> (ACTIVIDADES[act] || []).map((k)=> ASPECTOS[k].a);
+
+/* Valoración de aspectos (método de referencia del portal; ajústalo al procedimiento de la empresa):
+   valor = frecuencia × severidad × alcance (cada uno de 1 a 3). Significativo si el valor es 12 o más,
+   si es una situación de emergencia con severidad 3, o si hay un requisito legal aplicable que no se cumple. */
+const ESCALA = { frecuencia: ['1 · Ocasional (pocas veces al año)', '2 · Periódica (mensual o semanal)', '3 · Permanente (diaria o continua)'], severidad: ['1 · Baja (reversible, sin daño apreciable)', '2 · Media (daño reversible con medidas)', '3 · Alta (daño grave o irreversible)'], alcance: ['1 · Puntual (dentro del sitio)', '2 · Local (alrededores, vecinos)', '3 · Regional (cuenca, municipio)'] };
+function valorar(v){
+  v.valor = (Number(v.frecuencia) || 1) * (Number(v.severidad) || 1) * (Number(v.alcance) || 1);
+  v.significancia = v.valor >= 12 || (v.condicion === 'Emergencia' && Number(v.severidad) === 3) || v.legal === 'Aplica y NO se cumple' ? 'SIGNIFICATIVO' : 'NO SIGNIFICATIVO';
+  if (v.tipoImpacto === 'Positivo') v.significancia = 'POSITIVO';
+  return v;
+}
+
+/* ── RESPEL: kilos, media móvil de 6 meses y categoría del generador ──
+   Decreto 4741 de 2005, compilado en el Decreto 1076 de 2015 (modificado por el Decreto 766 de 2026):
+   la categoría sale de la media móvil de los últimos 6 meses de lo generado (kg/mes).
+   Lo que no está en kg solo se convierte si hay densidad (kg/L); si no, no se cuenta y se avisa. */
+const GALON_L = 3.785411784;
+const UNIDADES_RES = ['kg', 'L', 'galones', 'm³', 'unidades'];
+function kgResiduo(r){
+  if (r.cantidad === '' || r.cantidad == null || !isFinite(Number(r.cantidad))) return { kg: null, motivo: 'sin cantidad' };
+  const c = Number(r.cantidad), u = String(r.unidad || 'kg').trim(), d = Number(r.densidad);
+  if (/^kg$/i.test(u)) return { kg: c };
+  if (/^(l|litros?)$/i.test(u)) return d > 0 ? { kg: c * d } : { kg: null, motivo: 'en litros sin densidad' };
+  if (/^gal/i.test(u)) return d > 0 ? { kg: c * GALON_L * d } : { kg: null, motivo: 'en galones sin densidad' };
+  return { kg: null, motivo: 'en ' + u + ': no se puede pasar a kg' };
+}
+const esRespel = (r)=> /Peligroso|RESPEL/i.test(String(r.clase || ''));
+function categoriaRespel(m){
+  const media = Math.round((Number(m) || 0) * 1e6) / 1e6;   // sin errores de coma flotante en los límites (9,9999999999 es 10)
+  const cat = media >= 1000 ? 'Gran generador' : media >= 100 ? 'Mediano generador' : media >= 10 ? 'Pequeño generador' : 'Menos de 10 kg/mes';
+  const orden = media >= 1000 ? 3 : media >= 100 ? 2 : media >= 10 ? 1 : 0;
+  return { n: cat, orden, k: ['menor', 'pequeno', 'mediano', 'grande'][orden], inscribir: orden >= 1, media };
+}
+const RANGOS_RESPEL = [{ n: 'No obligado', d: '< 10 kg/mes' }, { n: 'Pequeño', d: '10 a < 100' }, { n: 'Mediano', d: '100 a < 1.000' }, { n: 'Grande', d: '≥ 1.000 kg/mes' }];
+/** lista: residuos {fecha|mes, clase, cantidad, unidad, densidad}; mesActual 'AAAA-MM' (no cuenta: está incompleto). */
+function analisisRespel(lista, mesActual, n){
+  n = n || 6;
+  const porMes = {}, sinKg = [];
+  lista.filter(esRespel).forEach((r)=> { const k = kgResiduo(r), m = String(r.mes || String(r.fecha || '').slice(0, 7));
+    if (k.kg == null) { sinKg.push(Object.assign({ motivo: k.motivo }, r)); return; }
+    porMes[m] = (porMes[m] || 0) + k.kg; });
+  const ventana = (fin)=> [...Array(n)].map((_, i)=> mesMas(fin, -i)).reverse();
+  const mm = (fin)=> ventana(fin).reduce((a, m)=> a + (porMes[m] || 0), 0) / n;
+  const fin = mesMas(mesActual, -1), act = ventana(fin), ant = ventana(mesMas(fin, -n));
+  const m1 = mm(fin), m0 = mm(mesMas(fin, -n)), c1 = categoriaRespel(m1), c0 = categoriaRespel(m0);
+  const hayAnt = ant.some((m)=> porMes[m] != null), hayAct = act.some((m)=> porMes[m] != null);
+  const serie = [...Array(12)].map((_, i)=> mesMas(fin, i - 11)).map((m)=> ({ mes: m, kg: porMes[m] || 0, mm: mm(m) }));
+  return { porMes, meses: act, media: c1.media, cat: c1, mediaAnterior: c0.media, catAnterior: hayAnt ? c0 : null, cambio: hayAnt && c0.k !== c1.k, sube: hayAnt && c1.orden > c0.orden, hayDatos: hayAct, sinKg, serie };
+}
+/** Registro Único Ambiental (RUA, Res. 0839 de 2023): reporte anual de lo del año anterior según el último dígito del NIT
+    (sin el dígito de verificación): 0 a 4 → 1 de febrero a 15 de marzo; 5 a 9 → 15 de marzo a 30 de abril. */
+function fechasRua(nit, anio){
+  let s = String(nit || '').trim(); if (!s) return null;
+  s = s.split('-')[0].replace(/\D/g, ''); if (!s) return null;
+  if (!/-/.test(String(nit)) && s.length === 10) s = s.slice(0, 9);   // escrito sin guion: el décimo es el de verificación
+  const dg = Number(s.slice(-1)), a = Number(anio);
+  return dg <= 4 ? { digito: dg, desde: a + '-02-01', hasta: a + '-03-15', periodo: a - 1 } : { digito: dg, desde: a + '-03-15', hasta: a + '-04-30', periodo: a - 1 };
+}
+/** El próximo plazo que sigue abierto (si ya pasó el de este año, el del siguiente). */
+function proximoRua(nit, hoy){ const a = Number(String(hoy).slice(0, 4)), f = fechasRua(nit, a); if (!f) return null; return String(hoy) > f.hasta ? fechasRua(nit, a + 1) : f; }
+
+/* ── Consumos: conclusión automática ── */
+const RECURSOS = [
+  { k: 'agua', n: 'Agua', u: 'm³', sube: ['Revisa fugas: con todo cerrado, el medidor no debe moverse (sanitarios, llaves, tuberías, tanques).', 'Verifica si hubo más personal, lavado de equipos o cambios en el proceso ese mes.'], siempre: 'Ahorradores en llaves y sanitarios; agua lluvia para aseo donde sea viable (Ley 373 de 1997, uso eficiente del agua).' },
+  { k: 'energia', n: 'Energía', u: 'kWh', sube: ['Revisa equipos encendidos fuera de horario, fugas de aire comprimido y aires acondicionados.', 'Compara con la producción o las horas trabajadas: puede ser más actividad y no desperdicio.'], siempre: 'Iluminación LED, apagado de equipos al salir y mantenimiento de motores y compresores.' },
+  { k: 'combustible', n: 'Combustible', u: 'gal', sube: ['Revisa rutas, tiempos en ralentí y el mantenimiento de motores (filtros, inyectores, presión de llantas).', 'Lleva el indicador por kilómetro o por hora de equipo para ver si es más uso o más gasto.'], siempre: 'Conducción eficiente (PESV), mantenimiento preventivo y control de tanqueos.' },
+  { k: 'gas', n: 'Gas', u: 'm³', sube: ['Revisa fugas (agua jabonosa en uniones) y el estado de quemadores y reguladores.'], siempre: 'Mantenimiento de gasodomésticos y equipos a gas.' },
+  { k: 'papel', n: 'Papel', u: 'resmas', sube: ['Revisa qué formatos se siguen imprimiendo: el portal permite firmar y guardar en digital.'], siempre: 'Imprime solo lo necesario y a doble cara; formatos digitales.' }];
+/** Suma por mes (todas las sedes o una). */
+function consumosPorMes(lista, sede){
+  const nrm = (s)=> String(s || '').trim().toLowerCase(), g = {};
+  lista.filter((r)=> r.mes && (!sede || nrm(r.sede) === nrm(sede))).forEach((r)=> {
+    const x = g[r.mes] = g[r.mes] || { mes: r.mes };
+    RECURSOS.concat([{ k: 'trabajadores' }, { k: 'produccion' }]).forEach((c)=> { const v = r[c.k]; if (v !== '' && v != null && isFinite(Number(v))) x[c.k] = (x[c.k] || 0) + Number(v); });
+    if (r.unidadProduccion && !x.unidadProduccion) x.unidadProduccion = r.unidadProduccion;
+  });
+  return Object.values(g).sort((a, b)=> a.mes.localeCompare(b.mes));
+}
+/** serie: [{mes, agua, energia…, trabajadores, produccion}] en orden; rec: uno de RECURSOS. */
+function analizarConsumo(serie, rec){
+  const k = rec.k, pts = serie.filter((x)=> typeof x[k] === 'number' && x[k] >= 0), r = { pts, textos: [], recs: [], atipicos: [], nivel: 'sin datos', pct: null, resumen: '' };
+  if (pts.length < 2) { r.resumen = pts.length ? 'Un solo mes con datos de ' + rec.n.toLowerCase() + ': registra al menos dos para ver la tendencia.' : 'Sin datos de ' + rec.n.toLowerCase() + '.'; return r; }
+  const ult = pts[pts.length - 1], prev = pts.slice(-13, -1), prom = media(prev.map((x)=> x[k])); r.ult = ult; r.prom = prom;
+  let a, b, per;
+  // Con 6 meses o más: valor típico (mediana) de los últimos 3 frente a los 3 anteriores, para que un mes raro no voltee la tendencia.
+  if (pts.length >= 6) { a = mediana(pts.slice(-3).map((x)=> x[k])); b = mediana(pts.slice(-6, -3).map((x)=> x[k])); per = 'los últimos 3 meses frente a los 3 anteriores'; }
+  else { a = ult[k]; b = pts[pts.length - 2][k]; per = nombreMes(ult.mes) + ' frente a ' + nombreMes(pts[pts.length - 2].mes); }
+  const pct = b > 0 ? (a - b) * 100 / b : (a > 0 ? 100 : 0);
+  r.pct = pct; r.nivel = Math.abs(pct) < 5 ? 'estable' : pct > 0 ? 'sube' : 'baja';
+  r.textos.push('Tendencia: ' + (r.nivel === 'estable' ? 'estable (cambia menos del 5 %)' : (r.nivel === 'sube' ? 'sube ' : 'baja ') + pctTxt(pct)) + ' · ' + per + '.');
+  const dp = prom > 0 ? (ult[k] - prom) * 100 / prom : null; r.difProm = dp;
+  r.textos.push(nombreMes(ult.mes) + ': ' + num(ult[k]) + ' ' + rec.u + (dp == null ? '' : ', ' + (Math.abs(dp) < 5 ? 'en el promedio' : pctTxt(dp) + (dp > 0 ? ' por encima' : ' por debajo') + ' del promedio') + ' de los ' + prev.length + ' mes(es) anteriores (' + num(prom) + ' ' + rec.u + '/mes)') + '.');
+  const ant = pts.find((x)=> x.mes === mesMas(ult.mes, -12));
+  if (ant) { const d = ant[k] > 0 ? (ult[k] - ant[k]) * 100 / ant[k] : null; r.anual = d;
+    r.textos.push('Frente a ' + nombreMes(ant.mes) + ' (mismo mes del año anterior, ' + num(ant[k]) + ' ' + rec.u + '): ' + (d == null ? 'sin base para comparar' : Math.abs(d) < 5 ? 'casi igual' : (d > 0 ? 'sube ' : 'baja ') + pctTxt(d)) + '.'); }
+  else r.textos.push('Aún no hay el mismo mes del año anterior para comparar.');
+  const indic = (campo, nombreU)=> { if (!(ult[campo] > 0)) return;
+    const i1 = ult[k] / ult[campo], ps = prev.filter((x)=> x[campo] > 0).map((x)=> x[k] / x[campo]), i0 = ps.length ? media(ps) : null, d = i0 ? (i1 - i0) * 100 / i0 : null;
+    r[campo === 'trabajadores' ? 'porTrabajador' : 'porProduccion'] = i1;
+    r.textos.push('Por ' + nombreU + ': ' + num(i1, 2) + ' ' + rec.u + (i0 ? ' (antes ' + num(i0, 2) + '; ' + (Math.abs(d) < 5 ? 'igual' : (d > 0 ? 'sube ' : 'baja ') + pctTxt(d)) + ')' : '') + '.');
+    const base = prev.filter((x)=> x[campo] > 0).map((x)=> x[campo]);
+    if (r.nivel === 'sube' && d != null && d < 5 && base.length && ult[campo] > media(base) * 1.05) r.textos.push('El aumento va con más ' + (campo === 'trabajadores' ? 'personal' : 'producción') + ': por ' + nombreU + ' el consumo no subió.'); };
+  indic('trabajadores', 'trabajador'); indic('produccion', (ult.unidadProduccion || 'unidad producida'));
+  const ven = pts.slice(-12), med = mediana(ven.map((x)=> x[k]));
+  if (ven.length >= 4 && med > 0) ven.forEach((x)=> { const d = (x[k] - med) * 100 / med; if (Math.abs(d) >= 30) r.atipicos.push({ mes: x.mes, v: x[k], pct: d }); });
+  if (r.atipicos.length) r.textos.push('Meses atípicos (30 % o más lejos de la mediana, ' + num(med) + ' ' + rec.u + '): ' + r.atipicos.map((x)=> nombreMes(x.mes) + ' ' + (x.pct > 0 ? '+' : '−') + pctTxt(x.pct)).join(', ') + '.');
+  if (r.nivel === 'sube' || (r.nivel === 'estable' && dp != null && dp >= 10)) r.recs.push(...rec.sube);
+  if (r.nivel === 'baja') r.recs.push(dp != null && dp >= 10 ? 'La tendencia baja, pero ' + nombreMes(ult.mes) + ' quedó ' + pctTxt(dp) + ' por encima del promedio: vigílalo el próximo mes.' : 'Va bajando: deja por escrito qué medida funcionó y súmala a los logros del programa de ahorro.');
+  if (r.atipicos.length) r.recs.push('Anota en las observaciones del mes la causa de los atípicos (factura estimada, fuga reparada, más producción).');
+  r.recs.push(rec.siempre);
+  r.resumen = rec.n + ': ' + (r.nivel === 'estable' ? 'consumo estable' : r.nivel === 'sube' ? 'el consumo sube ' + pctTxt(pct) : 'el consumo baja ' + pctTxt(pct)) +
+    (r.atipicos.some((x)=> x.mes === ult.mes) ? '; ' + nombreMes(ult.mes) + ' es atípico' : '') + '.';
+  return r;
+}
+/* PURO-FIN */
+
+/** Gráfica de barras en SVG (sin librerías): barras por mes, línea opcional (media móvil o promedio) y líneas de referencia. */
+function grafica(o){
+  const W = 360, H = o.alto || 170, L = 40, R = 8, T = 12, B = 22, n = o.barras.length; if (!n) return '';
+  const datos = o.barras.map((b)=> b.v || 0).concat((o.linea || []).filter((v)=> v != null));
+  let max = Math.max(1, ...datos) * 1.15; (o.refs || []).forEach((r)=> { if (r.siempre && r.v > max) max = r.v * 1.1; });
+  const y = (v)=> T + (H - T - B) * (1 - v / max), bw = (W - L - R) / n, fx = (v)=> v >= 1000 ? num(v / 1000, 1) + ' mil' : num(v, v < 10 ? 1 : 0);
+  let s = '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.titulo || 'Gráfica') + '"><title>' + esc(o.titulo || '') + '</title>';
+  [0, .5, 1].forEach((f)=> { const v = max / 1.15 * f, yy = y(v); s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '" stroke="#e3e8ee" stroke-width="1"/><text x="' + (L - 4) + '" y="' + (yy + 3).toFixed(1) + '" font-size="9.5" fill="#6b7785" text-anchor="end">' + fx(v) + '</text>'; });
+  o.barras.forEach((b, i)=> { const v = b.v || 0, x = L + i * bw + bw * .16, yy = y(v);
+    s += '<rect x="' + x.toFixed(1) + '" y="' + yy.toFixed(1) + '" width="' + (bw * .68).toFixed(1) + '" height="' + Math.max(0, H - B - yy).toFixed(1) + '" rx="2" fill="' + (b.c === 'mal' ? '#d98c7f' : b.c === 'bajo' ? '#9fb7d6' : '#7fb08f') + '"><title>' + esc(b.t || (b.l + ': ' + num(v))) + '</title></rect>' +
+      '<text x="' + (L + i * bw + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" font-size="9.5" fill="#6b7785" text-anchor="middle">' + esc(b.l) + '</text>'; });
+  let yEtq = Infinity;   // de arriba hacia abajo: una etiqueta que quedaría encima de otra no se escribe (la línea sí)
+  (o.refs || []).filter((r)=> r.v <= max).sort((a, b)=> b.v - a.v).forEach((r)=> { const yy = y(r.v).toFixed(1), ver = Math.abs(Number(yy) - yEtq) >= 12;
+    s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + (r.c || '#b3261e') + '" stroke-width="1.2" stroke-dasharray="4 3"/>' + (ver ? '<text x="' + (W - R) + '" y="' + (Number(yy) - 3) + '" font-size="9.5" font-weight="700" fill="' + (r.c || '#b3261e') + '" text-anchor="end">' + esc(r.l) + '</text>' : '');
+    if (ver) yEtq = Number(yy); });
+  if (o.linea) { const pts = o.linea.map((v, i)=> v == null ? null : (L + i * bw + bw / 2).toFixed(1) + ',' + y(v).toFixed(1)).filter(Boolean);
+    s += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#1d4a7a" stroke-width="2" stroke-linejoin="round"/>' + pts.map((p)=> '<circle cx="' + p.split(',')[0] + '" cy="' + p.split(',')[1] + '" r="2.4" fill="#1d4a7a"/>').join(''); }
+  return s + '</svg>';
+}
+
+const CLASES = ['Aprovechable (reciclable)', 'Orgánico', 'No aprovechable (ordinario)', 'Peligroso (RESPEL)', 'Especial (escombros, voluminosos)', 'RAEE (aparatos eléctricos y electrónicos)', 'Otro'];
+const C_RES = [{ k: 'fecha', l: 'Fecha de entrega o pesaje', t: 'date', req: true, medio: true }, { k: 'clase', l: 'Clase', t: 'select', op: CLASES, medio: true },
+  { k: 'corriente', l: 'Residuo', req: true, ph: 'Ej: trapos y guantes contaminados con hidrocarburos' }, { k: 'cantidad', l: 'Cantidad', t: 'number', req: true, medio: true },
+  { k: 'unidad', l: 'Unidad', t: 'select', op: UNIDADES_RES, medio: true },
+  { k: 'densidad', l: 'Densidad (kg/L), para pasar a kg', t: 'number', ph: 'Ej: 0,88 (sección 9 de la ficha de seguridad)', ayuda: 'La media de RESPEL se calcula en kg. Si no tienes la densidad, mejor pesa y registra en kg.' },
+  { k: 'gestor', l: 'Gestor o destino', ph: 'Empresa autorizada / reciclador' },
+  { k: 'certificado', l: 'Certificado de disposición o aprovechamiento N.º', medio: true }, { k: 'manifiesto', l: 'Manifiesto de transporte N.º (RESPEL)', medio: true }];
+const C_CON = [{ k: 'mes', l: 'Mes', t: 'month', req: true, medio: true }, { k: 'sede', l: 'Sede', medio: true, ph: 'Ej: Planta principal' },
+  { k: 'agua', l: 'Agua (m³)', t: 'number', medio: true }, { k: 'energia', l: 'Energía (kWh)', t: 'number', medio: true },
+  { k: 'combustible', l: 'Combustible (galones)', t: 'number', medio: true }, { k: 'gas', l: 'Gas (m³)', t: 'number', medio: true },
+  { k: 'papel', l: 'Papel (resmas)', t: 'number', medio: true }, { k: 'trabajadores', l: 'Trabajadores en el mes', t: 'number', medio: true },
+  { k: 'produccion', l: 'Producción del mes (opcional)', t: 'number', medio: true }, { k: 'unidadProduccion', l: 'Unidad de producción', ph: 'Ej: toneladas, obras, horas-equipo', medio: true },
+  { k: 'observaciones', l: 'Observaciones (causas de cambios, fugas, facturas estimadas)', t: 'textarea' }];
+const ID_RESPEL = 'RESPEL-GENERADOR';
+let rows = [], tab = 'aspectos', recSel = 'agua', sedeSel = '';
+/* v109: filtro de cada lista (lo deja la cifra que se toca arriba). */
+const filtros = { aspectos: '', residuos: '' };
+window.filtrarKpi = (v)=> { filtros[tab] = v || ''; pintar(); };
+const sinCertif = (s)=> /Peligroso|RAEE/.test(s.clase || s.estado) && !s.certificado;
+const chipsDe = (panel, ops)=> { const box = document.createElement('div'); box.innerHTML = UI.chipsFiltro(ops, filtros[tab]); const ph = panel.querySelector('.f-lista'); if (ph) ph.replaceWith(box.firstChild); else panel.querySelector('.acciones-top').after(box.firstChild); panel.querySelectorAll('.filtro-kpi [data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f))); };
+const de = (t)=> rows.filter((x)=> x.tipo === t);
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('panel').innerHTML = ''; return; }
+  const r = await SGSST.listar('aspecto,residuo,consumo,respel,emergencia');
+  UI.avisoCopia($('avisoCopia'), r);
+  rows = r.rows; pintar();
+}
+const resRes = ()=> de('residuo').map((x)=> Object.assign({ clase: x.estado, fecha: x.fecha }, x.resumen, { clase: x.resumen.clase || x.estado, id: x.id }));
+const respelReg = ()=> (de('respel').find((x)=> x.id === ID_RESPEL) || {}).resumen || null;
+const nitEmpresa = ()=> { const r = respelReg(); return (r && r.nit) || (typeof Empresa !== 'undefined' && Empresa.nit) || ''; };
+function pintar(){
+  const asp = de('aspecto'), sig = asp.filter((x)=> x.estado === 'SIGNIFICATIVO'), anio = UI.hoy().slice(0, 4), resA = resRes().filter((x)=> String(x.fecha).slice(0, 4) === anio);
+  const kgDe = (x)=> kgResiduo(x).kg || 0, totalKg = resA.reduce((a, x)=> a + kgDe(x), 0);
+  const aprov = resA.filter((x)=> /Aprovechable|Orgánico/.test(x.clase)).reduce((a, x)=> a + kgDe(x), 0);
+  const sinCert = resA.filter((x)=> /Peligroso|RAEE/.test(x.clase) && !x.certificado).length, rp = analisisRespel(resRes(), UI.hoy().slice(0, 7));
+  $('nAsp').textContent = asp.length; $('nRes').textContent = de('residuo').length; $('nCon').textContent = de('consumo').length;
+  $('kpis').innerHTML = '<div class="kpi ' + (asp.length ? '' : 'mal') + '" data-ir="tab:aspectos|filtro:' + (asp.length ? 'significativos' : '') + '"><div class="v">' + sig.length + ' / ' + asp.length + '</div><div class="n">aspectos significativos</div></div>' +
+    '<div class="kpi" data-ir="tab:residuos|filtro:"><div class="v">' + (totalKg ? Math.round(aprov * 100 / totalKg) + '%' : '—') + '</div><div class="n">residuos aprovechados en ' + anio + '</div><div class="f">' + num(totalKg, 0) + ' kg en total</div></div>' +
+    '<div class="kpi ' + (rp.cambio && rp.sube ? 'mal' : rp.cat.inscribir ? 'pronto' : 'ok') + '" data-ir="tab:residuos|sel:#cRespel"><div class="v">' + num(rp.media) + ' kg</div><div class="n">RESPEL: media móvil de 6 meses</div><div class="f">' + esc(rp.cat.n) + (rp.cambio ? ' · cambió de categoría' : '') + '</div></div>' +
+    '<div class="kpi ' + (sinCert ? 'mal' : 'ok') + '" data-ir="tab:residuos|filtro:' + (sinCert ? 'sincert' : '') + '"><div class="v">' + sinCert + '</div><div class="n">entregas de RESPEL o RAEE sin certificado</div></div>';
+  ({ aspectos: pintarAsp, residuos: pintarRes, consumos: pintarCon })[tab]($('panel'));
+}
+function item(x, titulo, sub, chip, clase){ return '<button type="button" class="item ' + (clase || '') + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + titulo + '</div>' + (sub || []).filter(Boolean).map((s)=> '<div class="m">' + s + '</div>').join('') + (x.pendiente ? '<div class="m"><span class="pend">⏳ pendiente de enviar</span></div>' : '') + '</div>' + (chip ? '<span class="chip ' + (clase || '') + '">' + chip + '</span>' : '') + '</div></button>'; }
+function errores(el, pref, errs){
+  Valida.limpiar(el);
+  errs.forEach((e)=> Valida.marcar(el.querySelector('#' + pref + e.k), e.m));
+  if (!errs.length) return null;
+  const i = el.querySelector('#' + pref + errs[0].k); if (i && i.scrollIntoView) i.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return 'Revisa: ' + errs.map((e)=> e.l + ' (' + e.m + ')').join(' · ');
+}
+
+/* ══ Aspectos e impactos ══ */
+/* v150: los aspectos en condición de emergencia (derrame, fuga, incendio) deben tener su procedimiento
+   en el plan de emergencias (ISO 14001, 8.2; Dec. 1072, 2.2.4.6.25). Se cruzan con los PON del plan. */
+const PON_DE_ASPECTO = [[/derrame/i, 'Derrame de sustancias químicas'], [/fuga|gas/i, 'Fuga de gas'], [/incendio|explosi/i, 'Incendio'], [/inundaci/i, 'Inundación']];
+function avisoEmergAmb(todos){
+  const em = todos.filter((x)=> x.resumen.condicion === 'Emergencia');
+  if (!em.length) return '';
+  const planes = de('emergencia'), pon = planes.map((p)=> String(p.resumen.ponTexto || '')).join(' · ');
+  const filas = em.map((x)=> { const t = (x.resumen.aspecto || '') + ' ' + (x.resumen.actividad || ''); const m = PON_DE_ASPECTO.find((k)=> k[0].test(t)); const need = m ? m[1] : '';
+    const ok = need ? pon.indexOf(need) !== -1 : !!planes.length; return '<li>' + esc(x.resumen.aspecto) + ' → ' + (need ? 'PON «' + esc(need) + '»: ' : 'plan de emergencias: ') + (ok ? '<b class="u-ok">cubierto</b>' : '<b class="u-mal">falta en el plan</b>') + '</li>'; });
+  const faltan = filas.filter((f)=> f.indexOf('u-mal') !== -1).length;
+  return '<div class="aviso ' + (faltan ? 'amar' : 'ok') + '"><b>Emergencias ambientales:</b> ' + em.length + ' aspecto(s) en condición de emergencia' + (faltan ? ', ' + faltan + ' sin procedimiento en el plan' : ', todos con procedimiento') + '. <a href="emergencias.html">Ir al plan de emergencias</a><ul class="u-mt6">' + filas.join('') + '</ul></div>';
+}
+function pintarAsp(panel){
+  const todos = de('aspecto'), nSig = todos.filter((x)=> x.estado === 'SIGNIFICATIVO').length;
+  const l = todos.filter((x)=> filtros.aspectos !== 'significativos' || x.estado === 'SIGNIFICATIVO').sort((a, b)=> (b.estado === 'SIGNIFICATIVO') - (a.estado === 'SIGNIFICATIVO') || (Number(b.resumen.valor) || 0) - (Number(a.resumen.valor) || 0));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nAspB">+ Aspecto ambiental</button><button type="button" class="btn ghost" id="pAsp">Matriz de aspectos e impactos (PDF)</button></div>' +
+    '<p class="ayuda">Elige la actividad y el portal te propone los aspectos e impactos típicos (puedes escribir otros). Valoración de referencia: frecuencia × severidad × alcance (1 a 3 cada uno): significativo con 12 o más, en emergencias de severidad alta, o si un requisito legal aplicable no se cumple. Ajústalo a tu procedimiento (ISO 14001, 6.1.2).</p>' +
+    avisoEmergAmb(todos) +
+    (l.length ? l.map((x)=> { const c = x.estado === 'SIGNIFICATIVO' ? 'mal' : x.estado === 'POSITIVO' ? 'ok' : 'gris', s = x.resumen;
+      return item(x, esc(s.aspecto) + ' → ' + esc(s.impacto), [esc([s.proceso, s.actividad, s.condicion].filter(Boolean).join(' · ')), 'Valor ' + esc(s.valor) + (s.legal && s.legal !== 'No aplica' ? ' · legal: ' + esc(s.legal) : '')], esc(x.estado), c); }).join('') : '<div class="empty">' + (todos.length ? 'Ningún aspecto significativo ✓' : 'Sin aspectos identificados. Empieza con «+ Aspecto ambiental».') + '</div>');
+  if (todos.length) chipsDe(panel, [['', 'Todos (' + todos.length + ')'], ['significativos', 'Significativos (' + nSig + ')']]);
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) editarAspecto(d); }));
+  $('nAspB').addEventListener('click', ()=> editarAspecto({ id: SGSST.nuevoId('ASP'), nuevo: true, condicion: 'Normal', tipoImpacto: 'Negativo', frecuencia: '2', severidad: '2', alcance: '1', legal: 'No aplica' }));
+  $('pAsp').addEventListener('click', ()=> { if (!l.length) { UI.toast('No hay aspectos para imprimir.'); return; }
+    UI.imprimir([UI.cabecera('SG-ASPECTOS-AMBIENTALES', 'MATRIZ DE ASPECTOS E IMPACTOS AMBIENTALES', 'Corte ' + UI.corta(UI.hoy()) + ' · ' + l.filter((x)=> x.estado === 'SIGNIFICATIVO').length + ' significativo(s) de ' + l.length) +
+    '<table><tr><td class="l" style="width:11%">Proceso / actividad</td><td class="l" style="width:13%">Aspecto</td><td class="l" style="width:13%">Impacto</td><td class="l" style="width:7%">Condición</td><td class="l" style="width:3%">F</td><td class="l" style="width:3%">S</td><td class="l" style="width:3%">A</td><td class="l" style="width:5%">Valor</td><td class="l" style="width:12%">Legal</td><td class="l" style="width:9%">Significancia</td><td class="l">Controles</td></tr>' +
+    l.map((x)=> { const s = x.resumen; return '<tr><td>' + esc([s.proceso, s.actividad].filter(Boolean).join(' / ')) + '</td><td>' + esc(s.aspecto) + '</td><td>' + esc(s.impacto) + '</td><td>' + esc(s.condicion) + '</td><td class="a">' + esc(s.frecuencia) + '</td><td class="a">' + esc(s.severidad) + '</td><td class="a">' + esc(s.alcance) + '</td><td class="a">' + esc(s.valor) + '</td><td>' + esc([s.legal, s.norma].filter(Boolean).join(' · ')) + '</td><td' + (x.estado === 'SIGNIFICATIVO' ? ' style="background:var(--rojo-100);font-weight:700;"' : '') + '>' + esc(x.estado) + '</td><td>' + esc(s.controles) + '</td></tr>'; }).join('') + '</table>' +
+    '<p style="font-size:8px;margin:4px 0 0;">Valor = frecuencia × severidad × alcance (1 a 3). Significativo: valor ≥ 12, emergencia con severidad 3 o requisito legal aplicable que no se cumple.</p>'], true); });
+}
+/** Formulario del aspecto: actividad → aspectos típicos → impactos típicos, cada lista con «Otro» para escribir. */
+function editarAspecto(d){
+  d = Object.assign({}, d);
+  const procesos = [...new Set(['Administrativo', 'Operativo', 'Mantenimiento', 'Obra', 'Taller', 'Almacén', 'Transporte'].concat(de('aspecto').map((x)=> x.resumen.proceso).filter(Boolean)))];
+  const act0 = d.actividad && !ACTIVIDADES[d.actividad] ? 'Otro' : (d.actividad || '');
+  const st = { act: act0, actOtro: act0 === 'Otro' ? d.actividad : '', asp: d.aspecto && !aspectoCat(d.aspecto) ? '__otro' : (d.aspecto || ''), aspOtro: d.aspecto && !aspectoCat(d.aspecto) ? d.aspecto : '', todosAsp: false, todosImp: false };
+  const imps0 = String(d.impacto || '').split(/\s*;\s*/).filter(Boolean);
+  st.imp = new Set(imps0.filter((t)=> IMPACTOS.includes(t))); st.impOtro = imps0.filter((t)=> !IMPACTOS.includes(t)).join('; ');
+  if (st.asp && st.asp !== '__otro' && !aspectosDe(st.act).includes(st.asp)) st.todosAsp = true;
+  if ([...st.imp].some((t)=> !impactosDe(st.asp).includes(t))) st.todosImp = true;
+  const seg = (k, ops)=> '<div class="seg-btn" data-seg="' + k + '">' + ops.map((o)=> '<button type="button" data-v="' + esc(o[0]) + '" class="' + (String(d[k]) === String(o[0]) ? 'on' : '') + '">' + esc(o[1]) + '</button>').join('') + '</div>';
+  const m = UI.modal('<h3>' + (d.nuevo ? 'Nuevo aspecto ambiental' : 'Aspecto ambiental') + '</h3>' +
+    '<div class="field"><label>Proceso *</label><input type="text" id="aProc" list="aProcL" value="' + esc(d.proceso || '') + '" placeholder="Ej: Mantenimiento"><datalist id="aProcL">' + procesos.map((p)=> '<option value="' + esc(p) + '">').join('') + '</datalist></div>' +
+    '<div class="field"><label>Actividad *</label><select id="aAct" data-sin-otro><option value="">— Elige la actividad —</option>' + Object.keys(ACTIVIDADES).map((a)=> '<option' + (a === st.act ? ' selected' : '') + '>' + esc(a) + '</option>').join('') + '<option value="Otro"' + (st.act === 'Otro' ? ' selected' : '') + '>Otra actividad (escribir)</option></select>' +
+    '<input type="text" id="aActOtro" class="v-otro" style="margin-top:6px;" placeholder="Escribe la actividad" value="' + esc(st.actOtro) + '"' + (st.act === 'Otro' ? '' : ' hidden') + '></div>' +
+    '<div class="field"><label>Aspecto ambiental *</label><div id="aAspZona"></div></div>' +
+    '<div class="field"><label>Impactos ambientales * <small style="text-transform:none;font-weight:600;">(uno o varios)</small></label><div id="aImpZona"></div></div>' +
+    '<div class="field"><label>Condición</label>' + seg('condicion', [['Normal', 'Normal'], ['Anormal', 'Anormal'], ['Emergencia', 'Emergencia']]) + '</div>' +
+    '<div class="field"><label>Tipo de impacto</label>' + seg('tipoImpacto', [['Negativo', 'Negativo'], ['Positivo', 'Positivo']]) + '</div>' +
+    '<div class="field"><label>Etapa del ciclo de vida (ISO 14001, 6.1.2)</label>' + seg('cicloVida', [['Materias primas', 'Materias primas'], ['Producción / servicio', 'Producción / servicio'], ['Transporte', 'Transporte'], ['Uso', 'Uso'], ['Fin de vida', 'Fin de vida']]) + '</div>' +
+    ['frecuencia', 'severidad', 'alcance'].map((k)=> '<div class="field"><label>' + { frecuencia: 'Frecuencia', severidad: 'Severidad', alcance: 'Alcance' }[k] + '</label>' + seg(k, [['1', '1'], ['2', '2'], ['3', '3']]) + '<div class="desc-esc" data-desc="' + k + '"></div></div>').join('') +
+    '<div class="field"><label>Requisito legal</label><select id="aLegal" data-sin-otro>' + ['No aplica', 'Aplica y se cumple', 'Aplica y NO se cumple'].map((o)=> '<option' + (o === d.legal ? ' selected' : '') + '>' + o + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Norma aplicable</label><input type="text" id="aNorma" list="aNormaL" value="' + esc(d.norma || '') + '" placeholder="Elige de la lista o escribe"><datalist id="aNormaL">' + NORMAS_AMB.map((n)=> '<option value="' + esc(n) + '">').join('') + '</datalist></div>' +
+    '<div id="aValor" class="valor-asp"></div>' +
+    '<div class="field"><label>Controles actuales y por implementar</label><textarea id="aCtl" placeholder="Ej: kit antiderrames, bodega con dique, gestor autorizado">' + esc(d.controles || '') + '</textarea></div>' +
+    '<div id="aFalta"></div><button type="button" class="btn amber" id="aGuardar">Guardar</button>' + (d.nuevo ? '' : '<button type="button" class="btn ghost u-mal" id="aBorrar">Borrar</button>') +
+    '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="aMsg"></div>', true);
+  const el = m.el, q = (s)=> el.querySelector(s);
+  const pintarAspZona = ()=> {
+    const tip = st.act && st.act !== 'Otro' ? aspectosDe(st.act) : [], lista = st.todosAsp || !tip.length ? ASPECTOS.map((x)=> x.a) : tip;
+    q('#aAspZona').innerHTML = (tip.length ? '<div class="ayuda" style="margin:0 0 6px;">' + (st.todosAsp ? 'Todos los del catálogo (en verde, los típicos de la actividad):' : 'Típicos de «' + esc(st.act) + '»:') + '</div>' : st.act ? '' : '<div class="ayuda" style="margin:0 0 6px;">Elige primero la actividad para ver los típicos, o escoge del catálogo completo:</div>') +
+      '<div class="chips sel" id="aAspCh">' + lista.map((a)=> '<button type="button" data-v="' + esc(a) + '" class="' + (st.asp === a ? 'on ' : '') + (tip.includes(a) && st.todosAsp ? 'tip' : '') + '">' + esc(a) + '</button>').join('') +
+      (tip.length ? '<button type="button" data-mas>' + (st.todosAsp ? 'Ver solo los típicos' : 'Ver todo el catálogo') + '</button>' : '') + '<button type="button" data-v="__otro" class="' + (st.asp === '__otro' ? 'on' : '') + '">Otro (escribir)</button></div>' +
+      '<input type="text" id="aAspOtro" class="v-otro" style="margin-top:6px;" placeholder="Escribe el aspecto ambiental" value="' + esc(st.aspOtro) + '"' + (st.asp === '__otro' ? '' : ' hidden') + '>';
+    q('#aAspCh').addEventListener('click', (e)=> { const b = e.target.closest('button'); if (!b) return; Valida.limpiar(q('#aAspZona'));
+      if (b.hasAttribute('data-mas')) { st.todosAsp = !st.todosAsp; pintarAspZona(); return; }
+      const nuevo = b.dataset.v, cambio = nuevo !== st.asp; st.asp = nuevo;
+      const c = aspectoCat(nuevo); if (cambio && c && c.c && !el.dataset.condTocada) ponerSeg('condicion', c.c);
+      if (cambio && nuevo !== '__otro' && !st.imp.size) impactosDe(nuevo).slice(0, 1).forEach((t)=> st.imp.add(t));   // propone el primero; se puede quitar
+      pintarAspZona(); pintarImpZona(); if (nuevo === '__otro') setTimeout(()=> q('#aAspOtro').focus(), 30); });
+    q('#aAspOtro').addEventListener('input', (e)=> { st.aspOtro = e.target.value; });
+  };
+  const pintarImpZona = ()=> {
+    const tip = st.asp && st.asp !== '__otro' ? impactosDe(st.asp) : [], lista = st.todosImp || !tip.length ? IMPACTOS : tip;
+    q('#aImpZona').innerHTML = (tip.length ? '<div class="ayuda" style="margin:0 0 6px;">' + (st.todosImp ? 'Todos (en verde, los típicos del aspecto):' : 'Típicos del aspecto elegido:') + '</div>' : '<div class="ayuda" style="margin:0 0 6px;">Al elegir el aspecto se proponen sus impactos típicos. Catálogo completo:</div>') +
+      '<div class="chips sel" id="aImpCh">' + lista.map((t)=> '<button type="button" data-v="' + esc(t) + '" class="' + (st.imp.has(t) ? 'on ' : '') + (tip.includes(t) && st.todosImp ? 'tip' : '') + '" aria-pressed="' + st.imp.has(t) + '">' + esc(t) + '</button>').join('') +
+      (tip.length ? '<button type="button" data-mas>' + (st.todosImp ? 'Ver solo los típicos' : 'Ver todos los impactos') + '</button>' : '') + '</div>' +
+      '<input type="text" id="aImpOtro" class="u-mt6" placeholder="Otro impacto: escríbelo (varios, separados por punto y coma)" value="' + esc(st.impOtro) + '">';
+    q('#aImpCh').addEventListener('click', (e)=> { const b = e.target.closest('button'); if (!b) return; Valida.limpiar(q('#aImpZona'));
+      if (b.hasAttribute('data-mas')) { st.todosImp = !st.todosImp; pintarImpZona(); return; }
+      if (st.imp.has(b.dataset.v)) st.imp.delete(b.dataset.v); else st.imp.add(b.dataset.v); b.classList.toggle('on'); b.setAttribute('aria-pressed', st.imp.has(b.dataset.v)); });
+    q('#aImpOtro').addEventListener('input', (e)=> { st.impOtro = e.target.value; });
+  };
+  const segVal = (k)=> { const b = el.querySelector('[data-seg="' + k + '"] button.on'); return b ? b.dataset.v : ''; };
+  const ponerSeg = (k, v)=> el.querySelectorAll('[data-seg="' + k + '"] button').forEach((b)=> b.classList.toggle('on', b.dataset.v === v));
+  const leerV = ()=> ({ proceso: q('#aProc').value.trim(), actividad: st.act === 'Otro' ? q('#aActOtro').value.trim() : st.act, aspecto: st.asp === '__otro' ? q('#aAspOtro').value.trim() : st.asp,
+    grupoAspecto: (aspectoCat(st.asp) || { g: 'Otro' }).g, impacto: [...st.imp].concat(String(st.impOtro || '').split(/\s*;\s*/).map((t)=> t.trim()).filter(Boolean)).join('; '),
+    condicion: segVal('condicion'), tipoImpacto: segVal('tipoImpacto'), cicloVida: segVal('cicloVida') || '', frecuencia: segVal('frecuencia'), severidad: segVal('severidad'), alcance: segVal('alcance'),
+    legal: q('#aLegal').value, norma: q('#aNorma').value.trim(), controles: q('#aCtl').value.trim() });
+  const verValor = ()=> { const v = valorar(leerV());
+    ['frecuencia', 'severidad', 'alcance'].forEach((k)=> { const n = Number(v[k]); q('[data-desc="' + k + '"]').textContent = n ? ESCALA[k][n - 1] : 'Elige 1, 2 o 3'; });
+    const c = v.significancia === 'SIGNIFICATIVO' ? 'mal' : v.significancia === 'POSITIVO' ? 'ok' : '';
+    q('#aValor').className = 'valor-asp ' + c;
+    q('#aValor').innerHTML = 'Valor <b>' + v.valor + '</b> (' + (v.frecuencia || '?') + ' × ' + (v.severidad || '?') + ' × ' + (v.alcance || '?') + ') → <b>' + esc(v.significancia) + '</b>' +
+      (v.significancia === 'SIGNIFICATIVO' ? '<br>' + (v.valor >= 12 ? 'Valor de 12 o más.' : v.legal === 'Aplica y NO se cumple' ? 'Hay un requisito legal que no se cumple.' : 'Emergencia con severidad alta.') + ' Define controles y una acción en el plan de acción.' : ''); };
+  el.querySelectorAll('[data-seg]').forEach((g)=> g.addEventListener('click', (e)=> { const b = e.target.closest('button'); if (!b) return; g.querySelectorAll('button').forEach((x)=> x.classList.toggle('on', x === b)); if (g.dataset.seg === 'condicion') el.dataset.condTocada = '1'; Valida.limpiar(g.parentElement); verValor(); }));
+  q('#aAct').addEventListener('change', (e)=> { st.act = e.target.value; q('#aActOtro').hidden = st.act !== 'Otro'; if (st.act === 'Otro') setTimeout(()=> q('#aActOtro').focus(), 30); st.todosAsp = false; pintarAspZona(); });
+  q('#aLegal').addEventListener('change', verValor);
+  pintarAspZona(); pintarImpZona(); verValor();
+  if (q('#aBorrar')) q('#aBorrar').addEventListener('click', async ()=> { if (!await Dialogo.confirmar('¿Borrar este aspecto?')) return; if (await Registros.borrar(d.id, 'Borrado desde Ambiental')) { m.cerrar(); cargar(); } });
+  q('#aGuardar').addEventListener('click', async ()=> {
+    const v = leerV();
+    const p = Valida.revisar(el, [
+      { el: q('#aProc'), etiqueta: 'Proceso', error: ()=> v.proceso ? '' : 'falta' },
+      { el: st.act === 'Otro' ? q('#aActOtro') : q('#aAct'), etiqueta: 'Actividad', error: ()=> !st.act ? 'elige una' : !v.actividad ? 'escribe cuál' : '' },
+      { el: st.asp === '__otro' ? q('#aAspOtro') : q('#aAspCh'), etiqueta: 'Aspecto ambiental', error: ()=> !st.asp ? 'elige uno' : !v.aspecto ? 'escribe cuál' : v.aspecto.length < 4 ? 'es muy corto' : '' },
+      { el: q('#aImpCh'), etiqueta: 'Impactos', error: ()=> v.impacto ? '' : 'elige o escribe al menos uno' },
+      ...['frecuencia', 'severidad', 'alcance', 'condicion', 'tipoImpacto'].map((k)=> ({ el: el.querySelector('[data-seg="' + k + '"]'), etiqueta: { frecuencia: 'Frecuencia', severidad: 'Severidad', alcance: 'Alcance', condicion: 'Condición', tipoImpacto: 'Tipo de impacto' }[k], error: ()=> v[k] ? '' : 'elige una opción' }))
+    ], q('#aFalta'));
+    if (p.length) return;
+    valorar(v); v.fechaRevision = UI.hoy();
+    const b = q('#aGuardar'); b.disabled = true; q('#aMsg').textContent = 'Guardando…';
+    const doc = Object.assign({}, d, v); delete doc.nuevo;
+    const r = await Registros.guardar('aspecto', d.id, doc, d.nuevo ? 0 : d.version);
+    b.disabled = false; if (typeof r === 'string') { q('#aMsg').textContent = r; return; }
+    m.cerrar();
+    if (v.significancia === 'SIGNIFICATIVO' && !d.accionId && !r.enCola && await Dialogo.confirmar('Aspecto significativo. ¿Crear una acción de control en el plan de acción?')) {
+      const resp = await Dialogo.pedir('Responsable:', ''); if (resp) { const a = await UI.guardarAccion({ origen: 'Ambiental', origenRef: d.id, hallazgo: 'Aspecto significativo: ' + v.aspecto + ' → ' + v.impacto, accion: v.controles || 'Definir e implementar controles', responsable: resp, tipoAccion: 'Preventiva' });
+        if (a.ok) await SGSST.enviar({ action: 'parche', tipo: 'aspecto', id: d.id, campos: { accionId: a.id } }); }
+    }
+    cargar();
+  });
+}
+
+/* ══ Residuos y RESPEL ══ */
+function pintarRes(panel){
+  const todosR = de('residuo'), anioR = UI.hoy().slice(0, 4), sinCertDe = (x)=> String(x.fecha).slice(0, 4) === anioR && sinCertif(Object.assign({ estado: x.estado }, x.resumen));
+  const l = todosR.filter((x)=> filtros.residuos !== 'sincert' || sinCertDe(x)).sort((a, b)=> String(b.fecha).localeCompare(String(a.fecha))), hoy = UI.hoy(), rp = analisisRespel(resRes(), hoy.slice(0, 7)), reg = respelReg(), nit = nitEmpresa(), fr = proximoRua(nit, hoy);
+  const sigCat = [10, 100, 1000].find((x)=> x > rp.media);
+  const inscritoTxt = reg ? (reg.inscrito === 'Sí' ? 'Inscrito' + (reg.numeroRegistro ? ' (N.º ' + reg.numeroRegistro + ')' : '') + (reg.autoridad ? ' ante ' + reg.autoridad : '') + (reg.categoriaInscrita ? ' como ' + reg.categoriaInscrita.toLowerCase() : '') : reg.inscrito === 'En trámite' ? 'Inscripción en trámite' : 'No inscrito') : 'Sin datos de inscripción';
+  const desfase = reg && reg.inscrito === 'Sí' && reg.categoriaInscrita && rp.cat.inscribir && reg.categoriaInscrita !== rp.cat.n;
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nResB">+ Registrar residuos</button><button type="button" class="btn" id="bInsc">Inscripción RESPEL (RUA)</button><button type="button" class="btn ghost" id="pRes">Registro de residuos (PDF)</button></div>' +
+    '<div class="card" id="cRespel"><h2>Categoría del generador de residuos peligrosos</h2>' +
+    '<div class="cat-respel"><div><div class="big">' + esc(rp.cat.n) + '</div><div class="sub">Media móvil de ' + esc(nombreMes(rp.meses[0])) + ' a ' + esc(nombreMes(rp.meses[5])) + ': <b>' + num(rp.media) + ' kg/mes</b>' + (sigCat ? ' · la siguiente categoría empieza en ' + num(sigCat, 0) + ' kg/mes' : '') + '</div></div></div>' +
+    '<div class="escala">' + RANGOS_RESPEL.map((x, i)=> '<div class="' + (rp.cat.orden === i ? 'on' : '') + '"><b>' + x.n + '</b>' + x.d + '</div>').join('') + '</div>' +
+    (rp.cambio ? '<div class="aviso ' + (rp.sube ? 'amar' : 'info') + '" id="avCambio"><b>Cambió de categoría:</b> en los 6 meses anteriores era ' + esc(rp.catAnterior.n.toLowerCase()) + ' (' + num(rp.mediaAnterior) + ' kg/mes) y ahora es ' + esc(rp.cat.n.toLowerCase()) + '. ' + (rp.cat.inscribir ? 'Actualiza la categoría en el registro ante la autoridad ambiental.' : 'Aunque baje de 10 kg/mes, sigue gestionando bien los RESPEL.') + '</div>' : '') +
+    (desfase ? '<div class="aviso amar">Estás inscrito como <b>' + esc(reg.categoriaInscrita.toLowerCase()) + '</b> y la media actual da <b>' + esc(rp.cat.n.toLowerCase()) + '</b>: actualiza la inscripción.</div>' : '') +
+    (rp.sinKg.length ? '<div class="aviso amar" id="avSinKg"><b>' + rp.sinKg.length + ' registro(s) de RESPEL no se cuentan</b> porque no están en kg: ábrelos y pon la densidad (kg/L) o pésalos y regístralos en kg.<ul class="lista-sinkg">' + rp.sinKg.slice(0, 6).map((x)=> '<li>' + esc(UI.corta(x.fecha) + ' · ' + x.corriente + ' · ' + x.cantidad + ' ' + (x.unidad || '') + ' (' + x.motivo + ')') + ' <button type="button" class="btn-mini" data-abrir="' + esc(x.id) + '">Abrir</button></li>').join('') + '</ul></div>' : '') +
+    (rp.serie.some((x)=> x.kg) ? grafica({ titulo: 'RESPEL por mes (kg) y media móvil de 6 meses', barras: rp.serie.map((x)=> ({ l: MESES_C[Number(x.mes.slice(5)) - 1], v: x.kg, c: rp.meses.includes(x.mes) ? '' : 'bajo', t: nombreMes(x.mes) + ': ' + num(x.kg) + ' kg · media móvil ' + num(x.mm) + ' kg/mes' })), linea: rp.serie.map((x)=> x.mm),
+      refs: [{ v: 10, l: '10 kg/mes', siempre: rp.media >= 5 }, { v: 100, l: '100 kg/mes', siempre: rp.media >= 50 }, { v: 1000, l: '1.000 kg/mes', siempre: rp.media >= 500 }] }) +
+      '<div class="leyenda"><span><i style="background:#7fb08f"></i>kg de los 6 meses que cuentan</span><span><i style="background:var(--pizarra-300)"></i>meses anteriores</span><span><i style="background:var(--azul-700)"></i>media móvil de 6 meses</span><span><i style="background:var(--rojo-700)"></i>límites de categoría</span></div>' : '<div class="empty" style="margin:6px 0;">Sin RESPEL registrados en kg en el último año.</div>') +
+    '<div class="aviso ' + (rp.cat.inscribir && !(reg && reg.inscrito === 'Sí') ? 'amar' : 'info') + '" style="margin-top:8px;">' +
+      (rp.cat.inscribir ? '<b>Debe estar inscrito</b> como generador de RESPEL en el Registro Único Ambiental (RUA) ante la autoridad ambiental de su jurisdicción, en la plataforma del IDEAM. Estado: <b>' + esc(inscritoTxt) + '</b>.' : 'Con menos de 10 kg/mes no está obligado a inscribirse como generador, pero sí a gestionar bien sus RESPEL (gestor autorizado, certificados y plan de gestión). Estado: ' + esc(inscritoTxt) + '.') +
+      '<br>Reporte anual (lo del año anterior) según el último dígito del NIT: 0 a 4, del 1 de febrero al 15 de marzo; 5 a 9, del 15 de marzo al 30 de abril. ' +
+      (fr ? 'Con el NIT ' + esc(nit) + ' (dígito ' + fr.digito + '): <b>del ' + esc(UI.corta(fr.desde)) + ' al ' + esc(UI.corta(fr.hasta)) + '</b>, reportando ' + fr.periodo + '.' : '<b>Anota el NIT en «Inscripción RESPEL (RUA)»</b> para calcular tu fecha.') +
+      ' Verifica la fecha vigente con tu autoridad ambiental.</div>' +
+    '<p class="ayuda u-mt8">Decreto 4741 de 2005, compilado en el Decreto 1076 de 2015 (modificado por el Decreto 766 de 2026): la categoría sale de la media móvil de los últimos 6 meses. Inscripción y reporte: Res. 0839 de 2023 de MinAmbiente (RUA). Es una ayuda de cálculo; confirma con la norma vigente y tu autoridad ambiental.</p></div>' +
+    '<div class="f-lista"></div>' + (l.length ? l.map((x)=> { const s = Object.assign({}, x.resumen, { clase: x.resumen.clase || x.estado }), p = /Peligroso|RAEE/.test(x.estado), k = kgResiduo(s), c = p && !s.certificado ? 'mal' : p ? 'pronto' : 'ok';
+      return item(x, esc(s.corriente), [esc(UI.corta(x.fecha)) + ' · ' + esc(num(s.cantidad, 2)) + ' ' + esc(s.unidad || 'kg') + (k.kg != null && !/^kg$/i.test(s.unidad || 'kg') ? ' (= ' + num(k.kg) + ' kg)' : '') + (s.gestor ? ' · ' + esc(s.gestor) : ''),
+        p ? (s.certificado ? 'Certificado ' + esc(s.certificado) : '<b class="u-mal">Sin certificado de disposición</b>') : '', esRespel(s) && k.kg == null ? '<b style="color:var(--ambar-700);">No cuenta en la media: ' + esc(k.motivo) + '</b>' : ''], esc(String(x.estado).split(' (')[0]), c); }).join('') : '<div class="empty">' + (filtros.residuos ? 'Ninguna entrega de RESPEL o RAEE sin certificado este año ✓' : 'Sin registros de residuos.') + '</div>');
+  if (todosR.length) chipsDe(panel, [['', 'Todos (' + todosR.length + ')'], ['sincert', 'Sin certificado ' + anioR + ' (' + todosR.filter(sinCertDe).length + ')']]);
+  const alistar = (v, el, pref)=> {
+    v.corriente = String(v.corriente || '').trim(); v.mes = String(v.fecha).slice(0, 7);
+    const e = [], h = UI.hoy(), u = String(v.unidad || 'kg');
+    if (v.fecha && Valida.fecha(v.fecha)) e.push({ k: 'fecha', l: 'Fecha', m: Valida.fecha(v.fecha) });
+    else if (v.fecha > h) e.push({ k: 'fecha', l: 'Fecha', m: 'no puede ser posterior a hoy' });
+    if (!(Number(v.cantidad) > 0)) e.push({ k: 'cantidad', l: 'Cantidad', m: 'debe ser mayor que 0' });
+    if (v.densidad !== '' && v.densidad != null && !(Number(v.densidad) > 0 && Number(v.densidad) < 25)) e.push({ k: 'densidad', l: 'Densidad', m: 'un número entre 0 y 25 kg/L' });
+    if (esRespel(v) && /^(L|galones)$/.test(u) && !(Number(v.densidad) > 0)) e.push({ k: 'densidad', l: 'Densidad', m: 'para RESPEL en ' + u + ' escribe la densidad o registra en kg' });
+    if (esRespel(v) && /^(m³|unidades)$/.test(u)) e.push({ k: 'unidad', l: 'Unidad', m: 'los RESPEL se registran en kg (o en L / galones con densidad)' });
+    if (/^Otro$/.test(v.clase)) e.push({ k: 'clase', l: 'Clase', m: 'escribe cuál' });
+    const msg = errores(el, pref, e); if (msg) return msg;
+    if (!/^(L|galones)$/.test(u)) v.densidad = '';
+    const k = kgResiduo(v); v.kg = k.kg == null ? '' : Math.round(k.kg * 100) / 100;
+  };
+  const verDens = (el, pref)=> { const c = el.querySelector('#' + pref + 'clase'), u = el.querySelector('#' + pref + 'unidad'), f = el.querySelector('#' + pref + 'densidad').closest('.field');
+    const ver = ()=> { f.style.display = /^(L|galones)$/.test(u.value) ? '' : 'none'; }; u.addEventListener('change', ver); c.addEventListener('change', ver); ver(); };
+  const abrir = (d)=> Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + 'Residuos', campos: C_RES, datos: d,
+    antes: '<p class="ayuda">Registra lo que pesaste o entregaste. Los residuos peligrosos van en <b>kg</b> (cuentan para la categoría de generador).</p>',
+    alAbrir: (el, pref)=> verDens(el, pref),
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Ambiental'); if (ok) cargar(); return ok; },
+    alGuardar: async (v, el, pref)=> { const e = alistar(v, el, pref); if (typeof e === 'string') return e;
+      const r = await Registros.guardar('residuo', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; cargar(); return true; } });
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) abrir(d); }));
+  panel.querySelectorAll('[data-abrir]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.abrir); if (d) abrir(d); }));
+  $('nResB').addEventListener('click', ()=> abrir({ id: SGSST.nuevoId('RES'), nuevo: true, fecha: UI.hoy(), clase: CLASES[0], unidad: 'kg' }));
+  $('bInsc').addEventListener('click', ()=> editarInscripcion(rp));
+  $('pRes').addEventListener('click', ()=> pdfResiduos(rp));
+}
+async function editarInscripcion(rp){
+  const g = de('respel').find((x)=> x.id === ID_RESPEL), d = g ? await Registros.abrir(ID_RESPEL) : { id: ID_RESPEL, nuevo: true, inscrito: 'No', nit: nitEmpresa(), categoriaInscrita: rp.cat.inscribir ? rp.cat.n : '' };
+  if (!d) return;
+  const campos = [{ k: 'inscrito', l: '¿Inscrito como generador de RESPEL?', t: 'select', op: ['Sí', 'En trámite', 'No'], medio: true }, { k: 'nit', l: 'NIT de la empresa', medio: true, ph: '900123456-7' },
+    { k: 'numeroRegistro', l: 'N.º de registro', medio: true }, { k: 'categoriaInscrita', l: 'Categoría inscrita', t: 'select', vacio: true, op: ['Pequeño generador', 'Mediano generador', 'Gran generador'], medio: true },
+    { k: 'autoridad', l: 'Autoridad ambiental', ph: 'Ej: la CAR o la secretaría de ambiente de tu ciudad' },
+    { k: 'fechaInscripcion', l: 'Fecha de inscripción', t: 'date', medio: true }, { k: 'ultimaActualizacion', l: 'Último reporte anual en el RUA', t: 'date', medio: true },
+    { k: 'periodoReportado', l: 'Año reportado', t: 'number', medio: true }, { k: 'pgirespel', l: 'Plan de gestión integral de RESPEL (PGIRESPEL) elaborado y actualizado', t: 'check' }];
+  Registros.editar({ titulo: 'Inscripción como generador de RESPEL', campos, datos: d, adjuntos: true,
+    antes: '<div class="aviso info">Hoy la media móvil da <b>' + esc(rp.cat.n) + '</b> (' + num(rp.media) + ' kg/mes). Inscripción y reporte anual en el Registro Único Ambiental (RUA, Res. 0839 de 2023) ante tu autoridad ambiental. Adjunta la constancia cuando guardes.</div>',
+    alGuardar: async (v, el, pref)=> {
+      const e = [], h = UI.hoy(), anio = Number(h.slice(0, 4));
+      if (v.nit && !/^\d{6,10}(-\d)?$/.test(String(v.nit).replace(/\./g, ''))) e.push({ k: 'nit', l: 'NIT', m: 'dígitos y, si quieres, el de verificación (900123456-7)' });
+      ['fechaInscripcion', 'ultimaActualizacion'].forEach((k)=> { if (v[k] && (Valida.fecha(v[k]) || v[k] > h)) e.push({ k, l: k === 'fechaInscripcion' ? 'Fecha de inscripción' : 'Último reporte', m: Valida.fecha(v[k]) || 'no puede ser posterior a hoy' }); });
+      if (v.fechaInscripcion && v.ultimaActualizacion && v.ultimaActualizacion < v.fechaInscripcion) e.push({ k: 'ultimaActualizacion', l: 'Último reporte', m: 'no puede ser antes de la inscripción' });
+      if (v.periodoReportado !== '' && !(Number.isInteger(v.periodoReportado) && v.periodoReportado >= 2000 && v.periodoReportado <= anio)) e.push({ k: 'periodoReportado', l: 'Año reportado', m: 'un año entre 2000 y ' + anio });
+      if (v.inscrito === 'Sí' && !v.categoriaInscrita) e.push({ k: 'categoriaInscrita', l: 'Categoría inscrita', m: 'elige la categoría' });
+      const msg = errores(el, pref, e); if (msg) return msg;
+      v.nit = String(v.nit || '').replace(/\./g, '').trim();
+      // Próximo reporte: si ya se reportó el año anterior, el plazo del año siguiente; si no, el que sigue abierto.
+      const f = Number(v.periodoReportado) >= anio - 1 ? fechasRua(v.nit, Number(v.periodoReportado) + 2) : proximoRua(v.nit, h);
+      v.proximaActualizacion = v.inscrito === 'No' ? '' : f ? f.hasta : '';
+      const r = await Registros.guardar('respel', ID_RESPEL, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; cargar(); return true; } });
+}
+function pdfResiduos(rp){
+  const anio = UI.hoy().slice(0, 4), meses = [...Array(12)].map((_, i)=> anio + '-' + String(i + 1).padStart(2, '0')), R = resRes();
+  const cls = CLASES.filter((c)=> c !== 'Otro').concat([...new Set(R.map((x)=> x.clase).filter((c)=> !CLASES.includes(c)))]);
+  const suma = (m, c)=> R.filter((x)=> String(x.mes || String(x.fecha).slice(0, 7)) === m && x.clase === c).reduce((a, x)=> a + (kgResiduo(x).kg || 0), 0);
+  const reg = respelReg() || {};
+  UI.imprimir([UI.cabecera('SG-RESIDUOS', 'REGISTRO DE GENERACIÓN DE RESIDUOS ' + anio, 'RESPEL: ' + rp.cat.n + ' · media móvil ' + num(rp.media) + ' kg/mes') +
+    '<table><tr><td class="l">Clase (kg)</td>' + meses.map((m)=> '<td class="l">' + MESES_C[Number(m.slice(5)) - 1] + '</td>').join('') + '<td class="l">Total kg</td></tr>' +
+    cls.map((c)=> { const v = meses.map((m)=> suma(m, c)); return '<tr><td>' + esc(c) + '</td>' + v.map((x)=> '<td>' + (x ? num(x) : '') + '</td>').join('') + '<td><b>' + num(v.reduce((a, b)=> a + b, 0)) + '</b></td></tr>'; }).join('') + '</table>' +
+    UI.seccion('CATEGORÍA DEL GENERADOR DE RESPEL (MEDIA MÓVIL DE 6 MESES)', UI.tablaDatos([['Meses', nombreMes(rp.meses[0]) + ' a ' + nombreMes(rp.meses[5])], ['kg por mes', rp.meses.map((m)=> nombreMes(m) + ': ' + num(rp.porMes[m] || 0)).join(' · ')], ['Media móvil', num(rp.media) + ' kg/mes'], ['Categoría', rp.cat.n + (rp.cambio ? ' (antes ' + rp.catAnterior.n.toLowerCase() + ')' : '')],
+      ['Inscripción RUA', reg.inscrito ? reg.inscrito + (reg.numeroRegistro ? ' · N.º ' + reg.numeroRegistro : '') + (reg.categoriaInscrita ? ' · ' + reg.categoriaInscrita : '') : 'Sin datos'], ['Registros sin kg (no cuentan)', String(rp.sinKg.length)]]) +
+      '<p style="font-size:8px;margin:4px 0 0;">Decreto 4741 de 2005 compilado en el Decreto 1076 de 2015: gran generador ≥ 1.000 kg/mes; mediano 100 a &lt; 1.000; pequeño 10 a &lt; 100; con menos de 10 kg/mes no está obligado a inscribirse. Registro Único Ambiental: Res. 0839 de 2023.</p>') +
+    UI.seccion('ENTREGAS DE RESIDUOS PELIGROSOS Y RAEE', '<table><tr><td class="l">Fecha</td><td class="l">Residuo</td><td class="l">Cantidad</td><td class="l">kg</td><td class="l">Gestor</td><td class="l">Certificado</td><td class="l">Manifiesto</td></tr>' +
+      R.filter((x)=> /Peligroso|RAEE/.test(x.clase) && String(x.fecha).slice(0, 4) === anio).map((x)=> '<tr><td>' + esc(UI.corta(x.fecha)) + '</td><td>' + esc(x.corriente) + '</td><td>' + esc(x.cantidad + ' ' + (x.unidad || 'kg')) + '</td><td>' + (kgResiduo(x).kg == null ? 'sin kg' : num(kgResiduo(x).kg)) + '</td><td>' + esc(x.gestor || '') + '</td><td>' + esc(x.certificado || 'FALTA') + '</td><td>' + esc(x.manifiesto || '') + '</td></tr>').join('') + '</table>')], true);
+}
+
+/* ══ Consumos ══ */
+function pintarCon(panel){
+  const l = de('consumo').sort((a, b)=> String(b.resumen.mes).localeCompare(String(a.resumen.mes)) || String(a.resumen.sede).localeCompare(String(b.resumen.sede)));
+  const sedes = [...new Set(l.map((x)=> String(x.resumen.sede || '').trim()).filter(Boolean))];
+  if (sedeSel && !sedes.includes(sedeSel)) sedeSel = '';
+  const serie = consumosPorMes(l.map((x)=> x.resumen), sedeSel), conDatos = RECURSOS.filter((r)=> serie.some((x)=> typeof x[r.k] === 'number'));
+  if (conDatos.length && !conDatos.some((r)=> r.k === recSel)) recSel = conDatos[0].k;
+  const rec = RECURSOS.find((r)=> r.k === recSel), an = analizarConsumo(serie, rec), ult12 = an.pts.slice(-12);
+  const atip = new Set(an.atipicos.map((x)=> x.mes));
+  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nConB">+ Consumo del mes</button><button type="button" class="btn ghost" id="pCon">Informe de consumos (PDF)</button></div>' +
+    (conDatos.length ? '<div class="card" id="cAnalisis"><h2>¿Qué está pasando?</h2>' +
+      (sedes.length > 1 ? '<div class="field"><label>Sede</label><select id="cSede" data-sin-otro><option value="">Todas (suma)</option>' + sedes.map((s)=> '<option' + (s === sedeSel ? ' selected' : '') + '>' + esc(s) + '</option>').join('') + '</select></div>' : '') +
+      '<div class="chips" id="cRec">' + conDatos.map((r)=> '<button type="button" data-rec="' + r.k + '" class="' + (r.k === recSel ? 'on' : '') + '">' + esc(r.n) + '</button>').join('') + '</div>' +
+      '<div class="resumen-c ' + an.nivel + '" style="margin-top:10px;">' + esc(an.resumen) + '</div>' +
+      (ult12.length ? grafica({ titulo: rec.n + ' por mes (' + rec.u + ')', barras: ult12.map((x)=> ({ l: MESES_C[Number(x.mes.slice(5)) - 1], v: x[rec.k], c: atip.has(x.mes) ? (x[rec.k] > mediana(ult12.map((y)=> y[rec.k])) ? 'mal' : 'bajo') : '', t: nombreMes(x.mes) + ': ' + num(x[rec.k]) + ' ' + rec.u })),
+        refs: an.prom ? [{ v: an.prom, l: 'promedio ' + num(an.prom) + ' ' + rec.u, c: '#1d4a7a' }] : [] }) +
+        '<div class="leyenda"><span><i style="background:#7fb08f"></i>' + esc(rec.u) + ' del mes</span><span><i style="background:var(--rojo-300)"></i>atípico alto</span><span><i style="background:var(--pizarra-300)"></i>atípico bajo</span><span><i style="background:var(--azul-700)"></i>promedio anterior</span></div>' : '') +
+      (an.textos.length ? '<ul class="conclu">' + an.textos.map((t)=> '<li>' + esc(t) + '</li>').join('') + '</ul>' : '') +
+      (an.recs.length ? '<div style="font-weight:700;font-size:var(--fs-base);margin-top:8px;">Recomendaciones</div><ul class="recs">' + an.recs.map((t)=> '<li>' + esc(t) + '</li>').join('') + '</ul>' : '') +
+      '<p class="ayuda u-mt8">Conclusión automática con los datos registrados: revísala y complétala con lo que sabes del mes. Para el indicador por persona o por producción, anota los trabajadores y la producción de cada mes.</p></div>' : '') +
+    (l.length ? l.map((x)=> item(x, esc(nombreMes(x.resumen.mes)) + (x.resumen.sede ? ' · ' + esc(x.resumen.sede) : ''), [RECURSOS.filter((r)=> x.resumen[r.k] !== '' && x.resumen[r.k] != null).map((r)=> esc(num(x.resumen[r.k])) + ' ' + r.u + ' de ' + r.n.toLowerCase()).join(' · '), x.resumen.trabajadores ? esc(x.resumen.trabajadores) + ' trabajadores' : ''])).join('') : '<div class="empty">Sin consumos registrados. Anota cada mes lo que dicen las facturas de agua, energía y combustible.</div>');
+  const alistar = (v, el, pref)=> {
+    const e = [], mesHoy = UI.hoy().slice(0, 7);
+    if (v.mes && !/^\d{4}-\d{2}$/.test(v.mes)) e.push({ k: 'mes', l: 'Mes', m: 'no es un mes válido' });
+    else if (v.mes > mesHoy) e.push({ k: 'mes', l: 'Mes', m: 'no puede ser un mes futuro' });
+    RECURSOS.map((r)=> r.k).concat(['trabajadores', 'produccion']).forEach((k)=> { if (v[k] !== '' && v[k] != null && !(Number(v[k]) >= 0)) e.push({ k, l: (C_CON.find((c)=> c.k === k) || {}).l, m: 'no puede ser negativo' }); });
+    if (v.trabajadores !== '' && !Number.isInteger(v.trabajadores)) e.push({ k: 'trabajadores', l: 'Trabajadores', m: 'número entero' });
+    if (!RECURSOS.some((r)=> v[r.k] !== '' && v[r.k] != null)) e.push({ k: 'agua', l: 'Consumos', m: 'anota al menos un consumo (agua, energía, combustible, gas o papel)' });
+    if (v.produccion !== '' && v.produccion != null && !String(v.unidadProduccion || '').trim()) e.push({ k: 'unidadProduccion', l: 'Unidad de producción', m: 'escribe la unidad' });
+    v.sede = String(v.sede || '').trim();
+    if (de('consumo').some((x)=> x.resumen.mes === v.mes && UI.norm(x.resumen.sede) === UI.norm(v.sede) && x.id !== v.id)) e.push({ k: 'mes', l: 'Mes', m: 'ya hay consumos de ese mes y sede: ábrelos en la lista' });
+    const msg = errores(el, pref, e); if (msg) return msg;
+    v.fecha = v.mes + '-01';
+  };
+  const abrir = (d)=> Registros.editar({ titulo: (d.nuevo ? 'Nuevo: ' : '') + 'Consumos del mes', campos: C_CON, datos: d,
+    alAbrir: (el, pref)=> { const i = el.querySelector('#' + pref + 'mes'); if (i) i.max = UI.hoy().slice(0, 7); },
+    borrar: d.nuevo ? null : async ()=> { const ok = await Registros.borrar(d.id, 'Borrado desde Ambiental'); if (ok) cargar(); return ok; },
+    alGuardar: async (v, el, pref)=> { const e = alistar(v, el, pref); if (typeof e === 'string') return e;
+      const r = await Registros.guardar('consumo', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') return r; cargar(); return true; } });
+  panel.querySelectorAll('[data-id]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.id); if (d) abrir(d); }));
+  if ($('cRec')) $('cRec').addEventListener('click', (e)=> { const b = e.target.closest('[data-rec]'); if (b) { recSel = b.dataset.rec; pintarCon(panel); } });
+  if ($('cSede')) $('cSede').addEventListener('change', (e)=> { sedeSel = e.target.value; pintarCon(panel); });
+  const ultimo = l[0] ? l[0].resumen : {};
+  $('nConB').addEventListener('click', ()=> abrir({ id: SGSST.nuevoId('CNS'), nuevo: true, mes: mesMas(UI.hoy().slice(0, 7), -1), sede: ultimo.sede || '', trabajadores: ultimo.trabajadores || '', unidadProduccion: ultimo.unidadProduccion || '' }));
+  $('pCon').addEventListener('click', ()=> {
+    if (!serie.length) { UI.toast('No hay consumos para imprimir.'); return; }
+    const s12 = serie.slice(-12);
+    UI.imprimir([UI.cabecera('SG-CONSUMOS', 'SEGUIMIENTO DE CONSUMOS DE RECURSOS', (sedeSel || 'Todas las sedes') + ' · ' + nombreMes(s12[0].mes) + ' a ' + nombreMes(s12[s12.length - 1].mes)) +
+      '<table><tr><td class="l">Mes</td>' + RECURSOS.map((r)=> '<td class="l">' + esc(r.n) + ' (' + esc(r.u) + ')</td>').join('') + '<td class="l">Trabajadores</td><td class="l">Producción</td></tr>' +
+      s12.map((x)=> '<tr><td>' + esc(nombreMes(x.mes)) + '</td>' + RECURSOS.map((r)=> '<td>' + (x[r.k] != null ? num(x[r.k]) : '') + '</td>').join('') + '<td>' + (x.trabajadores || '') + '</td><td>' + (x.produccion != null ? num(x.produccion) + ' ' + esc(x.unidadProduccion || '') : '') + '</td></tr>').join('') + '</table>' +
+      RECURSOS.map((r)=> { const a = analizarConsumo(serie, r); return a.pts.length ? UI.seccion(r.n.toUpperCase() + ': ' + a.resumen.replace(/^[^:]+: /, '').toUpperCase(), '<table><tr><td>' + a.textos.map(esc).join('<br>') + (a.recs.length ? '<br><b>Recomendaciones:</b> ' + a.recs.map(esc).join(' ') : '') + '</td></tr></table>') : ''; }).join('')], true);
+  });
+}
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar().then(async ()=> { const h = decodeURIComponent(location.hash.slice(1));
+  if (['residuos', 'consumos', 'aspectos'].includes(h)) document.querySelector('#tabs [data-tab="' + h + '"]').click();
+  else if (/^ASP-/.test(h)) { const d = await Registros.abrir(h); if (d) editarAspecto(d); }
+  else if (/^(RES|RESPEL)-/.test(h)) document.querySelector('#tabs [data-tab="residuos"]').click();
+  else if (/^CNS-/.test(h)) document.querySelector('#tabs [data-tab="consumos"]').click(); });
+</script>
+</body>
+</html>

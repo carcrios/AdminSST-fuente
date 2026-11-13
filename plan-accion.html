@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i9CGvrwwkxatT7MkU3GnICVYIZp103E6BBUqVovz/yI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Plan de acción · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Plan de acción · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+.filtros{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px;}
+.filtros select{width:100%;border:1.5px solid var(--line);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-base);background:#fff;font-family:inherit;color:var(--ink);}
+.seg{border-left:3px solid var(--line);padding:4px 0 8px 10px;margin-bottom:6px;font-size:var(--fs-base);line-height:1.4;}
+.seg small{display:block;color:var(--muted);font-size:var(--fs-menor);}
+  .pq-paso{border-left:3px solid var(--azul-600);padding:6px 10px;margin:6px 0;background:var(--n-50);border-radius:0 8px 8px 0;font-size:var(--fs-menor);}
+.lote-barra{margin:6px 0;} #loteAcc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;} .lote-chk{display:inline-flex;align-items:center;margin-right:6px;float:left;padding:14px 4px;} .lote-chk input{width:22px;height:22px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="screen active" id="scrLista">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST</div>
+    <h1>Plan de acción</h1>
+    <p>Todo hallazgo con responsable, fecha y evidencia de cierre</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="avisoCopia"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-tab="abiertas">Abiertas <span class="n" id="nAb">0</span></button>
+    <button type="button" data-tab="vencidas">Vencidas <span class="n" id="nVe">0</span></button>
+    <button type="button" data-tab="cerradas">Cerradas <span class="n" id="nCe">0</span></button>
+    <button type="button" data-tab="todas">Todas</button>
+  </div>
+  <div class="filtros">
+    <select id="fOrigen"><option value="">Todos los orígenes</option></select>
+    <select id="fResp"><option value="">Todos los responsables</option></select>
+  </div>
+  <input type="search" class="buscar" id="buscar" placeholder="Buscar en hallazgo o acción">
+  <div id="fPlan"></div>
+  <div class="lote-barra"><button type="button" class="btn ghost mini" id="btnLote" aria-pressed="false">☑️ Seleccionar varias</button><div id="loteAcc" hidden></div></div>
+  <div id="lista"><div class="empty">Cargando…</div></div>
+  <button type="button" class="btn amber" id="btnNueva">+ Nueva acción</button>
+  <button type="button" class="btn ghost" id="btnPdf">🖨️ PDF del plan de acción (lo que está filtrado)</button>
+  <div class="version-portal">Portal SSTA · versión v174</div>
+</div>
+
+<div class="screen" id="scrDetalle">
+  <div class="hdr">
+    <a class="back" href="#" id="volver">← Volver al plan de acción</a>
+    <div class="eyebrow" id="dCodigo">—</div>
+    <h1 id="dTitulo">—</h1>
+    <p id="dSub">—</p>
+  </div>
+  <div class="card" id="dDatos"></div>
+  <!-- v154: análisis de causa con los 5 porqués, visible siempre (antes solo salía al cerrar) -->
+  <div class="card" id="cardPq">
+    <h2>Análisis de causa · 5 porqués</h2>
+    <div id="pqResumen"></div>
+    <button type="button" class="btn ghost" id="btnPq">🔍 Hacer los 5 porqués</button>
+  </div>
+  <div class="card">
+    <h2>Seguimiento</h2>
+    <div id="dSeg"></div>
+    <div class="field"><textarea id="segTexto" placeholder="Avance, compra solicitada, obstáculo…"></textarea></div>
+    <div class="fila-btn">
+      <button type="button" class="btn ghost" id="btnSeg">Anotar avance</button>
+      <button type="button" class="btn ghost" id="btnReprog">Cambiar fecha</button>
+    </div>
+  </div>
+  <div class="card" id="cardCierre">
+    <h2>Cierre</h2>
+    <div class="field"><label>Evidencia (qué se hizo)</label><textarea id="cEvid" placeholder="Ej: se instaló la guarda nueva y se reentrenó a 6 personas (ver foto y lista de asistencia)"></textarea></div>
+    <div class="field"><label>Fotos de la evidencia</label><div id="cFotos"></div></div>
+    <div class="grid2">
+      <div class="field"><label>Fecha de cierre</label><input type="date" id="cFecha"></div>
+      <div class="field"><label>¿Fue eficaz?</label><select id="cEficaz"><option>Sí</option><option>No</option><option>Pendiente de verificar</option></select></div>
+    </div>
+    <div class="field"><label>Cierra</label><input type="text" id="cQuien" placeholder="Nombre (escribe para buscar)"></div>
+    <button type="button" class="btn verde" id="btnCerrar">✅ Cerrar la acción</button>
+  </div>
+  <button type="button" class="btn ghost" id="btnReabrir" hidden>Reabrir</button>
+  <div class="status-msg" id="msgDet"></div>
+  <div class="card"><div id="dAdj"></div><div id="dHist"></div></div>
+</div>
+
+</div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+const $ = UI.$;
+let filas = [], tab = 'abiertas', actual = null, fotosCierre = null;
+let fCerr = '';   // v109: en «Cerradas», ver solo las que se cerraron tarde (lo deja la cifra «cerradas a tiempo»)
+window.filtrarKpi = (v)=> { fCerr = v || ''; pintar(); };
+const tarde = (x)=> x.estado === 'CERRADA' && x.resumen.fechaCierre && x.resumen.fechaCompromiso && x.resumen.fechaCierre > x.resumen.fechaCompromiso;
+
+function show(id){ document.querySelectorAll('.screen').forEach((s)=>s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+const vencida = (x)=> x.estado !== 'CERRADA' && x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < UI.hoy();
+// v148: verde solo para lo cerrado; lo abierto y a tiempo va neutro (antes el verde con ✓ parecía «cumplido»)
+function claseDe(x){ if (x.estado === 'CERRADA') return 'ok'; const c = UI.semaforo(x.resumen.fechaCompromiso, 5); return c === 'ok' ? 'gris' : c; }
+function enlaceOrigen(ref){
+  if (!ref) return '';
+  if (/^REP-/.test(ref)) return 'reportes.html#' + encodeURIComponent(ref);
+  if (/^INS-/.test(ref)) return 'inspecciones.html#' + encodeURIComponent(ref);
+  if (/^PRE-/.test(ref)) return 'preoperacional.html#' + encodeURIComponent(ref);
+  if (/^AUD-/.test(ref)) return 'auditorias.html#' + encodeURIComponent(ref);
+  if (/^PEL-/.test(ref)) return 'peligros.html#' + encodeURIComponent(ref);
+  if (/^(SIM|EME)-/.test(ref)) return 'emergencias.html';
+  if (/^(CAM|PRV|LEG|DOC|POL)-/.test(ref)) return 'documental.html';
+  if (/^(PSI|EXA)-/.test(ref)) return 'salud.html';
+  if (/^REV-/.test(ref)) return 'revision-direccion.html';
+  if (/^PRG-/.test(ref)) return 'programas.html';
+  if (/^(PESV|VEH|CON|SIN)-/.test(ref)) return 'pesv.html';
+  if (/^(CTR|ING)-/.test(ref)) return 'contratistas.html';
+  if (/^(ASP|RES|CNS)-/.test(ref)) return 'ambiental.html';
+  if (/^(SUS|QUIMICOS)-/.test(ref)) return 'quimicos.html#' + encodeURIComponent(ref);
+  if (/^(PNC|PQR|RIC|OBC|CTX|ENC)-/.test(ref)) return 'calidad.html#' + encodeURIComponent(ref);
+  if (/^(PIN|PLI)-/.test(ref)) return 'inspecciones.html';
+  if (/^REU-/.test(ref)) return actual && actual.origen === 'Comité de convivencia' ? 'convivencia.html' : 'copasst.html';
+  return '';
+}
+
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; $('btnNueva').disabled = true; return; }
+  const r = await SGSST.listar('accion');
+  UI.avisoCopia($('avisoCopia'), r);
+  filas = r.rows;
+  const ori = [...new Set(filas.map((x)=> x.resumen.origen).filter(Boolean))].sort();
+  const res = [...new Set(filas.map((x)=> x.resumen.responsable).filter(Boolean))].sort((a, b)=> a.localeCompare(b));
+  const vO = $('fOrigen').value, vR = $('fResp').value;
+  $('fOrigen').innerHTML = '<option value="">Todos los orígenes</option>' + ori.map((o)=> '<option>' + esc(o) + '</option>').join('');
+  $('fResp').innerHTML = '<option value="">Todos los responsables</option>' + res.map((o)=> '<option>' + esc(o) + '</option>').join('');
+  $('fOrigen').value = vO; $('fResp').value = vR;
+  pintar();
+}
+function filtradas(){
+  const q = UI.norm($('buscar').value).trim(), o = $('fOrigen').value, rp = $('fResp').value;
+  let l = filas.filter((x)=> tab === 'todas' || (tab === 'abiertas' && x.estado !== 'CERRADA') || (tab === 'vencidas' && vencida(x)) || (tab === 'cerradas' && x.estado === 'CERRADA'));
+  if (tab === 'cerradas' && fCerr === 'tarde') l = l.filter(tarde);
+  if (o) l = l.filter((x)=> x.resumen.origen === o);
+  if (rp) l = l.filter((x)=> x.resumen.responsable === rp);
+  if (q) l = l.filter((x)=> UI.norm([x.resumen.hallazgo, x.resumen.accion, x.resumen.origenRef].join(' ')).includes(q));
+  return l.sort((a, b)=> (a.estado === 'CERRADA') - (b.estado === 'CERRADA') || String(a.resumen.fechaCompromiso).localeCompare(String(b.resumen.fechaCompromiso)));
+}
+function pintar(){
+  const ab = filas.filter((x)=> x.estado !== 'CERRADA'), ve = filas.filter(vencida), ce = filas.filter((x)=> x.estado === 'CERRADA');
+  const aTiempo = ce.filter((x)=> !x.resumen.fechaCierre || !x.resumen.fechaCompromiso || x.resumen.fechaCierre <= x.resumen.fechaCompromiso).length;
+  $('nAb').textContent = ab.length; $('nVe').textContent = ve.length; $('nCe').textContent = ce.length;
+  const cumplimiento = filas.length ? Math.round(ce.length * 100 / filas.length) : 0;
+  // v109: cada cifra abre la pestaña con esa lista.
+  $('kpis').innerHTML = '<div class="kpi" data-ir="tab:abiertas"><div class="v">' + ab.length + '</div><div class="n">abiertas</div></div>' +
+    '<div class="kpi ' + (ve.length ? 'mal' : 'ok') + '" data-ir="tab:vencidas"><div class="v">' + ve.length + '</div><div class="n">vencidas</div></div>' +
+    '<div class="kpi" data-ir="tab:todas"><div class="v">' + cumplimiento + '%</div><div class="n">cumplimiento</div><div class="f">cerradas / total</div></div>' +
+    '<div class="kpi" data-ir="tab:cerradas|filtro:' + (ce.some(tarde) ? 'tarde' : '') + '"><div class="v">' + (ce.length ? Math.round(aTiempo * 100 / ce.length) : 0) + '%</div><div class="n">cerradas a tiempo</div></div>';
+  // Tareas que dejó el asesor externo (panel del asesor)
+  const ase = ab.filter((x)=> x.resumen.origen === 'Asesor SST');
+  let av = $('avisoAsesor'); if (!av) { av = document.createElement('div'); av.id = 'avisoAsesor'; $('kpis').insertAdjacentElement('beforebegin', av); }
+  av.innerHTML = ase.length ? '<div class="aviso info">📌 Tu asesor de SST te dejó <b>' + ase.length + '</b> tarea(s) abiertas' + (ase.some(vencida) ? ', ' + ase.filter(vencida).length + ' vencida(s)' : '') + '. <button type="button" class="btn-mini" id="verAsesor">Verlas</button></div>' : '';
+  if ($('verAsesor')) $('verAsesor').addEventListener('click', ()=> { $('fOrigen').value = 'Asesor SST'; pintar(); });
+  $('fPlan').innerHTML = tab === 'cerradas' && ce.length ? UI.chipsFiltro([['', 'Todas las cerradas (' + ce.length + ')'], ['tarde', 'Cerradas tarde (' + ce.filter(tarde).length + ')']], fCerr) : '';
+  $('fPlan').querySelectorAll('[data-f]').forEach((b)=> b.addEventListener('click', ()=> window.filtrarKpi(b.dataset.f)));
+  const l = filtradas();
+  $('lista').innerHTML = l.length ? l.map((x)=>{
+    const s = x.resumen, c = claseDe(x);
+    return (lote ? '<label class="lote-chk"><input type="checkbox" data-sel="' + esc(x.id) + '"' + (sel.has(x.id) ? ' checked' : '') + ' aria-label="Seleccionar ' + esc(s.accion || s.hallazgo || x.id) + '"></label>' : '') + '<button type="button" class="item ' + c + '" data-id="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.accion || s.hallazgo) + '</div>' +
+      (s.hallazgo && s.accion ? '<div class="m">Hallazgo: ' + esc(s.hallazgo) + '</div>' : '') +
+      '<div class="m">👤 ' + esc(s.responsable || '—') + ' · ' + esc(s.origen || '') + (s.prioridad ? ' · prioridad ' + esc(s.prioridad.toLowerCase()) : '') + (x.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div></div>' +
+      '<span class="chip ' + c + '">' + (x.estado === 'CERRADA' ? 'Cerrada ' + esc(UI.corta(s.fechaCierre)) : (vencida(x) ? 'Venció ' : '') + esc(UI.corta(s.fechaCompromiso))) + '</span></div></button>';
+  }).join('') : '<div class="empty">' + (filas.length ? 'Nada con estos filtros.' : 'El plan de acción está vacío. Las acciones se crean aquí o desde reportes, inspecciones y EPP.') + '</div>';
+}
+
+/* ── Detalle ── */
+async function abrir(id){
+  $('dDatos').innerHTML = '<div class="status-msg">Abriendo…</div>'; $('dSeg').innerHTML = '';
+  show('scrDetalle');
+  const d = await SGSST.doc(id);
+  if (!d) { const f = filas.find((x)=> x.id === id); $('dDatos').innerHTML = '<div class="aviso">No se pudo abrir' + (f && f.pendiente ? ' (aún está pendiente de enviar desde este equipo)' : '') + '.</div>'; return; }
+  actual = d; pintarDetalle();
+}
+function dato(et, v, html){ return v ? '<div class="dato"><span>' + esc(et) + '</span><b>' + (html ? v : esc(v)) + '</b></div>' : ''; }
+function pintarDetalle(){
+  const d = actual, cerrada = d.estado === 'CERRADA';
+  $('dCodigo').textContent = d.id + (cerrada ? ' · CERRADA' : '');
+  $('dTitulo').textContent = d.accion || d.hallazgo || 'Acción';
+  const c0 = cerrada ? 'ok' : UI.semaforo(d.fechaCompromiso, 5), c = !cerrada && c0 === 'ok' ? 'gris' : c0;
+  $('dSub').textContent = cerrada ? 'Cerrada el ' + UI.corta(d.cierre && d.cierre.fecha) : (d.fechaCompromiso < UI.hoy() ? '⚠ Vencida: ' : 'Compromiso: ') + UI.corta(d.fechaCompromiso) + ' (' + UI.cuandoTexto(d.fechaCompromiso) + ')';
+  const link = enlaceOrigen(d.origenRef);
+  $('dDatos').innerHTML = '<h2>Acción</h2>' + (d.hallazgo ? '<div class="field"><label>Hallazgo</label><div class="texto-largo">' + esc(d.hallazgo) + '</div></div>' : '') +
+    (d.causaRaiz ? '<div class="field"><label>Causa raíz</label><div class="texto-largo">' + esc(d.causaRaiz) + '</div>' +
+      (Array.isArray(d.porques) && d.porques.length ? '<details class="u-mt6"><summary>Ver los ' + d.porques.length + ' porqués</summary>' + d.porques.map((x, i)=> '<div class="pq-paso"><b>' + (i + 1) + '. ' + esc(x.p) + '</b><br>' + esc(x.r) + '</div>').join('') + '</details>' : '') + '</div>' : '') +
+    '<div class="field"><label>Acción</label><div class="texto-largo">' + esc(d.accion) + '</div></div>' +
+    (d.fotos && d.fotos.length ? '<div class="fotos u-mb8">' + d.fotos.map(UI.src).filter(Boolean).map((f)=> '<div class="f"><img src="' + f + '" alt="Foto"></div>').join('') + '</div>' : '') +
+    dato('Responsable', d.responsable) + dato('Tipo', d.tipoAccion) + dato('Prioridad', d.prioridad) + dato('Origen', d.origen) +
+    dato('Referencia', d.origenRef ? (link ? '<a href="' + link + '">' + esc(d.origenRef) + ' ↗</a>' : esc(d.origenRef)) : '', true) + dato('Centro de costo', d.centro) + dato('Creada', UI.corta(d.fecha)) + dato('La dejó', d.asignadaPor ? d.asignadaPor + ' (asesor)' : '') +
+    (d.verificada && d.verificada.fecha ? '<div class="aviso ok u-mt8">✓ Verificada por el asesor el ' + esc(UI.corta(d.verificada.fecha)) + (d.verificada.por ? ' · ' + esc(d.verificada.por) : '') + (d.verificada.nota ? ': ' + esc(d.verificada.nota) : '') + '</div>' : '') +
+    (cerrada ? '<div class="aviso ok u-mt10"><b>Evidencia:</b> ' + esc((d.cierre || {}).evidencia || '—') + '<br>Eficaz: ' + esc((d.cierre || {}).eficaz || '—') + ' · Cerró: ' + esc((d.cierre || {}).quien || '—') + '</div>' +
+      ((d.cierre || {}).fotos && d.cierre.fotos.length ? '<div class="fotos">' + d.cierre.fotos.map(UI.src).filter(Boolean).map((f)=> '<div class="f"><img src="' + f + '" alt="Evidencia"></div>').join('') + '</div>' : '') : '');
+  $('dSeg').innerHTML = (d.seguimiento || []).length ? d.seguimiento.slice().reverse().map((s)=> '<div class="seg">' + esc(s.texto) + '<small>' + esc(UI.corta(s.fecha)) + (s.quien ? ' · ' + esc(s.quien) : '') + '</small></div>').join('') : '<div class="m" style="font-size:var(--fs-base);color:var(--muted);margin-bottom:8px;">Sin avances anotados.</div>';
+  $('cardCierre').hidden = cerrada; $('btnReabrir').hidden = !cerrada;
+  // v154: tarjeta de los 5 porqués: ayuda, la cadena hecha y el botón para hacerla o rehacerla.
+  const pqs = Array.isArray(d.porques) ? d.porques : [];
+  $('pqResumen').innerHTML = pqs.length ? pqs.map((x, i)=> '<div class="pq-paso"><b>' + (i + 1) + '. ' + esc(x.p) + '</b><br>' + esc(x.r) + '</div>').join('') + '<div class="aviso ok u-mt6"><b>Causa raíz:</b> ' + esc(d.causaRaiz || pqs[pqs.length - 1].r) + '</div>'
+    : (d.causaRaiz ? '<div class="aviso ok"><b>Causa raíz:</b> ' + esc(d.causaRaiz) + '</div><p class="ayuda">Se escribió sin los porqués. Puedes hacerlos para dejar el análisis completo.</p>'
+      : '<p class="ayuda">Pregunta «¿por qué?» a partir del hallazgo hasta llegar a la causa que, si se elimina, evita que vuelva a pasar. Cada respuesta se vuelve la siguiente pregunta; el portal te ayuda en cada paso. ' + (/correctiva/i.test(d.tipoAccion || '') ? '<b>En una acción correctiva es obligatorio antes de cerrarla.</b>' : 'Se recomienda antes de cerrarla.') + '</p>');
+  $('btnPq').textContent = pqs.length || d.causaRaiz ? '🔍 Rehacer los 5 porqués' : '🔍 Hacer los 5 porqués';
+  $('btnPq').hidden = cerrada && !pqs.length && !!d.causaRaiz;
+  $('cFecha').value = UI.hoy(); $('cEvid').value = ''; $('cEficaz').value = 'Sí';
+  $('cQuien').value = quien();
+  fotosCierre = UI.fotos($('cFotos'), { max: 4 });
+  $('msgDet').textContent = '';
+  if (!d.pendiente) { UI.adjuntos($('dAdj'), { id: d.id, lista: d.adjuntos || [], titulo: 'Evidencias y soportes', alCambiar: (l)=> { d.adjuntos = l; } }); $('dHist').innerHTML = ''; $('dHist').appendChild(UI.botonHistorial(d.id, d.accion)); }
+}
+async function parche(campos, ok, nota){
+  $('msgDet').textContent = 'Guardando…';
+  // El avance se AGREGA en el servidor (no se manda la lista entera): dos
+  // celulares que anotan a la vez no se borran entre sí.
+  const agregar = nota ? { seguimiento: [Object.assign({ uid: SGSST.nuevoOpId(), fecha: UI.hoy(), quien: quien() }, nota)] } : undefined;
+  const r = await SGSST.enviar({ action:'parche', tipo:'accion', id: actual.id, campos, agregar });
+  if (!r.ok) { $('msgDet').textContent = Errores.texto('guardó', r); return false; }
+  Object.assign(actual, campos);
+  if (agregar) { actual.seguimiento = (actual.seguimiento || []).concat(agregar.seguimiento); if (!campos.estado && (actual.estado || 'ABIERTA') === 'ABIERTA') actual.estado = 'EN PROCESO'; }
+  const i = filas.findIndex((x)=> x.id === actual.id);
+  if (i !== -1) { if (r.resumen) filas[i].resumen = r.resumen; if (r.estado) filas[i].estado = r.estado; else if (campos.estado) filas[i].estado = campos.estado; if (campos.fechaCompromiso) filas[i].resumen.fechaCompromiso = campos.fechaCompromiso; }
+  pintarDetalle();
+  $('msgDet').textContent = r.enCola ? '⏳ Guardado en el equipo; se envía al volver la señal.' : ok;
+  return true;
+}
+const quien = ()=> { try { return Sesion.nombre() || localStorage.getItem('ssta-reporta') || ''; } catch (e) { return ''; } };
+$('btnSeg').addEventListener('click', async ()=>{
+  const t = $('segTexto').value.trim(); if (!t) { $('segTexto').focus(); return; }
+  if (await parche({}, '✓ Avance anotado', { texto: t })) $('segTexto').value = '';
+});
+$('btnReprog').addEventListener('click', ()=>{
+  const m = UI.modal('<h3>Cambiar fecha de compromiso</h3><div class="field"><label>Nueva fecha</label><input type="date" id="rpF" value="' + esc(actual.fechaCompromiso || UI.hoy()) + '"></div>' +
+    '<div class="field"><label>Motivo (queda en el seguimiento)</label><input type="text" id="rpM" placeholder="Ej: el proveedor entrega el 20"></div>' +
+    '<button type="button" class="btn amber" id="rpOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  m.el.querySelector('#rpOk').addEventListener('click', async ()=>{
+    const f = m.el.querySelector('#rpF').value, mo = m.el.querySelector('#rpM').value.trim();
+    if (!f || !mo) { UI.toast('Fecha y motivo son obligatorios.', 'mal'); return; }
+    m.cerrar();
+    await parche({ fechaCompromiso: f }, '✓ Fecha cambiada', { texto: 'Fecha cambiada de ' + UI.corta(actual.fechaCompromiso) + ' a ' + UI.corta(f) + ': ' + mo });
+  });
+});
+UI.autocompletar($('cQuien'), (p)=> { $('cQuien').value = p.nombre; });
+$('btnCerrar').addEventListener('click', async ()=>{
+  const ev = $('cEvid').value.trim(), fotos = fotosCierre.get();
+  if (!ev) { $('msgDet').textContent = 'Describe la evidencia: sin evidencia no se cierra.'; $('cEvid').focus(); return; }
+  if (!$('cQuien').value.trim()) { $('msgDet').textContent = 'Falta quién cierra.'; return; }
+  if (!fotos.length && !await Dialogo.confirmar('¿Cerrar sin foto de evidencia?')) return;
+  // v147: ISO 9001 / 45001 §10.2 — una acción correctiva no se cierra sin la causa raíz.
+  // v152: la causa raíz se construye con los 5 porqués, guiados, al momento de cerrar.
+  const extra = {};
+  if (!String(actual.causaRaiz || '').trim()) {
+    const obligatoria = /correctiva/i.test(actual.tipoAccion || '');
+    const r = await cincoPorques(actual, obligatoria, true);
+    if (r === null) { if (obligatoria) { $('msgDet').textContent = 'Falta la causa raíz: en una acción correctiva se hacen los porqués antes de cerrar.'; return; } }
+    else { extra.causaRaiz = r.causa; extra.porques = r.porques; }
+  }
+  await parche(Object.assign(extra, { estado: 'CERRADA', cierre: { fecha: $('cFecha').value || UI.hoy(), evidencia: ev, fotos, eficaz: $('cEficaz').value, quien: $('cQuien').value.trim() } }), '✓ Acción cerrada');
+});
+/* v152 · 5 porqués guiados. Cada respuesta se vuelve la siguiente pregunta («¿Por qué …?») hasta llegar a la causa
+   que, si se elimina, evita que vuelva a pasar. Devuelve { causa, porques: [{p, r}] } o null si se cancela/omite. */
+const AYUDA_PQ = [
+  'Piensa en lo que pasó justo antes. Ej.: «el trabajador no usaba el arnés».',
+  'Busca la razón de esa respuesta, no un culpable. Ej.: «el arnés no estaba disponible en la bodega».',
+  'Mira el método, los materiales, los equipos, el entorno o la medición. Ej.: «no hay control de préstamo de EPP».',
+  'Pregunta qué falló en el sistema (procedimiento, inspección, capacitación). Ej.: «el procedimiento no asigna quién controla el EPP».',
+  'Si la eliminas, ¿el problema deja de repetirse? Esa es la causa raíz.'];
+const PISTAS_PQ = ['Método / procedimiento', 'Mano de obra / capacitación', 'Material / EPP', 'Máquina / equipo', 'Entorno / área', 'Supervisión / inspección'];
+function cincoPorques(d, obligatoria, cerrando){
+  return new Promise((listo)=> {
+    const problema = d.hallazgo || d.accion || 'el hallazgo';
+    const pasos = [];
+    const m = UI.modal('<h3>Los 5 porqués</h3><p class="ayuda">Antes de cerrar, busca la causa raíz. Responde y la respuesta se vuelve la siguiente pregunta. Normalmente en 3 a 5 porqués llegas a la causa.</p>' +
+      '<div class="aviso u-mb8"><b>Problema:</b> ' + esc(problema) + '</div><div id="pqLista"></div>' +
+      '<details class="u-mb8"><summary>Ver un ejemplo completo</summary><div class="ayuda">' +
+        '<b>Problema:</b> un trabajador se cayó de la escalera.<br>1. ¿Por qué? Se resbaló el pie de la escalera.<br>2. ¿Por qué? La escalera no tenía zapatas antideslizantes.<br>' +
+        '3. ¿Por qué? Se gastaron y nadie lo notó.<br>4. ¿Por qué? Las escaleras no están en el cronograma de inspecciones.<br>5. ¿Por qué? No hay un responsable de inventariar e inspeccionar las escaleras.<br>' +
+        '<b>Causa raíz:</b> no hay responsable ni inspección periódica de las escaleras → acción: incluirlas en el cronograma y asignar responsable.<br>' +
+        '<b>Consejos:</b> no busques culpables («fue descuidado») sino lo que falló en el método, el equipo o la supervisión; cada respuesta debe ser un hecho comprobable; si llegas a algo que la empresa puede controlar y cambiar, ya es la causa raíz.</div></details>' +
+      '<div class="field"><label for="pqR" id="pqPreg"></label><textarea id="pqR" rows="3"></textarea><div class="ayuda" id="pqAyuda"></div>' +
+      '<div class="chips u-mt6" id="pqPistas">' + PISTAS_PQ.map((x)=> '<button type="button" data-p="' + esc(x) + '">' + esc(x) + '</button>').join('') + '</div></div>' +
+      '<div id="pqMsg" class="ayuda u-mal"></div>' +
+      '<button type="button" class="btn" id="pqSig">Siguiente por qué →</button>' +
+      '<button type="button" class="btn amber" id="pqFin" hidden>✓ Esta es la causa raíz</button>' +
+      '<button type="button" class="btn ghost" id="pqAtras" hidden>← Corregir el anterior</button>' +
+      (obligatoria ? '' : '<button type="button" class="btn ghost" id="pqOmitir">' + (cerrando ? 'Cerrar sin los porqués' : 'Ahora no') + '</button>'));
+    const q = (id)=> m.el.querySelector('#' + id);
+    let hecho = false; const fin = (v)=> { if (hecho) return; hecho = true; m.cerrar(); listo(v); };
+    const pintar = ()=> {
+      const n = pasos.length, previo = n ? pasos[n - 1].r : problema;
+      q('pqLista').innerHTML = pasos.map((x, i)=> '<div class="pq-paso"><b>' + (i + 1) + '. ' + esc(x.p) + '</b><br>' + esc(x.r) + '</div>').join('');
+      q('pqPreg').textContent = (n + 1) + '.º ' + (n === 0 ? '¿Por qué ocurrió el problema?' : '¿Por qué ' + previo.replace(/^[¿]?/, '').replace(/[.?!]+$/, '').replace(/^\w/, (c)=> c.toLowerCase()) + '?');
+      q('pqAyuda').textContent = AYUDA_PQ[Math.min(n, 4)];
+      q('pqR').value = ''; q('pqMsg').textContent = '';
+      q('pqSig').hidden = n >= 5; q('pqSig').textContent = n >= 4 ? 'Guardar el 5.º por qué' : 'Siguiente por qué →';
+      q('pqFin').hidden = n < 1; q('pqAtras').hidden = n < 1;
+      if (n >= 5) { q('pqR').closest('.field').hidden = true; q('pqMsg').textContent = 'Ya tienes los 5 porqués: confirma la causa raíz.'; q('pqMsg').classList.remove('u-mal'); }
+      else q('pqR').closest('.field').hidden = false;
+      setTimeout(()=> q('pqR').focus(), 50);
+    };
+    const tomar = ()=> { const r = q('pqR').value.trim(); if (!r) return true; if (r.length < 5) { q('pqMsg').textContent = 'Escribe una respuesta un poco más completa.'; return false; } pasos.push({ p: q('pqPreg').textContent.replace(/^\d\.º /, ''), r }); return true; };
+    q('pqPistas').addEventListener('click', (e)=> { const b = e.target.closest('[data-p]'); if (!b) return; const t = q('pqR'); t.value = (t.value ? t.value.trim() + ' ' : '') + '(' + b.dataset.p + ') '; t.focus(); });
+    q('pqSig').addEventListener('click', ()=> { if (!q('pqR').value.trim()) { q('pqMsg').textContent = 'Responde la pregunta para seguir.'; return; } if (tomar()) pintar(); });
+    q('pqAtras').addEventListener('click', ()=> { const x = pasos.pop(); pintar(); if (x) q('pqR').value = x.r; });
+    q('pqFin').addEventListener('click', ()=> { if (!tomar()) return; const ult = pasos[pasos.length - 1]; fin({ causa: ult.r, porques: pasos.slice() }); });
+    if (q('pqOmitir')) q('pqOmitir').addEventListener('click', ()=> fin(null));
+    const obs = new MutationObserver(()=> { if (!document.body.contains(m.el)) { obs.disconnect(); fin(null); } }); obs.observe(document.body, { childList: true, subtree: true });
+    pintar();
+  });
+}
+$('btnPq').addEventListener('click', async ()=> {
+  const r = await cincoPorques(actual, false); if (!r) return;
+  $('msgDet').textContent = 'Guardando el análisis…';
+  const res = await SGSST.enviar({ action: 'parche', tipo: 'accion', id: actual.id, campos: { causaRaiz: r.causa, porques: r.porques } });
+  if (!res.ok) { $('msgDet').textContent = Errores.texto('guardó', res); return; }
+  actual.causaRaiz = r.causa; actual.porques = r.porques; $('msgDet').textContent = '✓ Análisis de causa guardado.'; UI.toast('✓ Causa raíz guardada.');
+  if (typeof pintarDetalle === 'function') pintarDetalle(actual); else if (typeof abrir === 'function') abrir(actual.id);
+});
+$('btnReabrir').addEventListener('click', async ()=>{
+  const mo = await Dialogo.pedir('¿Por qué se reabre? (queda en el seguimiento)'); if (!mo) return;
+  await parche({ estado: 'ABIERTA', cierre: { fecha: '', evidencia: '', fotos: [], eficaz: '', quien: '' } }, '✓ Reabierta', { texto: 'Reabierta: ' + mo });
+});
+
+/* ── Nueva acción (sin origen) ── */
+$('btnNueva').addEventListener('click', ()=>{
+  const m = UI.modal('<h3>¿De dónde sale esta acción?</h3><div class="chips" id="oriChips">' + UI.ORIGENES.map((o)=> '<button type="button" data-o="' + esc(o) + '">' + esc(o) + '</button>').join('') + '</div>' +
+    '<button type="button" class="btn ghost" data-cerrar>Cancelar</button>');
+  m.el.querySelector('#oriChips').addEventListener('click', (e)=>{ const b = e.target.closest('[data-o]'); if (!b) return; m.cerrar(); UI.nuevaAccion({ origen: b.dataset.o }, ()=> cargar()); });
+});
+
+/* ── PDF ── */
+$('btnPdf').addEventListener('click', ()=>{
+  const l = filtradas();
+  if (!l.length) { UI.toast('No hay acciones con estos filtros.'); return; }
+  let t = '<table><tr><th style="width:3%">N°</th><th style="width:11%">Origen</th><th style="width:22%">Hallazgo</th><th style="width:24%">Acción</th><th style="width:7%">Tipo</th><th style="width:11%">Responsable</th><th style="width:8%">Compromiso</th><th style="width:7%">Estado</th><th style="width:7%">Cierre</th></tr>';
+  l.forEach((x, i)=>{ const s = x.resumen, v = vencida(x);
+    t += '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(s.origen) + (s.origenRef ? '<br><span class="nota">' + esc(s.origenRef) + '</span>' : '') + '</td><td>' + esc(s.hallazgo) + '</td><td>' + esc(s.accion) + '</td><td>' + esc(s.tipoAccion) + '</td><td>' + esc(s.responsable) + '</td>' +
+      '<td' + (v ? ' style="background:var(--rojo-100);"' : '') + '>' + esc(UI.corta(s.fechaCompromiso)) + '</td><td>' + esc(x.estado) + (v ? ' (VENCIDA)' : '') + '</td><td>' + esc(UI.corta(s.fechaCierre)) + (s.eficaz ? '<br>Eficaz: ' + esc(s.eficaz) : '') + '</td></tr>'; });
+  t += '</table>';
+  const filtro = [{ abiertas:'Abiertas', vencidas:'Vencidas', cerradas:'Cerradas', todas:'Todas' }[tab], $('fOrigen').value, $('fResp').value].filter(Boolean).join(' · ');
+  UI.imprimir([UI.cabecera('SG-PLAN', 'PLAN DE ACCIÓN DEL SG-SST', 'Corte ' + UI.corta(UI.hoy()) + ' · ' + filtro + ' · ' + l.length + ' acción(es)') + t], true);
+});
+
+$('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+['buscar', 'fOrigen', 'fResp'].forEach((id)=> $(id).addEventListener(id === 'buscar' ? 'input' : 'change', pintar));
+$('lista').addEventListener('click', (e)=>{ if (e.target.closest('[data-sel]')) return; const b = e.target.closest('[data-id]'); if (!b) return; if (lote) { const c = $('lista').querySelector('[data-sel="' + CSS.escape(b.dataset.id) + '"]'); if (c) { c.checked = !c.checked; c.dispatchEvent(new Event('change', { bubbles: true })); } return; } abrir(b.dataset.id); });
+/* v162 · Acciones en lote: seleccionar varias y reasignar responsable, cambiar la fecha de compromiso o sacarlas en PDF. */
+let lote = false; const sel = new Set();
+function pintarLote(){ $('btnLote').textContent = lote ? '✕ Terminar selección' : '☑️ Seleccionar varias'; $('btnLote').setAttribute('aria-pressed', lote);
+  $('loteAcc').hidden = !lote; if (!lote) return;
+  $('loteAcc').innerHTML = '<b>' + sel.size + ' seleccionada(s)</b> <button type="button" class="btn-mini" data-lt="todas">Todas las de la lista</button> <button type="button" class="btn-mini" data-lt="resp"' + (sel.size ? '' : ' disabled') + '>Reasignar responsable</button> <button type="button" class="btn-mini" data-lt="fecha"' + (sel.size ? '' : ' disabled') + '>Cambiar fecha</button> <button type="button" class="btn-mini" data-lt="pdf"' + (sel.size ? '' : ' disabled') + '>PDF</button>'; }
+$('btnLote').addEventListener('click', ()=> { lote = !lote; if (!lote) sel.clear(); pintarLote(); pintar(); });
+$('lista').addEventListener('change', (e)=> { const c = e.target.closest('[data-sel]'); if (!c) return; if (c.checked) sel.add(c.dataset.sel); else sel.delete(c.dataset.sel); pintarLote(); });
+$('loteAcc').addEventListener('click', async (e)=> {
+  const b = e.target.closest('[data-lt]'); if (!b) return; const t = b.dataset.lt;
+  if (t === 'todas') { filtradas().filter((x)=> x.estado !== 'CERRADA').forEach((x)=> sel.add(x.id)); pintarLote(); pintar(); return; }
+  const ids = [...sel], acc = filas.filter((x)=> sel.has(x.id));
+  if (t === 'pdf') { UI.imprimir([UI.cabecera('SG-PLAN', 'PLAN DE ACCIÓN · SELECCIÓN', acc.length + ' acción(es) · ' + UI.corta(UI.hoy())) + '<table><tr><th>Acción</th><th>Hallazgo</th><th>Responsable</th><th>Compromiso</th><th>Estado</th></tr>' +
+    acc.map((x)=> '<tr><td>' + esc(x.resumen.accion || '') + '</td><td>' + esc(x.resumen.hallazgo || '') + '</td><td>' + esc(x.resumen.responsable || '') + '</td><td>' + esc(UI.corta(x.resumen.fechaCompromiso)) + '</td><td>' + esc(x.estado) + '</td></tr>').join('') + '</table>'], true); return; }
+  const campo = t === 'resp' ? 'responsable' : 'fechaCompromiso';
+  const v = t === 'resp' ? await Dialogo.pedir('Nuevo responsable para ' + ids.length + ' acción(es):') : await Dialogo.pedir('Nueva fecha de compromiso (AAAA-MM-DD) para ' + ids.length + ' acción(es):', UI.hoy());
+  if (!v) return; if (t === 'fecha' && (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v < UI.hoy())) { UI.toast('Escribe una fecha AAAA-MM-DD que no sea pasada.'); return; }
+  const motivo = await Dialogo.pedir('¿Por qué el cambio? (queda en el seguimiento de cada acción)'); if (!motivo) return;
+  let ok = 0; b.disabled = true;
+  for (const id of ids) { const r = await SGSST.enviar({ action: 'parche', tipo: 'accion', id, campos: { [campo]: v.trim() }, agregar: { seguimiento: { fecha: UI.hoy(), texto: (t === 'resp' ? 'Reasignada a ' : 'Nueva fecha de compromiso: ') + v.trim() + ' — ' + motivo, uid: 'lote-' + Date.now() + '-' + ok } } }); if (r.ok) { ok++; const f = filas.find((x)=> x.id === id); if (f) f.resumen[campo] = v.trim(); } }
+  UI.toast(ok === ids.length ? '✓ ' + ok + ' acción(es) actualizadas' : ok + ' de ' + ids.length + ' actualizadas', ok === ids.length ? '' : 'mal'); sel.clear(); pintarLote(); pintar();
+});
+$('volver').addEventListener('click', (e)=>{ e.preventDefault(); show('scrLista'); pintar(); });
+window.addEventListener('outbox-enviado', ()=> cargar());
+cargar().then(()=>{ if (location.hash.length > 1) abrir(decodeURIComponent(location.hash.slice(1))); });
+</script>
+</body>
+</html>
