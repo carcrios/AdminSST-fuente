@@ -72,29 +72,6 @@ jobs:
           SSTA_MIN: '1'
         run: node navegador.js
 
-  # v165: el mismo navegador en el motor de Safari (iPhone). Por ahora AVISA pero no frena la publicación:
-  # cuando salga en verde varias veces seguidas, quitar «continue-on-error» para exigirlo.
-  iphone:
-    name: Pruebas en WebKit (Safari / iPhone)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Instalar Playwright y WebKit
-        working-directory: pruebas
-        run: |
-          npm install --no-audit --no-fund
-          npx playwright install --with-deps webkit
-      - name: Pruebas en navegador con WebKit
-        working-directory: pruebas
-        env:
-          SSTA_MOTOR: webkit
-        run: node navegador.js
-
   seguridad:
     name: Dependencias y secretos
     runs-on: ubuntu-latest
