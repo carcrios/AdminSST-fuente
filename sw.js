@@ -17,7 +17,7 @@
      la versión más nueva del formulario cuando hay señal).
    ============================================================ */
 
-const CACHE_NAME = 'ssta-portal-v175';
+const CACHE_NAME = 'ssta-portal-v176';
 
 const PAGES = [
   './',
@@ -90,6 +90,7 @@ const STATIC_ASSETS = [
   './presupuesto.html', './presupuesto.app.js',
   './empezar.html', './empezar.app.js', './empezar-reglas.js', './guia-preguntas.js', './agenda-tareas.js',
   './auditor-enlaces.js',
+  './lector-examen.js', './pdfjs.min.js', './pdfjs.worker.min.js',
   './informe-mes.html', './informe-mes.app.js', './informe-mes-reglas.js', './pantalla-planta.html', './pantalla-planta.app.js', './i18n.js', './i18n-en.js',
   './ficha.html',
   './verificar.html',

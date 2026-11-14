@@ -326,6 +326,52 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }
+    console.log('\n▸ v176: calendario centrado, seleccionar varios en todas las listas y leer exámenes en PDF');
+    {
+      const ctx = await nav.newContext(Object.assign({}, PC));
+      await entrarComo(ctx, S.url, 0);
+      const pg = await ctx.newPage(), err = []; pg.on('pageerror', (e) => err.push(e.message));
+      await pg.goto(S.url + '/index.html#sg'); await pg.waitForTimeout(3500);
+      const cal = await pg.evaluate(() => { const a = document.getElementById('agenda').getBoundingClientRect(), d = [...document.querySelectorAll('.ag-dia:not(.vacio)')].map((x) => x.getBoundingClientRect());
+        return { dentro: d.every((r) => r.right <= a.right + 1 && r.left >= a.left - 1), tabs: !!document.querySelector('.ag-tabs'), btn: document.getElementById('agNueva').className, mes: getComputedStyle(document.getElementById('mes')).display,
+          hoyRedondo: (() => { const h = document.querySelector('.ag-dia.eshoy'); return h ? getComputedStyle(h).borderRadius : ''; })() }; });
+      ok('calendario: los días quedan dentro de la tarjeta, sin «Cronograma del mes» y con el botón del portal', cal.dentro && !cal.tabs && /btn amber/.test(cal.btn) && cal.mes === 'none', JSON.stringify(cal));
+      await pg.screenshot({ path: process.env.SSTA_CAPTURA_176 || require('os').tmpdir() + '/cal176.png' });
+      // Seleccionar varios en una lista que antes no lo tenía (Plan de acción)
+      await pg.goto(S.url + '/plan-accion.html'); await pg.waitForTimeout(3500);
+      const nAntes = await pg.evaluate(() => document.querySelectorAll('[data-sel-auto] > [data-id], [data-sel-auto] > [data-abrir], [data-sel-auto] > [data-ver]').length);
+      const bot = await pg.$('.sel-varios');
+      ok('seleccionar varios: aparece en listas que antes no lo tenían (Plan de acción)', !!bot && nAntes >= 2, String(nAntes));
+      if (bot && nAntes >= 2) {
+        await bot.click(); await pg.waitForTimeout(200);
+        const its = await pg.$$('[data-sel-auto] > [data-id], [data-sel-auto] > [data-abrir], [data-sel-auto] > [data-ver]');
+        await its[0].click(); await its[1].click(); await pg.waitForTimeout(200);
+        await pg.click('.sel-pie:not([hidden]) [data-elim]'); await pg.waitForTimeout(400);
+        await pg.click('#elOk'); await pg.waitForTimeout(5000);
+        const nDesp = await pg.evaluate(() => document.querySelectorAll('[data-sel-auto] > [data-id], [data-sel-auto] > [data-abrir], [data-sel-auto] > [data-ver]').length);
+        ok('seleccionar varios: elimina los marcados (quedan en la Papelera)', nDesp === nAntes - 2, nAntes + ' → ' + nDesp);
+      }
+      // Leer un examen en PDF
+      await pg.goto(S.url + '/salud.html'); await pg.waitForTimeout(3500);
+      const per = await pg.evaluate(async () => { const r = await SGSST.listar('trabajador'); const t = (r.rows || []).find((x) => x.resumen.activo !== false && x.resumen.cedula); return t ? { nombre: t.resumen.nombre, cedula: t.resumen.cedula } : null; });
+      const lineas = ['IPS SALUD OCUPACIONAL DEL SUR', 'Tipo de examen: Periodico', 'Nombre: ' + (per ? per.nombre : 'X') + '  C.C. ' + (per ? per.cedula : '0'), 'Fecha del examen: 10/11/2026',
+        'Diagnostico: M54.5 Lumbago', 'Concepto de aptitud: APTO CON RESTRICCIONES', 'Restricciones laborales: No levantar mas de 15 kg', 'Proximo examen: 10/11/2027'];
+      const pdf = (() => { const sc = (t) => t.replace(/[()\\]/g, '\\$&'); let st = 'BT /F1 11 Tf 50 780 Td 14 TL ' + lineas.map((l) => '(' + sc(l) + ') Tj T*').join(' ') + ' ET';
+        const o = ['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+          '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', '<< /Length ' + st.length + ' >>\nstream\n' + st + '\nendstream'];
+        let b = '%PDF-1.4\n', off = []; o.forEach((x, i) => { off.push(b.length); b += (i + 1) + ' 0 obj\n' + x + '\nendobj\n'; });
+        const xr = b.length; b += 'xref\n0 ' + (o.length + 1) + '\n0000000000 65535 f \n' + off.map((n) => String(n).padStart(10, '0') + ' 00000 n \n').join('') + 'trailer\n<< /Size ' + (o.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF';
+        return Buffer.from(b, 'latin1'); })();
+      const [fc] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#leerEx')]);
+      await fc.setFiles({ name: 'examen.pdf', mimeType: 'application/pdf', buffer: pdf }); await pg.waitForTimeout(4000);
+      const rev = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, con: c.querySelectorAll('select')[1].value, res: c.querySelector('textarea').value, txt: c.innerText } : null; });
+      ok('examen en PDF: reconoce al trabajador por la cédula, el concepto y las restricciones, y NO toma el diagnóstico', !!per && !!rev && rev.per === per.cedula && rev.con === 'Apto con restricciones' && /15 kg/.test(rev.res) && !/M54|Lumbago/.test(rev.txt), JSON.stringify(rev));
+      if (rev) { await pg.click('#lxOk'); await pg.waitForTimeout(3500); }
+      const guardado = await pg.evaluate(async (c) => { const r = await SGSST.listar('examen'); return (r.rows || []).some((x) => x.resumen.cedula === c && x.resumen.fecha === '2026-11-10' && x.resumen.concepto === 'Apto con restricciones'); }, per && per.cedula);
+      ok('examen en PDF: queda guardado y asignado a su trabajador', guardado);
+      ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
+      await ctx.close();
+    }
     console.log('\n▸ v175: Decreto 1040 en Convivencia');
     {
       const ctx = await nav.newContext(Object.assign({}, PC)); await ctx.addInitScript(() => { window.print = () => {}; });
@@ -777,7 +823,7 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
         await pa.goto(S.url + '/index.html#sg'); await pa.waitForTimeout(3500);
         const h135 = await pa.evaluate(() => ({ hoy: !!document.getElementById('hoy') && !document.getElementById('hoy').hidden, atajos: document.querySelectorAll('#atajos .atajo').length,
           todo: !!document.getElementById('sgTodo'), agendaOculta: getComputedStyle(document.getElementById('mes')).display === 'none', lista: !document.getElementById('agenda').hidden && !/Cargando/.test(document.getElementById('pendLista').textContent) }));
-        ok('v174: Gestión abre con los atajos del rol, «Para hoy y esta semana» junto al calendario y el cronograma plegado tras un botón', h135.hoy && h135.atajos >= 4 && h135.todo && h135.agendaOculta && h135.lista, JSON.stringify(h135));
+        ok('v176: Gestión abre con los atajos del rol y «Para hoy y esta semana» junto al calendario; sin cronograma del mes ni botón para verlo', h135.hoy && h135.atajos >= 4 && !h135.todo && h135.agendaOculta && h135.lista, JSON.stringify(h135));
         const pri = await pa.evaluate(() => { const p = document.querySelector('#primeros .primeros'); return p ? { pasos: p.querySelectorAll('.paso-ini').length, txt: p.querySelector('h3').textContent } : null; });
         const falta = await pa.evaluate(async () => { const r = await SGSST.listar(EMPEZAR.TIPOS.join(',')); const E = EMPEZAR.evaluar({ servidor: true, empresa: true, usuarios: true, rows: r.rows }); return E.siguiente ? E.siguiente.t : ''; });
         ok('v172: a SST le sale «Tu siguiente paso» (uno solo) con el camino completo, o nada si la empresa ya está montada', falta ? (pri && pri.pasos === 2 && pri.txt.indexOf('Tu siguiente paso') !== -1) : !pri, falta + ' · ' + JSON.stringify(pri));

@@ -3,6 +3,13 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v176 — Leer exámenes en PDF, seleccionar y eliminar en todas las listas, calendario ordenado
+
+- **Salud → Exámenes → «Leer exámenes (PDF)»**: se eligen uno o varios PDF de la IPS y el portal lee de cada uno a quién pertenece (por la cédula del personal), la fecha, el tipo, el concepto, las restricciones para el trabajo, si son temporales, la IPS y el próximo examen. Se revisa y se guardan todos de una vez, asignados a su trabajador. **Nunca toma el diagnóstico** (descarta las líneas con códigos CIE-10 o «diagnóstico») y **el PDF no se guarda**: se lee en el equipo. Los PDF escaneados (sin texto) se registran a mano.
+- **Seleccionar varios y eliminar en todas las listas** de registros (antes solo en 4): «Seleccionar para eliminar», tocar los que sobran, «Eliminar». Va a la Papelera (30 días) y se puede deshacer. Solo Administrador y SST.
+- **Calendario**: los días quedan dentro de la tarjeta y alineados (antes se salían a la derecha y el «hoy» salía redondo), el botón «+ Tarea» es el mismo del resto del portal y se quitó **«Cronograma del mes»**.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v175 — Para vender: el código del proveedor fuera del público, licencia con solo lectura, Micro 7 y Decreto 1040
 
 - **Lo del proveedor ya no se publica**: el servidor (`Portal-SSTA.gs`), el configurador, la consola, el panel del asesor y el instalador quedan solo en el repositorio privado. Se abren en el computador con `node herramientas/proveedor.js` (consola) o `… configurar` / `… instalar`. La publicación automática los **borra** del sitio público.

@@ -2528,7 +2528,7 @@ grupo('Inicio por categorías, agenda, inducción desde el inicio y casillas sin
   const ix = leer('index.html');
   ok('la obra va por categorías visibles dentro del sistema de gestión (permisos, antes de la tarea, EPP, personas) (v111)', ['jornada', 'campo-antes', 'campo-epp', 'campo-personas'].every((id) => ix.includes('class="accordion-item sec-campo cat-campo" id="' + id + '"')) && /id="zonaObra"><h3>En obra<\/h3>/.test(ix) && ix.indexOf('id="zonaObra"') > ix.indexOf('id="sgContenido"'));
   ok('en el inicio: responder la inducción y PQRS (sin usuario)', ix.includes('href="induccion-responder.html"') && ix.includes('href="reportes.html?nuevo=1&amp;pqrs=1"'));
-  ok('con usuario: agenda con calendario de pendientes y el cronograma como pestaña', /id="agenda"/.test(ix) && /window\.Agenda = \(function/.test(ix) && /data-ag="crono"/.test(ix) && /action=pendientes&dias=45/.test(ix) && /window\.Agenda\.pintar\(lTodo, hoy\)/.test(ix));
+  ok('con usuario: agenda con calendario de pendientes (v176: sin la pestaña «Cronograma del mes»)', /id="agenda"/.test(ix) && /window\.Agenda = \(function/.test(ix) && !/data-ag="crono"/.test(ix) && /#mes\{display:none !important;\}/.test(ix) && /action=pendientes&dias=45/.test(ix) && /window\.Agenda\.pintar\(lTodo, hoy\)/.test(ix));
   const { crearEntorno } = require('./simulador-apps-script');
   const E = crearEntorno(path.join(RAIZ, 'backends/backend-sgsst.gs'));
   const d = E.ctx.limpiarInduccionPublica_({ tipoInduccion: 'Cualquier cosa', fecha: '2020-01-01', nombre: 'Ana  Prueba', cedula: '10.333.444', respuestas: [{ pregunta: 'a', respuesta: 'x', correcta: true }, { pregunta: 'b', respuesta: 'y', correcta: false }], aprueba: 80, resultado: 'APROBADA', firma: 'javascript:alert(1)' });
@@ -3773,6 +3773,18 @@ grupo('v175: venta protegida, licencia con solo lectura, Micro 7 y Decreto 1040'
   ok('Decreto 1040: la capacitación anual avisa cuando toca repetirla', /tipo === 'cumple1040' && r\.capacitacion\) anotar\(sumarDias_\(r\.capacitacion, 365\)/.test(g));
   ok('quejas: fuera del cifrado solo van fechas y una marca (nunca nombres ni hechos)', /'medSolicitud', 'medAdopcion', 'medSexual', 'protegeHasta'/.test(g) && /k !== 'cifrado' && d\[k\] != null && \(typeof d\[k\] !== 'string' \|\| d\[k\]\.length > 60\)/.test(g));
   ok('guion de instalación y texto del video de la pantalla «no seguro» (privados, en comercial/)', existe('comercial/GUION-INSTALACION.md') && /no es seguro|no seguro/i.test(leer('comercial/GUION-INSTALACION.md')));
+});
+
+grupo('v176: leer exámenes en PDF sin diagnóstico, seleccionar en todas las listas', () => {
+  const L = require(path.join(RAIZ, 'lector-examen.js'));
+  const txt = 'IPS SALUD DEL SUR\nTipo de examen: Egreso\nNombre: ANA RUIZ C.C. 52.111.222\nFecha del examen: 3 de noviembre de 2026\nImpresión diagnóstica: J45 asma\nConcepto: APTO\nRecomendaciones: Ninguna';
+  const r = L.leer(txt, [{ nombre: 'Ana Ruiz', cedula: '52111222', cargo: 'Auxiliar' }]);
+  ok('examen: reconoce la persona por la cédula (con puntos), el tipo, la fecha escrita en letras y el concepto', r.persona && r.campos.cedula === '52111222' && r.campos.tipoExamen === 'Egreso' && r.campos.fecha === '2026-11-03' && r.campos.concepto === 'Apto', JSON.stringify(r.campos));
+  ok('examen: no guarda el diagnóstico en ningún campo', !/J45|asma/i.test(JSON.stringify(r.campos)));
+  const r2 = L.leer('Concepto: NO APTO para trabajo en alturas\nC.C. 999', []);
+  ok('examen: «no apto» gana sobre «apto»; si no está la persona, lo avisa', r2.campos.concepto === 'No apto' && /No encontré la cédula/.test(r2.avisos.join()));
+  ok('examen: el PDF se lee en el equipo y NO se sube (no hay adjunto ni envío del archivo)', !/adjuntos\(|subirArchivo|readAsDataURL|base64/.test(leer('salud.html').slice(leer('salud.html').indexOf('function leerExamenes'), leer('salud.html').indexOf('function revisarLeidos'))));
+  ok('seleccionar varios: se activa solo en todas las listas de registros (salvo papelera, auditor y pantallas de solo consulta)', /function autoSeleccion/.test(leer('sgsst-ui.js')) && /SIN_AUTO = .*papelera\|auditor/.test(leer('sgsst-ui.js')));
 });
 
 /* ═══════════════════════════════════════════════════════════ */
