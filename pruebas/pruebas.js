@@ -3783,7 +3783,7 @@ grupo('v176: leer exámenes en PDF sin diagnóstico, seleccionar en todas las li
   ok('examen: no guarda el diagnóstico en ningún campo', !/J45|asma/i.test(JSON.stringify(r.campos)));
   const r2 = L.leer('Concepto: NO APTO para trabajo en alturas\nC.C. 999', []);
   ok('examen: «no apto» gana sobre «apto»; si no está la persona, lo avisa', r2.campos.concepto === 'No apto' && /No encontré la cédula/.test(r2.avisos.join()));
-  ok('examen: el PDF se lee en el equipo y NO se sube (no hay adjunto ni envío del archivo)', !/adjuntos\(|subirArchivo|readAsDataURL|base64/.test(leer('salud.html').slice(leer('salud.html').indexOf('function leerExamenes'), leer('salud.html').indexOf('function revisarLeidos'))));
+  ok('examen: el PDF se lee en el equipo; al leerlo no se sube nada (solo se adjunta después, si es el certificado sin diagnóstico)', !/adjuntos\(|subirArchivo|readAsDataURL|base64/.test(leer('salud.html').slice(leer('salud.html').indexOf('function leerExamenes'), leer('salud.html').indexOf('const pdfBase64'))));
   ok('seleccionar varios: se activa solo en todas las listas de registros (salvo papelera, auditor y pantallas de solo consulta)', /function autoSeleccion/.test(leer('sgsst-ui.js')) && /SIN_AUTO = .*papelera\|auditor/.test(leer('sgsst-ui.js')));
 });
 
@@ -3800,6 +3800,15 @@ grupo('v177: el examen en PDF crea la persona, trae todo lo que dice y queda en 
   ok('examen: nunca el diagnóstico', !/M54|lumbago|diagn/i.test(JSON.stringify(c)));
   const sl = leer('salud.html'), rv = sl.slice(sl.indexOf('function revisarLeidos'), sl.indexOf('/* ── Exámenes médicos ocupacionales'));
   ok('al guardar: crea la persona si no está y pasa el examen a la persona igual que a mano (Personal habilitado)', /value="__nuevo"/.test(rv) && /action: 'parche', tipo: 'trabajador', id: 'TRB-'/.test(rv) && /exExtra\.despuesDeGuardar\(doc, \{ id \}\)/.test(rv));
+});
+
+grupo('v178: certificado de aptitud adjunto a la persona y eliminar varias actividades del plan anual', () => {
+  const L = require(path.join(RAIZ, 'lector-examen.js'));
+  ok('certificado: un PDF con diagnóstico se marca y NO se adjunta; uno sin diagnóstico sí', L.leer('Concepto: Apto\nImpresión diagnóstica: J45', []).conDiagnostico === true && L.leer('Concepto: Apto\nC.C. 123456', []).conDiagnostico === false);
+  const sl = leer('salud.html'), rv = sl.slice(sl.indexOf('function revisarLeidos'), sl.indexOf('/* ── Exámenes médicos ocupacionales'));
+  ok('certificado: se adjunta al EXAMEN (tipo de salud: solo SST y administrador lo abren), nunca si trae diagnóstico', /action: 'adjuntar', id,/.test(rv) && /!r\.conDiagnostico && r\.file/.test(rv) && /ref: 'certificado'/.test(rv));
+  const pa = leer('plan-anual.html');
+  ok('plan anual: «Eliminar varias» marca actividades, pide confirmación y guarda el plan sin ellas', /id=\\"btnSel\\"|id="btnSel"/.test(pa) && /async function eliminarVarias/.test(pa) && /plan\.actividades\.filter\(\(a\)=> !selAct\.has\(a\.uid\)\)/.test(pa) && /Dialogo\.confirmar\('¿Quitar '/.test(pa));
 });
 
 /* ═══════════════════════════════════════════════════════════ */

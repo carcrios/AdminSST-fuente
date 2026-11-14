@@ -640,7 +640,7 @@ function formatSavedAt(iso) {
  * Requiere sw.js v2 (que no hace skipWaiting automático).
  */
 /* Versión del portal (sitio). El panel del asesor la compara con la del servidor de cada cliente. */
-const VERSION_PORTAL_WEB = 'v177';
+const VERSION_PORTAL_WEB = 'v178';
 /* v162 · Ayuda corta: en los formularios largos (instalación), un párrafo de ayuda muy largo muestra solo su
    primera frase y el resto queda tras «¿Qué es esto?». Así el primer campo no se va fuera de la pantalla. */
 const AyudaCorta = {

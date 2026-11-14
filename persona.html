@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Tzfuif6jifuuw8uK68Rq6CWVE4EVGWGqkiT35sxAivk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-vb/sjvUtobGfG1RfnIaIOqcG9fTLcsBKOfL4KkvBUSw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Ficha del trabajador · Portal SSTA</title>
@@ -143,7 +143,7 @@ async function ver(ced){
   if (esSst) {
     const ex = de('examen').filter(mismo).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
     const pv = de('pvecaso').filter(mismo);
-    salud = bloque('🔒 Salud (solo SST)', ex.slice(0, 6).map((x)=> fila(esc(x.resumen.tipoExamen || 'Examen') + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(x.resumen.concepto || '') + (x.resumen.tieneRestricciones === 'Sí' || x.resumen.restringePara ? ' · con restricciones' + (x.resumen.venceRestriccion ? ' hasta ' + esc(UI.corta(x.resumen.venceRestriccion)) : '') : '') + (x.resumen.proxima ? ' · próximo ' + esc(UI.corta(x.resumen.proxima)) : ''), x.resumen.proxima && x.resumen.proxima < h ? ['mal', 'Examen vencido'] : null))
+    salud = bloque('🔒 Salud (solo SST)', ex.slice(0, 6).map((x)=> fila(esc(x.resumen.tipoExamen || 'Examen') + ' · ' + esc(UI.corta(x.resumen.fecha)), esc(x.resumen.concepto || '') + (x.resumen.tieneRestricciones === 'Sí' || x.resumen.restringePara ? ' · con restricciones' + (x.resumen.venceRestriccion ? ' hasta ' + esc(UI.corta(x.resumen.venceRestriccion)) : '') : '') + (x.resumen.proxima ? ' · próximo ' + esc(UI.corta(x.resumen.proxima)) : '') + (Number(x.resumen._adjTotal) > 0 ? ' · certificado adjunto (ábrelo en Salud)' : ''), x.resumen.proxima && x.resumen.proxima < h ? ['mal', 'Examen vencido'] : null))
       .concat(pv.map((x)=> fila('PVE: ' + esc(x.resumen.programa), esc(String(x.resumen.clasificacion || '').replace(/ \(.*/, '')) + ' · ' + esc(x.resumen.estado || '') + (x.resumen.proximaEvaluacion ? ' · próxima evaluación ' + esc(UI.corta(x.resumen.proximaEvaluacion)) : ''), x.resumen.proximaEvaluacion && x.resumen.proximaEvaluacion < h && x.resumen.estado !== 'Egresado' ? ['mal', 'Seguimiento vencido'] : null))),
       'Sin exámenes ni programas de vigilancia registrados.', '<a class="btn ghost mini u-mt8" href="salud.html">Abrir Salud →</a> <a class="btn ghost mini u-mt8" href="pve.html">Abrir PVE →</a>');
   }

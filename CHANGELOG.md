@@ -3,6 +3,12 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v178 — Certificado de aptitud adjunto a la persona y eliminar varias actividades del plan anual
+
+- **Salud → «Leer exámenes (PDF)»**: si el PDF es el **certificado de aptitud sin diagnóstico**, queda **adjunto al examen de la persona** (en Drive; solo SST y el administrador lo pueden abrir). Se ve en la ficha de la persona («certificado adjunto») y al abrir el examen. Si el PDF trae diagnóstico, el portal lo detecta y **no lo adjunta** (Res. 1843 de 2025, art. 30: la empresa solo recibe el concepto).
+- **Plan anual de trabajo → «Eliminar varias»**: se tocan las actividades que sobran (o «Marcar todas las visibles», sirve con el filtro por mes), «Eliminar marcadas» y confirmar. El plan anterior queda en el historial de cambios.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v177 — El examen en PDF crea a la persona y trae todo lo que dice
 
 - **Salud → «Leer exámenes (PDF)»** ahora trae del examen: tipo de evaluación, fecha, concepto, IPS o médico, próximo examen, **todas las restricciones y todas las recomendaciones** (también cuando vienen como título en mayúsculas sin «:»), si son temporales y hasta cuándo («por 3 meses» se calcula), **para qué trabajos queda restringido** (alturas, cargas, confinados, eléctrico…), las **pruebas realizadas** (audiometría, visiometría, espirometría…) y a qué **programa de vigilancia** ingresa. Nunca el diagnóstico.

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LQMaskL+d75buLw7OrUdsYPuXJMkSIeOy2XwVZTuNr8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oOZZLTYy4dBp5E9QiVC4bqFskx56wOkYhJeWfgf+XtM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Gestión de la salud · Portal SSTA</title>
@@ -66,7 +66,7 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
     <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v177</div>
+  <div class="version-portal">Portal SSTA · versión v178</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -303,20 +303,21 @@ function leerExamenes(){
   inp.addEventListener('change', async ()=> {
     const fs = [...(inp.files || [])].slice(0, 30); if (!fs.length) return;
     const personal = de('trabajador').filter((x)=> x.resumen.activo !== false).map((x)=> ({ nombre: x.resumen.nombre, cedula: x.resumen.cedula, cargo: x.resumen.cargo }));
-    const m = UI.modal('<h3>Leyendo ' + fs.length + ' examen(es)…</h3><p class="ayuda" id="lxMsg">Se leen en este equipo. Los PDF no se guardan.</p><div id="lxRes"></div>');
+    const m = UI.modal('<h3>Leyendo ' + fs.length + ' examen(es)…</h3><p class="ayuda" id="lxMsg">Se leen en este equipo. Si un PDF es solo el certificado de aptitud (sin diagnóstico), puedes adjuntarlo a la persona.</p><div id="lxRes"></div>');
     const res = [];
     for (let i = 0; i < fs.length; i++) {
       m.el.querySelector('#lxMsg').textContent = 'Leyendo ' + (i + 1) + ' de ' + fs.length + ': ' + fs[i].name;
       try {
         const txt = await LectorExamen.textoPdf(fs[i]);
         if (txt.replace(/\s/g, '').length < 40) { res.push({ archivo: fs[i].name, error: 'El PDF no trae texto (es una foto o un escaneo). Regístralo a mano.' }); continue; }
-        res.push(Object.assign({ archivo: fs[i].name }, LectorExamen.leer(txt, personal)));
+        res.push(Object.assign({ archivo: fs[i].name, file: fs[i] }, LectorExamen.leer(txt, personal)));
       } catch (e) { res.push({ archivo: fs[i].name, error: 'No se pudo leer: ' + (e.message || e) }); }
     }
     m.cerrar(); revisarLeidos(res, personal);
   });
   inp.click();
 }
+const pdfBase64 = (f)=> new Promise((ok, mal)=> { if (f.size > 10 * 1024 * 1024) return mal(new Error('pasa de 10 MB')); const fr = new FileReader(); fr.onload = ()=> ok(String(fr.result).split(',')[1]); fr.onerror = ()=> mal(fr.error); fr.readAsDataURL(f); });
 function revisarLeidos(res, personal){
   // v177: si la persona no está en el personal, se crea desde el examen; y se muestra TODO lo que trae el examen (sin diagnóstico).
   const opP = personal.map((p)=> '<option value="' + esc(p.cedula) + '">' + esc(p.nombre + ' · ' + p.cedula) + '</option>').join('');
@@ -342,8 +343,10 @@ function revisarLeidos(res, personal){
       linea('Restringido para', c.restringePara) + linea('Las restricciones son', c.temporalidad && c.temporalidad !== '—' ? c.temporalidad + (c.venceRestriccion ? ' hasta ' + UI.corta(c.venceRestriccion) : '') : '') +
       linea('Pruebas realizadas', (c.pruebas || []).slice(1)) + linea('Ingresa a vigilancia', c.pveIngresa === 'Sí' ? (c.pveLista || ['sí (revisa el programa)']) : '') +
       (r.avisos.length ? '<div class="aviso amar u-mt8">' + r.avisos.map(esc).join('<br>') + '</div>' : '') +
+      (r.conDiagnostico ? '<div class="aviso mal u-mt8">Este PDF trae diagnóstico: no se adjunta (la empresa solo guarda el concepto). Pide a la IPS el certificado de aptitud.</div>'
+        : '<label class="check u-mt8"><input type="checkbox" id="lxA' + i + '" checked> Adjuntar este PDF a la persona como certificado de aptitud (solo lo ven SST y el administrador)</label>') +
       '<button type="button" class="btn-mini" data-lxver="' + i + '">Abrir el formulario completo</button></div>'; };
-  const m = UI.modal('<h3>Revisa antes de guardar</h3><p class="ayuda">Cada examen queda guardado en la persona (su ficha y Personal habilitado). Revisa el concepto y las restricciones: <b>nunca</b> se guarda el diagnóstico ni el PDF.</p>' +
+  const m = UI.modal('<h3>Revisa antes de guardar</h3><p class="ayuda">Cada examen queda guardado en la persona (su ficha y Personal habilitado). Revisa el concepto y las restricciones: <b>nunca</b> se guarda el diagnóstico. Un PDF con diagnóstico no se adjunta.</p>' +
     res.map((r, i)=> r.error ? '<div class="aviso mal">' + esc(r.archivo) + ': ' + esc(r.error) + '</div>' : tarjeta(r, i)).join('') +
     (ok.length ? '<button type="button" class="btn amber" id="lxOk">Guardar ' + ok.length + ' examen(es)</button>' : '') + '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="lxEst"></p>');
   const q = (id)=> m.el.querySelector('#' + id);
@@ -370,7 +373,7 @@ function revisarLeidos(res, personal){
     if (falta.length) { est.textContent = 'Falta la persona (nombre y documento) o la fecha en ' + falta.length + ' examen(es).'; return; }
     const diag = lst.filter(([r, i])=> DIAG.test(q('lxR' + i).value));
     if (diag.length) { est.textContent = 'En ' + diag.length + ' examen(es) las restricciones parecen un diagnóstico: deja solo lo que la persona puede o no hacer.'; return; }
-    g.disabled = true; let n = 0, mal = 0, creadas = 0;
+    g.disabled = true; let n = 0, mal = 0, creadas = 0, adj = 0;
     for (const [r, i] of lst) {
       est.textContent = 'Guardando ' + (++n) + ' de ' + lst.length + '…';
       const p = personaDe(r, i), doc = docDe(r, i);
@@ -385,8 +388,15 @@ function revisarLeidos(res, personal){
       if (!x.ok) { mal++; continue; }
       // Igual que al guardar a mano: el examen más reciente queda en la persona (Personal habilitado y permisos).
       try { await exExtra.despuesDeGuardar(doc, { id }); } catch (e) {}
+      // v178: el certificado de aptitud (sin diagnóstico) queda adjunto al examen de la persona (Drive; solo SST y administrador lo pueden abrir).
+      const ca = q('lxA' + i);
+      if (ca && ca.checked && !r.conDiagnostico && r.file) {
+        est.textContent = 'Adjuntando el certificado ' + n + ' de ' + lst.length + '…';
+        try { const ax = await SGSST.enviar({ action: 'adjuntar', id, uid: 'adj-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), nombre: 'Certificado de aptitud - ' + doc.nombre + ' - ' + doc.fecha + '.pdf', mime: 'application/pdf', base64: await pdfBase64(r.file), ref: 'certificado' });
+          if (ax.ok) adj++; } catch (e) {}
+      }
     }
-    m.cerrar(); UI.toast(mal ? '⚠ ' + mal + ' no se guardaron.' : '✓ ' + lst.length + ' examen(es) guardados en su persona' + (creadas ? ' · ' + creadas + ' persona(s) nueva(s)' : ''), mal ? 'mal' : ''); cargar();
+    m.cerrar(); UI.toast(mal ? '⚠ ' + mal + ' no se guardaron.' : '✓ ' + lst.length + ' examen(es) guardados en su persona' + (creadas ? ' · ' + creadas + ' persona(s) nueva(s)' : '') + (adj ? ' · ' + adj + ' certificado(s) adjunto(s)' : ''), mal ? 'mal' : ''); cargar();
   });
 }
 

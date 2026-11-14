@@ -278,7 +278,9 @@ const LectorExamen = (function () {
       if (pv.length) campos.pveLista = pv;
     }
     campos.leido = leido;
-    return { ok: !!(campos.concepto || campos.fecha), campos, persona, avisos, descartadas };
+    // ¿El PDF trae diagnóstico? Entonces NO se puede adjuntar (la empresa solo recibe el concepto: Res. 1843 de 2025, art. 30).
+    const conDiagnostico = descartadas > 0 || /diagnost|cie-?10|cie 10|impresion diag|\bdx\b/.test(n);
+    return { conDiagnostico, ok: !!(campos.concepto || campos.fecha), campos, persona, avisos, descartadas };
   }
   /** Saca el texto de un PDF con pdf.js (se carga solo cuando se usa). */
   async function textoPdf(archivo) {

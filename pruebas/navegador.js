@@ -386,6 +386,21 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       if (rv2) { await pg.click('#lxOk'); await pg.waitForTimeout(4000); }
       const creada = await pg.evaluate(async () => { const r = await SGSST.listar('trabajador'); const t = (r.rows || []).find((x) => String(x.resumen.cedula) === '1099888777'); return t ? { nombre: t.resumen.nombre, req: t.resumen.req || t.resumen.requisitos || null } : null; });
       ok('examen en PDF: la persona queda creada en el personal con su examen', !!creada && creada.nombre === 'LUCIA NUEVA PRUEBA', JSON.stringify(creada));
+      const conAdj = await pg.evaluate(async () => { const r = await SGSST.listar('examen'); const x = (r.rows || []).find((e) => String(e.resumen.cedula) === '1099888777'); return x ? Number(x.resumen._adjTotal || 0) : -1; });
+      ok('examen en PDF: el certificado sin diagnóstico queda adjunto al examen de la persona', conAdj > 0, String(conAdj));
+      // v178: plan anual → eliminar varias actividades de una vez
+      await pg.goto(S.url + '/plan-anual.html'); await pg.waitForTimeout(3500);
+      const antesPA = await pg.evaluate(() => document.querySelectorAll('.act[data-uid]').length);
+      if (antesPA >= 3 && await pg.$('#btnSel')) {
+        await pg.click('#btnSel'); await pg.waitForTimeout(300);
+        const acts = await pg.$$('.act[data-uid]'); await acts[0].click(); await acts[1].click(); await pg.waitForTimeout(200);
+        const nSel = await pg.evaluate(() => document.getElementById('nSel').textContent);
+        await pg.evaluate(() => { window.__sstaDialogoAuto = 'aceptar'; });
+        await pg.click('#selElim');
+        await pg.waitForTimeout(3500);
+        const despPA = await pg.evaluate(() => document.querySelectorAll('.act[data-uid]').length);
+        ok('plan anual: «Eliminar varias» quita las actividades marcadas', nSel === '2' && despPA === antesPA - 2, antesPA + ' → ' + despPA + ' (marcadas ' + nSel + ')');
+      } else ok('plan anual: el plan de la demo tiene actividades para eliminar', false, String(antesPA));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }

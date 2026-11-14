@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LbODCn8n8/rOik7WF5g2HLcmhe+2Azrp/XzIthmLOEA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oCQ+hLiJo4D5uXV4E2sOTc0amsOfFR64zKnjVg8XfW4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Plan anual de trabajo · Portal SSTA</title>
@@ -28,6 +28,7 @@
 .meses button.p.auto{background:#2f6fbf;border-color:#2f6fbf;color:#fff;}
 .meses button.p.atraso{background:var(--rojo-50);border-color:var(--rojo-200);color:var(--mal);}
 .act{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:9px;}
+.act.sel-on{outline:2px solid var(--rojo-500);background:var(--rojo-50);} .sel-act{width:18px;height:18px;vertical-align:-3px;margin-right:4px;}
 .act .t{font-weight:700;font-size:var(--fs-base);line-height:1.3;overflow-wrap:anywhere;}
 .act .m{font-size:var(--fs-menor);color:var(--muted);margin-top:2px;overflow-wrap:anywhere;}
 .act .fila{display:flex;gap:8px;align-items:flex-start;}
@@ -104,7 +105,7 @@
   <div id="avisoSrv"></div><div id="avisoCopia"></div>
   <div class="field"><select id="anio" aria-label="Año del plan"></select></div>
   <div id="contenido"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v177</div>
+  <div class="version-portal">Portal SSTA · versión v178</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -154,6 +155,7 @@ const PLANTILLA = [
 ];
 
 let plan = null, fila = null, datosAuto = {}, anioSel = UI.hoy().slice(0, 4), tab = 'plan', filtroMes = 0;
+let selAct = null;   // v178: actividades marcadas para eliminar varias de una vez (Set de uid) o null
 const idDe = (a)=> 'PAT-' + a;
 const tipoTxt = (t)=> (!t || t === 'Otra' ? 'Otro' : t);
 const fmtFecha = (f)=> (f ? UI.corta(f) : '');
@@ -260,7 +262,10 @@ function pintar(){
       '<button type="button" class="btn amber" id="btnAct">' + (tab === 'cap' ? '+ Agregar capacitación' : '+ Agregar actividad') + '</button>' +
       '<button type="button" class="btn ghost" id="btnSug">Sugerencias según la empresa</button>' +
       '<button type="button" class="btn ghost" id="btnPdf">PDF del plan anual</button>' +
-      '<button type="button" class="btn ghost" id="btnPdfC">PDF del plan de capacitación</button></div>' +
+      '<button type="button" class="btn ghost" id="btnPdfC">PDF del plan de capacitación</button>' +
+      (tab !== 'datos' && (plan.actividades || []).length ? '<button type="button" class="btn ghost" id="btnSel">' + (selAct ? 'Cancelar selección' : 'Eliminar varias') + '</button>' : '') + '</div>' +
+    (selAct ? '<div class="aviso amar sel-plan">Toca las actividades que quieres quitar del plan. <b id="nSel">' + selAct.size + '</b> marcada(s). ' +
+      '<button type="button" class="btn-mini" id="selTodas">Marcar todas las visibles</button> <button type="button" class="btn rojo mini" id="selElim">Eliminar marcadas</button></div>' : '') +
     avanceHTML(k) +
     (plan.firmaEmpleador && plan.firmaResponsable ? '' : '<div class="aviso amar">Al plan le faltan firmas (' + [plan.firmaEmpleador ? '' : 'empleador', plan.firmaResponsable ? '' : 'responsable del SG-SST'].filter(Boolean).join(' y ') + '). Fírmalo en «Datos y firmas».</div>') +
     '<div class="tabs" id="tabs"><button type="button" data-tab="plan" class="' + (tab === 'plan' ? 'on' : '') + '">Cronograma</button><button type="button" data-tab="cap" class="' + (tab === 'cap' ? 'on' : '') + '">Capacitación</button><button type="button" data-tab="datos" class="' + (tab === 'datos' ? 'on' : '') + '">Datos y firmas</button></div>' +
@@ -270,6 +275,11 @@ function pintar(){
   $('btnSug').addEventListener('click', ()=> sugerencias(false));
   $('btnPdf').addEventListener('click', ()=> pdfPlan());
   $('btnPdfC').addEventListener('click', ()=> pdfPlan('Capacitación'));
+  if ($('btnSel')) $('btnSel').addEventListener('click', ()=> { selAct = selAct ? null : new Set(); pintar(); });
+  if (selAct) {
+    $('selTodas').addEventListener('click', ()=> { $('panel').querySelectorAll('.act[data-uid]').forEach((el)=> selAct.add(el.dataset.uid)); pintar(); });
+    $('selElim').addEventListener('click', eliminarVarias);
+  }
   c.querySelectorAll('[data-fm]').forEach((b)=> b.addEventListener('click', ()=> { const m = +b.dataset.fm; filtroMes = filtroMes === m ? 0 : m; if (tab === 'datos') tab = 'plan'; pintar(); }));
   ({ plan: pintarCrono, cap: pintarCap, datos: pintarDatos })[tab]($('panel'));
 }
@@ -338,7 +348,8 @@ function leyenda(){ return '<div class="leyenda"><span style="--c:#fff;outline:1
   '<p class="ayuda" style="margin:-4px 0 10px;">Toca un mes de la actividad para marcarla como realizada o ver qué encontró el portal.</p>'; }
 function actHTML(a, i, k){
   const x = k.porAct[a.uid] || { prog: 0, hechas: 0, pct: 0, cobertura: null }, cap = a.tipo === 'Capacitación';
-  return '<div class="act" data-uid="' + esc(a.uid) + '"><div class="fila"><div><div class="t">' + esc(a.actividad) + '</div><div class="m">' + esc(tipoTxt(a.tipo)) + (a.responsable ? ' · ' + esc(a.responsable) : ' · <b class="u-mal">sin responsable</b>') +
+  const mk = selAct ? '<input type="checkbox" class="sel-act" aria-label="Marcar para eliminar"' + (selAct.has(a.uid) ? ' checked' : '') + '> ' : '';
+  return '<div class="act' + (selAct && selAct.has(a.uid) ? ' sel-on' : '') + '" data-uid="' + esc(a.uid) + '"><div class="fila"><div><div class="t">' + mk + esc(a.actividad) + '</div><div class="m">' + esc(tipoTxt(a.tipo)) + (a.responsable ? ' · ' + esc(a.responsable) : ' · <b class="u-mal">sin responsable</b>') +
       (cap && a.metaPersonas ? ' · ' + esc(a.metaPersonas) + ' persona(s) esperadas' : '') + '</div>' +
       '<div class="m">' + (a.auto ? 'Se cumple con: ' + esc(nombreAuto(a.auto).toLowerCase()) : 'Se marca a mano cuando se hace') + '</div></div>' +
     '<button type="button" class="btn mini ghost" data-ed="' + i + '" aria-label="Editar la actividad">Editar</button></div>' +
@@ -362,6 +373,12 @@ function pintarCap(panel){
   enlazar(panel);
 }
 function enlazar(panel){
+  if (selAct) {   // en modo selección, tocar la actividad la marca o desmarca (no abre nada)
+    panel.addEventListener('click', (e)=> { const el = e.target.closest('.act[data-uid]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+      const u = el.dataset.uid; if (selAct.has(u)) selAct.delete(u); else selAct.add(u);
+      el.classList.toggle('sel-on', selAct.has(u)); const cb = el.querySelector('.sel-act'); if (cb) cb.checked = selAct.has(u); const n = $('nSel'); if (n) n.textContent = selAct.size; }, true);
+    return;
+  }
   panel.querySelectorAll('[data-ed]').forEach((b)=> b.addEventListener('click', ()=> editarActividad(+b.dataset.ed)));
   panel.querySelectorAll('.meses button[data-m]').forEach((b)=> b.addEventListener('click', ()=> marcar(+b.dataset.a, +b.dataset.m)));
   const q = panel.querySelector('#quitaFiltro'); if (q) q.addEventListener('click', ()=> { filtroMes = 0; pintar(); });
@@ -511,6 +528,16 @@ function editarActividad(i, tipoDef){
     const ok = await guardarPlan(); b.disabled = false;
     if (ok) { md.cerrar(); UI.toast(i == null ? '✓ Actividad agregada al plan.' : '✓ Actividad actualizada.'); } else { plan.actividades = copia; q('#eaMsg').textContent = 'No se guardó. Revisa la señal e inténtalo de nuevo.'; }
   });
+}
+async function eliminarVarias(){
+  if (!selAct || !selAct.size) { UI.toast('Marca primero las actividades que quieres quitar.', 'mal'); return; }
+  const van = plan.actividades.filter((a)=> selAct.has(a.uid));
+  if (!await Dialogo.confirmar('¿Quitar ' + van.length + ' actividad(es) del plan ' + anioSel + '?\n\n' + van.slice(0, 8).map((a)=> '· ' + a.actividad).join('\n') + (van.length > 8 ? '\n…' : '') + '\n\nSe pierden sus marcas de cumplimiento. El plan anterior queda en el historial de cambios.')) return;
+  const copia = plan.actividades.slice();
+  plan.actividades = plan.actividades.filter((a)=> !selAct.has(a.uid));
+  selAct = null;
+  if (await guardarPlan()) UI.toast('✓ ' + van.length + ' actividad(es) quitada(s) del plan.');
+  else { plan.actividades = copia; pintar(); }
 }
 async function guardarPlan(){
   if (plan._pendiente) { UI.toast('Hay avances del plan sin enviar desde este equipo. Espera a que se envíen y vuelve a intentarlo.', 'mal'); return false; }
