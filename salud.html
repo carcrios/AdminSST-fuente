@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-v60NdcYAZBrGe39YbmfuP8Ki1sNEjRMOLVfLEGM+CLw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LQMaskL+d75buLw7OrUdsYPuXJMkSIeOy2XwVZTuNr8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Gestión de la salud · Portal SSTA</title>
@@ -66,7 +66,7 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
     <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v176</div>
+  <div class="version-portal">Portal SSTA · versión v177</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -318,39 +318,75 @@ function leerExamenes(){
   inp.click();
 }
 function revisarLeidos(res, personal){
+  // v177: si la persona no está en el personal, se crea desde el examen; y se muestra TODO lo que trae el examen (sin diagnóstico).
   const opP = personal.map((p)=> '<option value="' + esc(p.cedula) + '">' + esc(p.nombre + ' · ' + p.cedula) + '</option>').join('');
   const ok = res.filter((r)=> !r.error);
-  const m = UI.modal('<h3>Revisa antes de guardar</h3><p class="ayuda">Quedan asignados a cada persona. Revisa el concepto y las restricciones: <b>nunca</b> se guarda el diagnóstico.</p>' +
-    res.map((r, i)=> r.error ? '<div class="aviso mal">' + esc(r.archivo) + ': ' + esc(r.error) + '</div>' :
-      '<div class="card lx-it" data-i="' + i + '"><b>' + esc(r.archivo) + '</b>' +
-      '<div class="field"><label for="lxP' + i + '">Trabajador</label><select id="lxP' + i + '"><option value="">— Elige la persona —</option>' + opP + '</select></div>' +
-      '<div class="grid2"><div class="field"><label for="lxF' + i + '">Fecha</label><input type="date" id="lxF' + i + '" value="' + esc(r.campos.fecha || '') + '"></div>' +
-      '<div class="field"><label for="lxC' + i + '">Concepto</label><select id="lxC' + i + '">' + CONCEPTOS.map((c)=> '<option' + (c === r.campos.concepto ? ' selected' : '') + '>' + esc(c) + '</option>').join('') + '</select></div></div>' +
-      '<div class="field"><label for="lxR' + i + '">Restricciones para el trabajo</label><textarea id="lxR' + i + '" rows="2">' + esc(r.campos.restricciones || '') + '</textarea></div>' +
-      '<small class="ayuda">' + esc([r.campos.tipoExamen, r.campos.ips, r.campos.proxima ? 'próximo: ' + UI.corta(r.campos.proxima) : ''].filter(Boolean).join(' · ')) + '</small>' +
+  const TDOC = [['CC', 'Cédula de ciudadanía'], ['TI', 'Tarjeta de identidad'], ['CE', 'Cédula de extranjería'], ['PPT', 'PPT'], ['PEP', 'PEP'], ['PA', 'Pasaporte']];
+  const sel = (id, op, v)=> '<select id="' + id + '">' + op.map((o)=> { const [val, txt] = Array.isArray(o) ? o : [o, o]; return '<option value="' + esc(val) + '"' + (val === v ? ' selected' : '') + '>' + esc(txt) + '</option>'; }).join('') + '</select>';
+  const linea = (t, v)=> v && v.length ? '<div class="m"><b>' + esc(t) + ':</b> ' + esc(Array.isArray(v) ? v.join(', ') : v) + '</div>' : '';
+  const tarjeta = (r, i)=> { const c = r.campos, nuevo = !r.persona && (c.cedula || c.nombre);
+    return '<div class="card lx-it" data-i="' + i + '"><b>' + esc(r.archivo) + '</b>' +
+      '<div class="field"><label for="lxP' + i + '">Trabajador</label><select id="lxP' + i + '"><option value="">— Elige la persona —</option>' +
+      (nuevo ? '<option value="__nuevo">➕ Crear: ' + esc((c.nombre || 'persona nueva') + (c.cedula ? ' · ' + c.cedula : '')) + '</option>' : '<option value="__nuevo">➕ Crear una persona nueva</option>') + opP + '</select></div>' +
+      '<div class="lx-nuevo" id="lxN' + i + '" hidden><p class="ayuda">Se agrega a Personal habilitado con estos datos.</p>' +
+      '<div class="field"><label for="lxNn' + i + '">Nombre completo</label><input id="lxNn' + i + '" value="' + esc(c.nombre || '') + '"></div>' +
+      '<div class="grid2"><div class="field"><label for="lxNt' + i + '">Tipo de documento</label>' + sel('lxNt' + i, TDOC, c.tipoDoc || 'CC') + '</div>' +
+      '<div class="field"><label for="lxNc' + i + '">Número</label><input id="lxNc' + i + '" inputmode="numeric" value="' + esc(c.cedula || '') + '"></div></div>' +
+      '<div class="field"><label for="lxNg' + i + '">Cargo</label><input id="lxNg' + i + '" value="' + esc(c.cargo || '') + '"></div></div>' +
+      '<div class="grid2"><div class="field"><label for="lxT' + i + '">Tipo de evaluación</label>' + sel('lxT' + i, TIPOS_EX, c.tipoExamen || 'Periódico') + '</div>' +
+      '<div class="field"><label for="lxF' + i + '">Fecha</label><input type="date" id="lxF' + i + '" value="' + esc(c.fecha || '') + '"></div></div>' +
+      '<div class="grid2"><div class="field"><label for="lxC' + i + '">Concepto</label>' + sel('lxC' + i, CONCEPTOS, c.concepto || 'Apto') + '</div>' +
+      '<div class="field"><label for="lxX' + i + '">Próximo examen</label><input type="date" id="lxX' + i + '" value="' + esc(c.proxima || '') + '"></div></div>' +
+      '<div class="field"><label for="lxI' + i + '">IPS / médico</label><input id="lxI' + i + '" value="' + esc(c.ips || c.medico || '') + '"></div>' +
+      '<div class="field"><label for="lxR' + i + '">Restricciones y recomendaciones para el trabajo</label><textarea id="lxR' + i + '" rows="' + Math.min(9, 2 + (c.restricciones || '').split(/;|\n/).length) + '">' + esc(c.restricciones || '') + '</textarea></div>' +
+      linea('Restringido para', c.restringePara) + linea('Las restricciones son', c.temporalidad && c.temporalidad !== '—' ? c.temporalidad + (c.venceRestriccion ? ' hasta ' + UI.corta(c.venceRestriccion) : '') : '') +
+      linea('Pruebas realizadas', (c.pruebas || []).slice(1)) + linea('Ingresa a vigilancia', c.pveIngresa === 'Sí' ? (c.pveLista || ['sí (revisa el programa)']) : '') +
       (r.avisos.length ? '<div class="aviso amar u-mt8">' + r.avisos.map(esc).join('<br>') + '</div>' : '') +
-      '<button type="button" class="btn-mini" data-lxver="' + i + '">Abrir el formulario completo</button></div>').join('') +
+      '<button type="button" class="btn-mini" data-lxver="' + i + '">Abrir el formulario completo</button></div>'; };
+  const m = UI.modal('<h3>Revisa antes de guardar</h3><p class="ayuda">Cada examen queda guardado en la persona (su ficha y Personal habilitado). Revisa el concepto y las restricciones: <b>nunca</b> se guarda el diagnóstico ni el PDF.</p>' +
+    res.map((r, i)=> r.error ? '<div class="aviso mal">' + esc(r.archivo) + ': ' + esc(r.error) + '</div>' : tarjeta(r, i)).join('') +
     (ok.length ? '<button type="button" class="btn amber" id="lxOk">Guardar ' + ok.length + ' examen(es)</button>' : '') + '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="lxEst"></p>');
-  res.forEach((r, i)=> { if (!r.error && r.persona) m.el.querySelector('#lxP' + i).value = r.persona.cedula; });
-  const docDe = (r, i)=> {
-    const ced = m.el.querySelector('#lxP' + i).value, p = personal.find((x)=> x.cedula === ced) || {};
-    return Object.assign({ tipoExamen: 'Periódico', temporalidad: '—', pveIngresa: 'No' }, r.campos, { nombre: p.nombre, cedula: p.cedula, cargo: p.cargo || r.campos.cargo || '',
-      fecha: m.el.querySelector('#lxF' + i).value, concepto: m.el.querySelector('#lxC' + i).value, restricciones: m.el.querySelector('#lxR' + i).value.trim() });
-  };
+  const q = (id)=> m.el.querySelector('#' + id);
+  const verNuevo = (i)=> { q('lxN' + i).hidden = q('lxP' + i).value !== '__nuevo'; };
+  res.forEach((r, i)=> { if (r.error) return; q('lxP' + i).value = r.persona ? r.persona.cedula : (r.campos.cedula || r.campos.nombre ? '__nuevo' : ''); verNuevo(i); q('lxP' + i).addEventListener('change', ()=> verNuevo(i)); });
+  const personaDe = (r, i)=> { const v = q('lxP' + i).value;
+    if (v === '__nuevo') return { nuevo: true, nombre: q('lxNn' + i).value.trim(), cedula: Valida.limpiarCedula(q('lxNc' + i).value), tipoDoc: q('lxNt' + i).value, cargo: q('lxNg' + i).value.trim() };
+    return personal.find((x)=> x.cedula === v) || null; };
+  const docDe = (r, i)=> { const p = personaDe(r, i) || {}, c = Object.assign({}, r.campos);
+    delete c.leido; delete c.listaRestricciones; delete c.listaRecomendaciones; delete c.tipoDoc; delete c.medico;
+    const d = Object.assign({ temporalidad: '—', pveIngresa: 'No' }, c, { nombre: p.nombre, cedula: p.cedula, cargo: p.cargo || c.cargo || '',
+      tipoExamen: q('lxT' + i).value, fecha: q('lxF' + i).value, concepto: q('lxC' + i).value, proxima: q('lxX' + i).value, ips: q('lxI' + i).value.trim(), restricciones: q('lxR' + i).value.trim() });
+    d.tieneRestricciones = !!d.restricciones || d.concepto === 'Apto con restricciones';
+    if (d.pveIngresa === 'Sí') { d.pveLista = d.pveLista || []; d.pve = d.pveLista.slice(); } else { d.pveLista = []; d.pve = []; }
+    if (d.temporalidad !== 'Temporales') d.venceRestriccion = '';
+    if (d.tipoExamen === 'Egreso') d.proxima = '';
+    return d; };
   m.el.addEventListener('click', (e)=> { const b = e.target.closest('[data-lxver]'); if (!b) return; const i = +b.dataset.lxver;
     m.cerrar(); editar('examen', 'Examen médico ocupacional', C_EX, Object.assign({ id: SGSST.nuevoId('EXA'), nuevo: true }, docDe(res[i], i)), exExtra); });
-  const g = m.el.querySelector('#lxOk'); if (!g) return;
+  const g = q('lxOk'); if (!g) return;
   g.addEventListener('click', async ()=> {
-    const est = m.el.querySelector('#lxEst'), lst = res.map((r, i)=> [r, i]).filter(([r])=> !r.error);
-    const falta = lst.filter(([r, i])=> !m.el.querySelector('#lxP' + i).value || !m.el.querySelector('#lxF' + i).value);
-    if (falta.length) { est.textContent = 'Falta la persona o la fecha en ' + falta.length + ' examen(es).'; return; }
-    g.disabled = true; let n = 0, mal = 0;
+    const est = q('lxEst'), lst = res.map((r, i)=> [r, i]).filter(([r])=> !r.error);
+    const falta = lst.filter(([r, i])=> { const p = personaDe(r, i); return !p || !p.nombre || !p.cedula || !q('lxF' + i).value; });
+    if (falta.length) { est.textContent = 'Falta la persona (nombre y documento) o la fecha en ' + falta.length + ' examen(es).'; return; }
+    const diag = lst.filter(([r, i])=> DIAG.test(q('lxR' + i).value));
+    if (diag.length) { est.textContent = 'En ' + diag.length + ' examen(es) las restricciones parecen un diagnóstico: deja solo lo que la persona puede o no hacer.'; return; }
+    g.disabled = true; let n = 0, mal = 0, creadas = 0;
     for (const [r, i] of lst) {
       est.textContent = 'Guardando ' + (++n) + ' de ' + lst.length + '…';
-      const doc = docDe(r, i), x = await SGSST.enviar({ action: 'guardar', tipo: 'examen', id: SGSST.nuevoId('EXA'), doc }, { nombre: doc.nombre, cedula: doc.cedula, fecha: doc.fecha, concepto: doc.concepto });
-      if (!x.ok) mal++;
+      const p = personaDe(r, i), doc = docDe(r, i);
+      if (p.nuevo) {
+        const yaEsta = personal.find((x)=> Habilitacion.clave(x.cedula) === Habilitacion.clave(p.cedula));
+        if (!yaEsta) {
+          const rp = await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id: 'TRB-' + Habilitacion.clave(p.cedula), campos: { nombre: p.nombre, cedula: p.cedula, tipoDoc: p.tipoDoc, cargo: p.cargo, activo: true, origen: 'examen' } });
+          if (rp.ok) { creadas++; personal.push({ nombre: p.nombre, cedula: p.cedula, cargo: p.cargo }); }
+        }
+      }
+      const id = SGSST.nuevoId('EXA'), x = await SGSST.enviar({ action: 'guardar', tipo: 'examen', id, doc }, { nombre: doc.nombre, cedula: doc.cedula, fecha: doc.fecha, concepto: doc.concepto });
+      if (!x.ok) { mal++; continue; }
+      // Igual que al guardar a mano: el examen más reciente queda en la persona (Personal habilitado y permisos).
+      try { await exExtra.despuesDeGuardar(doc, { id }); } catch (e) {}
     }
-    m.cerrar(); UI.toast(mal ? '⚠ ' + mal + ' no se guardaron.' : '✓ ' + lst.length + ' examen(es) asignados a su trabajador', mal ? 'mal' : ''); cargar();
+    m.cerrar(); UI.toast(mal ? '⚠ ' + mal + ' no se guardaron.' : '✓ ' + lst.length + ' examen(es) guardados en su persona' + (creadas ? ' · ' + creadas + ' persona(s) nueva(s)' : ''), mal ? 'mal' : ''); cargar();
   });
 }
 

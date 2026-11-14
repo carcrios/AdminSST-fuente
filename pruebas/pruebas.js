@@ -3787,6 +3787,21 @@ grupo('v176: leer exámenes en PDF sin diagnóstico, seleccionar en todas las li
   ok('seleccionar varios: se activa solo en todas las listas de registros (salvo papelera, auditor y pantallas de solo consulta)', /function autoSeleccion/.test(leer('sgsst-ui.js')) && /SIN_AUTO = .*papelera\|auditor/.test(leer('sgsst-ui.js')));
 });
 
+grupo('v177: el examen en PDF crea la persona, trae todo lo que dice y queda en la persona', () => {
+  const L = require(path.join(RAIZ, 'lector-examen.js'));
+  const txt = 'IPS: Salud Laboral Ltda\nTipo de evaluación: Periódica\nNombres y apellidos: PEDRO PÉREZ GÓMEZ  C.C. 1.020.333.444\nCargo: Operario\nFecha de atención: 05/11/2026\n' +
+    'Pruebas: Audiometría, Visiometría\nCONCEPTO: APTO CON RESTRICCIONES\nRESTRICCIONES\n- No levantar más de 15 kg\n- No realizar trabajo en alturas por 3 meses\nRECOMENDACIONES\n- Uso permanente de protección auditiva\n' +
+    '- Diagnóstico: M54.5 lumbago\nIngresa al programa de vigilancia osteomuscular\nPróximo examen: 05/11/2027';
+  const c = L.leer(txt, []).campos;
+  ok('examen: sin la persona en el personal, trae nombre, documento y cargo para crearla', c.nombre === 'PEDRO PÉREZ GÓMEZ' && c.cedula === '1020333444' && c.cargo === 'Operario' && c.tipoDoc === 'CC', JSON.stringify(c));
+  ok('examen: trae restricciones y recomendaciones de títulos sin dos puntos, cada una', /No levantar más de 15 kg/.test(c.restricciones) && /Recomendaciones: Uso permanente de protección auditiva/.test(c.restricciones));
+  ok('examen: temporales por 3 meses (no lo confunde con «uso permanente») y calcula hasta cuándo', c.temporalidad === 'Temporales' && c.venceRestriccion === '2027-02-03');
+  ok('examen: para qué trabajos queda restringido, pruebas realizadas y programa de vigilancia', c.restringePara.join() === 'Trabajo en alturas,Manipulación manual de cargas' && c.pruebas.indexOf('Audiometría') !== -1 && c.pveLista.join() === 'Osteomuscular');
+  ok('examen: nunca el diagnóstico', !/M54|lumbago|diagn/i.test(JSON.stringify(c)));
+  const sl = leer('salud.html'), rv = sl.slice(sl.indexOf('function revisarLeidos'), sl.indexOf('/* ── Exámenes médicos ocupacionales'));
+  ok('al guardar: crea la persona si no está y pasa el examen a la persona igual que a mano (Personal habilitado)', /value="__nuevo"/.test(rv) && /action: 'parche', tipo: 'trabajador', id: 'TRB-'/.test(rv) && /exExtra\.despuesDeGuardar\(doc, \{ id \}\)/.test(rv));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');

@@ -12,7 +12,10 @@
    ============================================================ */
 const LectorExamen = (function () {
   const MESES = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, set: 9, oct: 10, nov: 11, dic: 12 };
-  const sinTildes = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const sinTildes = (s) =>
+    String(s || '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '');
   const dos = (n) => (n < 10 ? '0' : '') + n;
   /** «15/03/2026», «2026-03-15», «15 de marzo de 2026», «15-mar-2026» → «2026-03-15» */
   function fecha(t) {
@@ -26,22 +29,80 @@ const LectorExamen = (function () {
     return '';
   }
   const DIAG = /\b[A-TV-Z]\d{2}(\.\d{1,2})?\b|diagnost|impresion diagnost|enfermedad|patolog|cie-?10|cie 10|antecedente|hallazgo clinic|dx\b/i;
-  /** Lo que sigue a un rótulo («Concepto:», «Restricciones:») hasta el siguiente rótulo conocido. */
-  function tras(lineas, re, max) {
+  /** ¿La línea es un rótulo nuevo? («Concepto:», o un título en MAYÚSCULAS solo en su línea). */
+  const esRotulo = (x) =>
+    (/^\s*[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ /]{2,40}:/.test(x) && !/^\s*[-•*·]/.test(x)) ||
+    (/^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ /]{4,45}$/.test(x.trim()) && !/^\s*[-•*·]/.test(x));
+  /** Lo que sigue a un rótulo («Concepto:», «RECOMENDACIONES») hasta el siguiente rótulo. Junta todos los bloques que coincidan. */
+  function tras(lineas, re, max, uno) {
+    const out = [];
     for (let i = 0; i < lineas.length; i++) {
       const m = re.exec(lineas[i]);
       if (!m) continue;
-      const out = [],
-        resto = lineas[i].slice(m.index + m[0].length).replace(/^[\s:.-]+/, '');
+      const resto = lineas[i].slice(m.index + m[0].length).replace(/^[\s:.-]+/, '');
       if (resto) out.push(resto);
-      for (let j = i + 1; j < lineas.length && out.length < (max || 6); j++) {
-        if (/^\s*[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ ]{2,40}:/.test(lineas[j]) && !/^\s*-/.test(lineas[j])) break;
+      let j = i + 1;
+      for (; j < lineas.length && out.length < (max || 6); j++) {
+        if (esRotulo(lineas[j])) break;
         if (lineas[j].trim()) out.push(lineas[j].trim());
       }
-      return out;
+      if (uno) return out;
+      i = j - 1;
     }
-    return [];
+    return out;
   }
+  const RE_REC = new RegExp(
+    '(?:recomendaci[oó]n(?:es)?|sugerencias?|indicaciones|conducta|plan de manejo|observaciones)' +
+      '(?: m[eé]dic[oa]s?| generales| laborales| ocupacionales| para el trabajador| para la empresa| al empleador)?\\s*(?::|$)',
+    'i',
+  );
+  const sinVacias = (l) =>
+    l.filter((x) => !/^(ninguna?|no aplica|n\/?a|sin (restricciones|recomendaciones)|no (tiene|presenta|requiere))\.?$/i.test(sinTildes(x).trim()));
+  // Pruebas que trae el examen → nombres de la lista del portal (salud.html, PRUEBAS)
+  const PRUEBAS_RE = [
+    [/audiometr/, 'Audiometría'],
+    [/visiometr/, 'Visiometría'],
+    [/optometr/, 'Optometría'],
+    [/ishihara|vision de colores|cromatica/, 'Visión de colores (Ishihara)'],
+    [/espirometr/, 'Espirometría'],
+    [/electrocardiogram|\becg\b|\bekg\b/, 'Electrocardiograma'],
+    [/glicemia|glucosa/, 'Glicemia'],
+    [/perfil lipidico|colesterol|triglicerid/, 'Perfil lipídico'],
+    [/cuadro hematico|hemograma/, 'Cuadro hemático'],
+    [/creatinina|transaminas|funcion (hepatica|renal)/, 'Pruebas de función hepática y renal'],
+    [/\bbei\b|indicador(es)? biologico/, 'Indicadores biológicos de exposición (BEI)'],
+    [/rx de torax|radiografia de torax/, 'Rx de tórax con lectura OIT'],
+    [/romberg|equilibrio/, 'Prueba de equilibrio (Romberg)'],
+    [/psicosensometr/, 'Prueba psicosensométrica'],
+    [/psicolog|psicotecnic/, 'Valoración psicológica'],
+    [/coprologic/, 'Coprológico'],
+    [/\bkoh\b/, 'KOH de uñas'],
+    [/frotis/, 'Frotis de garganta'],
+    [/vacuna|hepatitis b|tetano|titulos? de anticuerpos/, 'Vacunación y títulos de anticuerpos (hepatitis B y tétanos)'],
+    [/osteomuscular/, 'Énfasis osteomuscular'],
+    [/(enfasis|aptitud|examen|evaluacion).{0,30}altura|trabajo (seguro )?en alturas/, 'Énfasis para trabajo en alturas'],
+    [/espacios? confinad/, 'Énfasis para espacios confinados'],
+  ];
+  const TRABAJOS_RE = [
+    [/altura/, 'Trabajo en alturas'],
+    [/espacios? confinad/, 'Espacios confinados'],
+    [/trabajo(s)? en caliente|soldadura/, 'Trabajo en caliente'],
+    [/electric/, 'Riesgo eléctrico'],
+    [/izaje|montacarga|puente grua/, 'Izaje de cargas'],
+    [/(manipulacion|levantamiento|cargue).{0,25}carga|levantar (mas de )?\d+ ?kg|cargas? (mayores|superiores)/, 'Manipulación manual de cargas'],
+    [/conduc(ir|cion)|vehiculo|manejo de (vehiculos|motos)/, 'Conducción de vehículos'],
+  ];
+  const PVE_RE = [
+    [/osteomuscular|biomecanic|ergonomic/, 'Osteomuscular'],
+    [/auditiv|ruido|hipoacus/, 'Conservación auditiva'],
+    [/respiratori/, 'Protección respiratoria'],
+    [/psicosocial/, 'Riesgo psicosocial'],
+    [/visual/, 'Visual'],
+    [/cardiovascular/, 'Riesgo cardiovascular'],
+    [/quimic/, 'Riesgo químico'],
+    [/biologic/, 'Riesgo biológico'],
+    [/radiacion/, 'Radiaciones ionizantes'],
+  ];
   /**
    * @param {string} texto  el texto del PDF
    * @param {Array} personal  [{nombre, cedula, cargo}] — para saber de quién es
@@ -50,7 +111,10 @@ const LectorExamen = (function () {
   function leer(texto, personal) {
     const t = String(texto || '').replace(/\r/g, ''),
       n = sinTildes(t).toLowerCase(),
-      lineas = t.split(/\n/).map((x) => x.replace(/\s+/g, ' ').trim()).filter(Boolean),
+      lineas = t
+        .split(/\n/)
+        .map((x) => x.replace(/\s+/g, ' ').trim())
+        .filter(Boolean),
       ln = lineas.map((x) => sinTildes(x).toLowerCase());
     const avisos = [],
       campos = {};
@@ -65,13 +129,40 @@ const LectorExamen = (function () {
       }
       return false;
     });
+    // Lo que trae el examen de la persona (sirve para crearla si no está en el personal)
+    const nm = tras(
+      lineas,
+      /(?:nombres? y apellidos|nombre(?: completo)?(?: del (?:trabajador|paciente|evaluado|aspirante))?|paciente|trabajador|evaluado|aspirante)\s*:/i,
+      1,
+      true,
+    )[0];
+    const leido = {};
+    if (nm)
+      leido.nombre = nm
+        .replace(/\s+(c\.?c\.?|t\.?i\.?|c\.?e\.?|cedula|documento|identificacion|edad|sexo|genero|fecha)\b.*$/i, '')
+        .replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñü .'-]/g, '')
+        .trim()
+        .slice(0, 80);
+    const cg = tras(lineas, /\b(?:cargo(?: a desempe[nñ]ar| actual)?|ocupacion|oficio)\s*:/i, 1, true)[0];
+    if (cg) leido.cargo = cg.replace(/\s+(empresa|area|fecha|ips)\b.*$/i, '').slice(0, 60);
+    leido.tipoDoc = /\bt\.?\s?i\.?\b|tarjeta de identidad/.test(n)
+      ? 'TI'
+      : /\bppt\b|permiso por proteccion/.test(n)
+        ? 'PPT'
+        : /\bpep\b|permiso especial/.test(n)
+          ? 'PEP'
+          : /\bc\.?\s?e\.?\b|cedula de extranjeria/.test(n)
+            ? 'CE'
+            : /pasaporte/.test(n)
+              ? 'PA'
+              : 'CC';
     if (!persona) {
       const c = /(?:c\.?\s?c\.?|cedula|documento|identificacion|n[°o]\.?\s*de\s*documento)[^\d]{0,20}([\d.]{5,15})/.exec(n);
       if (c) campos.cedula = c[1].replace(/\./g, '');
-      const nm = tras(lineas, /(?:nombre(?: del (?:trabajador|paciente|evaluado))?|paciente|trabajador)\s*:/i, 1)[0];
-      if (nm) campos.nombre = nm.replace(/\s+(c\.?c\.?|cedula|documento).*$/i, '').slice(0, 80);
+      Object.assign(campos, { nombre: leido.nombre || '', cargo: leido.cargo || '' });
       avisos.push('No encontré la cédula de nadie del personal en el examen: revisa a quién pertenece.');
-    } else Object.assign(campos, { nombre: persona.nombre, cedula: persona.cedula, cargo: persona.cargo || '' });
+    } else Object.assign(campos, { nombre: persona.nombre, cedula: persona.cedula, cargo: persona.cargo || leido.cargo || '' });
+    campos.tipoDoc = leido.tipoDoc;
     // Tipo de examen
     const tipos = [
       [/pre-?ingreso|ingreso/, 'Pre-ingreso'],
@@ -104,26 +195,89 @@ const LectorExamen = (function () {
     const fp = lProx ? fecha(lProx) : '';
     if (fp && fp > (campos.fecha || '')) campos.proxima = fp;
     // IPS / médico
-    const ips = lineas.find((x, i) => /\bips\b|institucion prestadora|medico (especialista|ocupacional)|dr\.|dra\./.test(ln[i]) && !DIAG.test(ln[i]));
-    if (ips) campos.ips = ips.replace(/^(ips|institucion prestadora[^:]*|medico[^:]*)\s*:\s*/i, '').slice(0, 120);
-    // Restricciones / recomendaciones para el trabajo, SIN diagnóstico
+    const ipsL = tras(lineas, /\b(?:ips|prestador(?: de servicios)?(?: de salud)?|institucion prestadora[^:]*|razon social del prestador)\s*:/i, 1, true)[0];
+    const ips =
+      ipsL ||
+      lineas.find(
+        (x, i) => /\bips\b|institucion prestadora|salud ocupacional|medicina (del trabajo|laboral)/.test(ln[i]) && !DIAG.test(ln[i]) && x.length < 90,
+      );
+    if (ips) campos.ips = ips.replace(/^(ips|institucion prestadora[^:]*|prestador[^:]*)\s*:\s*/i, '').slice(0, 120);
+    const med = lineas.find(
+      (x, i) => /^(medico( especialista| ocupacional| evaluador)?\s*:|dr\.? |dra\.? )|licencia (sst|en salud ocupacional)/.test(ln[i]) && !DIAG.test(ln[i]),
+    );
+    if (med) campos.medico = med.replace(/^m[eé]dico[^:]*:\s*/i, '').slice(0, 120);
+    // Restricciones y recomendaciones PARA EL TRABAJO, sin diagnóstico (cada bloque por separado)
     let descartadas = 0;
-    const rec = tras(lineas, /(restricciones|recomendaciones)( laborales| ocupacionales| para el trabajo)?\s*:/i, 8).filter((x) => {
-      if (DIAG.test(sinTildes(x))) {
-        descartadas++;
-        return false;
-      }
-      return !/^(ninguna|no aplica|n\/?a|sin restricciones)\.?$/i.test(x);
-    });
-    if (rec.length) campos.restricciones = rec.map((x) => x.replace(/^[-•*·\s]+/, '')).join('; ').slice(0, 600);
+    const limpio = (l) =>
+      sinVacias(l)
+        .filter((x) => {
+          if (DIAG.test(sinTildes(x))) {
+            descartadas++;
+            return false;
+          }
+          return true;
+        })
+        .map((x) => x.replace(/^[-•*·\d.)\s]+/, '').trim())
+        .filter(Boolean);
+    const res = limpio(tras(lineas, /restricci[oó]n(?:es)?(?: medic[oa]s?)?(?: laborales| ocupacionales| para el trabajo)?\s*(?::|$)/i, 10));
+    const rec = limpio(
+      tras(
+        lineas,
+        RE_REC,
+        14,
+      ),
+    ).filter((x) => res.indexOf(x) === -1);
+    const partes = [];
+    if (res.length) partes.push('Restricciones: ' + res.join('; '));
+    if (rec.length) partes.push('Recomendaciones: ' + rec.join('; '));
+    if (partes.length) campos.restricciones = partes.join('\n').slice(0, 1200);
+    if (res.length) campos.listaRestricciones = res;
+    if (rec.length) campos.listaRecomendaciones = rec;
     if (descartadas) avisos.push('Quité ' + descartadas + ' línea(s) que parecían diagnóstico: el portal no guarda diagnósticos.');
-    if (campos.concepto === 'Apto con restricciones' || campos.restricciones) {
-      campos.temporalidad = /permanent/.test(n) ? 'Permanentes' : /temporal|por (\d+|un|dos|tres|seis) (dias|meses|semanas)|hasta el/.test(n) ? 'Temporales' : '—';
+    if (campos.concepto === 'Apto con restricciones' || res.length) {
+      const nt = sinTildes(res.join(' ') + ' ' + ln.filter((x) => /restricci|temporalidad|concepto/.test(x)).join(' ')).toLowerCase();
+      campos.temporalidad = /temporal|transitori|por (\d+|un|dos|tres|seis) (dias|meses|semanas)|hasta (el|nueva)/.test(nt)
+        ? 'Temporales'
+        : /permanent|definitiv/.test(nt)
+          ? 'Permanentes'
+          : '—';
       const lh = lineas.find((x, i) => /hasta|vigencia de (la )?restriccion/.test(ln[i]) && fecha(x));
+      const dur = /por (\d+|un|dos|tres|seis) (dias|semanas|meses)/.exec(nt);
       if (campos.temporalidad === 'Temporales' && lh) campos.venceRestriccion = fecha(lh);
+      else if (campos.temporalidad === 'Temporales' && dur && campos.fecha) {
+        const num = { un: 1, dos: 2, tres: 3, seis: 6 }[dur[1]] || +dur[1],
+          dias = dur[2] === 'dias' ? num : dur[2] === 'semanas' ? num * 7 : num * 30;
+        campos.venceRestriccion = new Date(Date.parse(campos.fecha + 'T12:00:00Z') + dias * 864e5).toISOString().slice(0, 10);
+      }
     }
-    // ¿Remite a vigilancia epidemiológica?
-    if (/sistema de vigilancia|programa de vigilancia|\bpve\b|\bsve\b/.test(n)) campos.pveIngresa = 'Sí';
+    // ¿Para qué trabajos queda restringido? (lo usan los permisos). «no apto para alturas» o una restricción que lo nombre.
+    const textoRes = sinTildes(
+      res.join(' ') +
+        ' ' +
+        ln
+          .filter(
+            (x) =>
+              /no apto|restring|restricci|no (puede|debe|realizar|realiza)|evitar|abstener/.test(x) && !/\bapto para\b(?!.*no)/.test(x.replace(/no apto/g, '')),
+          )
+          .join(' '),
+    ).toLowerCase();
+    const restr = TRABAJOS_RE.filter(([re]) => re.test(textoRes)).map(([, t]) => t);
+    if (restr.length) campos.restringePara = restr;
+    // Pruebas realizadas
+    const quitar = new Set(res.concat(rec).map((x) => sinTildes(x).toLowerCase()));
+    const nPr = ln
+      .filter((x) => !/vigilancia|\bpve\b|\bsve\b|restricci|no (realizar|puede|debe)/.test(x) && ![...quitar].some((q) => q && x.indexOf(q) !== -1))
+      .join('\n');
+    const pr = PRUEBAS_RE.filter(([re]) => re.test(nPr)).map(([, t]) => t);
+    if (pr.length) campos.pruebas = ['Examen médico ocupacional'].concat(pr);
+    // ¿Remite a vigilancia epidemiológica? ¿A cuál?
+    const lVig = ln.filter((x) => /vigilancia|\bpve\b|\bsve\b|programa de (conservacion|prevencion|proteccion)/.test(x)).join(' ');
+    if (lVig) {
+      campos.pveIngresa = 'Sí';
+      const pv = PVE_RE.filter(([re]) => re.test(lVig)).map(([, t]) => t);
+      if (pv.length) campos.pveLista = pv;
+    }
+    campos.leido = leido;
     return { ok: !!(campos.concepto || campos.fecha), campos, persona, avisos, descartadas };
   }
   /** Saca el texto de un PDF con pdf.js (se carga solo cuando se usa). */

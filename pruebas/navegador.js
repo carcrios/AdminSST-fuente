@@ -364,11 +364,28 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
         return Buffer.from(b, 'latin1'); })();
       const [fc] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#leerEx')]);
       await fc.setFiles({ name: 'examen.pdf', mimeType: 'application/pdf', buffer: pdf }); await pg.waitForTimeout(4000);
-      const rev = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, con: c.querySelectorAll('select')[1].value, res: c.querySelector('textarea').value, txt: c.innerText } : null; });
+      const rev = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, con: c.querySelector('[id^=lxC]').value, res: c.querySelector('textarea').value, txt: c.innerText } : null; });
       ok('examen en PDF: reconoce al trabajador por la cédula, el concepto y las restricciones, y NO toma el diagnóstico', !!per && !!rev && rev.per === per.cedula && rev.con === 'Apto con restricciones' && /15 kg/.test(rev.res) && !/M54|Lumbago/.test(rev.txt), JSON.stringify(rev));
       if (rev) { await pg.click('#lxOk'); await pg.waitForTimeout(3500); }
       const guardado = await pg.evaluate(async (c) => { const r = await SGSST.listar('examen'); return (r.rows || []).some((x) => x.resumen.cedula === c && x.resumen.fecha === '2026-11-10' && x.resumen.concepto === 'Apto con restricciones'); }, per && per.cedula);
       ok('examen en PDF: queda guardado y asignado a su trabajador', guardado);
+      // v177: persona que no está en el personal → se crea desde el examen
+      lineas.splice(0, lineas.length, 'IPS: Salud Laboral', 'Tipo de evaluacion: Pre-ingreso', 'Nombres y apellidos: LUCIA NUEVA PRUEBA  C.C. 1.099.888.777', 'Cargo: Auxiliar de bodega', 'Fecha de atencion: 12/11/2026',
+        'CONCEPTO: APTO CON RESTRICCIONES', 'RESTRICCIONES', '- No realizar trabajo en alturas por 3 meses', 'RECOMENDACIONES', '- Pausas activas cada 2 horas');
+      const pdf2 = (() => { const sc = (t) => t.replace(/[()\\]/g, '\\$&'); let st = 'BT /F1 11 Tf 50 780 Td 14 TL ' + lineas.map((l) => '(' + sc(l) + ') Tj T*').join(' ') + ' ET';
+        const o = ['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+          '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', '<< /Length ' + st.length + ' >>\nstream\n' + st + '\nendstream'];
+        let b = '%PDF-1.4\n', off = []; o.forEach((x, i) => { off.push(b.length); b += (i + 1) + ' 0 obj\n' + x + '\nendobj\n'; });
+        const xr = b.length; b += 'xref\n0 ' + (o.length + 1) + '\n0000000000 65535 f \n' + off.map((n) => String(n).padStart(10, '0') + ' 00000 n \n').join('') + 'trailer\n<< /Size ' + (o.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF';
+        return Buffer.from(b, 'latin1'); })();
+      await pg.goto(S.url + '/salud.html'); await pg.waitForTimeout(3000);
+      const [fc2] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#leerEx')]);
+      await fc2.setFiles({ name: 'nuevo.pdf', mimeType: 'application/pdf', buffer: pdf2 }); await pg.waitForTimeout(4000);
+      const rv2 = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, nom: (c.querySelector('[id^=lxNn]') || {}).value, ced: (c.querySelector('[id^=lxNc]') || {}).value, res: c.querySelector('[id^=lxR]').value, txt: c.innerText } : null; });
+      ok('examen en PDF: si la persona no está, propone crearla con nombre y documento, y trae restricciones, recomendaciones y para qué trabajos', !!rv2 && rv2.per === '__nuevo' && rv2.nom === 'LUCIA NUEVA PRUEBA' && rv2.ced === '1099888777' && /Pausas activas/.test(rv2.res) && /Trabajo en alturas/.test(rv2.txt), JSON.stringify(rv2));
+      if (rv2) { await pg.click('#lxOk'); await pg.waitForTimeout(4000); }
+      const creada = await pg.evaluate(async () => { const r = await SGSST.listar('trabajador'); const t = (r.rows || []).find((x) => String(x.resumen.cedula) === '1099888777'); return t ? { nombre: t.resumen.nombre, req: t.resumen.req || t.resumen.requisitos || null } : null; });
+      ok('examen en PDF: la persona queda creada en el personal con su examen', !!creada && creada.nombre === 'LUCIA NUEVA PRUEBA', JSON.stringify(creada));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }

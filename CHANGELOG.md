@@ -3,6 +3,13 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v177 — El examen en PDF crea a la persona y trae todo lo que dice
+
+- **Salud → «Leer exámenes (PDF)»** ahora trae del examen: tipo de evaluación, fecha, concepto, IPS o médico, próximo examen, **todas las restricciones y todas las recomendaciones** (también cuando vienen como título en mayúsculas sin «:»), si son temporales y hasta cuándo («por 3 meses» se calcula), **para qué trabajos queda restringido** (alturas, cargas, confinados, eléctrico…), las **pruebas realizadas** (audiometría, visiometría, espirometría…) y a qué **programa de vigilancia** ingresa. Nunca el diagnóstico.
+- **Si la persona no está en el personal, se crea desde el examen** (nombre, tipo y número de documento, cargo; se pueden corregir antes de guardar).
+- **El examen queda en la persona**: al guardar en lote pasa lo mismo que a mano (antes no): el concepto y las restricciones quedan en Personal habilitado y en su ficha, y los permisos lo tienen en cuenta.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v176 — Leer exámenes en PDF, seleccionar y eliminar en todas las listas, calendario ordenado
 
 - **Salud → Exámenes → «Leer exámenes (PDF)»**: se eligen uno o varios PDF de la IPS y el portal lee de cada uno a quién pertenece (por la cédula del personal), la fecha, el tipo, el concepto, las restricciones para el trabajo, si son temporales, la IPS y el próximo examen. Se revisa y se guardan todos de una vez, asignados a su trabajador. **Nunca toma el diagnóstico** (descarta las líneas con códigos CIE-10 o «diagnóstico») y **el PDF no se guarda**: se lee en el equipo. Los PDF escaneados (sin texto) se registran a mano.
