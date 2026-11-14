@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-VPCqIsUScibvo164FQuFkhHhGmkYtY44iqZy8/9aFFQ=' 'sha256-vek3dHWEmF0FXufrh4QnGUFgzyC8BlqpjwVLQkuBfiQ=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-6cLd1AsOnDqTIBLRieTMOWicW45uXR48E8UlGbQEvpM=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-CUOAjkJeTiKMQ6t6vgwpEqc4M8HQqjM3F52ktEGW5Zw=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-Qaq8c2AynObzc1WeOir1sEIiy234q5sXIGAHnB+HmY0=' 'sha256-vek3dHWEmF0FXufrh4QnGUFgzyC8BlqpjwVLQkuBfiQ=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-6cLd1AsOnDqTIBLRieTMOWicW45uXR48E8UlGbQEvpM=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-+5U8gbuq7D5cjpi1cyqxK02tdGC3ewIv7DRuHFmbOBA=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal SSTA</title>
 <meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
@@ -294,7 +294,8 @@
   /* v174: lo de hoy y la semana al lado del calendario */
   .dia-grid{display:grid;gap:0 16px;align-items:start;}
   @media (min-width:900px){ .dia-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);} }
-  .ag-nueva{margin-left:auto;border:0;border-radius:var(--r-m);background:var(--azul-800);color:#fff;font:inherit;font-weight:700;padding:8px 14px;min-height:38px;cursor:pointer;}
+  #mes{display:none !important;}   /* v176: se quitó «Cronograma del mes» */
+  .ag-nueva.btn{width:auto;margin:0 0 0 auto;padding:10px 18px;min-height:44px;}   /* v176: mismo botón que el resto del portal */
   .p-hecha{flex:none;border:1.5px solid var(--linea);background:#fff;border-radius:var(--r-pill);font:inherit;font-size:var(--fs-menor);font-weight:700;padding:6px 10px;cursor:pointer;color:var(--tinta);}
   /* v109: agenda con calendario de pendientes */
   .agenda{background:var(--papel);border:1px solid var(--linea);border-radius:var(--r-l);padding:16px 16px 12px;margin-bottom:16px;}
@@ -305,14 +306,15 @@
   .ag-tabs button[aria-selected="true"]{background:#fff;color:var(--tinta);box-shadow:0 1px 3px rgba(0,0,0,.12);}
   .ag-mes{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px;}
   .ag-mes b{font-size:var(--fs-campo);}
-  .ag-mes button{width:40px;height:40px;border-radius:var(--r-m);border:1px solid var(--linea);background:#fff;font-size:var(--fs-display);cursor:pointer;color:var(--tinta);}
+  .ag-mes button{width:44px;height:44px;border-radius:var(--r-m);border:1px solid var(--linea);background:#fff;font-size:var(--fs-display);cursor:pointer;color:var(--tinta);display:inline-flex;align-items:center;justify-content:center;}
   .ag-mes button:disabled{opacity:.35;cursor:default;}
-  .ag-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .ag-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%;}   /* v176: minmax(0,…) para que no se salga de la tarjeta */
   .ag-grid .dsem{font-size:var(--fs-etiqueta);font-weight:700;color:var(--tenue);text-align:center;padding:2px 0 4px;}
   .ag-dia{position:relative;aspect-ratio:1/1;min-height:40px;border:1px solid var(--linea-suave,var(--bg));border-radius:var(--r-s);background:#fff;font:inherit;font-size:var(--fs-base);color:var(--tinta);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5px 2px 2px;}
   .ag-dia.vacio{visibility:hidden;}
   .ag-dia.pasado{color:var(--n-400);}
-  .ag-dia.hoy{border:2px solid var(--azul-800);font-weight:700;}
+  .ag-dia.eshoy{border:2px solid var(--azul-800);font-weight:700;}
+  .ag-dia{min-width:0;width:100%;}
   .ag-dia.sel{background:var(--azul-800);color:#fff;border-color:var(--azul-800);}
   .ag-dia .pts{display:flex;gap:2px;margin-top:auto;margin-bottom:3px;}
   .ag-dia .pt{width:7px;height:7px;border-radius:50%;background:var(--ambar-500);}
@@ -446,7 +448,7 @@
   .ag-tabs,.pend-filtro{border-radius:var(--r-l);background:rgba(120,140,170,.16);border:0;}
   .ag-tabs button,.pend-filtro button{border-radius:var(--r-m);font-weight:700;}
   .ag-dia{border-radius:var(--r-m);border-color:rgba(16,33,58,.06);background:rgba(255,255,255,.7);}
-  .ag-dia.hoy{border-color:var(--azul);}
+  .ag-dia.eshoy{border-color:var(--azul);}
   .ag-dia.sel{background:linear-gradient(135deg,var(--azul),var(--violeta));border-color:transparent;}
   .ag-mes button{border-radius:var(--r-l);}
   .p-mas{border-radius:var(--r-pill);font-weight:700;}
@@ -614,7 +616,7 @@
     <section class="agenda" id="agenda" hidden aria-labelledby="agTit">
       <div class="ag-cab">
         <h2 id="agTit">Calendario</h2>
-        <button type="button" class="ag-nueva" id="agNueva">+ Tarea</button><div class="ag-tabs" role="tablist" aria-label="Cómo ver la agenda"><button type="button" role="tab" data-ag="cal" aria-selected="true">Calendario</button><button type="button" role="tab" data-ag="crono" aria-selected="false">Cronograma del mes</button></div>
+        <button type="button" class="btn amber ag-nueva" id="agNueva">+ Tarea</button>
       </div>
       <div id="agCal"></div>
     </section>
@@ -1006,7 +1008,7 @@ window.Agenda = (function () {
     for (let d = 1; d <= dias; d++) {
       const f = ym + '-' + String(d).padStart(2, '0'), l = porDia[f] || [], mal = l.filter((x) => x.nivel === 'vencido').length;
       const pts = l.length > 3 ? '<span class="num' + (mal ? '' : ' pronto') + '">' + l.length + '</span>' : '<span class="pts">' + l.map((x) => '<span class="pt' + (x.nivel === 'vencido' ? ' mal' : '') + '"></span>').join('') + '</span>';
-      h += '<button type="button" class="ag-dia' + (f < hoy ? ' pasado' : '') + (f === hoy ? ' hoy' : '') + (f === sel ? ' sel' : '') + '" data-f="' + f + '" aria-label="' + d + ' de ' + MESES[m - 1] + ': ' + (l.length ? l.length + ' pendiente(s)' + (mal ? ', ' + mal + ' vencido(s)' : '') : 'sin pendientes') + '">' + d + (l.length ? pts : '') + '</button>';
+      h += '<button type="button" class="ag-dia' + (f < hoy ? ' pasado' : '') + (f === hoy ? ' eshoy' : '') + (f === sel ? ' sel' : '') + '" data-f="' + f + '" aria-label="' + d + ' de ' + MESES[m - 1] + ': ' + (l.length ? l.length + ' pendiente(s)' + (mal ? ', ' + mal + ' vencido(s)' : '') : 'sin pendientes') + '">' + d + (l.length ? pts : '') + '</button>';
     }
     h += '</div><div class="ag-ley"><span><i class="mal"></i>Vencido</span><span><i></i>Por hacer</span><span>Toca un día para ver qué hay</span></div>';
     if (antes.length && ym === ymHoy) h += '<button type="button" class="ag-antes" data-antes>' + antes.length + ' pendiente' + (antes.length === 1 ? '' : 's') + ' vencido' + (antes.length === 1 ? '' : 's') + ' de meses anteriores · ver</button>';
@@ -1408,13 +1410,14 @@ window.addEventListener('load', ()=>{
   }
   function enfoque(rol) {
     // Qué queda tras «Ver todo» según el rol (el buscador siempre busca en todo).
-    const ocultar = { supervisor: ['zonaCiclo', 'mes', 'acc-ciclo'], comite: ['zonaObra', 'acc-obra', 'zonaCiclo', 'mes', 'acc-ciclo'], consulta: ['zonaObra', 'acc-obra', 'zonaCiclo', 'mes', 'acc-ciclo'], sst: ['mes'], admin: ['mes'] }[rol] || [];
+    const ocultar = { supervisor: ['zonaCiclo', 'acc-ciclo'], comite: ['zonaObra', 'acc-obra', 'zonaCiclo', 'acc-ciclo'], consulta: ['zonaObra', 'acc-obra', 'zonaCiclo', 'acc-ciclo'], sst: [], admin: [] }[rol] || [];
     const marca = (id) => { const e = document.getElementById(id) || document.querySelector('.' + id); if (e) e.classList.add('enfoque-oculto'); };
+    { const m = document.getElementById('mes'); if (m) m.hidden = true; }   // v176: sin «Cronograma del mes»
     ocultar.forEach(marca);
     if (!ocultar.length) return;
     document.body.classList.add('sg-enfoque');
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sg-todo'; btn.id = 'sgTodo';
-    const txt = () => { btn.textContent = document.body.classList.contains('sg-enfoque') ? (rol === 'sst' || rol === 'admin' ? 'Ver el cronograma del mes' : 'Ver todo el sistema de gestión') : 'Ver menos'; };
+    const txt = () => { btn.textContent = document.body.classList.contains('sg-enfoque') ? 'Ver todo el sistema de gestión' : 'Ver menos'; };
     btn.addEventListener('click', () => { document.body.classList.toggle('sg-enfoque'); txt(); }); txt();
     const ref = document.querySelector('.dia-grid') || document.getElementById('pend');   // v174: debajo de «hoy y la semana» + calendario
     if (ref) ref.insertAdjacentElement('afterend', btn);

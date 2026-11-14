@@ -20,7 +20,7 @@ async function js(codigo) { const r = await terser.minify(codigo, OPC_JS); if (r
 function css(codigo) { const r = new CleanCSS({ level: 1 }).minify(codigo); if (r.errors.length) throw new Error(r.errors.join('; ')); return r.styles; }
 
 async function archivo(p) {
-  const n = path.basename(p); if (NO_TOCAR.has(n)) return 0;
+  const n = path.basename(p); if (NO_TOCAR.has(n) || /\.min\.js$/.test(n)) return 0;   // v176: lo ya minificado (pdf.js, fflate) no se toca
   const antes = fs.statSync(p).size;
   let s = fs.readFileSync(p, 'utf8');
   if (n.endsWith('.js')) s = await js(s);

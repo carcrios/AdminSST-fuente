@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eJgfGUJRDDOa/MN9TnN7ZWXrX6wLnpRkVw9+ayM4Lp4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-v60NdcYAZBrGe39YbmfuP8Ki1sNEjRMOLVfLEGM+CLw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Gestión de la salud · Portal SSTA</title>
@@ -66,7 +66,7 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
     <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v175</div>
+  <div class="version-portal">Portal SSTA · versión v176</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -78,6 +78,7 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
 <script src="sgsst-ui.js"></script>
 <script src="registros.js"></script>
 <script src="valida.js"></script>
+<script src="lector-examen.js"></script>
 <script>
 OfflineBanner.init();
 OutboxBadge.init();
@@ -294,6 +295,65 @@ function datalistCargos(el, input){
   input.setAttribute('list', id); input.insertAdjacentHTML('afterend', '<datalist id="' + id + '">' + l.map((c)=> '<option value="' + esc(c) + '">').join('') + '</datalist>');
 }
 
+/* ── v176 · Leer los exámenes en PDF de la IPS: uno o varios de una vez ──
+   Se lee el texto del PDF EN ESTE EQUIPO, se reconoce a quién pertenece (por la cédula del personal) y se
+   llena el registro. El PDF NO se guarda ni se sube: trae diagnósticos y el portal no los guarda. */
+function leerExamenes(){
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/pdf,.pdf'; inp.multiple = true;
+  inp.addEventListener('change', async ()=> {
+    const fs = [...(inp.files || [])].slice(0, 30); if (!fs.length) return;
+    const personal = de('trabajador').filter((x)=> x.resumen.activo !== false).map((x)=> ({ nombre: x.resumen.nombre, cedula: x.resumen.cedula, cargo: x.resumen.cargo }));
+    const m = UI.modal('<h3>Leyendo ' + fs.length + ' examen(es)…</h3><p class="ayuda" id="lxMsg">Se leen en este equipo. Los PDF no se guardan.</p><div id="lxRes"></div>');
+    const res = [];
+    for (let i = 0; i < fs.length; i++) {
+      m.el.querySelector('#lxMsg').textContent = 'Leyendo ' + (i + 1) + ' de ' + fs.length + ': ' + fs[i].name;
+      try {
+        const txt = await LectorExamen.textoPdf(fs[i]);
+        if (txt.replace(/\s/g, '').length < 40) { res.push({ archivo: fs[i].name, error: 'El PDF no trae texto (es una foto o un escaneo). Regístralo a mano.' }); continue; }
+        res.push(Object.assign({ archivo: fs[i].name }, LectorExamen.leer(txt, personal)));
+      } catch (e) { res.push({ archivo: fs[i].name, error: 'No se pudo leer: ' + (e.message || e) }); }
+    }
+    m.cerrar(); revisarLeidos(res, personal);
+  });
+  inp.click();
+}
+function revisarLeidos(res, personal){
+  const opP = personal.map((p)=> '<option value="' + esc(p.cedula) + '">' + esc(p.nombre + ' · ' + p.cedula) + '</option>').join('');
+  const ok = res.filter((r)=> !r.error);
+  const m = UI.modal('<h3>Revisa antes de guardar</h3><p class="ayuda">Quedan asignados a cada persona. Revisa el concepto y las restricciones: <b>nunca</b> se guarda el diagnóstico.</p>' +
+    res.map((r, i)=> r.error ? '<div class="aviso mal">' + esc(r.archivo) + ': ' + esc(r.error) + '</div>' :
+      '<div class="card lx-it" data-i="' + i + '"><b>' + esc(r.archivo) + '</b>' +
+      '<div class="field"><label for="lxP' + i + '">Trabajador</label><select id="lxP' + i + '"><option value="">— Elige la persona —</option>' + opP + '</select></div>' +
+      '<div class="grid2"><div class="field"><label for="lxF' + i + '">Fecha</label><input type="date" id="lxF' + i + '" value="' + esc(r.campos.fecha || '') + '"></div>' +
+      '<div class="field"><label for="lxC' + i + '">Concepto</label><select id="lxC' + i + '">' + CONCEPTOS.map((c)=> '<option' + (c === r.campos.concepto ? ' selected' : '') + '>' + esc(c) + '</option>').join('') + '</select></div></div>' +
+      '<div class="field"><label for="lxR' + i + '">Restricciones para el trabajo</label><textarea id="lxR' + i + '" rows="2">' + esc(r.campos.restricciones || '') + '</textarea></div>' +
+      '<small class="ayuda">' + esc([r.campos.tipoExamen, r.campos.ips, r.campos.proxima ? 'próximo: ' + UI.corta(r.campos.proxima) : ''].filter(Boolean).join(' · ')) + '</small>' +
+      (r.avisos.length ? '<div class="aviso amar u-mt8">' + r.avisos.map(esc).join('<br>') + '</div>' : '') +
+      '<button type="button" class="btn-mini" data-lxver="' + i + '">Abrir el formulario completo</button></div>').join('') +
+    (ok.length ? '<button type="button" class="btn amber" id="lxOk">Guardar ' + ok.length + ' examen(es)</button>' : '') + '<button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="lxEst"></p>');
+  res.forEach((r, i)=> { if (!r.error && r.persona) m.el.querySelector('#lxP' + i).value = r.persona.cedula; });
+  const docDe = (r, i)=> {
+    const ced = m.el.querySelector('#lxP' + i).value, p = personal.find((x)=> x.cedula === ced) || {};
+    return Object.assign({ tipoExamen: 'Periódico', temporalidad: '—', pveIngresa: 'No' }, r.campos, { nombre: p.nombre, cedula: p.cedula, cargo: p.cargo || r.campos.cargo || '',
+      fecha: m.el.querySelector('#lxF' + i).value, concepto: m.el.querySelector('#lxC' + i).value, restricciones: m.el.querySelector('#lxR' + i).value.trim() });
+  };
+  m.el.addEventListener('click', (e)=> { const b = e.target.closest('[data-lxver]'); if (!b) return; const i = +b.dataset.lxver;
+    m.cerrar(); editar('examen', 'Examen médico ocupacional', C_EX, Object.assign({ id: SGSST.nuevoId('EXA'), nuevo: true }, docDe(res[i], i)), exExtra); });
+  const g = m.el.querySelector('#lxOk'); if (!g) return;
+  g.addEventListener('click', async ()=> {
+    const est = m.el.querySelector('#lxEst'), lst = res.map((r, i)=> [r, i]).filter(([r])=> !r.error);
+    const falta = lst.filter(([r, i])=> !m.el.querySelector('#lxP' + i).value || !m.el.querySelector('#lxF' + i).value);
+    if (falta.length) { est.textContent = 'Falta la persona o la fecha en ' + falta.length + ' examen(es).'; return; }
+    g.disabled = true; let n = 0, mal = 0;
+    for (const [r, i] of lst) {
+      est.textContent = 'Guardando ' + (++n) + ' de ' + lst.length + '…';
+      const doc = docDe(r, i), x = await SGSST.enviar({ action: 'guardar', tipo: 'examen', id: SGSST.nuevoId('EXA'), doc }, { nombre: doc.nombre, cedula: doc.cedula, fecha: doc.fecha, concepto: doc.concepto });
+      if (!x.ok) mal++;
+    }
+    m.cerrar(); UI.toast(mal ? '⚠ ' + mal + ' no se guardaron.' : '✓ ' + lst.length + ' examen(es) asignados a su trabajador', mal ? 'mal' : ''); cargar();
+  });
+}
+
 /* ── Exámenes médicos ocupacionales (Res. 1843 de 2025) ── */
 const C_EX = [{ k: 'nombre', l: 'Trabajador', t: 'persona', req: true, v: 'nombre' }, { k: 'cedula', l: 'Cédula', req: true, medio: true, v: 'cedula' }, { k: 'cargo', l: 'Cargo', req: true, medio: true },
   { k: 'tipoExamen', l: 'Tipo de evaluación', t: 'select', op: TIPOS_EX, medio: true }, { k: 'fecha', l: 'Fecha del examen', t: 'date', req: true, medio: true, v: 'pasada' },
@@ -316,7 +376,7 @@ function pintarExamenes(panel){
   const exVenc = (x)=> vig.includes(x) && x.resumen.proxima && x.resumen.proxima < h, exPronto = (x)=> vig.includes(x) && x.resumen.proxima && x.resumen.proxima >= h && x.resumen.proxima <= Festivos.sumarDias(h, 30);
   const conEx = new Set(vig.map((x)=> Habilitacion.clave(x.resumen.cedula))), sinEx = de('trabajador').filter((x)=> x.resumen.activo !== false && !conEx.has(Habilitacion.clave(x.resumen.cedula)));
   const fE = fSal.examenes;
-  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nEx">+ Registrar examen</button><button type="button" class="btn ghost" id="pEx">🖨️ Programación de exámenes (PDF)</button></div>' +
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nEx">+ Registrar examen</button><button type="button" class="btn ghost" id="leerEx">📄 Leer exámenes (PDF)</button><button type="button" class="btn ghost" id="pEx">🖨️ Programación de exámenes (PDF)</button></div>' +
     '<details class="norma"><summary>Qué pide la Resolución 1843 de 2025 (evaluaciones médicas ocupacionales)</summary><ul>' +
     '<li><b>Evaluaciones mínimas (art. 8):</b> pre-ingreso, periódicas (programadas o por cambio de ocupación), egreso, post-incapacidad, retorno laboral y seguimiento o control.</li>' +
     '<li><b>Plazos:</b> post-incapacidad al terminar una incapacidad de 30 días o más (art. 13); retorno laboral tras 90 días o más de ausencia por causa no médica, antes de volver (art. 12); egreso: aviso al trabajador dentro de los 5 días hábiles siguientes al retiro (art. 11).</li>' +
@@ -340,6 +400,7 @@ function pintarExamenes(panel){
         s.pveIngresa === 'Sí' && s.pve ? 'Ingresa a vigilancia: ' + esc(s.pve) : ''], esc(s.concepto), c); }).join('') || '<div class="empty">' + (fE && l.length ? 'Ningún examen en este filtro ✓' : 'Sin exámenes registrados.') + '</div>';
     abrirCon($('lEx'), C_EX, 'examen', 'Examen médico ocupacional', exExtra); };
   $('bEx').addEventListener('input', lista); lista();
+  $('leerEx').addEventListener('click', leerExamenes);
   $('nEx').addEventListener('click', ()=> editar('examen', 'Examen médico ocupacional', C_EX, { id: SGSST.nuevoId('EXA'), nuevo: true, fecha: h, tipoExamen: 'Periódico', concepto: 'Apto', temporalidad: '—', pveIngresa: 'No' }, exExtra));
   $('pEx').addEventListener('click', async ()=> {
     // v148: versión «para el cliente» con la cédula enmascarada (Ley 1581: dato mínimo necesario)

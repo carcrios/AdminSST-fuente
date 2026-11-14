@@ -423,7 +423,8 @@ const UI = (function () {
   /** Selección de varios para eliminar en una lista cuyos elementos tienen [data-<atributo>]=id.
       seleccionVarios({ lista, barra, atributo: 'id', que: 'personas', alTerminar }) */
   function seleccionVarios(o) {
-    if (!o.lista || !o.barra || !puedeEliminar()) return;
+    if (!o.lista || !o.barra || !puedeEliminar() || o.lista.dataset.selVarios) return;
+    o.lista.dataset.selVarios = '1';
     const at = o.atributo || 'id', sel = new Set();
     let activo = false;
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn ghost mini sel-varios'; btn.textContent = 'Seleccionar para eliminar';
@@ -458,6 +459,35 @@ const UI = (function () {
         '.sel-pie .sel-n{font-weight:800;font-size:var(--fs-base);padding:0 4px;}.sel-pie .btn{margin:0 !important;min-height:40px;width:auto;}.btn.rojo{background:var(--rojo-500) !important;color:#fff !important;border-color:var(--rojo-500) !important;}.btn.rojo:disabled{opacity:.45;}';
       document.head.appendChild(st);
     }
+  }
+
+  /* ── v176 · Seleccionar varios y eliminar, EN TODAS LAS LISTAS ──
+     Antes solo lo tenían Personal, Inspecciones, Preoperacionales y Entregas de EPP. Ahora cualquier lista de
+     registros (elementos con data-id/-abrir/-ver = un id del portal, como INS-…, EXA-…) recibe «Seleccionar para
+     eliminar» arriba. Lo eliminado va a la Papelera (30 días) y se puede deshacer. Solo Administrador y SST. */
+  const RE_ID = /^[A-Z]{2,8}-[A-Za-z0-9_-]{3,}$/;
+  const SIN_AUTO = /(^|\/)(papelera|auditor|asesor|admin|gerencia|informe|informe-mes|indicadores|pantalla-planta|convivencia|index|estado|ayuda)\.html$/;
+  function autoSeleccion() {
+    if (!puedeEliminar() || SIN_AUTO.test(location.pathname) || document.body.hasAttribute('data-sin-seleccion')) return;
+    const grupos = new Map();
+    document.querySelectorAll('[data-id],[data-abrir],[data-ver]').forEach((el) => {
+      const at = el.hasAttribute('data-id') ? 'id' : el.hasAttribute('data-abrir') ? 'abrir' : 'ver', v = el.getAttribute('data-' + at), p = el.parentElement;
+      if (!p || !RE_ID.test(v || '') || el.closest('.modal,.ui-modal,dialog,header,nav,.sel-pie,[data-sin-seleccion]')) return;
+      if (p.dataset.selVarios || p.dataset.selAuto) return;
+      if (!grupos.has(p)) grupos.set(p, at);
+    });
+    grupos.forEach((at, lista) => {
+      lista.dataset.selAuto = '1';
+      const barra = document.createElement('div'); barra.className = 'sel-barra';
+      lista.parentElement.insertBefore(barra, lista);
+      seleccionVarios({ lista, barra, atributo: at, que: 'este registro', alTerminar: () => setTimeout(() => location.reload(), 600) });
+    });
+  }
+  if (typeof document !== 'undefined' && typeof MutationObserver !== 'undefined') {
+    let tAuto = 0;
+    const lanzar = () => { clearTimeout(tAuto); tAuto = setTimeout(autoSeleccion, 500); };
+    const iniciarAuto = () => { lanzar(); new MutationObserver(lanzar).observe(document.body, { childList: true, subtree: true }); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarAuto); else iniciarAuto();
   }
 
   /* ── Adjuntos (certificados, actas escaneadas, hojas de seguridad…) ──

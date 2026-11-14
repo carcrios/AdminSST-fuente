@@ -24,7 +24,7 @@ const BASE = path.join(__dirname, 'lineas-largas.json');
 const TOPE = 200;
 // Generados, de terceros o tablas de datos (una fila larga por registro es su forma natural).
 // v169: i18n-xx.js es un diccionario (datos, como los catálogos): sus frases largas no se parten.
-const NO = /^(common\.js|fflate\.min\.js|qr\.js|iconos-emoji\.js|preop-formularios\.js|i18n-[a-z]{2}\.js)$|-(catalogo|plantillas|banco|base|guias)\.js$|\.min\.js$/;
+const NO = /^(common\.js|fflate\.min\.js|pdfjs(\.worker)?\.min\.js|qr\.js|iconos-emoji\.js|preop-formularios\.js|i18n-[a-z]{2}\.js)$|-(catalogo|plantillas|banco|base|guias)\.js$|\.min\.js$/;
 
 function archivos() {
   const de = (dir, re) => fs.existsSync(path.join(RAIZ, dir)) ? fs.readdirSync(path.join(RAIZ, dir)).filter((f) => re.test(f)).map((f) => (dir ? dir + '/' : '') + f) : [];
