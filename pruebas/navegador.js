@@ -401,6 +401,19 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
         const despPA = await pg.evaluate(() => document.querySelectorAll('.act[data-uid]').length);
         ok('plan anual: «Eliminar varias» quita las actividades marcadas', nSel === '2' && despPA === antesPA - 2, antesPA + ' → ' + despPA + ' (marcadas ' + nSel + ')');
       } else ok('plan anual: el plan de la demo tiene actividades para eliminar', false, String(antesPA));
+      // v179: peligros del cargo desde la matriz de peligros, en la matriz de EPP
+      await pg.evaluate(() => SGSST.enviar({ action: 'guardar', tipo: 'peligro', id: SGSST.nuevoId('PEL'), doc: { proceso: 'Mantenimiento', actividad: 'Soldar', cargos: 'Soldador de prueba', clasificacion: 'Físico', peligro: 'Radiación no ionizante', nivel: 'II' } }, { peligro: 'Radiación no ionizante' }));
+      await pg.goto(S.url + '/entrega-epp.html'); await pg.waitForTimeout(3000);
+      await pg.evaluate(() => editarCargo({ cargo: 'Soldador de prueba' })); await pg.waitForTimeout(600);
+      const pelE = await pg.evaluate(() => ({ v: (document.getElementById('mcPel') || {}).value, nota: (document.getElementById('mcPelNota') || {}).textContent }));
+      ok('cruce: en la matriz de EPP, los peligros del cargo se llenan solos desde la matriz de peligros', /Radiación no ionizante/.test(pelE.v || '') && /matriz de peligros/.test(pelE.nota || ''), JSON.stringify(pelE));
+      // v179: dotación con elementos agregados
+      await pg.goto(S.url + '/dotacion.html'); await pg.waitForTimeout(3000);
+      await pg.click('[data-tab=entregas]').catch(() => {}); await pg.waitForTimeout(300);
+      await pg.click('#bNueva'); await pg.waitForTimeout(400);
+      await pg.fill('#dOtro', 'Gorra'); await pg.fill('#dOtroT', 'M'); await pg.click('#dAdd'); await pg.waitForTimeout(200);
+      const dot = await pg.evaluate(() => { const l = [...document.querySelectorAll('#dItems .it-dot')]; const g = l.find((x) => /Gorra/.test(x.textContent)); return { n: l.length, marcado: g && g.querySelector('input[type=checkbox]').checked, talla: g && g.querySelector('[data-tl]').value }; });
+      ok('dotación: «+ Agregar elemento» suma el elemento marcado y con su talla', dot.n === 7 && dot.marcado === true && dot.talla === 'M', JSON.stringify(dot));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }

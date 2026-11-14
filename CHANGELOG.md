@@ -3,6 +3,14 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v179 — Los datos se cruzan: lo que está en la matriz no se vuelve a pedir; más elementos en la dotación
+
+- **Peligros del cargo, desde la matriz de peligros.** En la *matriz de EPP por cargo* (Entrega de EPP) y en el *profesiograma* (Salud), al escribir el cargo los peligros se llenan solos con los de la matriz de peligros (columna «Cargos expuestos», también los marcados «Todos»; si ningún peligro nombra el cargo, los busca por proceso o actividad). Dice de dónde salieron; si escribes encima, se respeta lo tuyo. Si el cargo no está en la matriz, avisa que lo agregues allá.
+- **El área del cargo** en la matriz de EPP sale del profesiograma.
+- Un solo cálculo para todo el portal (`DatosCruzados` en common.js): las siguientes pantallas que pidan peligros del cargo usan el mismo.
+- **Dotación: «+ Agregar elemento»** con su talla (gorra, camiseta polo, botas de caucho… o lo que escribas). Los elementos que la empresa ya entregó antes aparecen solos en la lista de la siguiente entrega.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v178 — Certificado de aptitud adjunto a la persona y eliminar varias actividades del plan anual
 
 - **Salud → «Leer exámenes (PDF)»**: si el PDF es el **certificado de aptitud sin diagnóstico**, queda **adjunto al examen de la persona** (en Drive; solo SST y el administrador lo pueden abrir). Se ve en la ficha de la persona («certificado adjunto») y al abrir el examen. Si el PDF trae diagnóstico, el portal lo detecta y **no lo adjunta** (Res. 1843 de 2025, art. 30: la empresa solo recibe el concepto).

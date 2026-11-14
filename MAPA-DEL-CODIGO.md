@@ -25,6 +25,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `12-errores-y-autoguardado.js` | 368 | Errores, AutoGuardado |
 | `13-guia-flotante.js` | 171 | GuiaFlotante |
 | `14-licencia-modo.js` | 97 | LicenciaModo |
+| `15-datos-cruzados.js` | 51 | DatosCruzados |
 
 ## 2. Código del sitio
 
@@ -110,11 +111,11 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `dashboard.html` | 545 | — |
 | `documental.html` | 430 | registros.js, importar.js, normas-base.js |
 | `documentos.html` | 210 | registros.js, auditorias-plantillas.js, kit-documental.js |
-| `dotacion.html` | 164 | registros.js |
+| `dotacion.html` | 182 | registros.js |
 | `emergencias.html` | 403 | registros.js |
 | `empezar.html` | 65 | registros.js, empezar-reglas.js, empezar.app.js |
 | `encuesta-cliente.html` | 213 | — |
-| `entrega-epp.html` | 545 | registros.js |
+| `entrega-epp.html` | 550 | registros.js |
 | `equipo.html` | 117 | registros.js, qr.js |
 | `estado.html` | 292 | — |
 | `etiquetas-qr.html` | 119 | preop-formularios.js, preop-base.js, qr.js |
@@ -163,7 +164,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `quimicos.html` | 807 | registros.js, importar.js |
 | `reportes.html` | 343 | reportes.app.js |
 | `revision-direccion.html` | 329 | registros.js |
-| `salud.html` | 1103 | registros.js, lector-examen.js |
+| `salud.html` | 1110 | registros.js, lector-examen.js |
 | `terminos.html` | 71 | — |
 | `usuarios.html` | 283 | — |
 | `verificar.html` | 56 | — |
@@ -219,6 +220,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3830 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3851 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
 | `pruebas/navegador.js` | 1545 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-kk6OjX/eMeMUVx5svfOWWVTiFqfy8/GjsENSX2D4WUo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-UuORc1eN9aOWaD6GKhiW/c4agWJV4H7gga8QFNQGro4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Entrega de dotación · Portal SSTA</title>
@@ -39,7 +39,7 @@
   <div id="kpis" class="kpis"></div>
   <div class="tabs" id="tabs" role="tablist"></div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v178</div>
+  <div class="version-portal">Portal SSTA · versión v179</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -62,6 +62,7 @@ const $ = UI.$;
    No se paga en dinero (art. 234) y el trabajador debe usarla (art. 233). */
 const ENTREGAS = [['1', '30 de abril', '04-30'], ['2', '31 de agosto', '08-31'], ['3', '20 de diciembre', '12-20']];
 const ITEMS = ['Camisa o blusa de labor', 'Pantalón de labor', 'Calzado de labor', 'Overol', 'Chaqueta o buzo', 'Delantal o bata'];
+const OTROS = ['Camiseta tipo polo', 'Gorra', 'Cofia', 'Botas de caucho', 'Chaleco', 'Impermeable', 'Medias', 'Cinturón', 'Jean', 'Sudadera', 'Uniforme antifluido', 'Uniforme térmico', 'Chaqueta térmica'];
 let rows = [], tab = 'pendientes';
 const de = (t)=> rows.filter((x)=> x.tipo === t);
 const anio = ()=> UI.hoy().slice(0, 4);
@@ -108,23 +109,40 @@ function tallas(c){
     campos: [{ k: 'derecho', l: '¿Tiene derecho a dotación? (gana hasta 2 salarios mínimos)', t: 'select', op: ['Sí', 'No'] }, { k: 'camisa', l: 'Talla de camisa', medio: true }, { k: 'pantalon', l: 'Talla de pantalón', medio: true }, { k: 'calzado', l: 'Talla de calzado', medio: true }, { k: 'otras', l: 'Otras tallas o notas', medio: true }],
     alGuardar: async (v)=> { v.cedula = c; v.nombre = t ? t.resumen.nombre : ''; const r = await Registros.guardar('dotaperfil', pf ? pf.id : 'DOTP-' + ced(c), v, pf ? pf.version : 0); if (typeof r === 'string') return r; cargar(); return true; } });
 }
+/* v179: además de los 6 de siempre, los elementos que la empresa ya entregó antes (salen de las entregas guardadas) y los que se agreguen en el momento. */
+function itemsEmpresa(){
+  const extra = [];
+  de('dotacion').forEach((x)=> String(x.resumen.itemsTexto || '').split(/,\s*(?![^()]*\))/).forEach((t)=> { const n = t.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    if (n && ITEMS.indexOf(n) === -1 && extra.indexOf(n) === -1) extra.push(n); }));
+  return ITEMS.concat(extra.slice(0, 30));
+}
 function entrega(pre){
   const P = periodoActual(), pf = perfilDe(pre.cedula), s = pf ? pf.resumen : {};
-  const talla = (it)=> /camisa|blusa|chaqueta|buzo|overol|bata|delantal/i.test(it) ? s.camisa || '' : /pantal/i.test(it) ? s.pantalon || '' : /calzado/i.test(it) ? s.calzado || '' : '';
+  let ITS = itemsEmpresa();
+  const talla = (it)=> /camisa|blusa|chaqueta|buzo|overol|bata|delantal|polo|camiseta|chaleco|sudadera|uniforme/i.test(it) ? s.camisa || '' : /pantal|jean/i.test(it) ? s.pantalon || '' : /calzado|bota|zapato/i.test(it) ? s.calzado || '' : '';
+  const filaIt = (it, i, on, tl)=> '<label class="it-dot"><input type="checkbox" data-it="' + i + '"' + (on ? ' checked' : '') + '><span>' + esc(it) + '</span><input type="text" data-tl="' + i + '" placeholder="Talla" value="' + esc(tl != null ? tl : talla(it)) + '" aria-label="Talla de ' + esc(it) + '"></label>';
   const m = UI.modal('<h3>Entrega de dotación</h3>' +
     '<div class="field"><label>Trabajador *</label><input type="text" id="dNom" value="' + esc(pre.nombre || '') + '" placeholder="Escribe para buscar"></div>' +
     '<div class="grid2"><div class="field"><label>Cédula *</label><input type="text" id="dCed" inputmode="numeric" value="' + esc(pre.cedula || '') + '"></div><div class="field"><label>Cargo</label><input type="text" id="dCargo" value="' + esc(pre.cargo || '') + '"></div></div>' +
     '<div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="dFecha" value="' + UI.hoy() + '"></div><div class="field"><label>Entrega</label><select id="dPer">' + ENTREGAS.map((e)=> '<option value="' + anio() + '-' + e[0] + '"' + (e[0] === P.n ? ' selected' : '') + '>' + e[1] + ' ' + anio() + '</option>').join('') + '</select></div></div>' +
-    '<div class="field"><label>Elementos y talla</label><div class="items-dot">' + ITEMS.map((it, i)=> '<label class="it-dot"><input type="checkbox" data-it="' + i + '"' + (i < 3 ? ' checked' : '') + '><span>' + esc(it) + '</span><input type="text" data-tl="' + i + '" placeholder="Talla" value="' + esc(talla(it)) + '" aria-label="Talla de ' + esc(it) + '"></label>').join('') + '</div></div>' +
+    '<div class="field"><label>Elementos y talla</label><div class="items-dot" id="dItems">' + ITS.map((it, i)=> filaIt(it, i, i < 3)).join('') + '</div></div>' +
+    '<div class="grid2 dot-otro"><div class="field"><label for="dOtro">Otro elemento</label><input type="text" id="dOtro" list="dlDot" placeholder="Ej.: Gorra, Camiseta polo, Botas de caucho"><datalist id="dlDot">' + OTROS.map((o)=> '<option value="' + esc(o) + '">').join('') + '</datalist></div>' +
+    '<div class="field"><label for="dOtroT">Talla</label><input type="text" id="dOtroT" placeholder="Talla"></div></div><button type="button" class="btn ghost mini" id="dAdd">+ Agregar elemento</button>' +
     '<label class="check"><input type="checkbox" id="dUso" checked> Se le explicó que debe usarla en el trabajo (CST, art. 233) y que no se cambia por dinero (art. 234)</label>' +
     '<div class="field"><label>Firma de quien recibe *</label>' + UI.padHTML('dFirma') + '</div>' +
     '<div class="field"><label>Entregó</label><input type="text" id="dEnt" value="' + esc((Sesion.nombre && Sesion.nombre()) || '') + '"></div>' +
     '<button type="button" class="btn amber" id="dOk">Guardar entrega</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><div class="status-msg" id="dMsg"></div>');
   UI.activarPad('dFirma');
+  m.el.querySelector('#dAdd').addEventListener('click', ()=> { const o = m.el.querySelector('#dOtro'), n = o.value.trim().replace(/\s+/g, ' '); if (!n) { o.focus(); return; }
+    const ya = ITS.findIndex((x)=> UI.norm(x) === UI.norm(n));
+    if (ya !== -1) { m.el.querySelector('[data-it="' + ya + '"]').checked = true; const tl = m.el.querySelector('#dOtroT').value.trim(); if (tl) m.el.querySelector('[data-tl="' + ya + '"]').value = tl; }
+    else { ITS.push(n); m.el.querySelector('#dItems').insertAdjacentHTML('beforeend', filaIt(n, ITS.length - 1, true, m.el.querySelector('#dOtroT').value.trim() || null)); }
+    o.value = ''; m.el.querySelector('#dOtroT').value = ''; o.focus(); });
+  m.el.querySelector('#dOtro').addEventListener('keydown', (e)=> { if (e.key === 'Enter') { e.preventDefault(); m.el.querySelector('#dAdd').click(); } });
   UI.autocompletar(m.el.querySelector('#dNom'), (p)=> { m.el.querySelector('#dNom').value = p.nombre; m.el.querySelector('#dCed').value = p.cedula || ''; m.el.querySelector('#dCargo').value = p.cargo || ''; });
   m.el.querySelector('#dOk').addEventListener('click', async ()=> {
     const v = (id)=> m.el.querySelector(id).value.trim(), msg = m.el.querySelector('#dMsg');
-    const items = ITEMS.map((it, i)=> ({ elemento: it, talla: m.el.querySelector('[data-tl="' + i + '"]').value.trim(), va: m.el.querySelector('[data-it="' + i + '"]').checked })).filter((x)=> x.va).map((x)=> ({ elemento: x.elemento, talla: x.talla }));
+    const items = ITS.map((it, i)=> ({ elemento: it, talla: m.el.querySelector('[data-tl="' + i + '"]').value.trim(), va: m.el.querySelector('[data-it="' + i + '"]').checked })).filter((x)=> x.va).map((x)=> ({ elemento: x.elemento, talla: x.talla }));
     const firma = UI.firma('dFirma');
     if (!v('#dNom') || ced(v('#dCed')).length < 5) { msg.textContent = 'Faltan el trabajador y su cédula.'; return; }
     if (!items.length) { msg.textContent = 'Marca al menos un elemento.'; return; }

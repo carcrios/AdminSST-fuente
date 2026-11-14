@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Pmu2qYdlITg9pfiZgl+SbiRshubd/zW8WxBqjwkjAFY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ljP7oF5ll44MXGp1hcFnM5ryvcIddcJR0pND/DbPIgA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Estado del sistema · Portal SSTA</title>
 <meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
@@ -82,7 +82,7 @@ body{margin:0;background:var(--bg,var(--bg));color:var(--ink);font-family:var(--
     <div id="equipo"></div>
   </div>
   <p class="nota">Esta página solo LEE de cada servidor: no guarda ni cambia nada. Si un servidor sale en rojo, toca «Abrir enlace de prueba»: lo que muestre esa página (datos o una pantalla de Google) es exactamente lo que recibe el portal.</p>
-  <div class="nota u-centro">Portal SSTA · versión v178</div>
+  <div class="nota u-centro">Portal SSTA · versión v179</div>
 </div>
 
 <script src="dialogo.js"></script>
@@ -105,7 +105,7 @@ if (typeof UpdateManager !== 'undefined') UpdateManager.init();
    asistencia quedaba "pendiente" y solo abriendo el enlace a mano se vio
    que la implementación no era pública.
    ============================================================ */
-const VERSION = 'v178';
+const VERSION = 'v179';
 const $ = (id)=>document.getElementById(id);
 // Qué se consulta en cada uno (siempre algo de solo lectura).
 const PRUEBAS = [

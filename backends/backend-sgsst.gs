@@ -62,7 +62,7 @@
    Avisos diarios por correo: se programan solos (v136). Para apagarlos: propiedad AVISOS_APAGADOS = 1.
    ============================================================ */
 
-const VERSION_SGSST = 'v178';   // la muestra el panel del asesor para saber qué clientes están desactualizados
+const VERSION_SGSST = 'v179';   // la muestra el panel del asesor para saber qué clientes están desactualizados
 const API_TOKEN = 'PON-AQUI-EL-TOKEN'; // debe ser IDÉNTICO al del cliente (config.js)
 const CORREOS_AVISO = ['pon-aqui-el-correo@empresa.com']; // accidentes, vencimientos y acciones vencidas
 // Otras hojas que se copian en el respaldo semanal junto con esta (permisos, ATS,

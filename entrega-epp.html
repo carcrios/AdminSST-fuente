@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-dyDvBcu6IZHUM/JX9WwYYmg6GzmzIhiDb7Y68DcPyFk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-DhOHGYvw5XiO0oAdLrP6ss7LzCtiQEG01RsUFsNPY6E='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Matriz y entrega de EPP · Portal SSTA</title>
@@ -67,7 +67,7 @@
   </div>
   <div class="sel-barra" id="selBarra" hidden></div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v178</div>
+  <div class="version-portal">Portal SSTA · versión v179</div>
 </div>
 <div class="screen" id="scrEnt"></div>
 </div>
@@ -121,7 +121,7 @@ const BASE_CAMPO = ['Casco de seguridad con barbuquejo', 'Gafas de seguridad', '
 function sugerenciasEpp(cargo, peligrosTxt, ya){
   const out = [], tiene = new Set((ya || []).map((x)=> UI.norm(x))), add = (n, por)=> { if (!n || tiene.has(UI.norm(n))) return; const o = out.find((x)=> x.n === n); if (o) { if (o.por.indexOf(por) === -1) o.por.push(por); } else out.push({ n, por: [por] }); };
   // 1) Matriz de peligros: los peligros donde aparece el cargo y su «control en el individuo».
-  const nc = UI.norm(cargo), pels = nc ? de('peligro').filter((p)=> UI.norm(p.resumen.cargos || '').indexOf(nc) !== -1) : [];
+  const pels = DatosCruzados.peligrosDelCargo(cargo, de('peligro')).lista;   // v179: el mismo cruce en todo el portal
   pels.forEach((p)=> String(p.resumen.ctrlIndividuo || '').split(/[,;\/]| y /).map((t)=> t.trim()).filter((t)=> t.length > 2).forEach((t)=> {
     const c = CATALOGO.find((k)=> { const a = UI.norm(k[0]), b = UI.norm(t); return a.indexOf(b) !== -1 || b.indexOf(a.split(' ')[0]) !== -1 && a.split(' ')[0].length > 4 && b.indexOf(a.split(' ').slice(-1)[0]) !== -1; });
     add(c ? c[0] : t.charAt(0).toUpperCase() + t.slice(1), 'matriz de peligros: ' + (p.resumen.peligro || p.resumen.clasificacion || '')); }));
@@ -287,7 +287,7 @@ function editarCargo(d){
     '<label class="c-vu"><small>Vida útil (meses)</small><input type="number" min="1" max="120" step="1" inputmode="numeric" data-k="vidaUtil" value="' + esc(e.vidaUtil || '') + '" placeholder="Meses" aria-label="Vida útil en meses"></label><button type="button" data-q="' + i + '" aria-label="Quitar ' + esc(e.elemento || 'elemento') + '">✕</button></div>').join('');
   const m = UI.modal('<h3>' + (d.nuevo ? 'Nuevo: ' : '') + 'EPP del cargo</h3>' +
     '<div class="grid2"><div class="field"><label>Cargo *</label><input type="text" id="mcCargo" list="dlCargos" value="' + esc(d.cargo || '') + '"></div><div class="field"><label>Área</label><input type="text" id="mcArea" value="' + esc(d.area || '') + '"></div></div>' +
-    '<div class="field"><label>Peligros del cargo (de la matriz de peligros)</label><textarea id="mcPel">' + esc(d.peligros || '') + '</textarea></div>' +
+    '<div class="field"><label>Peligros del cargo (de la matriz de peligros)</label><textarea id="mcPel">' + esc(d.peligros || '') + '</textarea><small class="ayuda" id="mcPelNota"></small></div>' +
     '<div id="mcSug"></div>' +
     '<label>Elementos del cargo</label><div id="mcEls"></div><button type="button" class="btn ghost mini" id="mcAdd">+ Elemento</button>' +
     '<datalist id="dlCat">' + CATALOGO.map((c)=> '<option value="' + esc(c[0]) + '">').join('') + '</datalist>' +
@@ -309,7 +309,11 @@ function editarCargo(d){
     leer();
     const cargo = m.el.querySelector('#mcCargo').value.trim(), pel = m.el.querySelector('#mcPel');
     const sg = sugerenciasEpp(cargo, pel.value, els.map((e)=> e.elemento));
-    if (!pel.value.trim() && sg.peligros.length) pel.value = [...new Set(sg.peligros.map((p)=> [p.resumen.clasificacion, p.resumen.peligro].filter(Boolean).join(': ')))].join('; ');
+    const dc = DatosCruzados.peligrosDelCargo(cargo, de('peligro'));
+    const ar = m.el.querySelector('#mcArea'), pc = cargo && de('cargo').find((x)=> UI.norm(x.resumen.nombre).trim() === UI.norm(cargo).trim());
+    if (ar && !ar.value.trim() && pc && pc.resumen.area) ar.value = pc.resumen.area;   // v179: el área sale del profesiograma
+    if ((!pel.value.trim() || pel.dataset.auto === '1') && dc.texto) { pel.value = dc.texto; pel.dataset.auto = '1'; }
+    const nota = m.el.querySelector('#mcPelNota'); if (nota) nota.textContent = dc.texto ? 'Traídos de la matriz de peligros (' + dc.lista.length + ' peligro(s), por ' + dc.como + '). Si cambias la matriz, se actualizan aquí.' : (cargo ? 'Este cargo no aparece en la matriz de peligros: agrégalo en «Cargos expuestos» y se llenan solos.' : '');
     const caja = m.el.querySelector('#mcSug');
     caja.innerHTML = !cargo ? '<p class="ayuda">Escribe el cargo y el portal te sugiere el EPP según el cargo y sus peligros.</p>' : !sg.lista.length ? '' :
       '<div class="sug-epp"><div class="t">Sugeridos para «' + esc(cargo) + '» (tócalos para agregarlos)</div><div class="chips">' +
@@ -334,6 +338,7 @@ function editarCargo(d){
     f.querySelector('[data-k=elemento]').value = c[0]; f.querySelector('[data-k=norma]').value = c[1]; f.querySelector('[data-k=vidaUtil]').value = c[2]; b.parentElement.remove(); pintarSug(); });
   pintarSugRef = pintarSug; pintarEls(); pintarSug();
   m.el.querySelector('#mcCargo').addEventListener('change', pintarSug);
+  m.el.querySelector('#mcPel').addEventListener('input', (e)=> { e.target.dataset.auto = '0'; });
   m.el.querySelector('#mcPel').addEventListener('change', pintarSug);
   m.el.querySelector('#mcAdd').addEventListener('click', ()=> { leer(); els.push({ elemento: '', norma: '', vidaUtil: '' }); pintarEls(); const u = m.el.querySelectorAll('.mfila [data-k=elemento]'); if (u.length) u[u.length - 1].focus(); });
   if (!d.nuevo) { UI.adjuntos(m.el.querySelector('[data-adj]'), { id: d.id, lista: d.adjuntos || [], titulo: 'Fichas técnicas' }); m.el.querySelector('[data-cerrar]').insertAdjacentElement('beforebegin', UI.botonHistorial(d.id, 'EPP de ' + d.cargo)); }

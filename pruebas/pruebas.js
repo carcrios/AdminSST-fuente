@@ -3811,6 +3811,27 @@ grupo('v178: certificado de aptitud adjunto a la persona y eliminar varias activ
   ok('plan anual: «Eliminar varias» marca actividades, pide confirmación y guarda el plan sin ellas', /id=\\"btnSel\\"|id="btnSel"/.test(pa) && /async function eliminarVarias/.test(pa) && /plan\.actividades\.filter\(\(a\)=> !selAct\.has\(a\.uid\)\)/.test(pa) && /Dialogo\.confirmar\('¿Quitar '/.test(pa));
 });
 
+grupo('v179: los datos se cruzan (peligros del cargo desde la matriz) y la dotación admite más elementos', () => {
+  const vm = require('vm'), ctx = {};
+  vm.runInNewContext(leer('fuente/common/15-datos-cruzados.js') + '\nthis.DatosCruzados = DatosCruzados;', ctx);
+  const D = ctx.DatosCruzados;
+  const M = [
+    { resumen: { cargos: 'Soldador, Ayudante de soldadura', clasificacion: 'Físico', peligro: 'Radiación no ionizante' } },
+    { resumen: { cargos: 'Todos', clasificacion: 'Psicosocial', peligro: 'Carga mental' } },
+    { resumen: { cargos: '', proceso: 'Producción', clasificacion: 'Biomecánico', peligro: 'Movimientos repetitivos' } },
+    { resumen: { cargos: 'Conductor', clasificacion: 'Seguridad', peligro: 'Accidente de tránsito' } },
+  ];
+  const s = D.peligrosDelCargo('soldador', M);
+  ok('cruce: el cargo en «Cargos expuestos» (sin tildes ni mayúsculas) más los de «Todos»', s.lista.length === 2 && /Radiación no ionizante/.test(s.texto) && /Carga mental/.test(s.texto) && !/tránsito/.test(s.texto), s.texto);
+  const o = D.peligrosDelCargo('Operario de producción', M.slice(2));
+  ok('cruce: si ningún peligro nombra el cargo, lo busca por el proceso o la actividad', o.lista.length === 1 && o.como === 'proceso o actividad', JSON.stringify(o.texto));
+  ok('cruce: sin cargo no trae nada', D.peligrosDelCargo('', M).lista.length === 0);
+  ok('cruce: el mismo cálculo en la matriz de EPP y en el profesiograma', /DatosCruzados\.peligrosDelCargo\(cargo, de\('peligro'\)\)/.test(leer('entrega-epp.html')) && /DatosCruzados\.peligrosDelCargo\(q\('nombre'\)\.value, de\('peligro'\)\)/.test(leer('salud.html')));
+  ok('cruce: va en common.js (lo tienen todas las pantallas)', /const DatosCruzados = /.test(leer('common.js')));
+  const dt = leer('dotacion.html');
+  ok('dotación: «+ Agregar elemento» con talla y recuerda los que la empresa ya entregó', /id="dAdd"/.test(dt) && /function itemsEmpresa/.test(dt) && /const items = ITS\.map/.test(dt));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');

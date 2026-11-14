@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oOZZLTYy4dBp5E9QiVC4bqFskx56wOkYhJeWfgf+XtM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-B9/nDaLxRpDhbJ/Tcq9pj65r8884Xl8j75nE9nWv36A='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Gestión de la salud · Portal SSTA</title>
@@ -66,7 +66,7 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
     <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v178</div>
+  <div class="version-portal">Portal SSTA · versión v179</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -171,7 +171,7 @@ function exposicionesDelCargo(cargo, sinProfesiograma){
   const c = de('cargo').find((x)=> UI.norm(x.resumen.nombre).trim() === n);
   const marcadas = c && !sinProfesiograma ? listaDe(c.resumen.exposiciones).filter((e)=> EXPO_N.indexOf(e) !== -1) : [];
   if (marcadas.length) return { lista: marcadas, fuente: 'el profesiograma' };
-  const pel = de('peligro').filter((x)=> listaDe(x.resumen.cargos).some((k)=> UI.norm(k).trim() === n) || (x.resumen.cargos && UI.norm(x.resumen.cargos).includes(n)));
+  const pel = DatosCruzados.peligrosDelCargo(cargo, de('peligro')).lista;   // v179: el mismo cruce en todo el portal
   const mat = unicos([].concat(...pel.map((x)=> exposDeTexto([x.resumen.subtipo, x.resumen.clasificacion, x.resumen.peligro, x.resumen.actividad, x.resumen.tarea].join(' ')))));
   if (mat.length) return { lista: mat, fuente: 'la matriz de peligros' };
   const txt = exposDeTexto((c ? (c.resumen.peligros || '') + ' ' : '') + cargo);
@@ -590,6 +590,13 @@ const cargoExtra = {
   alAbrir: (el, pref, d)=> {
     const q = (k)=> el.querySelector('#' + pref + k), expo = q('exposiciones');
     datalistCargos(el, q('nombre'));
+    // v179: los peligros del cargo vienen de la matriz de peligros (no se vuelven a escribir)
+    const pelC = q('peligros'), notaP = document.createElement('small'); notaP.className = 'ayuda'; pelC.insertAdjacentElement('afterend', notaP);
+    const traerPel = ()=> { const dc = DatosCruzados.peligrosDelCargo(q('nombre').value, de('peligro'));
+      if ((!pelC.value.trim() || pelC.dataset.auto === '1') && dc.texto) { pelC.value = dc.texto; pelC.dataset.auto = '1'; }
+      notaP.textContent = dc.texto ? 'Traídos de la matriz de peligros (' + dc.lista.length + ' peligro(s)).' : (q('nombre').value.trim() ? 'Este cargo no aparece en la matriz de peligros: agrégalo en «Cargos expuestos» y se llenan solos.' : ''); };
+    pelC.addEventListener('input', ()=> { pelC.dataset.auto = '0'; });
+    q('nombre').addEventListener('change', traerPel); traerPel();
     const caja = document.createElement('div'); caja.className = 'sug'; caja.id = pref + 'sug'; q('exposiciones').closest('.field').insertAdjacentElement('afterend', caja);
     let fuente = '';
     if (!listaDe(d.exposiciones).length && d.nombre) { const r = exposicionesDelCargo(d.nombre, true); fuente = r.fuente; expo.querySelectorAll('button[data-v]').forEach((b)=> b.classList.toggle('on', r.lista.indexOf(b.dataset.v) !== -1)); }
