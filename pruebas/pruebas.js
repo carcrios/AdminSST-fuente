@@ -3285,7 +3285,7 @@ grupo('v140: accesibilidad, MEDEVAC y contacto de emergencia', () => {
   ok('«Firmar sin dibujar» con nombre y cédula, sellado como cualquier firma', /const FirmaAlterna = /.test(c) && /Firma sin trazo/.test(c) && /canvas\._pad = pads\[canvas\.id\]/.test(c));
   ok('«Saltar al contenido», zona principal y errores ligados a su campo', /saltarContenido/.test(c) && /aria-describedby/.test(c) && /aria-invalid/.test(c));
   ok('estados con símbolo además del color, y botones de 44 px en pantallas táctiles', /\.chip\.ok::before/.test(c) && /pointer:coarse/.test(c) && /min-height:44px/.test(c));
-  ok('contacto de emergencia en el registro (no en la lista libre) y MEDEVAC con llamar, WhatsApp y SMS', /campos: \{ emergencia: em \}/.test(h) && /emer: !!\(d\.emergencia/.test(b) && !/telefono: .*emergencia/.test(b.slice(b.indexOf('function resumen_'), b.indexOf('function resumen_') + 1500)) && /wa\.me/.test(m) && /sms:/.test(m) && /tel:123/.test(m));
+  ok('contacto de emergencia en el registro (no en la lista libre) y MEDEVAC con llamar, WhatsApp y SMS', /campos: \{ emergencia: em \}/.test(h) && /emer: !!\(d\.emergencia/.test(b) && !/telefono: .*emergencia/.test(b.slice(b.indexOf('function resumen_'), b.indexOf('function resumen_') + 1500)) && /wa\.me/.test(m + leer('medevac-app.js')) && /sms:/.test(m + leer('medevac-app.js')) && /tel:123/.test(m + leer('medevac-app.js')));
   ok('el plan de emergencias guarda hospital, ambulancia y línea de la ARL', /'hospital', 'hospitalDireccion', 'hospitalTelefono'/.test(b) && /hospitalTelefono/.test(leer('emergencias.html')));
   ok('página Accesibilidad con declaración y forma de reportar barreras', /WCAG 2\.1/.test(a) && /Ley 1618 de 2013/.test(a) && /pqrs=1/.test(a));
 });
@@ -3337,7 +3337,7 @@ grupo('v151: ajustes pedidos tras probar la v150', () => {
   ok('inicio: la tarjeta dice «Inducción» (ya no «Llegué hoy a la obra»)', /<b>Inducción<\/b>/.test(ix) && !/Llegué hoy/.test(ix));
   ok('reportes sin botón de plantillas', /papelera\|reportes\|buzon\)\\\.html\$/.test(leer('common.js')));
   ok('acción inmediata en casillas uniformes y el incidente con los mismos cuadros', /\.acc-grid\{display:grid;grid-template-columns:1fr 1fr/.test(r) && /border:1\.5px solid var\(--n-300\)/.test(r) && /c === 'Incidente' \|\| c === AT\) && c !== 'Acto seguro'/.test(r));
-  ok('emergencia: sin botón de reportar accidente; contacto de emergencia con la cédula, sin usuario', !/href="reportes.html?nuevo=1">Reportar el accidente/.test(leer('medevac.html')) && /function porCedula/.test(leer('medevac.html')) && /function contactoEmergencia_/.test(g) && /'CONTACTO_EMERGENCIA'/.test(g));
+  ok('emergencia: contacto de emergencia con la cédula, sin usuario (v180: MEDEVAC en medevac-app.js)', /function porCedula/.test(leer('medevac-app.js')) && /function contactoEmergencia_/.test(g) && /'CONTACTO_EMERGENCIA'/.test(g));
   ok('requisitos: concepto de manipulación de alimentos (también en empresas ya configuradas)', /alimentos: \{ nombre: 'Concepto de manipulación de alimentos'/.test(leer('common.js')) && /Object\.assign\(\{\}, f\.requisitos, e\.requisitos\)/.test(leer('common.js')));
   ok('guardar más rápido: hojas en caché por petición, papelera revisada cada 10 min y servidor despierto antes de guardar', /HOJAS_CACHE_\[nombre\] = sheet/.test(g) && /'papelera\.' \+ id/.test(leer('herramientas/servidor-unico-portal.gs')) && /'ssta-despierto'/.test(leer('common.js')));
 });
@@ -3794,7 +3794,7 @@ grupo('v177: el examen en PDF crea la persona, trae todo lo que dice y queda en 
     '- Diagnóstico: M54.5 lumbago\nIngresa al programa de vigilancia osteomuscular\nPróximo examen: 05/11/2027';
   const c = L.leer(txt, []).campos;
   ok('examen: sin la persona en el personal, trae nombre, documento y cargo para crearla', c.nombre === 'PEDRO PÉREZ GÓMEZ' && c.cedula === '1020333444' && c.cargo === 'Operario' && c.tipoDoc === 'CC', JSON.stringify(c));
-  ok('examen: trae restricciones y recomendaciones de títulos sin dos puntos, cada una', /No levantar más de 15 kg/.test(c.restricciones) && /Recomendaciones: Uso permanente de protección auditiva/.test(c.restricciones));
+  ok('examen: trae restricciones y recomendaciones de títulos sin dos puntos, en campos distintos (v180)', /No levantar más de 15 kg/.test(c.restricciones) && /Uso permanente de protección auditiva/.test(c.recomendaciones) && !/protección auditiva/.test(c.restricciones));
   ok('examen: temporales por 3 meses (no lo confunde con «uso permanente») y calcula hasta cuándo', c.temporalidad === 'Temporales' && c.venceRestriccion === '2027-02-03');
   ok('examen: para qué trabajos queda restringido, pruebas realizadas y programa de vigilancia', c.restringePara.join() === 'Trabajo en alturas,Manipulación manual de cargas' && c.pruebas.indexOf('Audiometría') !== -1 && c.pveLista.join() === 'Osteomuscular');
   ok('examen: nunca el diagnóstico', !/M54|lumbago|diagn/i.test(JSON.stringify(c)));
@@ -3830,6 +3830,36 @@ grupo('v179: los datos se cruzan (peligros del cargo desde la matriz) y la dotac
   ok('cruce: va en common.js (lo tienen todas las pantallas)', /const DatosCruzados = /.test(leer('common.js')));
   const dt = leer('dotacion.html');
   ok('dotación: «+ Agregar elemento» con talla y recuerda los que la empresa ya entregó', /id="dAdd"/.test(dt) && /function itemsEmpresa/.test(dt) && /const items = ITS\.map/.test(dt));
+});
+
+grupo('v180: salud desde la IPS, MEDEVAC por situación, firmas, normograma en la matriz legal y cumplir sin entrar', () => {
+  const L = require(path.join(RAIZ, 'lector-examen.js'));
+  const r1 = L.leer('Nombres: JUAN CARLOS\nApellidos: PÉREZ GÓMEZ\nDocumento: CC 1020333444\nConcepto: Apto con restricciones\nRestricciones:\n- No levantar más de 15 kg\nRecomendaciones:\n- Pausas activas', [{ nombre: 'Juan Pérez', cedula: '1020333444' }]);
+  ok('examen: nombre completo con «Nombres» y «Apellidos» separados, y completa el del personal', r1.campos.nombre === 'JUAN CARLOS PÉREZ GÓMEZ' && r1.campos.nombreAnterior === 'Juan Pérez', r1.campos.nombre);
+  ok('examen: primer/segundo nombre y apellido', L.leer('Primer nombre: ANA  Segundo nombre: MARIA\nPrimer apellido: RUIZ  Segundo apellido: DIAZ\nCC 55555', []).campos.nombre === 'ANA MARIA RUIZ DIAZ');
+  ok('examen: restricciones y recomendaciones en campos distintos', r1.campos.restricciones === 'No levantar más de 15 kg' && r1.campos.recomendaciones === 'Pausas activas');
+  const c = L.condiciones('INFORME DE CONDICIONES DE SALUD 2026\nIPS: Salud Laboral Ltda\nTotal de trabajadores evaluados: 85\nEdad promedio: 34,5 años\nHombres: 60\nMujeres: 25\nFumadores 12%\nSedentarismo: 45 %\nPRINCIPALES HALLAZGOS\n- Alteraciones visuales 22%\n- Juan 1020333444 lumbalgia\nRECOMENDACIONES\n- Pausas activas').campos;
+  ok('condiciones de salud: lee el informe de la IPS (cifras y %)', c.anio === '2026' && c.trabajadores === 85 && c.edadPromedio === 34.5 && c.hombres === 60 && c.mujeres === 25 && c.fumadores === 12 && c.sedentarismo === 45, JSON.stringify(c));
+  ok('condiciones de salud: hallazgos y recomendaciones, sin líneas con documentos de personas', /Alteraciones visuales/.test(c.hallazgos) && !/1020333444/.test(c.hallazgos) && /Pausas activas/.test(c.recomendaciones));
+  const sa = leer('salud.html');
+  ok('salud: botón para leer el informe de la IPS y el PDF queda adjunto al diagnóstico', /id="leerPerf"/.test(sa) && /LectorExamen\.condiciones/.test(sa) && /ref: 'informe-ips'/.test(sa));
+  ok('salud: sin la pestaña de PVE (tiene su apartado) y #sve abre pve.html', !/data-tab="sve"/.test(sa) && /location\.replace\('pve\.html'\)/.test(sa));
+  ok('salud: campo de recomendaciones aparte en el examen', /k: 'recomendaciones', l: 'Recomendaciones \(SIN diagnóstico\)'/.test(sa));
+  const mv = leer('medevac-app.js');
+  ok('MEDEVAC: pregunta qué está pasando, con 13 situaciones y sus pasos', /¿Qué está pasando\?/.test(mv) && (mv.match(/^ {4}\[\n {6}'[a-z]+',\n/gm) || []).length === 13 && /NO toques a la persona hasta cortar la energía/.test(mv));
+  ok('MEDEVAC: dentro de Emergencias y medevac.html usa el mismo módulo', /data-tab="medevac"/.test(leer('emergencias.html')) && /Medevac\.montar\(p, \{ planes \}\)/.test(leer('emergencias.html')) && /Medevac\.montar\(document\.getElementById\('medevac'\)\)/.test(leer('medevac.html')));
+  ok('accidente de trabajo: entrada propia en Reportes y en el inicio', /id="btnAccidente"/.test(leer('reportes.html')) && /nuevo=accidente/.test(leer('reportes.app.js')) && /href="reportes\.html\?nuevo=accidente"/.test(leer('index.html')));
+  ok('gerencia: el reporte anual ya no está en el tablero (se abre desde Auditorías)', /location\.hash === '#anual'/.test(leer('gerencia.html')) && /gerencia\.html#anual/.test(leer('auditorias.html')));
+  const dk = leer('documentos.html');
+  ok('firmas: los documentos del kit se firman en el portal y salen en el PDF', /async function firmar\(d\)/.test(dk) && /firmas\(c, d\)/.test(dk) && /data-firmar=/.test(dk));
+  const dl = leer('documental.html');
+  ok('normograma unido a la matriz legal (y la página vieja abre ahí)', /Normograma\.montar/.test(dl) && /documental\.html#normograma/.test(leer('normograma.html')) && /href="documental\.html#legal"/.test(leer('index.html')));
+  ok('responsable del SG-SST: formación, licencia (10 años), curso de 50 h y designación firmada', /async function pintarResponsable/.test(dl) && /sumarMeses\(p\.respLicenciaFecha, 120\)/.test(dl) && /DOC-KIT-DESIGNACION/.test(dl));
+  ok('más políticas: plantillas, firma y listado maestro', /const PLANTILLAS_POL = /.test(dl) && /Política de seguridad vial/.test(dl) && /'DOC-POL-'/.test(dl));
+  ok('cumplir sin entrar: matriz legal en bloque, plan anual del mes y revisiones desde los pendientes', /id="cumpleVarias"/.test(dl) && /async function hechasMes/.test(leer('plan-anual.html')) && /data-rapido=/.test(leer('index.html')));
+  const g = leer('backends/backend-sgsst.gs');
+  ok('documentos para los trabajadores: página pública con la clave y acción del servidor sin firmas ni datos personales', /action=documentosTrabajadores/.test(leer('docs-trabajadores.html')) && /function documentosTrabajadores_\(\)/.test(g) && !/firma:/.test(g.slice(g.indexOf('function documentosTrabajadores_'), g.indexOf('function firmarActa_'))));
+  ok('inicio: sin el bloque «Lo tuyo»', !/>Lo tuyo</.test(leer('index.html')));
 });
 
 /* ═══════════════════════════════════════════════════════════ */

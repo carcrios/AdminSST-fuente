@@ -3,6 +3,30 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v180 — Salud desde la IPS, MEDEVAC por situación, firmas en el portal, matriz legal con normograma y cumplir sin entrar
+
+- **Salud**
+  - **Condiciones de salud desde el PDF de la IPS** (pestaña «Condiciones de salud» → «📄 Leer el informe de la IPS»): trae año, IPS, evaluados, edad promedio, hombres y mujeres, % de fumadores, sedentarismo, sobrepeso y alcohol, hallazgos y recomendaciones. El PDF queda adjunto al diagnóstico del año. Quita líneas con números de documento (el informe es agregado).
+  - **Examen en PDF: el nombre completo** (también cuando la IPS lo parte en «Nombres» y «Apellidos» o en primer/segundo nombre y apellido). Si en el personal estaba con menos nombres, se completa.
+  - **Restricciones y recomendaciones van en campos distintos** (al leer el PDF, en el formulario y en las fichas).
+  - **Vigilancia (PVE/SVE) sale de Gestión de la salud**: ya tiene su apartado (pve.html).
+- **Emergencias**
+  - **MEDEVAC está dentro de Emergencias** (pestaña «🚑 MEDEVAC») y sigue abriendo sin usuario desde el inicio.
+  - **Primero pregunta qué está pasando**: caída de altura, sangrado, quemadura, choque eléctrico, químicos, desmayo, dolor en el pecho, convulsión, espacio confinado, atrapamiento en máquina, fractura, picaduras u otra. Muestra los pasos de primer respondiente de esa situación y luego los pasos que siempre van.
+- **Accidente de trabajo con entrada propia**: «🚑 Registrar un accidente de trabajo» en Reportes y «Accidente de trabajo» en el inicio (abre el reporte ya en esa clase).
+- **Tablero de gerencia sin el reporte anual de estándares mínimos**; se abre desde Auditorías.
+- **Firmas en el portal**: los documentos del kit (designación, roles, procedimientos…) se firman con «✍️ Firmar»: elaboró, revisó y aprobó. Las firmas salen en el PDF y el Word. Las demás políticas también se firman.
+- **Normograma unido a la matriz legal**: Documentos → Matriz legal → vista «Normograma (con evidencias)». La página vieja abre ahí.
+- **Cumplir sin entrar a cada cosa**
+  - En «Para hoy y esta semana», las revisiones anuales (política, normas, documentos, programas, plan de emergencias) se marcan con «✓ Revisada», y en los reintegros se marca «✓ Comunicado hoy».
+  - En el plan anual, «✓ Marcar como hechas» lo del mes.
+  - En la matriz legal, «✓ Evaluar varias a la vez».
+- **Responsable del SG-SST (estándar 1.1.1)** en Documental → Política y objetivos: persona designada, designación por escrito (firmada), formación, licencia en SST (vence a los 10 años) y curso de 50 horas con su actualización, según lo que exige la Res. 0312 para 7, 21 o 60 estándares.
+- **Más políticas**: alcohol, drogas y tabaco; seguridad vial; desconexión laboral; ambiental; calidad; uso de EPP u otra. Cada una tiene plantilla, firma y divulgación, y queda en el listado maestro.
+- **Documentos para los trabajadores** (docs-trabajadores.html, desde el inicio, con la clave del portal y sin usuario): la política de SST con sus objetivos, las demás políticas y lo que decidió la última revisión por la dirección.
+- **Al entrar ya no sale el bloque «Lo tuyo»**.
+- **Servidor**: hay que volver a publicar Portal-SSTA.gs para que «Documentos para los trabajadores» traiga los datos (acción `documentosTrabajadores`). Todo lo demás funciona sin cambiar el servidor.
+
 ## v179 — Los datos se cruzan: lo que está en la matriz no se vuelve a pedir; más elementos en la dotación
 
 - **Peligros del cargo, desde la matriz de peligros.** En la *matriz de EPP por cargo* (Entrega de EPP) y en el *profesiograma* (Salud), al escribir el cargo los peligros se llenan solos con los de la matriz de peligros (columna «Cargos expuestos», también los marcados «Todos»; si ningún peligro nombra el cargo, los busca por proceso o actividad). Dice de dónde salieron; si escribes encima, se respeta lo tuyo. Si el cargo no está en la matriz, avisa que lo agregues allá.

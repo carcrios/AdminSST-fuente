@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-xFt3Nzur7AYEznoVe2llI6SsH12d29n0/iflfoXwi24='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-n2bdoP9dQ1xJjFKx+n3GRbTEwccpGa60F6CI1j8Q1tI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Kit documental · Portal SSTA</title>
@@ -47,8 +47,8 @@
   <div id="fKit"></div>
   <div id="lista"><div class="empty">Cargando…</div></div>
   <div class="fila-btn"><button type="button" class="btn amber" id="btnTodoPdf">🖨️ Todos en un PDF</button><button type="button" class="btn ghost" id="btnTodoWord">📝 Todos en Word</button></div>
-  <p class="ayuda">Los documentos son una base técnica según el Decreto 1072 de 2015 y la Resolución 0312 de 2019. La empresa los revisa, los ajusta a su realidad (en Word) y los aprueba; al aprobar uno, queda en el listado maestro de Documental, donde se adjunta la versión firmada.</p>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <p class="ayuda">Los documentos son una base técnica según el Decreto 1072 de 2015 y la Resolución 0312 de 2019. La empresa los revisa, los ajusta a su realidad (en Word) y los aprueba; al aprobar uno queda en el listado maestro de Documental, y se firma aquí mismo (responsable, comité y representante legal) con «✍️ Firmar».</p>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -133,9 +133,9 @@ function pintar(){
       return '<div class="item ' + (reg ? 'ok' : ap ? 'pronto' : 'gris') + ' doc-item"><div class="fila"><div><div class="t">' + esc(d.titulo) + '</div>' +
         '<div class="m">' + esc([cod, d.norma].filter(Boolean).join(' · ')) + '</div>' +
         '<div class="m">' + (d.estandar ? (ap ? '<b>Estándar ' + esc(d.estandar) + ': le aplica</b>' : 'Estándar ' + esc(d.estandar) + ' (no está en sus ' + esc(c.grupo) + '; buena práctica)') : 'Buena práctica / exigencia legal general') + (reg ? ' · aprobado v' + esc(reg.resumen.versionDoc) + ' el ' + esc(UI.corta(reg.resumen.fechaAprobacion)) : '') + '</div></div>' +
-        '<span class="chip ' + (reg ? 'ok' : ap ? 'pronto' : 'gris') + '">' + (reg ? 'Aprobado' : 'Sin aprobar') + '</span></div>' +
+        '<span class="chip ' + (reg ? (firmadoReg(reg) || d.sinFirmas ? 'ok' : 'pronto') : ap ? 'pronto' : 'gris') + '">' + (reg ? (d.sinFirmas ? 'Aprobado' : firmadoReg(reg) ? 'Aprobado y firmado' : 'Aprobado · falta firmar') : 'Sin aprobar') + '</span></div>' +
         '<div class="acc"><button type="button" class="btn-mini" data-ver="' + d.id + '">👁 Ver</button><button type="button" class="btn-mini" data-pdf="' + d.id + '">🖨️ PDF</button><button type="button" class="btn-mini" data-word="' + d.id + '">📝 Word</button>' +
-        '<button type="button" class="btn-mini" style="background:var(--verde-600);" data-aprobar="' + d.id + '">' + (reg ? '↻ Nueva versión' : '✓ Aprobar') + '</button></div></div>'; }).join(''); }).join('') || '<div class="empty">Todos los documentos de este filtro están aprobados ✓</div>';
+        '<button type="button" class="btn-mini" style="background:var(--verde-600);" data-aprobar="' + d.id + '">' + (reg ? '↻ Nueva versión' : '✓ Aprobar') + '</button>' + (reg && !d.sinFirmas ? '<button type="button" class="btn-mini" data-firmar="' + d.id + '">✍️ ' + (firmadoReg(reg) ? 'Ver o cambiar firmas' : 'Firmar') + '</button>' : '') + '</div></div>'; }).join(''); }).join('') || '<div class="empty">Todos los documentos de este filtro están aprobados ✓</div>';
 }
 async function editarDatos(){
   const d = (await SGSST.doc(ID_PERFIL)) || {};
@@ -150,9 +150,31 @@ function version(d){ const r = registro(d); return r ? { v: r.resumen.versionDoc
 function cuerpo(d, c){
   return d.generar(c).map(([t, h])=> (t ? '<h3>' + esc(t) + '</h3>' : '') + h).join('');
 }
-function firmas(c){
-  return '<table style="margin-top:16px;"><tr><th style="width:33%">Elaboró</th><th style="width:33%">Revisó</th><th>Aprobó</th></tr><tr><td style="height:46px;"></td><td></td><td></td></tr>' +
-    '<tr><td>' + esc(c.resp || '') + '<br>Responsable del SG-SST</td><td><br>' + esc(c.comite) + '</td><td>' + esc(c.rep || '') + '<br>Representante legal</td></tr></table>';
+// v180: los documentos del kit se firman en el portal (antes había que imprimir, firmar y adjuntar)
+const firmasKit = {};   // id del documento → { elaboro, reviso, aprobo: {nombre, firma, fecha} }
+function firmas(c, d){
+  const f = (d && firmasKit[d.id]) || {}, img = (x)=> x && x.firma ? '<img src="' + esc(x.firma) + '" alt="Firma" style="max-height:44px;max-width:100%;">' : '';
+  const pie = (x, nom, rol)=> esc((x && x.nombre) || nom || '') + '<br>' + rol + (x && x.fecha ? '<br><small>' + esc(UI.corta(x.fecha)) + '</small>' : '');
+  return '<table style="margin-top:16px;"><tr><th style="width:33%">Elaboró</th><th style="width:33%">Revisó</th><th>Aprobó</th></tr><tr><td style="height:46px;">' + img(f.elaboro) + '</td><td>' + img(f.reviso) + '</td><td>' + img(f.aprobo) + '</td></tr>' +
+    '<tr><td>' + pie(f.elaboro, c.resp, 'Responsable del SG-SST') + '</td><td>' + pie(f.reviso, c.comite, '') + '</td><td>' + pie(f.aprobo, c.rep, 'Representante legal') + '</td></tr></table>';
+}
+const firmadoReg = (reg)=> !!reg && /firmado en el portal/.test(reg.resumen.ubicacion || '');
+async function traerFirmas(d){ const reg = registro(d); if (!reg || firmasKit[d.id]) return; try { const x = await SGSST.doc(reg.id); if (x && x.firmasKit) firmasKit[d.id] = x.firmasKit; } catch (e) {} }
+async function firmar(d){
+  const reg = registro(d); if (!reg) { UI.toast('Primero aprueba el documento.', 'mal'); return; }
+  await traerFirmas(d); const c = contexto(), f = firmasKit[d.id] || {};
+  const bloque = (k, t, nom)=> '<div class="card u-mt8"><h3>' + t + '</h3><div class="field"><label for="fk' + k + 'N">Nombre</label><input id="fk' + k + 'N" value="' + esc((f[k] && f[k].nombre) || nom || '') + '"></div>' + UI.padHTML('fk' + k) + '</div>';
+  const m = UI.modal('<h3>Firmar · ' + esc(d.titulo) + '</h3><p class="ayuda">Firma con el dedo o el mouse (o sube la imagen de la firma). Las firmas salen en el PDF y en el Word.</p>' +
+    bloque('elaboro', 'Elaboró — responsable del SG-SST', c.resp) + bloque('reviso', 'Revisó (opcional) — ' + esc(c.comite || 'COPASST o vigía'), '') + bloque('aprobo', 'Aprobó — representante legal', c.rep) +
+    '<button type="button" class="btn amber u-mt10" id="fkOk">Guardar firmas</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button>', true);
+  ['elaboro', 'reviso', 'aprobo'].forEach((k)=> UI.activarPad('fk' + k, f[k] && f[k].firma));
+  m.el.querySelector('#fkOk').addEventListener('click', async ()=> {
+    const out = {}; ['elaboro', 'reviso', 'aprobo'].forEach((k)=> { const fi = UI.firma('fk' + k), n = m.el.querySelector('#fk' + k + 'N').value.trim(); if (fi) out[k] = { nombre: n, firma: fi, fecha: (f[k] && f[k].firma === fi && f[k].fecha) || UI.hoy() }; });
+    if (!out.elaboro || !out.aprobo) { UI.toast('Faltan las firmas de quien elaboró y de quien aprobó.', 'mal'); return; }
+    const ub = String(reg.resumen.ubicacion || '').replace(/\s*·\s*firmado en el portal/, '') + ' · firmado en el portal';
+    const r = await SGSST.enviar({ action: 'parche', tipo: 'documento', id: reg.id, campos: { firmasKit: out, ubicacion: ub } });
+    if (!r.ok) { UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+    firmasKit[d.id] = out; m.cerrar(); UI.toast('✓ ' + d.titulo + ' firmado.'); cargar(); });
 }
 function controlCambios(d){
   const v = version(d);
@@ -161,13 +183,13 @@ function controlCambios(d){
 function hojaPdf(d, c){
   const v = version(d);
   return UI.cabecera(d.formato, d.titulo.toUpperCase(), c.emp + ' · versión ' + v.v + (v.f ? ' · ' + UI.corta(v.f) : '')) +
-    '<div class="kit-doc">' + cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c)) + controlCambios(d) + '</div>';
+    '<div class="kit-doc">' + cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c, d)) + controlCambios(d) + '</div>';
 }
 function htmlWord(d, c){
   const v = version(d), cod = codigoDe(d.formato);
   return '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;"><tr><td style="border:1px solid #000;padding:6px;width:28%;font-weight:bold;">' + esc(c.emp) + (c.nit ? '<br><span style="font-weight:normal;font-size:9pt;">NIT ' + esc(c.nit) + '</span>' : '') + '</td>' +
     '<td style="border:1px solid #000;padding:6px;text-align:center;font-weight:bold;">' + esc(d.titulo.toUpperCase()) + '</td><td style="border:1px solid #000;padding:6px;width:24%;font-size:9pt;">' + (cod ? 'Código: ' + esc(cod) + '<br>' : '') + 'Versión: ' + esc(v.v) + '<br>Fecha: ' + esc(UI.corta(v.f || UI.hoy())) + '</td></tr></table>' +
-    cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c)) + controlCambios(d);
+    cuerpo(d, c) + (d.sinFirmas ? '' : firmas(c, d)) + controlCambios(d);
 }
 function descargarWord(nombre, html){
   const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(nombre) + '</title>' +
@@ -189,7 +211,7 @@ async function aprobar(d){
   const reg = registro(d), c = contexto();
   const prev = reg ? await Registros.abrir(reg.id) : null; if (reg && !prev) return;
   const v = prev ? String((Number(prev.versionDoc) || 1) + 1) : '1';
-  if (!await Dialogo.confirmar((prev ? 'Se registra la versión ' + v + ' de' : 'Se aprueba') + ' «' + d.titulo + '» en el listado maestro (Documental), con fecha de hoy y próxima revisión en un año. Después adjunta allí la versión firmada. ¿Seguir?')) return;
+  if (!await Dialogo.confirmar((prev ? 'Se registra la versión ' + v + ' de' : 'Se aprueba') + ' «' + d.titulo + '» en el listado maestro (Documental), con fecha de hoy y próxima revisión en un año. Después fírmalo aquí mismo con «✍️ Firmar». ¿Seguir?')) return;
   const campos = { codigo: codigoDe(d.formato) || d.formato, tipoDoc: d.tipo === 'Documento' ? 'Otro' : d.tipo, nombre: d.titulo, versionDoc: v, fechaAprobacion: UI.hoy(), aprobo: c.rep || (prev && prev.aprobo) || '',
     proximaRevision: Festivos.sumarMeses(UI.hoy(), 12), retencion: 20, ubicacion: 'Kit documental del portal (documentos.html)' + (prev && prev.ubicacion && !/Kit documental/.test(prev.ubicacion) ? ' · ' + prev.ubicacion : ''), estado: 'Vigente' };
   const r = await SGSST.enviar({ action: 'parche', tipo: 'documento', id: 'DOC-KIT-' + d.id, campos }, { resumen: campos, titulo: d.titulo });
@@ -197,9 +219,11 @@ async function aprobar(d){
   UI.toast('✓ ' + d.titulo + ' v' + v + ' en el listado maestro.'); cargar();
 }
 $('lista').addEventListener('click', (ev)=> {
-  const b = ev.target.closest('[data-ver],[data-pdf],[data-word],[data-aprobar]'); if (!b || !listo()) return;
-  const d = docDe(b.dataset.ver || b.dataset.pdf || b.dataset.word || b.dataset.aprobar);
-  if (b.dataset.ver) ver(d); else if (b.dataset.pdf) UI.imprimir([hojaPdf(d, contexto())]); else if (b.dataset.word) descargarWord(d.titulo, htmlWord(d, contexto())); else aprobar(d);
+  const b = ev.target.closest('[data-ver],[data-pdf],[data-word],[data-aprobar],[data-firmar]'); if (!b || !listo()) return;
+  const d = docDe(b.dataset.ver || b.dataset.pdf || b.dataset.word || b.dataset.aprobar || b.dataset.firmar);
+  if (b.dataset.firmar) { firmar(d); return; }
+  if (b.dataset.pdf || b.dataset.word) { traerFirmas(d).then(()=> { if (b.dataset.pdf) UI.imprimir([hojaPdf(d, contexto())]); else descargarWord(d.titulo, htmlWord(d, contexto())); }); return; }
+  if (b.dataset.ver) ver(d); else aprobar(d);
 });
 $('btnTodoPdf').addEventListener('click', ()=> { if (!listo()) return; const c = contexto(); UI.imprimir(KIT_DOCUMENTOS.map((d)=> hojaPdf(d, c))); });
 $('btnTodoWord').addEventListener('click', ()=> { if (!listo()) return; const c = contexto(); descargarWord('Kit documental SG-SST - ' + c.emp, KIT_DOCUMENTOS.map((d, i)=> '<div' + (i ? ' class="salto"' : '') + '>' + htmlWord(d, c) + '</div>').join('')); });

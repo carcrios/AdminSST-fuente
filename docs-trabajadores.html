@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-HWy5k6KY++IVOQJNcdTvp77pxC88pJWIzm78YXgxEr0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Documentos para los trabajadores · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Documentos para los trabajadores · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+<style>
+  .wrap{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px));}   /* v148: nada queda bajo la barra inferior */
+.politica p{margin:0 0 8px;line-height:1.5;} details.card summary{cursor:pointer;list-style:none;} details.card summary::-webkit-details-marker{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="back" href="index.html">← Atrás</a>
+    <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Para todos</div>
+    <h1>Documentos para los trabajadores</h1>
+    <p>Las políticas de la empresa y lo que decidió la dirección sobre el SG-SST</p></div></div>
+  </div>
+  <div id="avisoSrv"></div>
+  <div id="docsTrab"><div class="empty">Cargando…</div></div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
+</div>
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="sgsst-ui.js"></script>
+<script>
+OfflineBanner.init();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+/* v180 · Lo que todo trabajador debe poder mostrar (Dec. 1072: la política es conocida y está disponible;
+   la revisión por la dirección se comunica): con la clave del portal, sin usuario. Solo texto público. */
+const $ = (id)=> document.getElementById(id);
+const parrafos = (t)=> String(t || '').split(/\n+/).filter(Boolean).map((p)=> '<p>' + esc(p) + '</p>').join('');
+async function cargar(){
+  if (UI.avisoServidor($('avisoSrv'))) { $('docsTrab').innerHTML = ''; return; }
+  let r; try { r = await (await fetchWithRetry(SGSST.url() + '?action=documentosTrabajadores&token=' + encodeURIComponent(SGSST.token()))).json(); } catch (e) { r = null; }
+  if (!r || !r.ok) { $('docsTrab').innerHTML = '<div class="empty">' + esc((r && r.error) || 'Sin señal: no se pudieron traer los documentos.') + '</div>'; return; }
+  const P = r.politica, h = [];
+  h.push(P ? '<div class="card"><h2>Política de seguridad y salud en el trabajo</h2><div class="m">Versión ' + esc(P.version || '1') + ' · firmada por ' + esc(P.firmante || '—') + ' el ' + esc(UI.corta(P.fecha) || '—') + '</div><div class="politica u-mt8">' + parrafos(P.texto) + '</div>' +
+    (P.objetivos.length ? '<h3>Objetivos del SG-SST</h3><table class="tabla"><tr><th>Objetivo</th><th>Cómo se mide</th><th>Meta</th></tr>' + P.objetivos.map((o)=> '<tr><td>' + esc(o.objetivo) + '</td><td>' + esc(o.indicador) + '</td><td>' + esc(o.meta) + '</td></tr>').join('') + '</table>' : '') + '</div>'
+    : '<div class="card"><h2>Política de SST</h2><div class="empty">La empresa aún no ha registrado la política en el portal.</div></div>');
+  r.otras.forEach((o)=> h.push('<details class="card"><summary><b>' + esc(o.nombre) + '</b><div class="m">Versión ' + esc(o.version || '1') + ' · ' + esc(o.firmante || '') + ' · ' + esc(UI.corta(o.fecha) || '') + '</div></summary><div class="politica u-mt8">' + parrafos(o.texto) + '</div></details>'));
+  const R = r.revision;
+  h.push('<div class="card"><h2>Revisión por la dirección</h2>' + (R ? '<div class="m">Periodo ' + esc(R.periodo) + ' · ' + esc(UI.corta(R.fecha)) + ' · ' + esc(R.gerente || '') + '</div><p class="u-mt8"><b>' + esc(R.conclusion || '') + '</b></p>' + (R.decisiones ? '<h3>Decisiones</h3>' + parrafos(R.decisiones) : '') : '<div class="empty">Aún no hay una revisión por la dirección cerrada.</div>') + '</div>');
+  $('docsTrab').innerHTML = h.join('');
+}
+cargar();
+</script>
+</body>
+</html>

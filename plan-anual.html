@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-oCQ+hLiJo4D5uXV4E2sOTc0amsOfFR64zKnjVg8XfW4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-lgjPcoKizpwor8YF8fM031C8U70XuvFlQ8I7+eFA190='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Plan anual de trabajo · Portal SSTA</title>
@@ -105,7 +105,7 @@
   <div id="avisoSrv"></div><div id="avisoCopia"></div>
   <div class="field"><select id="anio" aria-label="Año del plan"></select></div>
   <div id="contenido"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -357,7 +357,20 @@ function actHTML(a, i, k){
       (cap ? '<span>Cobertura: <b>' + (x.cobertura == null ? '—' : x.cobertura + ' %') + '</b>' + (x.esp ? ' (' + x.asis + ' de ' + x.esp + ')' : '') + '</span>' : '') + '</div>' +
     '<div class="meses">' + MESES.map((n, j)=> { const m = j + 1, s = estadoMes(a, m); return '<button type="button" data-a="' + i + '" data-m="' + m + '" class="' + (s ? 'p ' + s : '') + '"' + (s ? '' : ' disabled') + ' aria-label="' + MESES_L[j] + (s ? ': ' + ({ hecho: 'realizada', auto: 'cumplida con registro', atraso: 'atrasada', pend: 'pendiente' })[s] : '') + '">' + n + '</button>'; }).join('') + '</div></div>';
 }
-function filtroHTML(){ return filtroMes ? '<div class="filtro">Solo lo programado en <b>' + MESES_L[filtroMes - 1] + '</b> <button type="button" class="btn-mini" id="quitaFiltro">Ver todo</button></div>' : ''; }
+function filtroHTML(){ const mesH = filtroMes || Number(UI.hoy().slice(5, 7)), pend = String(anioSel) === UI.hoy().slice(0, 4) || filtroMes ? pendientesMes(mesH).length : 0;
+  return (filtroMes ? '<div class="filtro">Solo lo programado en <b>' + MESES_L[filtroMes - 1] + '</b> <button type="button" class="btn-mini" id="quitaFiltro">Ver todo</button></div>' : '') +
+    (pend ? '<div class="aviso info u-mb8">' + pend + ' actividad(es) de ' + MESES_L[mesH - 1] + ' sin marcar. <button type="button" class="btn-mini" id="hechasMes" data-mes="' + mesH + '">✓ Marcar las ' + pend + ' como hechas</button></div>' : ''); }
+/* v180: cumplir en bloque lo del mes, sin entrar a cada actividad (las que se cumplen con un registro del portal se marcan solas) */
+function pendientesMes(m){ return (plan.actividades || []).filter((a)=> !a.auto && (a.meses || []).indexOf(m) !== -1 && !(((plan.ejec || {})[a.uid] || {})[m] || {}).hecho); }
+async function hechasMes(m){
+  const l = pendientesMes(m); if (!l.length) return;
+  if (!await Dialogo.confirmar('¿Marcar como hechas en ' + MESES_L[m - 1] + ' estas ' + l.length + ' actividad(es)?\n\n' + l.slice(0, 10).map((a)=> '· ' + a.actividad).join('\n') + (l.length > 10 ? '\n…' : '') + '\n\nQuedan con fecha de hoy; puedes agregar la evidencia de cada una después.')) return;
+  const ejec = {}, antes = JSON.stringify(plan.ejec || {});
+  l.forEach((a)=> { ejec[a.uid] = {}; ejec[a.uid][m] = { hecho: true, origen: '', fecha: UI.hoy(), evidencia: 'Marcada en bloque', asistentes: '', esperados: '' }; plan.ejec = plan.ejec || {}; plan.ejec[a.uid] = Object.assign({}, plan.ejec[a.uid] || {}, ejec[a.uid]); });
+  const r = await SGSST.enviar({ action: 'parche', tipo: 'plananual', id: plan.id, campos: Object.assign({ ejec }, resumenPlan(plan)) });
+  if (!r.ok) { plan.ejec = JSON.parse(antes); UI.toast(Errores.texto('guardó', r), 'mal'); return; }
+  UI.toast('✓ ' + l.length + ' actividad(es) marcadas como hechas.'); pintar();
+}
 function pintarCrono(panel){
   const acts = plan.actividades || [], k = calcular();
   const vis = (a)=> !filtroMes || (a.meses || []).indexOf(filtroMes) !== -1;
@@ -373,6 +386,7 @@ function pintarCap(panel){
   enlazar(panel);
 }
 function enlazar(panel){
+  { const hm = document.getElementById('hechasMes'); if (hm && !hm.dataset.on) { hm.dataset.on = '1'; hm.addEventListener('click', ()=> hechasMes(+hm.dataset.mes)); } }
   if (selAct) {   // en modo selección, tocar la actividad la marca o desmarca (no abre nada)
     panel.addEventListener('click', (e)=> { const el = e.target.closest('.act[data-uid]'); if (!el) return; e.preventDefault(); e.stopPropagation();
       const u = el.dataset.uid; if (selAct.has(u)) selAct.delete(u); else selAct.add(u);

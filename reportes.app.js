@@ -99,7 +99,7 @@ $('nAccionTomada').addEventListener('change', (e)=> {
 $('nCategoria').addEventListener('change', ()=> { $('nCategoriaOtra').hidden = $('nCategoria').value !== 'Otros'; });
 
 async function cargar(){
-  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; $('btnReportar').disabled = true; return; }
+  if (UI.avisoServidor($('avisoSrv'))) { $('lista').innerHTML = ''; $('btnReportar').disabled = true; if ($('btnAccidente')) $('btnAccidente').disabled = true; return; }
   // Con usuarios, cualquiera puede REPORTAR sin entrar; la lista sí es solo para usuarios.
   const r = await SGSST.listar('reporte,pqrs', { sinPedir: true });
   UI.avisoCopia($('avisoCopia'), r);
@@ -923,6 +923,8 @@ $('btnPdfRep').addEventListener('click', ()=>{
 
 /* ── Navegación ── */
 $('btnReportar').addEventListener('click', nuevo);
+// v180: entrada directa para registrar un accidente de trabajo (ya con la clase elegida)
+$('btnAccidente').addEventListener('click', ()=> { nuevo(); ponerClase(AT); });
 $('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; filtro = ''; ponerTab(b.dataset.tab); pintar(); });
 $('buscar').addEventListener('input', pintar);
 document.addEventListener('click', (e)=>{
@@ -931,4 +933,4 @@ document.addEventListener('click', (e)=>{
 });
 window.addEventListener('outbox-enviado', ()=> cargar());
 // v109: ?nuevo=1&pqrs=1 (tarjeta «PQRS» del inicio) abre el formulario ya en PQRS; se puede cambiar de opción arriba.
-cargar().then(()=>{ if (/[?&]tab=investigaciones/.test(location.search)) { ponerTab('investigaciones'); pintar(); } if (/[?&]nuevo=1/.test(location.search)) { nuevo(); if (/[?&]pqrs=1/.test(location.search)) ponerClase(PQ); } else if (location.hash.length > 1) abrir(decodeURIComponent(location.hash.slice(1))); });
+cargar().then(()=>{ if (/[?&]tab=investigaciones/.test(location.search)) { ponerTab('investigaciones'); pintar(); } if (/[?&]nuevo=accidente/.test(location.search)) { nuevo(); ponerClase(AT); return; } if (/[?&]nuevo=1/.test(location.search)) { nuevo(); if (/[?&]pqrs=1/.test(location.search)) ponerClase(PQ); } else if (location.hash.length > 1) abrir(decodeURIComponent(location.hash.slice(1))); });

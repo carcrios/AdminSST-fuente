@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-v+F+WGnSbY4QuDXw++lleV1rf7WKsIkBa/YAitGkTDE='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-xmRjcH6DwNgvBFsGd9qwBsby76rGzr+g5UuJrY0bIh0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Documental y legal · Portal SSTA</title>
@@ -37,7 +37,7 @@
     <a class="back" href="index.html">← Atrás</a>
     <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Planear el SG-SST</div>
     <h1>Documental y legal</h1>
-    <p>Política y objetivos · matriz legal · listado maestro · gestión del cambio · proveedores y contratistas</p></div></div>
+    <p>Política y objetivos · matriz legal y normograma · listado maestro · gestión del cambio · proveedores y contratistas</p></div></div>
   </div>
   <div id="avisoSrv"></div><div id="avisoCopia"></div>
   <div class="kpis" id="kpis"></div>
@@ -49,7 +49,7 @@
     <button type="button" data-tab="prov">Proveedores y contratistas <span class="n" id="nPrv">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 <div class="screen" id="scrPol"></div>
 </div>
@@ -62,6 +62,7 @@
 <script src="valida.js"></script>
 <script src="sgsst-ui.js"></script>
 <script src="registros.js"></script>
+<script src="normograma-app.js"></script>
 <script src="importar.js"></script>
 <script src="normas-base.js"></script>
 <script>
@@ -126,12 +127,86 @@ function textoPolitica(){ const n = EMPRESA.nombre || 'La empresa';
     'Para lograrlo nos comprometemos a:\n• Identificar los peligros, evaluar y valorar los riesgos, y establecer los controles necesarios.\n• Proteger la seguridad y la salud de todos los trabajadores mediante la mejora continua del Sistema de Gestión de Seguridad y Salud en el Trabajo.\n' +
     '• Cumplir la normatividad nacional vigente en riesgos laborales y los demás requisitos que suscribamos.\n• Promover la participación de los trabajadores y del COPASST.\n• Asignar los recursos humanos, técnicos y financieros necesarios.\n\n' +
     'Esta política es conocida por todos los trabajadores, está disponible en los centros de trabajo, se comunicó al COPASST y se revisa como mínimo una vez al año.'; }
+/* ── v180 · Otras políticas (alcohol y drogas, seguridad vial, desconexión, ambiental…): son documentos del listado maestro con texto y firma ── */
+const PLANTILLAS_POL = {
+  'Política de prevención del consumo de alcohol, drogas y tabaco': 'La empresa, consciente de que el consumo de alcohol, sustancias psicoactivas y tabaco afecta la salud, la seguridad y el desempeño, establece:\n\n• Se prohíbe presentarse a trabajar bajo los efectos del alcohol o de sustancias psicoactivas, y consumirlos, portarlos o distribuirlos en las instalaciones, vehículos y lugares de trabajo.\n• Se prohíbe fumar (incluidos cigarrillos electrónicos y vapeadores) en las áreas de trabajo y espacios cerrados (Ley 1335 de 2009).\n• La empresa desarrolla actividades de prevención y puede realizar pruebas de alcohol y drogas, en especial a quienes hacen tareas de alto riesgo y a los conductores, respetando la dignidad y la intimidad de las personas.\n• Quien reconozca tener un problema de consumo será orientado para recibir ayuda de su EPS.\n\nEsta política aplica a trabajadores, contratistas y visitantes, se divulga a todos y se revisa como mínimo una vez al año (Res. 1075 de 1992; Res. 1956 de 2008).',
+  'Política de seguridad vial': 'La empresa se compromete a prevenir los siniestros viales en todos los desplazamientos relacionados con el trabajo:\n\n• Cumplir las normas de tránsito y el Plan Estratégico de Seguridad Vial (PESV).\n• Respetar los límites de velocidad y no usar el celular mientras se conduce.\n• Usar el cinturón de seguridad y, en moto, el casco y los elementos de protección.\n• No conducir bajo los efectos del alcohol, drogas o medicamentos que afecten la conducción, ni con cansancio.\n• Mantener los vehículos en buen estado con inspecciones preoperacionales y mantenimiento.\n\nAplica a trabajadores, contratistas y visitantes que conducen o se desplazan por la empresa (Ley 1503 de 2011; Res. 40595 de 2022).',
+  'Política de desconexión laboral': 'La empresa garantiza el derecho a la desconexión laboral (Ley 2191 de 2022): fuera de la jornada, en vacaciones y descansos, nadie está obligado a responder correos, llamadas o mensajes de trabajo, salvo los casos de fuerza mayor o los cargos de dirección y confianza definidos en el reglamento.\n\n• Las comunicaciones se envían dentro de la jornada laboral.\n• No se toman represalias contra quien ejerza este derecho.\n• Se establece un procedimiento para presentar quejas por su incumplimiento.',
+  'Política ambiental': 'La empresa se compromete a proteger el ambiente en todas sus actividades: prevenir la contaminación, usar de forma eficiente el agua, la energía y los materiales, gestionar adecuadamente los residuos (incluidos los peligrosos), cumplir los requisitos legales ambientales y mejorar continuamente su desempeño ambiental.',
+  'Política de calidad': 'La empresa se compromete a satisfacer a sus clientes con productos y servicios conformes a sus requisitos, cumplir los requisitos legales y mejorar continuamente su sistema de gestión de la calidad.',
+  'Política de uso de elementos de protección personal': 'Todo trabajador, contratista y visitante usa los elementos de protección personal (EPP) definidos para su cargo y tarea, los cuida, los inspecciona antes de usarlos y pide el cambio cuando estén dañados. La empresa los entrega sin costo, capacita en su uso y verifica su uso correcto.',
+  'Otra política': '',
+};
+function otrasPol(){ return de('documento').filter((x)=> /^DOC-POL-/.test(x.id) && x.resumen.estado !== 'Obsoleto'); }
+function nuevaOtraPol(){
+  const op = Object.keys(PLANTILLAS_POL);
+  Registros.editar({ titulo: 'Otra política', campos: [{ k: 'cual', l: '¿Cuál política?', t: 'select', op }, { k: 'nombreOtra', l: 'Nombre (si es otra)', ph: 'Ej.: Política de derechos humanos' }], datos: { cual: op[0] },
+    alGuardar: (v)=> { const nombre = v.cual === 'Otra política' ? String(v.nombreOtra || '').trim() : v.cual; if (!nombre) return 'Escribe el nombre de la política.';
+      const id = 'DOC-POL-' + UI.norm(nombre).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+      if (de('documento').some((x)=> x.id === id)) return 'Esa política ya existe: ábrela en la lista.';
+      setTimeout(()=> editarOtraPol({ id, nuevo: true, nombre, tipoDoc: 'Política', versionDoc: '1', texto: (PLANTILLAS_POL[v.cual] || '').replace(/^La empresa/, EMPRESA.nombre || 'La empresa'), fechaAprobacion: UI.hoy(), proximaRevision: Festivos.sumarMeses(UI.hoy(), 12), retencion: 20, estado: 'Vigente' }), 50);
+      return true; } });
+}
+function editarOtraPol(d){
+  const m = UI.modal('<h3>' + esc(d.nombre || 'Política') + '</h3>' +
+    '<div class="field"><label for="opTxt">Texto de la política</label><textarea id="opTxt" style="min-height:240px;">' + esc(d.texto || '') + '</textarea><div class="ayuda">Ajústala a la realidad de la empresa.</div></div>' +
+    '<div class="grid2"><div class="field"><label for="opVer">Versión</label><input id="opVer" value="' + esc(d.versionDoc || '1') + '"></div><div class="field"><label for="opFecha">Fecha de firma</label><input type="date" id="opFecha" value="' + esc(d.fechaAprobacion || UI.hoy()) + '"></div></div>' +
+    '<div class="field"><label for="opFir">Firma (representante legal)</label><input id="opFir" value="' + esc(d.aprobo || (typeof EMPRESA !== 'undefined' && EMPRESA.representante) || '') + '"></div>' + UI.padHTML('opPad') +
+    '<div class="fila-btn u-mt10"><button type="button" class="btn amber" id="opOk">Guardar</button>' + (d.nuevo ? '' : '<button type="button" class="btn ghost" id="opPdf">🖨️ PDF</button><button type="button" class="btn ghost" id="opDiv">+ Divulgación</button>') + '</div><button type="button" class="btn ghost" data-cerrar>Cerrar</button><p class="status-msg" id="opMsg"></p>', true);
+  UI.activarPad('opPad', d.firma);
+  const pdf = (x)=> UI.imprimir([UI.cabecera(x.codigo || 'SG-POLITICA', String(x.nombre).toUpperCase(), 'Versión ' + (x.versionDoc || '1') + ' · ' + UI.corta(x.fechaAprobacion)) + UI.textoLargo(x.texto || '') +
+    '<table style="margin-top:14px;"><tr><td style="height:70px;vertical-align:bottom;width:50%;">' + UI.firmaHoja(x.firma) + '<br><b>' + esc(x.aprobo || '') + '</b><br>Representante legal</td><td class="u-abajo">Próxima revisión: ' + esc(UI.corta(x.proximaRevision) || '—') + '</td></tr></table>']);
+  if (m.el.querySelector('#opPdf')) m.el.querySelector('#opPdf').addEventListener('click', ()=> pdf(d));
+  if (m.el.querySelector('#opDiv')) m.el.querySelector('#opDiv').addEventListener('click', ()=> Registros.editar({ titulo: 'Divulgación · ' + d.nombre, campos: [{ k: 'fecha', l: 'Fecha', t: 'date', def: UI.hoy(), medio: true }, { k: 'personas', l: 'Personas', t: 'number', medio: true }, { k: 'medio', l: 'Medio', t: 'select', op: ['Charla', 'Inducción', 'Cartelera', 'Correo', 'WhatsApp', 'Portal'] }],
+    alGuardar: async (v)=> { const r = await SGSST.enviar({ action: 'parche', tipo: 'documento', id: d.id, campos: {}, agregar: { divulgacionesLista: [Object.assign({ uid: SGSST.nuevoOpId() }, v)] } }); if (!r.ok) return r.error; UI.toast('✓ Divulgación registrada.'); return true; } }));
+  m.el.querySelector('#opOk').addEventListener('click', async ()=> {
+    const fi = UI.firma('opPad') || d.firma || '', v = Object.assign({}, d, { texto: m.el.querySelector('#opTxt').value.trim(), versionDoc: m.el.querySelector('#opVer').value.trim() || '1', fechaAprobacion: m.el.querySelector('#opFecha').value || UI.hoy(),
+      aprobo: m.el.querySelector('#opFir').value.trim(), firma: fi, tipoDoc: 'Política', codigo: d.codigo || 'SG-POL-' + String(otrasPol().length + 2).padStart(2, '0'), ubicacion: 'Portal · Documental' + (fi ? ' · firmada en el portal' : ''), estado: 'Vigente' });
+    v.proximaRevision = v.proximaRevision || Festivos.sumarMeses(v.fechaAprobacion, 12); delete v.nuevo;
+    if (!v.texto || !v.aprobo) { m.el.querySelector('#opMsg').textContent = 'Faltan el texto o quién firma.'; return; }
+    const r = await Registros.guardar('documento', d.id, v, d.nuevo ? 0 : d.version); if (typeof r === 'string') { m.el.querySelector('#opMsg').textContent = r; return; }
+    m.cerrar(); UI.toast('✓ ' + v.nombre + ' guardada.'); cargar(); });
+}
+/* ── v180 · Responsable del SG-SST (estándar 1.1.1; Res. 0312 de 2019): designado por escrito, con la formación y la licencia exigidas ── */
+const REQ_RESP = { 7: 'Técnico, tecnólogo o profesional en SST (o con licencia en SST), con el curso virtual de 50 horas.', 21: 'Tecnólogo o profesional en SST, o profesional con posgrado en SST, con licencia vigente y el curso de 50 horas.',
+  60: 'Profesional en SST o profesional con posgrado en SST, con licencia en SST vigente y el curso virtual de 50 horas (con su actualización).' };
+async function pintarResponsable(){
+  const caja = $('cResp'); if (!caja) return;
+  let p = {}; try { p = (await SGSST.doc('EMPRESA-PERFIL')) || {}; } catch (e) {}
+  const h = UI.hoy(), g = Number(p.grupo0312) || 60, venceLic = p.respLicenciaFecha ? Festivos.sumarMeses(p.respLicenciaFecha, 120) : '', vence50 = p.respCursoActualizacion || p.respCurso50 ? Festivos.sumarMeses(p.respCursoActualizacion || p.respCurso50, 36) : '';
+  const desig = de('documento').find((x)=> x.id === 'DOC-KIT-DESIGNACION');
+  const fila = (ok, t, d)=> '<div class="item ' + (ok === true ? 'ok' : ok === false ? 'mal' : 'pronto') + '" style="cursor:default;"><div class="fila"><div><div class="t">' + t + '</div><div class="m">' + d + '</div></div><span class="chip ' + (ok === true ? 'ok' : ok === false ? 'mal' : 'pronto') + '">' + (ok === true ? 'Al día' : ok === false ? 'Falta' : 'Revisar') + '</span></div></div>';
+  caja.innerHTML = '<h2>Responsable del SG-SST · estándar 1.1.1</h2><p class="ayuda u-mtn4">Persona que diseña y administra el SG-SST, designada por escrito. Para esta empresa (' + g + ' estándares): ' + esc(REQ_RESP[g] || REQ_RESP[60]) + '</p>' +
+    fila(!!p.responsableSST, 'Persona designada', p.responsableSST ? esc(p.responsableSST) + (p.responsableCedula ? ' · C.C. ' + esc(p.responsableCedula) : '') + (p.respCargo ? ' · ' + esc(p.respCargo) : '') : 'Sin designar') +
+    fila(desig ? (/firmado en el portal/.test(desig.resumen.ubicacion || '') ? true : null) : false, 'Designación por escrito', desig ? 'Aprobada el ' + esc(UI.corta(desig.resumen.fechaAprobacion)) + (/firmado en el portal/.test(desig.resumen.ubicacion || '') ? ' · firmada' : ' · falta firmarla') : 'Sin carta de designación') +
+    fila(p.respFormacion ? true : false, 'Formación', p.respFormacion ? esc(p.respFormacion) + (p.respTitulo ? ' · ' + esc(p.respTitulo) : '') : 'Sin registrar') +
+    fila(p.respLicencia ? (venceLic && venceLic < h ? false : true) : false, 'Licencia en SST', p.respLicencia ? 'N.º ' + esc(p.respLicencia) + (p.respLicenciaFecha ? ' · expedida ' + esc(UI.corta(p.respLicenciaFecha)) + ' · vence ' + esc(UI.corta(venceLic)) : '') : 'Sin licencia registrada') +
+    fila(p.respCurso50 ? (vence50 && vence50 < h ? null : true) : false, 'Curso virtual de 50 horas', p.respCurso50 ? 'Certificado del ' + esc(UI.corta(p.respCurso50)) + (p.respCursoActualizacion ? ' · actualización (20 h) del ' + esc(UI.corta(p.respCursoActualizacion)) : '') + (vence50 && vence50 < h ? ' · hace más de 3 años: haz la actualización de 20 horas' : '') : 'Sin certificado') +
+    '<div class="fila-btn u-mt8"><button type="button" class="btn amber" id="edResp">✏️ Datos del responsable</button><a class="btn ghost" href="documentos.html">✍️ Carta de designación (aprobar y firmar)</a></div>';
+  $('edResp').addEventListener('click', ()=> Registros.editar({ titulo: 'Responsable del SG-SST', adjuntos: false,
+    campos: [{ k: 'responsableSST', l: 'Nombre completo', t: 'persona', req: true }, { k: 'responsableCedula', l: 'Cédula', medio: true }, { k: 'respCargo', l: 'Cargo', medio: true },
+      { k: 'respFormacion', l: 'Formación', t: 'select', op: ['', 'Técnico en SST', 'Tecnólogo en SST', 'Profesional en SST', 'Profesional con posgrado en SST', 'Otro profesional con licencia en SST'] }, { k: 'respTitulo', l: 'Título e institución', ph: 'Ej.: Especialista en SST, Universidad…' },
+      { k: 'respLicencia', l: 'N.º de licencia en SST', medio: true }, { k: 'respLicenciaFecha', l: 'Fecha de expedición de la licencia', t: 'date', medio: true, ayuda: 'La licencia tiene vigencia de 10 años.' },
+      { k: 'respCurso50', l: 'Curso virtual de 50 horas (fecha del certificado)', t: 'date', medio: true }, { k: 'respCursoActualizacion', l: 'Última actualización de 20 horas', t: 'date', medio: true, ayuda: 'Se actualiza cada 3 años.' },
+      { k: 'respFechaDesignacion', l: 'Fecha de la designación', t: 'date', medio: true }],
+    datos: Object.assign({}, p),
+    alGuardar: async (v)=> { const campos = {}; ['responsableSST', 'responsableCedula', 'respCargo', 'respFormacion', 'respTitulo', 'respLicencia', 'respLicenciaFecha', 'respCurso50', 'respCursoActualizacion', 'respFechaDesignacion'].forEach((k)=> { campos[k] = v[k] || ''; });
+      campos.responsableLicencia = [v.respLicencia, v.respLicenciaFecha].filter(Boolean).join(' del '); campos.responsableCurso = v.respCurso50 || '';
+      const r = await SGSST.enviar({ action: 'parche', tipo: 'empresa', id: 'EMPRESA-PERFIL', campos }); if (!r.ok) return Errores.texto('guardó', r); UI.toast('✓ Responsable actualizado.'); pintarResponsable(); return true; } }));
+}
 function pintarPolitica(panel){
   const pol = vigentePol(), otras = de('politica').filter((x)=> !pol || x.id !== pol.id);
   panel.innerHTML = (pol ? '<div class="card" id="cPol"><div class="status-msg">Cargando…</div></div>' : '<div class="empty">No hay política registrada.</div>') +
     '<button type="button" class="btn ' + (pol ? 'ghost' : 'amber') + '" id="nPol">' + (pol ? '📝 Nueva versión de la política' : '+ Registrar la política (con plantilla)') + '</button>' +
     (pol ? '' : '<button type="button" class="btn ghost" id="nPolInt">+ Política integrada (calidad, ambiente y SST)</button>') +
-    (otras.length ? '<p class="ayuda u-mt12">Versiones anteriores: ' + otras.map((x)=> 'v' + esc(x.resumen.versionDoc) + ' (' + esc(UI.corta(x.resumen.fechaFirma)) + ')').join(', ') + '</p>' : '');
+    (otras.length ? '<p class="ayuda u-mt12">Versiones anteriores: ' + otras.map((x)=> 'v' + esc(x.resumen.versionDoc) + ' (' + esc(UI.corta(x.resumen.fechaFirma)) + ')').join(', ') + '</p>' : '') +
+    '<div class="card u-mt12" id="cResp"><div class="status-msg">Cargando el responsable del SG-SST…</div></div>' +
+    '<div class="card u-mt12"><h2>Otras políticas</h2><p class="ayuda u-mtn4">Además de la de SST: alcohol y drogas, seguridad vial, desconexión laboral, ambiental… Cada una con su firma; quedan en el listado maestro y en «Documentos para los trabajadores».</p>' +
+    (otrasPol().length ? otrasPol().map((x)=> '<button type="button" class="item ' + (x.resumen.estado === 'Vigente' ? 'ok' : '') + '" data-otrapol="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(x.resumen.nombre) + '</div><div class="m">v' + esc(x.resumen.versionDoc || '1') + ' · ' + esc(UI.corta(x.resumen.fechaAprobacion) || '—') + (x.resumen.aprobo ? ' · ' + esc(x.resumen.aprobo) : '') + '</div></div><span class="chip ' + (/firmad/.test(x.resumen.ubicacion || '') ? 'ok' : 'pronto') + '">' + (/firmad/.test(x.resumen.ubicacion || '') ? 'Firmada' : 'Sin firma') + '</span></div></button>').join('') : '<div class="empty">Solo está la política de SST.</div>') +
+    '<button type="button" class="btn ghost u-mt8" id="nOtraPol">+ Otra política</button></div>';
+  pintarResponsable();
+  $('nOtraPol').addEventListener('click', ()=> nuevaOtraPol());
+  panel.querySelectorAll('[data-otrapol]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.otrapol); if (d) editarOtraPol(d); }));
   if ($('nPolInt')) $('nPolInt').addEventListener('click', ()=> { $('nPol').dataset.integrada = '1'; $('nPol').click(); });
   $('nPol').addEventListener('click', async ()=> { const ant = pol ? await SGSST.doc(pol.id) : null;
     editarPolitica({ id: SGSST.nuevoId('POL'), nuevo: true, versionDoc: ant ? String((Number(ant.versionDoc) || 1) + 1) : '1', texto: ant ? ant.texto : ($('nPol').dataset.integrada ? textoPoliticaIntegrada() : textoPolitica()), objetivosLista: ant ? (ant.objetivosLista || []) : [
@@ -182,6 +257,7 @@ function pdfPolitica(d){
 }
 
 /* ── Matriz legal (estándar 2.7.1) ── */
+let vistaLegal = 'matriz';
 /* v148: ISO 9.1.2 — cada evaluación del cumplimiento queda en el historial de la norma (antes se sobrescribía). */
 const EXTRA_LEG = { antes: (v, d)=> {
   if (v.cumple && v.cumple !== 'Sin evaluar' && (v.cumple !== d.cumple || v.fechaRevision !== d.fechaRevision)) {
@@ -199,12 +275,33 @@ const C_LEG = [{ k: 'tipoRequisito', l: 'Tipo de requisito', t: 'select', op: ['
 function pintarLegal(panel){
   const l = de('legal').sort((a, b)=> String(a.resumen.tema).localeCompare(String(b.resumen.tema)) || String(a.resumen.norma).localeCompare(String(b.resumen.norma)));
   const clase = (c)=> ({ 'Cumple': 'ok', 'No aplica': 'gris', 'Cumple parcialmente': 'pronto', 'No cumple': 'mal' }[c] || '');
-  panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="nLegB">+ Norma</button><button type="button" class="btn ghost" id="novLeg">Novedades normativas</button><button type="button" class="btn ghost" id="xLeg">Cargar matriz legal desde Excel</button>' + (l.length ? '' : '<button type="button" class="btn ghost" id="baseLeg">Cargar normas base (' + NORMAS_BASE.length + ')</button>') + '<button type="button" class="btn ghost" id="pLeg">Matriz legal (PDF)</button></div>' +
+  // v180: el normograma (con la evidencia del portal) es una vista de la misma matriz legal
+  const vistaNg = location.hash === '#normograma' || vistaLegal === 'normograma';
+  const sel = '<div class="pend-filtro u-mb8" role="group" aria-label="Vista de la matriz legal"><button type="button" data-vleg="matriz" aria-pressed="' + !vistaNg + '">Matriz</button><button type="button" data-vleg="normograma" aria-pressed="' + vistaNg + '">Normograma (con evidencias)</button></div>';
+  if (vistaNg) { panel.innerHTML = sel + '<div id="ngCaja"></div>'; panel.querySelectorAll('[data-vleg]').forEach((b)=> b.addEventListener('click', ()=> { vistaLegal = b.dataset.vleg; if (location.hash === '#normograma') history.replaceState(null, '', '#legal'); pintar(); })); Normograma.montar($('ngCaja')); return; }
+  panel.innerHTML = sel + '<div class="acciones-top"><button type="button" class="btn amber" id="nLegB">+ Norma</button><button type="button" class="btn ghost" id="novLeg">Novedades normativas</button><button type="button" class="btn ghost" id="xLeg">Cargar matriz legal desde Excel</button>' + (l.length ? '' : '<button type="button" class="btn ghost" id="baseLeg">Cargar normas base (' + NORMAS_BASE.length + ')</button>') + '<button type="button" class="btn ghost" id="pLeg">Matriz legal (PDF)</button></div>' +
     '<div id="novedades"></div>' +
     '<p class="ayuda">Normas de SST que aplican a la empresa, con su evaluación de cumplimiento. Se actualiza cuando sale una norma nueva y se evalúa por lo menos una vez al año. «Cargar normas base» trae una lista para empezar: revisa que apliquen y que sigan vigentes.</p>' +
     (l.length ? UI.chipsFiltro([['', 'Todas (' + l.length + ')'], ['pendientes', 'Pendientes (' + l.filter(legalPend).length + ')'], ['sinevaluar', 'Sin evaluar (' + l.filter(legalSinEv).length + ')'], ['nocumple', 'No cumple o parcial (' + l.filter(legalNo).length + ')']], fDoc.legal) : '') +
-    '<input type="search" class="buscar" id="bLeg" placeholder="Buscar norma o tema"><div id="lLeg"></div>';
+    '<input type="search" class="buscar" id="bLeg" placeholder="Buscar norma o tema">' +
+    (l.some(legalSinEv) || l.some(legalPend) ? '<div class="fila-btn u-mb8"><button type="button" class="btn ghost" id="cumpleVarias">✓ Evaluar varias a la vez</button></div>' : '') + '<div id="lLeg"></div>';
   chipsDoc(panel);
+  panel.querySelectorAll('[data-vleg]').forEach((b)=> b.addEventListener('click', ()=> { vistaLegal = b.dataset.vleg; pintar(); }));
+  // v180: evaluar en bloque las normas que se ven (sin abrir una por una)
+  if ($('cumpleVarias')) $('cumpleVarias').addEventListener('click', ()=> {
+    const q = UI.norm($('bLeg').value).trim(), vis = l.filter(fL).filter((x)=> x.resumen.vigente !== 'No' && (!q || UI.norm(x.resumen.norma + ' ' + x.resumen.tema + ' ' + x.resumen.requisito).includes(q))).filter((x)=> legalSinEv(x) || legalPend(x));
+    if (!vis.length) { UI.toast('No hay normas sin evaluar o pendientes en esta vista.', 'mal'); return; }
+    const m = UI.modal('<h3>Evaluar ' + vis.length + ' norma(s)</h3><p class="ayuda">Desmarca las que no correspondan. Quedan evaluadas hoy, por ' + esc(Sesion.nombre() || 'ti') + ', con la próxima evaluación en un año.</p>' +
+      '<div class="field"><label for="cvRes">Resultado</label><select id="cvRes"><option>Cumple</option><option>Cumple parcialmente</option><option>No cumple</option><option>No aplica</option></select></div>' +
+      '<div style="max-height:45vh;overflow:auto;">' + vis.map((x, i)=> '<label class="check" style="display:flex;gap:8px;margin:6px 0;"><input type="checkbox" data-cv="' + i + '" checked><span><b>' + esc(x.resumen.norma) + '</b> · ' + esc(x.resumen.tema || '') + '</span></label>').join('') + '</div>' +
+      '<button type="button" class="btn amber u-mt8" id="cvOk">Guardar</button><button type="button" class="btn ghost" data-cerrar>Cancelar</button><p class="status-msg" id="cvMsg"></p>', true);
+    m.el.querySelector('#cvOk').addEventListener('click', async ()=> {
+      const res = m.el.querySelector('#cvRes').value, sel = vis.filter((x, i)=> m.el.querySelector('[data-cv="' + i + '"]').checked), h = UI.hoy(), prox = Festivos.sumarMeses(h, 12);
+      if (!sel.length) return; m.el.querySelector('#cvOk').disabled = true; let n = 0;
+      for (const x of sel) { m.el.querySelector('#cvMsg').textContent = 'Guardando ' + (++n) + ' de ' + sel.length + '…';
+        await SGSST.enviar({ action: 'parche', tipo: 'legal', id: x.id, campos: { cumple: res, fechaRevision: h, proximaRevision: prox, evaluo: Sesion.nombre() || '' } }); }
+      m.cerrar(); UI.toast('✓ ' + sel.length + ' norma(s) evaluadas: ' + res + '.'); cargar(); });
+  });
   const fL = { pendientes: legalPend, sinevaluar: legalSinEv, nocumple: legalNo }[fDoc.legal] || (()=> true);
   const lista = ()=> { const q = UI.norm($('bLeg').value).trim();
     $('lLeg').innerHTML = l.filter(fL).filter((x)=> !q || UI.norm(x.resumen.norma + ' ' + x.resumen.tema + ' ' + x.resumen.requisito).includes(q)).map((x)=> { const s = x.resumen;
@@ -424,6 +521,7 @@ function pintarProv(panel){
 $('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
 document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
 window.addEventListener('outbox-enviado', ()=> cargar());
+{ const h = (location.hash || '').slice(1), t = h === 'normograma' ? 'legal' : h; const b = t && document.querySelector('#tabs [data-tab="' + t.replace(/[^a-z]/g, '') + '"]'); if (b) { tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); } }
 cargar();
 </script>
 </body>

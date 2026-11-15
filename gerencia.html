@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mhFEchcApRZUvApXmiLC8oeUazwcSA5Wb/evxh5xLLk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LwOZefgLZJCvuWhqNEqVI1h4GMwIYKFlRYAhDBYex9Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Tablero de la gerencia · Portal SSTA</title>
@@ -41,7 +41,7 @@
     <a class="back" href="index.html">← Atrás</a>
     <div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Para la gerencia</div>
     <h1>Tablero del SG-SST</h1>
-    <p>Todo el sistema en una pantalla, y el reporte anual de estándares mínimos</p></div></div>
+    <p>Todo el sistema en una pantalla</p></div></div>
   </div>
   <div id="avisoSrv"></div><div id="avisoCopia"></div>
   <div class="acciones-top">
@@ -50,7 +50,7 @@
   </div>
   <div id="tablero"><div class="empty">Cargando…</div></div>
   <div class="card" id="cardAnual" hidden></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -86,7 +86,7 @@ async function cargar(){
   const r = await SGSST.listar(TIPOS);
   UI.avisoCopia($('avisoCopia'), r);
   if (r.sinSesion) { $('tablero').innerHTML = ''; return; }
-  rows = r.rows; perfil = await UI.perfilEmpresa(rows); pintar(); pintarAnual();
+  rows = r.rows; perfil = await UI.perfilEmpresa(rows); pintar(); if (location.hash === '#anual') pintarAnual();   // v180: el reporte anual ya no está en el tablero; se abre desde Auditorías
 }
 /** v148: los mismos cálculos de Indicadores, Cierre del mes e Informe (informe-reglas.js). */
 const mesInd = (m)=> INFORME.mesInd(rows, m);

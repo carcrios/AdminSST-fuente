@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-t7eDKp61ZvHWcRzYwsdVhLKdpbEca63ZOyD9nEYN+8o='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-BhbhVsg4Yh2tpVdNoE4ekp0ezFAdez7YoX2UCfPZ+OA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Emergencias · Portal SSTA</title>
@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="sgsst.css">
 <style>
+.tabs button.tab-medevac{color:var(--rojo-700);font-weight:800;}
 .amenaza{border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;margin-bottom:10px;background:var(--n-0);}
 .rombos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;}
 @media(max-width:520px){.rombos{grid-template-columns:repeat(2,minmax(0,1fr));}}
@@ -66,12 +67,13 @@
   <div id="avisoSrv"></div><div id="avisoCopia"></div><div id="alertas"></div>
   <div class="kpis" id="kpis"></div>
   <div class="tabs" id="tabs">
+    <button type="button" class="tab-medevac" data-tab="medevac">🚑 MEDEVAC</button>
     <button type="button" class="on" data-tab="plan">Plan por sede</button>
     <button type="button" data-tab="brigada">Brigada <span class="n" id="nBrig">0</span></button>
     <button type="button" data-tab="simulacros">Simulacros <span class="n" id="nSim">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 <div class="screen" id="scrPlan"></div>
 </div>
@@ -84,6 +86,7 @@
 <script src="valida.js"></script>
 <script src="sgsst-ui.js"></script>
 <script src="registros.js"></script>
+<script src="medevac-app.js"></script>
 <script>
 OfflineBanner.init();
 OutboxBadge.init();
@@ -143,7 +146,7 @@ function pintar(){
   if (!planes.length) al.push('<div class="aviso">No hay plan de emergencias registrado (estándar 5.1.1). Crea el de cada sede.</div>');
   if (!sim12.length) al.push('<div class="aviso amar">No hay simulacro en los últimos 12 meses: se hace por lo menos uno al año, con la participación de todos los trabajadores (Dec. 1072, art. 2.2.4.6.25).</div>');
   $('alertas').innerHTML = al.join('');
-  ({ plan: pintarPlanes, brigada: pintarBrigada, simulacros: pintarSimulacros })[tab]($('panel'));
+  ({ plan: pintarPlanes, brigada: pintarBrigada, simulacros: pintarSimulacros, medevac: (p)=> Medevac.montar(p, { planes }) })[tab]($('panel'));   // v180: MEDEVAC dentro de Emergencias
 }
 
 /* ── Plan por sede ── */
@@ -168,10 +171,10 @@ function editarPlan(d){
     '<div class="card"><h2>Sede</h2>' + Registros.form([{ k: 'sede', l: 'Sede', req: true, medio: true }, { k: 'direccion', l: 'Dirección', medio: true }, { k: 'ocupantes', l: 'Ocupantes (trabajadores y visitantes)', t: 'number', medio: true }, { k: 'horario', l: 'Horario', medio: true },
       { k: 'coordinador', l: 'Coordinador de emergencias', t: 'persona' }, { k: 'puntoEncuentro', l: 'Punto de encuentro' }, { k: 'rutas', l: 'Rutas de evacuación y salidas', t: 'textarea' },
       { k: 'telefonos', l: 'Teléfonos de emergencia (uno por línea)', t: 'textarea' }, { k: 'fechaActualizacion', l: 'Actualizado el', t: 'date', medio: true }, { k: 'proximaRevision', l: 'Próxima revisión', t: 'date', medio: true }], d, 'pl_') + '</div>' +
-    '<div class="card"><h2>MEDEVAC (evacuación médica)</h2><p class="ayuda u-mtn4">A dónde llevar a un trabajador lesionado y a quién llamar. Lo usa la página <a href="medevac.html">MEDEVAC</a>, con los contactos de emergencia del personal.</p>' +
+    '<div class="card"><h2>MEDEVAC (evacuación médica)</h2><p class="ayuda u-mtn4">A dónde llevar a un trabajador lesionado y a quién llamar. Lo usa la pestaña <a href="#medevac" data-ir-medevac>MEDEVAC</a>, con los contactos de emergencia del personal.</p>' +
       Registros.form([{ k: 'hospital', l: 'Hospital o clínica más cercana' }, { k: 'hospitalDireccion', l: 'Dirección del hospital' }, { k: 'hospitalTelefono', l: 'Teléfono del hospital', t: 'tel', medio: true }, { k: 'hospitalTiempo', l: 'Tiempo de llegada (ej.: 15 min)', medio: true },
         { k: 'ambulanciaTelefono', l: 'Ambulancia (empresa o servicio)', t: 'tel', medio: true }, { k: 'arlNombre', l: 'ARL', medio: true }, { k: 'arlTelefono', l: 'Línea de emergencias de la ARL', t: 'tel', medio: true }, { k: 'medevacTransporte', l: 'Transporte si no llega la ambulancia (vehículo, conductor)', medio: true }], d, 'pl_') +
-      '<a class="btn btn-sec u-mt8" href="medevac.html">Abrir MEDEVAC</a></div>' +
+      '<button type="button" class="btn btn-sec u-mt8" data-ir-medevac>Abrir MEDEVAC</button></div>' +
     '<div class="card"><h2>Análisis de amenazas y vulnerabilidad</h2><p class="ayuda">Método por colores: amenaza (verde posible, amarillo probable, rojo inminente) y vulnerabilidad de personas, recursos y sistemas (verde baja, amarillo media, rojo alta). 3 o 4 en rojo = riesgo alto; 1–2 en rojo o 3–4 en amarillo = medio.</p><div id="plAm"></div><button type="button" class="btn ghost" id="plAmAdd">+ Amenaza</button></div>' +
     '<div class="card"><h2>Procedimientos operativos (PON)</h2><p class="ayuda">Los derrames, fugas e incendios también son emergencias ambientales: revisa los aspectos en condición de emergencia en <a href="ambiental.html">Gestión ambiental</a> (ISO 14001, 8.2).</p><div class="chips" id="plPon">' + PON.map((p)=> '<button type="button" data-v="' + esc(p) + '" class="' + (d.pon.indexOf(p) !== -1 ? 'on' : '') + '">' + esc(p) + '</button>').join('') + '</div>' +
       '<p class="ayuda u-mt8">Recursos del inventario de inspecciones: ' + ext + ' extintor(es) y ' + bot + ' botiquín(es). <a href="inspecciones.html">Ver inventario</a></p></div>' +
@@ -395,6 +398,9 @@ function pdfSimulacro(d){
 }
 
 $('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
+const irTab = (t)=> { const b = document.querySelector('#tabs [data-tab="' + t + '"]'); if (b) b.click(); };
+document.addEventListener('click', (e)=> { if (e.target.closest('[data-ir-medevac]')) { e.preventDefault(); irTab('medevac'); window.scrollTo(0, 0); } });
+if (location.hash === '#medevac') { tab = 'medevac'; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x.dataset.tab === 'medevac')); }
 document.addEventListener('click', (e)=>{ const v = e.target.closest('[data-volver]'); if (v) { e.preventDefault(); show('scrLista'); pintar(); } });
 window.addEventListener('outbox-enviado', ()=> cargar());
 cargar();

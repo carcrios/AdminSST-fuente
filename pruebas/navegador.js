@@ -381,8 +381,8 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.goto(S.url + '/salud.html'); await pg.waitForTimeout(3000);
       const [fc2] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#leerEx')]);
       await fc2.setFiles({ name: 'nuevo.pdf', mimeType: 'application/pdf', buffer: pdf2 }); await pg.waitForTimeout(4000);
-      const rv2 = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, nom: (c.querySelector('[id^=lxNn]') || {}).value, ced: (c.querySelector('[id^=lxNc]') || {}).value, res: c.querySelector('[id^=lxR]').value, txt: c.innerText } : null; });
-      ok('examen en PDF: si la persona no está, propone crearla con nombre y documento, y trae restricciones, recomendaciones y para qué trabajos', !!rv2 && rv2.per === '__nuevo' && rv2.nom === 'LUCIA NUEVA PRUEBA' && rv2.ced === '1099888777' && /Pausas activas/.test(rv2.res) && /Trabajo en alturas/.test(rv2.txt), JSON.stringify(rv2));
+      const rv2 = await pg.evaluate(() => { const c = document.querySelector('.lx-it'); return c ? { per: c.querySelector('select').value, nom: (c.querySelector('[id^=lxNn]') || {}).value, ced: (c.querySelector('[id^=lxNc]') || {}).value, res: c.querySelector('[id^=lxR]').value, rec: (c.querySelector('[id^=lxM]') || {}).value, txt: c.innerText } : null; });
+      ok('examen en PDF: si la persona no está, propone crearla con nombre y documento, y trae restricciones, recomendaciones y para qué trabajos', !!rv2 && rv2.per === '__nuevo' && rv2.nom === 'LUCIA NUEVA PRUEBA' && rv2.ced === '1099888777' && /Pausas activas/.test(rv2.rec) && !/Pausas/.test(rv2.res) && /Trabajo en alturas/.test(rv2.txt), JSON.stringify(rv2));
       if (rv2) { await pg.click('#lxOk'); await pg.waitForTimeout(4000); }
       const creada = await pg.evaluate(async () => { const r = await SGSST.listar('trabajador'); const t = (r.rows || []).find((x) => String(x.resumen.cedula) === '1099888777'); return t ? { nombre: t.resumen.nombre, req: t.resumen.req || t.resumen.requisitos || null } : null; });
       ok('examen en PDF: la persona queda creada en el personal con su examen', !!creada && creada.nombre === 'LUCIA NUEVA PRUEBA', JSON.stringify(creada));
@@ -414,6 +414,33 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.fill('#dOtro', 'Gorra'); await pg.fill('#dOtroT', 'M'); await pg.click('#dAdd'); await pg.waitForTimeout(200);
       const dot = await pg.evaluate(() => { const l = [...document.querySelectorAll('#dItems .it-dot')]; const g = l.find((x) => /Gorra/.test(x.textContent)); return { n: l.length, marcado: g && g.querySelector('input[type=checkbox]').checked, talla: g && g.querySelector('[data-tl]').value }; });
       ok('dotación: «+ Agregar elemento» suma el elemento marcado y con su talla', dot.n === 7 && dot.marcado === true && dot.talla === 'M', JSON.stringify(dot));
+      // v180: MEDEVAC dentro de Emergencias: ¿qué está pasando? → pasos de esa situación
+      await pg.goto(S.url + '/emergencias.html#medevac'); await pg.waitForTimeout(3000);
+      await pg.click('#medSit [data-sit="electrico"]'); await pg.waitForTimeout(300);
+      const mv = await pg.evaluate(() => ({ tit: document.getElementById('medQueTit').textContent, pasos: document.querySelectorAll('#medEsp .med-paso').length, comunes: document.querySelectorAll('#medPasos .med-paso').length, rep: !!document.getElementById('medReportar') }));
+      ok('MEDEVAC en Emergencias: pregunta qué pasa y muestra los pasos de esa situación', /Choque eléctrico/.test(mv.tit) && mv.pasos >= 4 && mv.comunes === 7 && mv.rep, JSON.stringify(mv));
+      // v180: accidente de trabajo con entrada directa
+      await pg.goto(S.url + '/reportes.html?nuevo=accidente'); await pg.waitForTimeout(3000);
+      const at = await pg.evaluate(() => { const b = document.querySelector('#clases [data-c="Accidente de trabajo"]'); return { on: !!b && b.classList.contains('on'), btn: !!document.getElementById('btnAccidente') }; });
+      ok('reportes: «Registrar un accidente de trabajo» abre el reporte ya como accidente', at.on && at.btn, JSON.stringify(at));
+      // v180: documental → responsable del SG-SST, otra política, normograma en la matriz legal
+      await pg.goto(S.url + '/documental.html'); await pg.waitForTimeout(3500);
+      const rs = await pg.evaluate(() => ({ resp: !!document.querySelector('#cResp h2') && /1\.1\.1/.test(document.querySelector('#cResp h2').textContent), otra: !!document.getElementById('nOtraPol') }));
+      ok('documental: tarjeta del responsable del SG-SST y «+ Otra política»', rs.resp && rs.otra, JSON.stringify(rs));
+      await pg.click('#nOtraPol'); await pg.waitForTimeout(400);
+      await pg.evaluate(() => { const b = [...document.querySelectorAll('.modal-fondo button')].find((x) => /Guardar/.test(x.textContent)); if (b) b.click(); }); await pg.waitForTimeout(600);
+      const op = await pg.evaluate(() => ({ txt: (document.getElementById('opTxt') || {}).value || '' }));
+      if (op.txt) { await pg.fill('#opFir', 'Gerente Prueba'); await pg.click('#opOk'); await pg.waitForTimeout(3000); }
+      const opL = await pg.evaluate(() => document.querySelectorAll('[data-otrapol]').length);
+      ok('documental: otra política con plantilla queda en la lista', /alcohol/i.test(op.txt) && opL === 1, opL + ' · ' + op.txt.slice(0, 40));
+      await pg.click('#tabs [data-tab="legal"]'); await pg.waitForTimeout(400);
+      await pg.click('[data-vleg="normograma"]'); await pg.waitForTimeout(3000);
+      const ng = await pg.evaluate(() => !!document.getElementById('ngK') && !!document.getElementById('ngLista'));
+      ok('documental: el normograma es una vista de la matriz legal', ng);
+      // v180: documentos para los trabajadores (sin usuario, con la clave)
+      await pg.goto(S.url + '/docs-trabajadores.html'); await pg.waitForTimeout(3000);
+      const dt = await pg.evaluate(() => document.getElementById('docsTrab').innerText);
+      ok('documentos para los trabajadores: política de SST, otras políticas y revisión por la dirección', /Política de seguridad y salud/.test(dt) && /alcohol/i.test(dt) && /Revisión por la dirección/.test(dt), dt.slice(0, 160));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }
@@ -868,7 +895,7 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
         await pa.goto(S.url + '/index.html#sg'); await pa.waitForTimeout(3500);
         const h135 = await pa.evaluate(() => ({ hoy: !!document.getElementById('hoy') && !document.getElementById('hoy').hidden, atajos: document.querySelectorAll('#atajos .atajo').length,
           todo: !!document.getElementById('sgTodo'), agendaOculta: getComputedStyle(document.getElementById('mes')).display === 'none', lista: !document.getElementById('agenda').hidden && !/Cargando/.test(document.getElementById('pendLista').textContent) }));
-        ok('v176: Gestión abre con los atajos del rol y «Para hoy y esta semana» junto al calendario; sin cronograma del mes ni botón para verlo', h135.hoy && h135.atajos >= 4 && !h135.todo && h135.agendaOculta && h135.lista, JSON.stringify(h135));
+        ok('v180: Gestión abre sin el bloque «Lo tuyo», con «Para hoy y esta semana» junto al calendario; sin cronograma del mes ni botón para verlo', h135.atajos === 0 && !h135.todo && h135.agendaOculta && h135.lista, JSON.stringify(h135));
         const pri = await pa.evaluate(() => { const p = document.querySelector('#primeros .primeros'); return p ? { pasos: p.querySelectorAll('.paso-ini').length, txt: p.querySelector('h3').textContent } : null; });
         const falta = await pa.evaluate(async () => { const r = await SGSST.listar(EMPEZAR.TIPOS.join(',')); const E = EMPEZAR.evaluar({ servidor: true, empresa: true, usuarios: true, rows: r.rows }); return E.siguiente ? E.siguiente.t : ''; });
         ok('v172: a SST le sale «Tu siguiente paso» (uno solo) con el camino completo, o nada si la empresa ya está montada', falta ? (pri && pri.pasos === 2 && pri.txt.indexOf('Tu siguiente paso') !== -1) : !pri, falta + ' · ' + JSON.stringify(pri));

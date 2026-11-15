@@ -62,7 +62,7 @@
    Avisos diarios por correo: se programan solos (v136). Para apagarlos: propiedad AVISOS_APAGADOS = 1.
    ============================================================ */
 
-const VERSION_SGSST = 'v179';   // la muestra el panel del asesor para saber qué clientes están desactualizados
+const VERSION_SGSST = 'v180';   // la muestra el panel del asesor para saber qué clientes están desactualizados
 const API_TOKEN = 'PON-AQUI-EL-TOKEN'; // debe ser IDÉNTICO al del cliente (config.js)
 const CORREOS_AVISO = ['pon-aqui-el-correo@empresa.com']; // accidentes, vencimientos y acciones vencidas
 // Otras hojas que se copian en el respaldo semanal junto con esta (permisos, ATS,
@@ -1132,6 +1132,34 @@ function contactoEmergencia_(p) {
              emergencia: { nombre: texto_(em.nombre), parentesco: texto_(em.parentesco), telefono: texto_(em.telefono), telefono2: texto_(em.telefono2), rh: texto_(em.rh), eps: texto_(em.eps), arl: texto_(em.arl) } };
   }
   return { ok: false, error: 'No encontramos esa cédula en el personal.' };
+}
+/** v180: documentos que todo trabajador debe poder ver con la clave del portal, sin usuario (evidencia ante auditorías):
+ *  la política de SST vigente con sus objetivos, las demás políticas vigentes y lo que decidió la última revisión por la dirección.
+ *  Solo texto público: sin firmas, sin datos personales. */
+function documentosTrabajadores_() {
+  const sh = regSheet_(), n = sh.getLastRow() - 1;
+  const out = { ok: true, politica: null, otras: [], revision: null };
+  if (n < 1) return out;
+  const v = sh.getRange(2, 1, n, COLS_REG.length).getValues(), iT = COLS_REG.indexOf('tipo'), iR = COLS_REG.indexOf('resumen'), iB = COLS_REG.indexOf('borrado'), iE = COLS_REG.indexOf('estado');
+  let pol = null, rev = null;
+  const otras = [];
+  for (let i = 0; i < v.length; i++) {
+    if (v[i][iB]) continue;
+    const t = v[i][iT];
+    if (t !== 'politica' && t !== 'documento' && t !== 'revision') continue;
+    let r = {}; try { r = JSON.parse(v[i][iR] || '{}'); } catch (e) {}
+    if (t === 'politica' && !/OBSOLET/i.test(texto_(v[i][iE])) && (!pol || texto_(r.fechaFirma) > texto_(pol.r.fechaFirma))) pol = { id: v[i][0], r: r };
+    else if (t === 'documento' && /^DOC-POL-/.test(texto_(v[i][0])) && texto_(r.estado) !== 'Obsoleto') otras.push(v[i][0]);
+    else if (t === 'revision' && /CERRADA/i.test(texto_(v[i][iE])) && (!rev || texto_(r.fecha) > texto_(rev.r.fecha))) rev = { id: v[i][0], r: r };
+  }
+  if (pol) { const d = leerDoc_(pol.id) || {};
+    out.politica = { texto: texto_(d.texto), version: texto_(d.versionDoc), fecha: texto_(d.fechaFirma), firmante: texto_(d.firmante), revision: texto_(d.proximaRevision),
+      objetivos: (d.objetivosLista || []).map(function (o) { return { objetivo: texto_(o.objetivo), indicador: texto_(o.indicador), meta: texto_(o.meta) }; }) }; }
+  otras.slice(0, 20).forEach(function (id) { const d = leerDoc_(id) || {};
+    out.otras.push({ nombre: texto_(d.nombre), texto: texto_(d.texto), version: texto_(d.versionDoc), fecha: texto_(d.fechaAprobacion), firmante: texto_(d.aprobo) }); });
+  if (rev) { const d = leerDoc_(rev.id) || {};
+    out.revision = { periodo: texto_(d.periodo), fecha: texto_(d.fecha), conclusion: texto_(d.conclusion), decisiones: texto_(d.decisiones), gerente: texto_(d.gerente) }; }
+  return out;
 }
 function firmarActa_(body) {
   const a = actaDeEnlace_(body.id, body.clave); if (a.error) return a.error;
@@ -3060,6 +3088,7 @@ function doGet(e) {
   if (p.action === 'novedadesNormas') { if (CTX_.modo && !CTX_.u) return jsonOut_(errSesion_()); return jsonOut_(novedadesNormas_(p.forzar === '1')); }
 
   if (p.action === 'actaPublica') return jsonOut_(actaPublica_(p));
+  if (p.action === 'documentosTrabajadores') return jsonOut_(documentosTrabajadores_());   // v180: políticas y revisión por la dirección, a la vista de todos los trabajadores
   if (p.action === 'contactoEmergencia') return jsonOut_(contactoEmergencia_(p));   // v151: en una emergencia, sin usuario, con la cédula exacta   // v149: quien recibe el enlace ve SOLO esa acta, sin usuario
   if (p.action === 'enlaceActa') { if (CTX_.modo && !CTX_.u) return jsonOut_(errSesion_()); if (!puedeLeer_('reunion')) return jsonOut_(errPermiso_('Tu usuario no puede ver actas.')); return jsonOut_({ ok: true, id: texto_(p.id), clave: claveActa_(p.id) }); }
   if (p.action === 'papelera') return jsonOut_(papelera_());

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-B9/nDaLxRpDhbJ/Tcq9pj65r8884Xl8j75nE9nWv36A='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-32jVZCmxq6hzd5aWqOLIUk3nekg5Bsm//vV+TFQ7iO8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Gestión de la salud · Portal SSTA</title>
@@ -60,13 +60,12 @@ details.norma ul{margin:8px 0 0;padding-left:18px;} details.norma li{margin-bott
     <button type="button" data-tab="restricciones">Restricciones <span class="n" id="nRes">0</span></button>
     <button type="button" data-tab="cargos">Profesiograma</button>
     <button type="button" data-tab="perfil">Condiciones de salud</button>
-    <button type="button" data-tab="sve">Vigilancia (PVE / SVE)</button>
     <button type="button" data-tab="psico">Psicosocial</button>
     <button type="button" data-tab="ausentismo">Ausentismo</button>
     <button type="button" data-tab="reintegro">Reintegro <span class="n" id="nRei">0</span></button>
   </div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 </div>
 <script src="dialogo.js"></script>
@@ -339,7 +338,8 @@ function revisarLeidos(res, personal){
       '<div class="grid2"><div class="field"><label for="lxC' + i + '">Concepto</label>' + sel('lxC' + i, CONCEPTOS, c.concepto || 'Apto') + '</div>' +
       '<div class="field"><label for="lxX' + i + '">Próximo examen</label><input type="date" id="lxX' + i + '" value="' + esc(c.proxima || '') + '"></div></div>' +
       '<div class="field"><label for="lxI' + i + '">IPS / médico</label><input id="lxI' + i + '" value="' + esc(c.ips || c.medico || '') + '"></div>' +
-      '<div class="field"><label for="lxR' + i + '">Restricciones y recomendaciones para el trabajo</label><textarea id="lxR' + i + '" rows="' + Math.min(9, 2 + (c.restricciones || '').split(/;|\n/).length) + '">' + esc(c.restricciones || '') + '</textarea></div>' +
+      '<div class="field"><label for="lxR' + i + '">Restricciones</label><textarea id="lxR' + i + '" rows="' + Math.min(8, 2 + (c.restricciones || '').split(';').length) + '">' + esc(c.restricciones || '') + '</textarea></div>' +
+      '<div class="field"><label for="lxM' + i + '">Recomendaciones</label><textarea id="lxM' + i + '" rows="' + Math.min(8, 2 + (c.recomendaciones || '').split(';').length) + '">' + esc(c.recomendaciones || '') + '</textarea></div>' +
       linea('Restringido para', c.restringePara) + linea('Las restricciones son', c.temporalidad && c.temporalidad !== '—' ? c.temporalidad + (c.venceRestriccion ? ' hasta ' + UI.corta(c.venceRestriccion) : '') : '') +
       linea('Pruebas realizadas', (c.pruebas || []).slice(1)) + linea('Ingresa a vigilancia', c.pveIngresa === 'Sí' ? (c.pveLista || ['sí (revisa el programa)']) : '') +
       (r.avisos.length ? '<div class="aviso amar u-mt8">' + r.avisos.map(esc).join('<br>') + '</div>' : '') +
@@ -356,9 +356,9 @@ function revisarLeidos(res, personal){
     if (v === '__nuevo') return { nuevo: true, nombre: q('lxNn' + i).value.trim(), cedula: Valida.limpiarCedula(q('lxNc' + i).value), tipoDoc: q('lxNt' + i).value, cargo: q('lxNg' + i).value.trim() };
     return personal.find((x)=> x.cedula === v) || null; };
   const docDe = (r, i)=> { const p = personaDe(r, i) || {}, c = Object.assign({}, r.campos);
-    delete c.leido; delete c.listaRestricciones; delete c.listaRecomendaciones; delete c.tipoDoc; delete c.medico;
-    const d = Object.assign({ temporalidad: '—', pveIngresa: 'No' }, c, { nombre: p.nombre, cedula: p.cedula, cargo: p.cargo || c.cargo || '',
-      tipoExamen: q('lxT' + i).value, fecha: q('lxF' + i).value, concepto: q('lxC' + i).value, proxima: q('lxX' + i).value, ips: q('lxI' + i).value.trim(), restricciones: q('lxR' + i).value.trim() });
+    delete c.leido; delete c.listaRestricciones; delete c.listaRecomendaciones; delete c.tipoDoc; delete c.medico; delete c.nombreAnterior;
+    const d = Object.assign({ temporalidad: '—', pveIngresa: 'No' }, c, { nombre: (!p.nuevo && c.nombreAnterior && p.cedula === r.persona.cedula) ? c.nombre : p.nombre, cedula: p.cedula, cargo: p.cargo || c.cargo || '',
+      tipoExamen: q('lxT' + i).value, fecha: q('lxF' + i).value, concepto: q('lxC' + i).value, proxima: q('lxX' + i).value, ips: q('lxI' + i).value.trim(), restricciones: q('lxR' + i).value.trim(), recomendaciones: q('lxM' + i).value.trim() });
     d.tieneRestricciones = !!d.restricciones || d.concepto === 'Apto con restricciones';
     if (d.pveIngresa === 'Sí') { d.pveLista = d.pveLista || []; d.pve = d.pveLista.slice(); } else { d.pveLista = []; d.pve = []; }
     if (d.temporalidad !== 'Temporales') d.venceRestriccion = '';
@@ -371,7 +371,7 @@ function revisarLeidos(res, personal){
     const est = q('lxEst'), lst = res.map((r, i)=> [r, i]).filter(([r])=> !r.error);
     const falta = lst.filter(([r, i])=> { const p = personaDe(r, i); return !p || !p.nombre || !p.cedula || !q('lxF' + i).value; });
     if (falta.length) { est.textContent = 'Falta la persona (nombre y documento) o la fecha en ' + falta.length + ' examen(es).'; return; }
-    const diag = lst.filter(([r, i])=> DIAG.test(q('lxR' + i).value));
+    const diag = lst.filter(([r, i])=> DIAG.test(q('lxR' + i).value + ' ' + q('lxM' + i).value));
     if (diag.length) { est.textContent = 'En ' + diag.length + ' examen(es) las restricciones parecen un diagnóstico: deja solo lo que la persona puede o no hacer.'; return; }
     g.disabled = true; let n = 0, mal = 0, creadas = 0, adj = 0;
     for (const [r, i] of lst) {
@@ -384,6 +384,7 @@ function revisarLeidos(res, personal){
           if (rp.ok) { creadas++; personal.push({ nombre: p.nombre, cedula: p.cedula, cargo: p.cargo }); }
         }
       }
+      if (!p.nuevo && r.campos.nombreAnterior && doc.nombre) { try { await SGSST.enviar({ action: 'parche', tipo: 'trabajador', id: 'TRB-' + Habilitacion.clave(doc.cedula), campos: { nombre: doc.nombre } }); } catch (e) {} }   // v180: nombre completo
       const id = SGSST.nuevoId('EXA'), x = await SGSST.enviar({ action: 'guardar', tipo: 'examen', id, doc }, { nombre: doc.nombre, cedula: doc.cedula, fecha: doc.fecha, concepto: doc.concepto });
       if (!x.ok) { mal++; continue; }
       // Igual que al guardar a mano: el examen más reciente queda en la persona (Personal habilitado y permisos).
@@ -407,7 +408,8 @@ const C_EX = [{ k: 'nombre', l: 'Trabajador', t: 'persona', req: true, v: 'nombr
   { k: 'exposiciones', l: 'Exposiciones del cargo (para sugerir las pruebas)', t: 'checks', op: EXPO_N },
   { k: 'pruebas', l: 'Pruebas realizadas', t: 'checks', op: PRUEBAS },
   { k: 'concepto', l: 'Concepto', t: 'select', op: CONCEPTOS },
-  { k: 'restricciones', l: 'Restricciones o recomendaciones para el trabajo (SIN diagnóstico)', t: 'textarea', ph: 'Ej: no levantar más de 15 kg; pausas activas cada 2 horas', ayuda: 'Escribe solo lo que el trabajador puede o no hacer. Nunca la enfermedad.' },
+  { k: 'restricciones', l: 'Restricciones para el trabajo (SIN diagnóstico)', t: 'textarea', ph: 'Ej: no levantar más de 15 kg; no trabajo en alturas', ayuda: 'Escribe solo lo que el trabajador puede o no hacer. Nunca la enfermedad.' },
+  { k: 'recomendaciones', l: 'Recomendaciones (SIN diagnóstico)', t: 'textarea', ph: 'Ej: pausas activas cada 2 horas; uso permanente de protección auditiva', ayuda: 'Lo que el médico sugiere (no impide hacer el trabajo). Va aparte de las restricciones.' },
   { k: 'restringePara', l: '¿Para qué trabajos tiene restricción?', t: 'checks', op: ['Trabajo en alturas', 'Espacios confinados', 'Trabajo en caliente', 'Riesgo eléctrico', 'Izaje de cargas', 'Manipulación manual de cargas', 'Conducción de vehículos'], ayuda: 'Lo marcado pasa a Personal habilitado: los permisos y ATS de esos trabajos no dejan incluir a la persona mientras la restricción esté vigente. Sin diagnóstico.' },
   { k: 'temporalidad', l: 'Las restricciones son', t: 'select', op: ['—', 'Temporales', 'Permanentes'], medio: true }, { k: 'venceRestriccion', l: 'Hasta (si son temporales)', t: 'date', medio: true },
   { k: 'proxima', l: 'Próximo examen periódico', t: 'date', ayuda: 'Se propone según la periodicidad del cargo en el profesiograma (máximo 3 años).' },
@@ -541,8 +543,8 @@ const exExtra = {
     if (v.temporalidad !== 'Temporales') v.venceRestriccion = '';
     if (v.tipoExamen !== 'Egreso') v.fechaRetiro = '';
     v.tieneRestricciones = !!(v.restricciones && v.restricciones.trim()) || v.concepto === 'Apto con restricciones';
-    if (v.concepto === 'Apto con restricciones' && !v.restricciones) return 'Escribe las restricciones o recomendaciones.';
-    if (DIAG.test(v.restricciones || '')) return 'Parece un diagnóstico. Escribe solo lo que la persona puede o no hacer en el trabajo.';
+    if (v.concepto === 'Apto con restricciones' && !v.restricciones) return 'Escribe las restricciones.';
+    if (DIAG.test((v.restricciones || '') + ' ' + (v.recomendaciones || ''))) return 'Parece un diagnóstico. Escribe solo lo que la persona puede o no hacer en el trabajo.';
     // Programa de vigilancia: solo el nombre del programa (sin diagnóstico).
     if (v.pveIngresa === 'Sí') { const otro = String(v.pveOtro || '').replace(/[,;|]/g, ' ').trim(); v.pve = (v.pveLista || []).map((x)=> x === 'Otro' ? otro : x).filter(Boolean); if ((v.pveLista || []).indexOf('Otro') === -1) v.pveOtro = ''; }
     else { v.pveIngresa = 'No'; v.pveLista = []; v.pveOtro = ''; v.pve = []; }
@@ -570,7 +572,7 @@ function pintarRestricciones(panel){
     (l.length ? l.map((x)=> { const s = x.resumen; return item(x, esc(s.nombre), [esc(s.cargo || '') + ' · ' + esc(s.temporalidad || '') + ' · examen del ' + esc(UI.corta(s.fecha)), s.comunicada ? '✓ Comunicadas el ' + esc(UI.corta(s.comunicada)) : '<b class="u-mal">Sin comunicar</b>', s.seguimiento ? esc(s.seguimiento) + ' seguimiento(s)' : 'Sin seguimientos'], s.comunicada ? 'Comunicadas' : 'Pendiente', s.comunicada ? 'ok' : 'mal', 'res'); }).join('') : '<div class="empty">' + (todas.length ? 'Todas las restricciones están comunicadas ✓' : 'Nadie tiene restricciones vigentes.') + '</div>');
   chipsSal(panel);
   panel.querySelectorAll('[data-res]').forEach((b)=> b.addEventListener('click', async ()=> { const d = await Registros.abrir(b.dataset.res); if (!d) return;
-    Registros.editar({ titulo: 'Seguimiento · ' + d.nombre, antes: '<div class="texto-largo u-mb10">' + esc(d.restricciones || '—') + '</div>' + (d.seguimientos || []).map((s)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:6px;">' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.texto) + '</div>').join(''),
+    Registros.editar({ titulo: 'Seguimiento · ' + d.nombre, antes: '<div class="texto-largo u-mb10"><b>Restricciones:</b> ' + esc(d.restricciones || '—') + (d.recomendaciones ? '<br><b>Recomendaciones:</b> ' + esc(d.recomendaciones) : '') + '</div>' + (d.seguimientos || []).map((s)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:6px;">' + esc(UI.corta(s.fecha)) + ' · ' + esc(s.texto) + '</div>').join(''),
       campos: [{ k: 'comunicada', l: 'Comunicadas al jefe y al trabajador el', t: 'date' }, { k: 'nota', l: 'Seguimiento', t: 'textarea', ph: 'Ej: se verificó en campo que no levanta cargas; se ajustó el puesto' }], datos: { comunicada: d.comunicada || '' },
       alAbrir: (el)=> { el.querySelectorAll('input[type=date]').forEach(Valida.hastaHoy); },
       alGuardar: async (v, el)=> {
@@ -646,7 +648,7 @@ const C_PERFIL = [{ k: 'anio', l: 'Año', req: true, medio: true }, { k: 'fecha'
   { k: 'hallazgos', l: 'Principales hallazgos del diagnóstico (agregados, sin nombres)', t: 'textarea' }, { k: 'recomendaciones', l: 'Recomendaciones de la IPS', t: 'textarea' }];
 function pintarPerfil(panel){
   const l = de('perfil').sort((a, b)=> String(b.resumen.anio).localeCompare(String(a.resumen.anio)));
-  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nPerf">+ Diagnóstico del año</button></div>' +
+  panel.innerHTML = '<div class="fila-btn"><button type="button" class="btn amber" id="nPerf">+ Diagnóstico del año</button><button type="button" class="btn ghost" id="leerPerf">📄 Leer el informe de la IPS (PDF)</button><input type="file" id="fPerf" accept="application/pdf" hidden></div>' +
     '<p class="ayuda">Descripción sociodemográfica y diagnóstico de condiciones de salud (estándares 3.1.1 y 3.1.2; Res. 1843 de 2025, art. 20), con las actividades de promoción, prevención y estilos de vida saludable (3.1.7). Solo datos agregados.</p>' +
     (l.length ? l.map((x)=> item(x, 'Diagnóstico ' + esc(x.resumen.anio), [esc(x.resumen.trabajadores || 0) + ' trabajadores evaluados · ' + esc(x.resumen.ips || ''), esc(x.resumen.actividades || 0) + ' actividad(es) de promoción y prevención'])).join('') : '<div class="empty">Sin diagnóstico registrado.</div>');
   const extra = { despues: (d)=> d.nuevo ? '' : '<div class="card u-mt8"><h2>Actividades de promoción y prevención</h2>' + (d.actividadesPyP || []).map((a)=> '<div class="m" style="font-size:var(--fs-menor);margin-bottom:5px;">' + esc(UI.corta(a.fecha)) + ' · ' + esc(a.tipo) + ' · ' + esc(a.actividad) + ' (' + esc(a.participantes || 0) + ')</div>').join('') + '<button type="button" class="btn ghost mini" id="addPyP">+ Actividad</button></div>',
@@ -661,6 +663,19 @@ function pintarPerfil(panel){
         if (prob.length) return 'Revisa: ' + prob.join(' · ');
         const r = await SGSST.enviar({ action: 'parche', tipo: 'perfil', id: d.id, campos: { actividades: (d.actividadesPyP || []).length + 1 }, agregar: { actividadesPyP: [Object.assign({ uid: SGSST.nuevoOpId() }, v)] } }); if (!r.ok) return r.error; UI.toast('✓ Actividad registrada.'); cargar(); document.querySelectorAll('.modal-fondo').forEach((m)=> m.remove()); return true; } })); } };
   abrirCon(panel, C_PERFIL, 'perfil', 'Diagnóstico de condiciones de salud', extra);
+  // v180: el informe de condiciones de salud de la IPS se lee del PDF (agregado, sin nombres) y el PDF queda adjunto al diagnóstico
+  $('leerPerf').addEventListener('click', ()=> $('fPerf').click());
+  $('fPerf').addEventListener('change', async (e)=> { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    UI.toast('Leyendo el informe…');
+    let r; try { r = LectorExamen.condiciones(await LectorExamen.textoPdf(f)); } catch (er) { UI.toast('No pude leer ese PDF: ' + er.message, 'mal'); return; }
+    const anio = String(r.campos.anio || UI.hoy().slice(0, 4)), id = 'PER-' + anio, ya = l.find((x)=> x.id === id);
+    const base = ya ? await Registros.abrir(id) : { id, nuevo: true };
+    if (!base) return;
+    const d = Object.assign({}, base, Object.fromEntries(Object.entries(r.campos).filter(([, v])=> v !== '' && v != null)), { anio });
+    if (r.avisos.length) UI.toast(r.avisos.join(' '), 'mal');
+    const ex = Object.assign({}, extra, { despuesDeGuardar: async (v, dd)=> {
+      try { await SGSST.enviar({ action: 'adjuntar', id: dd.id || id, uid: 'adj-' + Date.now().toString(36), nombre: 'Informe de condiciones de salud ' + anio + '.pdf', mime: 'application/pdf', base64: await pdfBase64(f), ref: 'informe-ips' }); UI.toast('✓ Informe de la IPS adjunto al diagnóstico ' + anio + '.'); } catch (er) {} } });
+    editar('perfil', 'Diagnóstico de condiciones de salud ' + anio + ' (leído del PDF: revisa)', C_PERFIL, d, ex); });
   $('nPerf').addEventListener('click', async ()=> { const id = 'PER-' + UI.hoy().slice(0, 4);
     if (l.some((x)=> x.id === id)) { const d = await Registros.abrir(id); if (d) editar('perfil', 'Diagnóstico de condiciones de salud', C_PERFIL, d, extra); return; }
     editar('perfil', 'Diagnóstico de condiciones de salud', C_PERFIL, { id, nuevo: true, anio: UI.hoy().slice(0, 4), fecha: UI.hoy() }, extra); });
@@ -1072,7 +1087,7 @@ function pintarReintegro(panel) {
           fila('Evaluación post-incapacidad', UI.corta(d.evaluacionPost)) +
           fila('Tipo de reintegro', d.tipoReintegro) +
           fila('Cargo o tareas asignadas', d.cargoAsignado) +
-          fila('Restricciones o recomendaciones', d.restricciones) +
+          fila('Restricciones', d.restricciones) + fila('Recomendaciones', d.recomendaciones) +
           fila('Trabajos restringidos', listaDe(d.restringePara).join(', ')) +
           fila('Vigencia', d.temporalidad === 'Temporales' ? 'Temporales, hasta ' + UI.corta(d.venceRestriccion) : d.temporalidad) +
           fila('Seguimiento', 'Cada ' + (d.frecuencia || 30) + ' días') +
@@ -1103,6 +1118,7 @@ function pintarReintegro(panel) {
 
 $('tabs').addEventListener('click', (e)=>{ const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); pintar(); });
 window.addEventListener('outbox-enviado', ()=> cargar());
+if (/^#(sve|pve)$/.test(location.hash)) location.replace('pve.html');   // v180: los PVE tienen su apartado
 { const h = (location.hash || '').slice(1); const b = h && document.querySelector('#tabs [data-tab="' + h.replace(/[^a-z]/g, '') + '"]'); if (b) { tab = b.dataset.tab; document.querySelectorAll('#tabs button').forEach((x)=> x.classList.toggle('on', x === b)); } }
 cargar();
 </script>

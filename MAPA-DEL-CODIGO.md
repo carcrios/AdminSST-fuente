@@ -61,10 +61,12 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `inspecciones-plantillas.js` | 983 | Listas de chequeo de las inspecciones | 6 pantallas |
 | `inspecciones.app.js` | 824 | código de inspecciones.html (v162: fuera del HTML para que el celular lo guarde en caché). | inspecciones |
 | `kit-documental.js` | 253 | Documentos del SG-SST con los datos de la empresa | documentos |
-| `lector-examen.js` | 315 | Lee el concepto de un examen médico ocupacional (v176) | salud |
+| `lector-examen.js` | 416 | Lee el concepto de un examen médico ocupacional (v176) | salud |
 | `licencia.js` | 52 | Licencia de uso del Portal SSTA (v162) | index, licencia |
+| `medevac-app.js` | 428 | MEDEVAC: ¿qué está pasando? y los pasos de esa situación (v180) | emergencias, medevac |
 | `menus-empresa.js` | 122 | Qué ve cada empresa en sus menús (v124) | admin, configurar-empresa |
 | `normas-base.js` | 42 | Lista para empezar la matriz legal de SST (Colombia) | documental |
+| `normograma-app.js` | 221 | Normograma dentro de la matriz legal (v180) | documental |
 | `pantalla-planta.app.js` | 223 | El tablero para el televisor de la planta (v169) | pantalla-planta |
 | `permiso-core.js` | 2756 | Núcleo compartido de los 4 permisos de trabajo | 5 pantallas |
 | `plan-sugerido.js` | 189 | Plan anual de trabajo armado según la empresa (v105) | plan-anual |
@@ -75,8 +77,8 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `proveedores.app.js` | 994 | código de proveedores.html (v162: fuera del HTML para que el celular lo guarde en caché). | proveedores |
 | `qr.js` | 388 | Generador de códigos QR del Portal SSTA | 18 pantallas |
 | `registros.js` | 126 | Formularios por esquema para los módulos de planeación | 37 pantallas |
-| `reportes.app.js` | 934 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
-| `sgsst-ui.js` | 692 | Piezas comunes de las pantallas del SG-SST | 63 pantallas |
+| `reportes.app.js` | 936 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
+| `sgsst-ui.js` | 692 | Piezas comunes de las pantallas del SG-SST | 64 pantallas |
 | `sw.js` | 295 | Service Worker del Portal SSTA — v2 | — |
 | `valida.js` | 262 | Reglas de datos de los formularios (v107) | 67 pantallas |
 
@@ -96,7 +98,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `asistencia.html` | 1049 | — |
 | `ats.html` | 558 | qr.js, ats-catalogo.js, ats.app.js |
 | `auditor.html` | 84 | — |
-| `auditorias.html` | 628 | registros.js, auditorias-plantillas.js, auditor-enlaces.js |
+| `auditorias.html` | 629 | registros.js, auditorias-plantillas.js, auditor-enlaces.js |
 | `ayuda.html` | 139 | ayuda-guias.js, guia-preguntas.js |
 | `bitacora.html` | 99 | — |
 | `buzon.html` | 288 | cifrado.js |
@@ -109,10 +111,11 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `convivencia.html` | 863 | cifrado.js, qr.js, registros.js, comites.js |
 | `copasst.html` | 104 | qr.js, comites.js |
 | `dashboard.html` | 545 | — |
-| `documental.html` | 430 | registros.js, importar.js, normas-base.js |
-| `documentos.html` | 210 | registros.js, auditorias-plantillas.js, kit-documental.js |
+| `docs-trabajadores.html` | 69 | — |
+| `documental.html` | 528 | registros.js, normograma-app.js, importar.js, normas-base.js |
+| `documentos.html` | 234 | registros.js, auditorias-plantillas.js, kit-documental.js |
 | `dotacion.html` | 182 | registros.js |
-| `emergencias.html` | 403 | registros.js |
+| `emergencias.html` | 409 | registros.js, medevac-app.js |
 | `empezar.html` | 65 | registros.js, empezar-reglas.js, empezar.app.js |
 | `encuesta-cliente.html` | 213 | — |
 | `entrega-epp.html` | 550 | registros.js |
@@ -125,7 +128,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `gerencia.html` | 215 | i18n-en.js, i18n.js, informe-reglas.js, registros.js, auditorias-plantillas.js |
 | `habeas.html` | 75 | — |
 | `habilitacion.html` | 542 | importar.js |
-| `index.html` | 1522 | licencia.js, preop-formularios.js, empezar-reglas.js, agenda-tareas.js |
+| `index.html` | 1552 | licencia.js, preop-formularios.js, empezar-reglas.js, agenda-tareas.js |
 | `indicadores.html` | 401 | i18n-en.js, i18n.js, informe-reglas.js |
 | `induccion-responder.html` | 204 | induccion-banco.js, autorizacion-datos.js |
 | `induccion.html` | 262 | registros.js, induccion-banco.js, autorizacion-datos.js, qr.js |
@@ -136,9 +139,9 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `instalar.html` | 203 | — |
 | `licencia.html` | 61 | licencia.js |
 | `matrices-iso.html` | 112 | registros.js |
-| `medevac.html` | 151 | — |
+| `medevac.html` | 53 | medevac-app.js |
 | `mis-avisos.html` | 69 | — |
-| `normograma.html` | 112 | — |
+| `normograma.html` | 56 | — |
 | `offline.html` | 62 | — |
 | `pantalla-planta.html` | 112 | qr.js, i18n-en.js, i18n.js, pantalla-planta.app.js |
 | `papelera.html` | 82 | — |
@@ -154,7 +157,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `personal-autorizado.html` | 1181 | — |
 | `pesv.html` | 311 | registros.js |
 | `plan-accion.html` | 401 | — |
-| `plan-anual.html` | 601 | registros.js, plan-sugerido.js |
+| `plan-anual.html` | 615 | registros.js, plan-sugerido.js |
 | `preoperacional.html` | 428 | registros.js, preop-formularios.js, preop-base.js |
 | `presupuesto.html` | 72 | registros.js, presupuesto.app.js |
 | `privacidad.html` | 116 | — |
@@ -164,7 +167,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `quimicos.html` | 807 | registros.js, importar.js |
 | `reportes.html` | 343 | reportes.app.js |
 | `revision-direccion.html` | 329 | registros.js |
-| `salud.html` | 1110 | registros.js, lector-examen.js |
+| `salud.html` | 1126 | registros.js, lector-examen.js |
 | `terminos.html` | 71 | — |
 | `usuarios.html` | 283 | — |
 | `verificar.html` | 56 | — |
@@ -180,7 +183,7 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 | `backends/backend-ats.gs` | 905 | Análisis de Trabajo Seguro (SSTA-F-007) — Portal SSTA | 44 |
 | `backends/backend-epp.gs` | 1098 | Inspección de EPP (SSTA-F-006) — Portal SSTA | 37 |
 | `backends/backend-personal-autorizado.gs` | 1025 |  | 40 |
-| `backends/backend-sgsst.gs` | 3931 | Gestión del SG-SST — Portal SSTA | 264 |
+| `backends/backend-sgsst.gs` | 3960 | Gestión del SG-SST — Portal SSTA | 265 |
 | `backends/permisos/config-alturas.gs` | 18 | Lo ÚNICO propio del permiso de Trabajo en Alturas | 0 |
 | `backends/permisos/config-caliente.gs` | 18 | Lo ÚNICO propio del permiso de Trabajo en Caliente | 0 |
 | `backends/permisos/config-confinados.gs` | 18 | Lo ÚNICO propio del permiso de Espacios Confinados | 0 |
@@ -220,6 +223,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3851 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3881 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
-| `pruebas/navegador.js` | 1558 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |
+| `pruebas/navegador.js` | 1585 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

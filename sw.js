@@ -17,7 +17,7 @@
      la versión más nueva del formulario cuando hay señal).
    ============================================================ */
 
-const CACHE_NAME = 'ssta-portal-v179';
+const CACHE_NAME = 'ssta-portal-v180';
 
 const PAGES = [
   './',
@@ -97,7 +97,7 @@ const STATIC_ASSETS = [
   './habeas.html',
   './auditor.html',
   './mis-avisos.html',
-  './normograma.html',
+  './normograma.html', './normograma-app.js',
   './licencia.html',
   './licencia.js',
   './contratista-portal.html',
@@ -143,7 +143,7 @@ const STATIC_ASSETS = [
   './papelera.html',
   './accesibilidad.html',
   './matrices-iso.html',
-  './medevac.html',
+  './medevac.html', './medevac-app.js', './docs-trabajadores.html',
   './404.html',
   './og.png',
   './consola.css',
@@ -165,7 +165,7 @@ const APP_SHELL = [...PAGES, ...STATIC_ASSETS, OFFLINE_PAGE];
 /* v144: en la PRIMERA visita solo se descarga el núcleo de obra (≈ lo que usa un trabajador o supervisor
    en campo). Antes se bajaban 107 archivos (≈1,2 MB) por datos móviles. El resto se guarda al abrirlo
    y, si el celular está en wifi y sin «ahorro de datos», se completa en segundo plano. */
-const NUCLEO = ['./', './index.html', './preoperacional.html', './reportes.html', './ats.html', './medevac.html', './buzon.html',
+const NUCLEO = ['./', './index.html', './preoperacional.html', './reportes.html', './ats.html', './medevac.html', './medevac-app.js', './buzon.html',
   './permiso-trabajo-alturas.html', './permiso-trabajo-caliente.html', './permiso-espacios-confinados.html', './permiso-izajes-cargas.html', './permiso-trabajo-electrico.html',
   './personal-autorizado.html', './asistencia.html', './dashboard.html', './ayuda.html', OFFLINE_PAGE,
   './common.css', './common.js', './config.js', './empresa.js', './empresa-motor.js', './dialogo.js', './valida.js', './iconos-emoji.js', './sgsst.css', './sgsst-ui.js',

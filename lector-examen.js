@@ -130,19 +130,31 @@ const LectorExamen = (function () {
       return false;
     });
     // Lo que trae el examen de la persona (sirve para crearla si no está en el personal)
-    const nm = tras(
-      lineas,
-      /(?:nombres? y apellidos|nombre(?: completo)?(?: del (?:trabajador|paciente|evaluado|aspirante))?|paciente|trabajador|evaluado|aspirante)\s*:/i,
-      1,
-      true,
-    )[0];
-    const leido = {};
-    if (nm)
-      leido.nombre = nm
-        .replace(/\s+(c\.?c\.?|t\.?i\.?|c\.?e\.?|cedula|documento|identificacion|edad|sexo|genero|fecha)\b.*$/i, '')
+    // v180: el nombre COMPLETO. Muchas IPS lo parten en «Nombres:» y «Apellidos:» (o primer/segundo nombre y apellido).
+    const limpiaN = (x) =>
+      String(x || '')
+        .replace(
+          /\s+(apellidos?|primer|segundo|c\.?c\.?|t\.?i\.?|c\.?e\.?|cedula|documento|identificacion|tipo|edad|sexo|genero|fecha|cargo|empresa)\b.*$/i,
+          '',
+        )
         .replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñü .'-]/g, '')
-        .trim()
-        .slice(0, 80);
+        .replace(/\s+/g, ' ')
+        .trim();
+    const val = (re) => limpiaN(tras(lineas, re, 1, true)[0]);
+    const leido = {};
+    let nomCompleto = val(
+      /(?:nombres? y apellidos|apellidos? y nombres?|nombre completo|nombre del (?:trabajador|paciente|evaluado|aspirante)|paciente|trabajador|evaluado|aspirante)\s*:/i,
+    );
+    if (!nomCompleto) {
+      const pn = val(/primer nombre\s*:/i),
+        sn = val(/segundo nombre\s*:/i),
+        pa = val(/primer apellido\s*:/i),
+        sa = val(/segundo apellido\s*:/i);
+      const nombres = pn ? [pn, sn].filter(Boolean).join(' ') : val(/\bnombres?\s*:/i);
+      const apellidos = pa ? [pa, sa].filter(Boolean).join(' ') : val(/\bapellidos?\s*:/i);
+      nomCompleto = [nombres, apellidos].filter(Boolean).join(' ');
+    }
+    if (nomCompleto) leido.nombre = nomCompleto.slice(0, 90);
     const cg = tras(lineas, /\b(?:cargo(?: a desempe[nñ]ar| actual)?|ocupacion|oficio)\s*:/i, 1, true)[0];
     if (cg) leido.cargo = cg.replace(/\s+(empresa|area|fecha|ips)\b.*$/i, '').slice(0, 60);
     leido.tipoDoc = /\bt\.?\s?i\.?\b|tarjeta de identidad/.test(n)
@@ -162,6 +174,19 @@ const LectorExamen = (function () {
       Object.assign(campos, { nombre: leido.nombre || '', cargo: leido.cargo || '' });
       avisos.push('No encontré la cédula de nadie del personal en el examen: revisa a quién pertenece.');
     } else Object.assign(campos, { nombre: persona.nombre, cedula: persona.cedula, cargo: persona.cargo || leido.cargo || '' });
+    // Si en el personal está con menos nombres que en el examen, se completa con el del examen
+    if (
+      persona &&
+      leido.nombre &&
+      leido.nombre.split(' ').length >
+        String(persona.nombre || '')
+          .trim()
+          .split(/\s+/).length
+    ) {
+      campos.nombreAnterior = persona.nombre;
+      campos.nombre = leido.nombre;
+      avisos.push('En el personal estaba como «' + persona.nombre + '»: se guarda con el nombre completo del examen.');
+    }
     campos.tipoDoc = leido.tipoDoc;
     // Tipo de examen
     const tipos = [
@@ -220,17 +245,10 @@ const LectorExamen = (function () {
         .map((x) => x.replace(/^[-•*·\d.)\s]+/, '').trim())
         .filter(Boolean);
     const res = limpio(tras(lineas, /restricci[oó]n(?:es)?(?: medic[oa]s?)?(?: laborales| ocupacionales| para el trabajo)?\s*(?::|$)/i, 10));
-    const rec = limpio(
-      tras(
-        lineas,
-        RE_REC,
-        14,
-      ),
-    ).filter((x) => res.indexOf(x) === -1);
-    const partes = [];
-    if (res.length) partes.push('Restricciones: ' + res.join('; '));
-    if (rec.length) partes.push('Recomendaciones: ' + rec.join('; '));
-    if (partes.length) campos.restricciones = partes.join('\n').slice(0, 1200);
+    const rec = limpio(tras(lineas, RE_REC, 14)).filter((x) => res.indexOf(x) === -1);
+    // v180: restricciones y recomendaciones van en campos distintos
+    if (res.length) campos.restricciones = res.join('; ').slice(0, 800);
+    if (rec.length) campos.recomendaciones = rec.join('; ').slice(0, 800);
     if (res.length) campos.listaRestricciones = res;
     if (rec.length) campos.listaRecomendaciones = rec;
     if (descartadas) avisos.push('Quité ' + descartadas + ' línea(s) que parecían diagnóstico: el portal no guarda diagnósticos.');
@@ -310,6 +328,89 @@ const LectorExamen = (function () {
     }
     return out;
   }
-  return { leer, textoPdf, fecha };
+
+  /**
+   * v180: el informe de condiciones de salud que entrega la IPS (diagnóstico colectivo, sin nombres).
+   * Saca año, fecha, IPS, cuántos evaluados, edad promedio, hombres y mujeres, los % de estilos de vida,
+   * los hallazgos y las recomendaciones. Lo que no encuentre queda vacío para escribirlo a mano.
+   */
+  function condiciones(texto) {
+    const t = String(texto || '').replace(/\r/g, ''),
+      lineas = t
+        .split(/\n/)
+        .map((x) => x.replace(/\s+/g, ' ').trim())
+        .filter(Boolean),
+      ln = lineas.map((x) => sinTildes(x).toLowerCase()),
+      n = ln.join('\n');
+    const c = {},
+      avisos = [];
+    const num = (x) => {
+      const v = Number(
+        String(x)
+          .replace(/\.(?=\d{3}\b)/g, '')
+          .replace(',', '.'),
+      );
+      return isNaN(v) ? '' : v;
+    };
+    /** El número que acompaña a un rótulo, en la misma línea (antes o después) o en la siguiente. */
+    const cerca = (re, pct) => {
+      for (let i = 0; i < ln.length; i++) {
+        if (!re.test(ln[i])) continue;
+        const lin = ln[i] + ' ' + (ln[i + 1] || '');
+        const m = pct
+          ? /(\d{1,3}(?:[.,]\d+)?)\s*%/.exec(lin) || /:\s*(\d{1,3}(?:[.,]\d+)?)/.exec(lin)
+          : /(?::|=|\b)\s*(\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:[.,]\d+)?)\b(?!\s*%)/.exec(ln[i].replace(re, ' ')) || /^(\d+(?:[.,]\d+)?)/.exec(ln[i + 1] || '');
+        if (m) return num(m[1]);
+      }
+      return '';
+    };
+    const anio = /(?:ano|vigencia|periodo)\s*:?\s*(20\d{2})/.exec(n) || /\b(20\d{2})\b/.exec(n);
+    if (anio) c.anio = anio[1];
+    const lf = lineas.find((x, i) => /fecha (del informe|de elaboracion|de entrega|de emision)|^fecha\s*:/.test(ln[i]));
+    c.fecha = fecha(lf || '') || '';
+    const ips = tras(lineas, /\b(?:ips|prestador(?: de servicios)?(?: de salud)?|elaborado por|realizado por)\s*:/i, 1, true)[0];
+    if (ips) c.ips = ips.slice(0, 120);
+    c.trabajadores = cerca(
+      /(trabajadores|personas|poblacion|total) (evaluad|valorad|examinad|atendid)|total de (trabajadores|evaluados)|n(umero)? de (trabajadores|evaluados)/,
+    );
+    c.edadPromedio = cerca(/edad promedio|promedio de edad|media de edad/);
+    c.hombres = cerca(/\b(hombres|masculino)\b/);
+    c.mujeres = cerca(/\b(mujeres|femenino)\b/);
+    c.fumadores = cerca(/fumador|tabaquismo|consumo de (tabaco|cigarrillo)/, true);
+    c.sedentarismo = cerca(/sedentari|inactividad fisica|no realiza(n)? (actividad|ejercicio)/, true);
+    c.sobrepeso = cerca(/sobrepeso|obesidad|imc (elevado|alto)/, true);
+    c.alcohol = cerca(/alcohol/, true);
+    if (c.edadPromedio && (c.edadPromedio < 15 || c.edadPromedio > 80)) c.edadPromedio = '';
+    ['fumadores', 'sedentarismo', 'sobrepeso', 'alcohol'].forEach((k) => {
+      if (c[k] !== '' && c[k] > 100) c[k] = '';
+    });
+    let quitadas = 0;
+    const limpio = (l) =>
+      l
+        .map((x) => x.replace(/^[-•*·\d.)\s]+/, '').trim())
+        .filter((x) => {
+          if (!x) return false;
+          if (/\b\d{6,12}\b/.test(x)) {
+            quitadas++;
+            return false;
+          } // nada que identifique personas
+          return true;
+        });
+    const hall = limpio(
+      tras(
+        lineas,
+        /(?:principales )?(?:hallazgos|conclusiones|resultados principales|principales resultados|morbilidad sentida|diagnosticos? mas frecuentes|analisis)\s*(?::|$)/i,
+        14,
+      ),
+    );
+    const rec = limpio(tras(lineas, RE_REC, 14));
+    if (hall.length) c.hallazgos = hall.join('\n').slice(0, 2000);
+    if (rec.length) c.recomendaciones = rec.join('\n').slice(0, 2000);
+    if (quitadas) avisos.push('Quité ' + quitadas + ' línea(s) con números de documento: el diagnóstico es agregado, sin nombres.');
+    const leidos = Object.keys(c).filter((k) => c[k] !== '' && c[k] != null).length;
+    if (leidos < 3) avisos.push('Encontré poca información en el PDF (¿es una imagen escaneada?): complétalo a mano.');
+    return { campos: c, avisos, leidos };
+  }
+  return { leer, textoPdf, fecha, condiciones };
 })();
 if (typeof module !== 'undefined') module.exports = LectorExamen;

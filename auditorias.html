@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PFIgDvSZUujjqL7gKjc5fuZplbCeLHzcMBrPpkK+mWk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-duDW/DFz2GxvhczcjiMoRy57Fi5IuFUaFWh7Rk12o94='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Auditorías · Portal SSTA</title>
@@ -70,7 +70,7 @@
   <button type="button" class="btn amber" id="btnNueva">+ Programar auditoría</button>
   <button type="button" class="btn ghost" id="btnPrograma">🖨️ Programa anual de auditorías (PDF)</button>
   <div class="card u-mt10" id="cardAuditor" hidden></div>
-  <div class="version-portal">Portal SSTA · versión v179</div>
+  <div class="version-portal">Portal SSTA · versión v180</div>
 </div>
 
 <div class="screen" id="scrAud"></div>
@@ -138,6 +138,7 @@ function pintar(){
     : '<div class="aviso amar">🏢 Falta el perfil de la empresa (número de trabajadores y clase de riesgo): define si le aplican 7, 21 o 60 estándares. <button type="button" class="btn-mini" id="btnPerfil">Definirlo</button></div>');
   if (!filas.some((x)=> !/^RES0312/.test(x.resumen.plantilla) && x.estado === 'CERRADA' && fechaDe(x) >= Festivos.sumarDias(UI.hoy(), -365))) al.push('<div class="aviso amar">No hay una auditoría del SG-SST cerrada en los últimos 12 meses. La auditoría es anual y se planifica con el COPASST (Decreto 1072, art. 2.2.4.6.29; estándares 6.1.2 y 6.1.4).</div>');
   if (!filas.some((x)=> /^RES0312/.test(x.resumen.plantilla) && fechaDe(x).slice(0, 4) === a)) al.push('<div class="aviso info">La autoevaluación de estándares mínimos se hace cada año (Res. 0312, art. 28). Prográmala con «+ Programar auditoría».</div>');
+  al.push('<div class="aviso info">📦 Reporte anual de estándares mínimos ' + esc(a) + ' (registro ante el Ministerio y avances a la ARL): <a class="btn-mini" href="gerencia.html#anual">Abrir el reporte anual</a></div>');   // v180: salió del tablero de gerencia
   $('alertas').innerHTML = al.join('');
   if ($('btnPerfil')) $('btnPerfil').addEventListener('click', ()=> UI.editarPerfil(()=> cargar()));
   const pendientes = delAnio.filter((x)=> x.estado !== 'CERRADA'), atrasadas = filas.filter((x)=> x.estado === 'PROGRAMADA' && x.resumen.fechaPlan < UI.hoy());
