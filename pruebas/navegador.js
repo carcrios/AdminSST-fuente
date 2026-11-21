@@ -441,6 +441,25 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.goto(S.url + '/docs-trabajadores.html'); await pg.waitForTimeout(3000);
       const dt = await pg.evaluate(() => document.getElementById('docsTrab').innerText);
       ok('documentos para los trabajadores: política de SST, otras políticas y revisión por la dirección', /Política de seguridad y salud/.test(dt) && /alcohol/i.test(dt) && /Revisión por la dirección/.test(dt), dt.slice(0, 160));
+      // v181: accidente desde el FURAT en PDF (Gestión → Accidentes e investigación)
+      lineas.splice(0, lineas.length, 'FORMATO UNICO DE REPORTE DE ACCIDENTE DE TRABAJO', 'Numero de radicado: 2026-AT-77001', 'Fecha de radicacion: 12/11/2026', 'Primer apellido: PEREZ', 'Segundo apellido: GOMEZ', 'Nombres: JUAN CARLOS',
+        'Documento de identificacion: CC 1020333444', 'Cargo: Operario', 'Fecha del accidente: 10/11/2026', 'Hora del accidente: 3:45 pm', 'Lugar donde ocurrio: Taller de mantenimiento', 'Descripcion del accidente:', 'Se corto la mano derecha con el borde de una lamina al moverla.', 'Nombre de quien reporta: Ana');
+      const pdf3 = (() => { const sc = (t) => t.replace(/[()\\]/g, '\\$&'); let st = 'BT /F1 11 Tf 50 780 Td 14 TL ' + lineas.map((l) => '(' + sc(l) + ') Tj T*').join(' ') + ' ET';
+        const o = ['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+          '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', '<< /Length ' + st.length + ' >>\nstream\n' + st + '\nendstream'];
+        let b = '%PDF-1.4\n', off = []; o.forEach((x, i) => { off.push(b.length); b += (i + 1) + ' 0 obj\n' + x + '\nendobj\n'; });
+        const xr = b.length; b += 'xref\n0 ' + (o.length + 1) + '\n0000000000 65535 f \n' + off.map((n) => String(n).padStart(10, '0') + ' 00000 n \n').join('') + 'trailer\n<< /Size ' + (o.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF';
+        return Buffer.from(b, 'latin1'); })();
+      await pg.goto(S.url + '/reportes.html?tab=investigaciones'); await pg.waitForTimeout(3500);
+      const [fc3] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#btnNuevoAtFurat')]);
+      await fc3.setFiles({ name: 'furat.pdf', mimeType: 'application/pdf', buffer: pdf3 }); await pg.waitForTimeout(4000);
+      const fu = await pg.evaluate(() => ({ at: !!document.querySelector('#clases [data-c="Accidente de trabajo"].on'), nom: document.getElementById('lNombre').value, ced: document.getElementById('lCedula').value, desc: document.getElementById('nDesc').value, fecha: document.getElementById('nFecha').value }));
+      ok('FURAT en PDF: llena el reporte del accidente (accidentado, fecha y descripción)', fu.at && fu.nom === 'JUAN CARLOS PEREZ GOMEZ' && fu.ced === '1020333444' && /lamina/.test(fu.desc) && /^2026-11-10/.test(fu.fecha), JSON.stringify(fu));
+      if (await pg.$('#nQuien')) await pg.fill('#nQuien', 'SST Prueba').catch(() => {});
+      await pg.evaluate(() => { const i = document.querySelector('#nAccionTomada input, #nAccionTomada button'); if (i) i.click(); });
+      await pg.click('#btnEnviar'); await pg.waitForTimeout(5000);
+      const fr = await pg.evaluate(async () => { const r = await SGSST.listar('reporte'); const x = (r.rows || []).find((e) => e.resumen.lesionado === 'JUAN CARLOS PEREZ GOMEZ'); return x ? { furat: x.resumen.furat, adj: Number(x.resumen._adjTotal || 0) } : null; });
+      ok('FURAT en PDF: el accidente queda con el FURAT radicado y el PDF adjunto', !!fr && fr.furat && fr.furat.radicado && fr.furat.numero === '2026-AT-77001' && fr.adj > 0, JSON.stringify(fr));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }

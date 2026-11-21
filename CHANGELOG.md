@@ -3,6 +3,15 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v181 — Accidentes e investigación a la vista, y el FURAT en PDF
+
+- **Tarjeta «Accidentes e investigación» en Gestión** (antes solo se llegaba desde «Reportar»): abre la lista de accidentes e incidentes con el estado de su investigación y el plazo de 15 días.
+- **Investigaciones**: arriba, «🚑 Registrar un accidente», «📄 Registrar desde el FURAT (PDF)» y «Registrar un incidente». Luego se toca el accidente y se llena la investigación.
+- **FURAT en PDF**:
+  - *Registrar desde el FURAT*: lee el radicado, la fecha de radicación, el accidentado (nombre completo, cédula, cargo), la fecha, hora y lugar, la descripción, la parte del cuerpo, el tipo de lesión, el mecanismo y el agente. Llena el reporte para revisarlo; al enviarlo, el FURAT queda como radicado y el PDF adjunto al accidente.
+  - *Subir el FURAT a un accidente ya registrado* (tarjeta «Reporte a la ARL e incapacidad»): toma el radicado y la fecha, completa lo que falte del lesionado y adjunta el PDF.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v180 — Salud desde la IPS, MEDEVAC por situación, firmas en el portal, matriz legal con normograma y cumplir sin entrar
 
 - **Salud**

@@ -411,6 +411,88 @@ const LectorExamen = (function () {
     if (leidos < 3) avisos.push('Encontré poca información en el PDF (¿es una imagen escaneada?): complétalo a mano.');
     return { campos: c, avisos, leidos };
   }
-  return { leer, textoPdf, fecha, condiciones };
+  /**
+   * v181: el FURAT (Formato Único de Reporte de Accidente de Trabajo) que se radicó en la ARL.
+   * Saca el radicado, la fecha de radicado, el accidentado, la fecha, hora y lugar del accidente,
+   * la descripción y, si se les pasa las listas del portal, parte del cuerpo, tipo de lesión, mecanismo y agente.
+   */
+  function furat(texto, listas) {
+    const t = String(texto || '').replace(/\r/g, ''),
+      lineas = t
+        .split(/\n/)
+        .map((x) => x.replace(/\s+/g, ' ').trim())
+        .filter(Boolean),
+      ln = lineas.map((x) => sinTildes(x).toLowerCase()),
+      n = ln.join('\n');
+    const c = {},
+      avisos = [];
+    const val = (re) => (tras(lineas, re, 1, true)[0] || '').replace(/\s{2,}.*$/, '').trim();
+    const rad =
+      /(?:radicado|n(?:umero|o\.?|°)\s*(?:de\s*)?(?:radicacion|reporte|radicado|siniestro)|consecutivo|numero del reporte)\s*:?\s*([A-Z0-9][A-Z0-9-]{3,})/i.exec(
+        sinTildes(t),
+      );
+    if (rad) c.numero = rad[1];
+    const lfr = lineas.find((x, i) => /fecha (de )?(radicacion|radicado|diligenciamiento|del reporte|de reporte|de envio)/.test(ln[i]));
+    c.fechaRadicado = fecha(lfr || '');
+    const lfa = lineas.find((x, i) => /fecha (del|de ocurrencia del|en que ocurrio el) accidente|fecha del evento|fecha de ocurrencia/.test(ln[i]));
+    c.fecha = fecha(lfa || '');
+    const lh = lfa ? lineas[lineas.indexOf(lfa)] + ' ' + (lineas[lineas.indexOf(lfa) + 1] || '') : '';
+    const hora = /(?:hora[^0-9]{0,15})?(\d{1,2})[:.h](\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?)?/i.exec(
+      sinTildes(lineas.find((x, i) => /\bhora\b/.test(ln[i])) || lh),
+    );
+    if (hora) {
+      let hh = +hora[1];
+      if (hora[3] && /p/i.test(hora[3]) && hh < 12) hh += 12;
+      if (hora[3] && /a/i.test(hora[3]) && hh === 12) hh = 0;
+      if (hh < 24) c.hora = (hh < 10 ? '0' : '') + hh + ':' + hora[2];
+    }
+    // El accidentado: nombre completo (también partido en apellidos y nombres), documento y cargo
+    const limpiaN = (x) =>
+      String(x || '')
+        .replace(/\s+(apellidos?|primer|segundo|nombres?|documento|identificacion|tipo|cedula|c\.?c\.?|fecha|sexo|cargo)\b.*$/i, '')
+        .replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñü .'-]/g, '')
+        .trim();
+    const pa = limpiaN(val(/primer apellido\s*:?/i)),
+      sa = limpiaN(val(/segundo apellido\s*:?/i)),
+      no = limpiaN(val(/\bnombres?\s*:/i));
+    let nom = limpiaN(val(/(?:nombre(?:s)? (?:y apellidos|completo)|nombre del (?:trabajador|accidentado|lesionado))\s*:?/i));
+    if (!nom && (no || pa)) nom = [no, pa, sa].filter(Boolean).join(' ');
+    if (nom) c.nombre = nom.slice(0, 90);
+    const ced = /(?:c\.?\s?c\.?|cedula|documento|identificacion)[^\d]{0,30}([\d.]{5,15})/i.exec(sinTildes(t));
+    if (ced) c.cedula = ced[1].replace(/\./g, '');
+    const cg = val(/\b(?:cargo|ocupaci[oó]n habitual|ocupaci[oó]n|oficio)\s*:?/i);
+    if (cg && !/^\d+$/.test(cg)) c.cargo = cg.replace(/\s+(tiempo|fecha|salario|jornada)\b.*$/i, '').slice(0, 60);
+    const lugar = val(
+      /(?:lugar donde ocurri[oó](?: el accidente)?|sitio (?:donde ocurri[oó]|del accidente)|lugar del accidente|lugar de ocurrencia|direcci[oó]n (?:del|donde ocurri[oó] el) accidente)\s*:?/i,
+    );
+    if (lugar) c.lugar = lugar.slice(0, 120);
+    const desc = tras(lineas, /descripci[oó]n (?:del accidente|de los hechos|del evento)[^:]*:?/i, 12, true)
+      .filter((x) => !/^(nombre|cedula|firma|cargo|fecha)\b/i.test(sinTildes(x)))
+      .join(' ');
+    if (desc) c.descripcion = desc.slice(0, 1500);
+    c.mortal = /causo la muerte[^\n]{0,20}\bsi\b|accidente mortal|fallecio/.test(n);
+    c.grave = c.mortal || /amputacion|fractura|trauma craneoencefalico|perdida (de|del) (ojo|vision)|quemadura de (segundo|tercer) grado/.test(n);
+    // Clasificación: el primer valor de cada lista del portal que aparezca en el FURAT
+    const busca = (lista, rotulo) => {
+      if (!lista || !lista.length) return '';
+      const i = ln.findIndex((x) => rotulo.test(x));
+      const zona = i >= 0 ? ln.slice(i, i + 4).join(' ') : n;
+      const hit =
+        lista.find((v) => v && zona.indexOf(sinTildes(v).toLowerCase()) !== -1) ||
+        lista.find((v) => v && sinTildes(v).length > 5 && n.indexOf(sinTildes(v).toLowerCase()) !== -1);
+      return hit || '';
+    };
+    if (listas) {
+      c.parteCuerpo = busca(listas.parte, /parte del cuerpo/);
+      c.tipoLesion = busca(listas.tipo, /tipo de lesion/);
+      c.mecanismo = busca(listas.mecanismo, /mecanismo|forma del accidente|tipo de accidente/);
+      c.agente = busca(listas.agente, /agente/);
+    }
+    const leidos = ['numero', 'fecha', 'nombre', 'cedula', 'descripcion'].filter((k) => c[k]).length;
+    if (leidos < 3) avisos.push('Encontré poca información en el PDF (¿es una imagen escaneada?): completa a mano lo que falte.');
+    if (!c.numero) avisos.push('No encontré el número de radicado: escríbelo.');
+    return { campos: c, avisos, leidos };
+  }
+  return { leer, textoPdf, fecha, condiciones, furat };
 })();
 if (typeof module !== 'undefined') module.exports = LectorExamen;

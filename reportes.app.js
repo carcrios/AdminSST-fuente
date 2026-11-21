@@ -193,7 +193,10 @@ function pintarInvestigaciones(q){
   if (q) l = l.filter((x)=> UI.norm([x.resumen.lugar, x.resumen.descripcion, x.resumen.lesionado].join(' ')).includes(q));
   const est = (x)=> (x.resumen.investigacion || {}).estado || 'PENDIENTE';
   l.sort((a, b)=> (est(a) === 'CERRADA') - (est(b) === 'CERRADA') || String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
-  $('lista').innerHTML = '<div class="aviso">Para investigar un accidente primero se reporta (con los datos del FURAT). <button type="button" class="btn-mini" id="btnNuevoAt">⚠️ Reportar un accidente o incidente</button></div>' +
+  $('lista').innerHTML = '<div class="card"><h2>Investigar un accidente</h2><p class="ayuda u-mtn4">1. Regístralo (o súbelo desde el FURAT radicado). 2. Tócalo en la lista de abajo y' +
+    ' llena la investigación (plazo: 15 días).</p>' +
+    '<div class="fila-btn"><button type="button" class="btn rojo" id="btnNuevoAt">🚑 Registrar un accidente</button><button type="button" class="btn ghost" id="btnNuevoAtFurat">📄' +
+      ' Registrar desde el FURAT (PDF)</button><button type="button" class="btn ghost" id="btnNuevoInc">Registrar un incidente</button></div></div>' +
     (l.length ? l.map((x)=> { const s = x.resumen, e = est(x), lim = Festivos.sumarDias(s.fecha, 15), venc = e !== 'CERRADA' && lim < UI.hoy();
       const c = e === 'CERRADA' ? 'ok' : venc ? 'mal' : 'pronto';
       return '<button type="button" class="item ' + c + '" data-id="' + esc(x.id) + '" data-inv="1"><div class="fila"><div><div class="t">' + iconoClase(s.clase) + ' ' + esc(s.clase) + (s.lesionado ? ' · ' + esc(s.lesionado) : '') + '</div>' +
@@ -202,6 +205,8 @@ function pintarInvestigaciones(q){
         '<span class="chip ' + c + '">' + esc(e === 'CERRADA' ? 'Investigada' : e === 'EN CURSO' ? 'En curso' : 'Por investigar') + '</span></div></button>'; }).join('')
       : '<div class="empty">No hay accidentes ni incidentes reportados.</div>');
   $('btnNuevoAt').addEventListener('click', ()=> { nuevo(); ponerClase(AT); });
+  $('btnNuevoAtFurat').addEventListener('click', ()=> abrirFurat('nuevo'));
+  $('btnNuevoInc').addEventListener('click', ()=> { nuevo(); ponerClase('Incidente'); });
 }
 
 /* ── Nuevo reporte ── */
@@ -229,6 +234,7 @@ function ponerClase(c){
 
 }
 function nuevo(){
+  furatPdfPend = null;
   const ahora = new Date(); ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
   $('nFecha').value = ahora.toISOString().slice(0, 10); $('nHora').value = ahora.toISOString().slice(11, 16);
   ['nLugar', 'nCentro', 'nDesc', 'nInmediata', 'lNombre', 'lCedula', 'lCargo', 'nRelacionados', 'nPlan', 'nConsecuencias', 'nAccionOtra', 'nCategoriaOtra'].forEach((id)=> $(id).value = '');
@@ -327,6 +333,11 @@ $('btnEnviar').addEventListener('click', async ()=>{
     return;
   }
   actual = Object.assign({ id, version: r.version || 1 }, doc);
+  if (furatPdfPend && clase === AT && !r.enCola) {   // v181: el accidente se registró desde el FURAT
+    const fp = furatPdfPend; furatPdfPend = null;
+    await parche({ furat: { radicado: !!(fp.fecha || fp.numero), fecha: fp.fecha, numero: fp.numero } }, '✓');
+    if (await adjuntarFurat(id, fp.f)) UI.toast('✓ Accidente registrado con su FURAT adjunto. Sigue con la investigación.');
+  }
   pintarDetalle();
   show('scrDetalle');
 });
@@ -404,7 +415,9 @@ function pintarDetalle(){
         '<div class="field"><label for="mtRad">N.º de radicado</label><input type="text" id="mtRad" value="' + esc((d.mintrabajo || {}).radicado || '') + '"></div></div>' +
         '<div class="grid2"><div class="field"><label for="raFecha">Investigación enviada a la ARL el</label><input type="date" id="raFecha" value="' + esc((d.remisionArl || {}).fecha || '') + '"><div class="ayuda">15 días después de terminarla.</div></div>' +
         '<div class="field"><label for="raRad">N.º de radicado</label><input type="text" id="raRad" value="' + esc((d.remisionArl || {}).radicado || '') + '"></div></div>' : '') +
-      '<button type="button" class="btn" id="btnFurat">Guardar</button>';
+      '<div class="fila-btn"><button type="button" class="btn" id="btnFurat">Guardar</button><button type="button" class="btn ghost" id="btnSubirFurat">📄 Subir el FURAT (PDF)</button></div>' +
+      '<p class="ayuda">Al subir el PDF se leen el radicado, la fecha y los datos del lesionado, y el PDF queda adjunto a este accidente.</p>';
+    $('btnSubirFurat').addEventListener('click', ()=> abrirFurat('detalle'));
     $('btnFurat').addEventListener('click', async ()=>{
       const fecha = $('fFecha').value, hoyS = UI.hoy(), ev = String(d.fecha || '').slice(0, 10);
       // v148: las fechas de radicado van entre el día del evento y hoy, con su número; la remisión, después de terminar la investigación.
@@ -922,6 +935,54 @@ $('btnPdfRep').addEventListener('click', ()=>{
 });
 
 /* ── Navegación ── */
+
+/* ── v181 · FURAT en PDF: registrar el accidente desde el FURAT radicado, o subirlo a un accidente ya registrado.
+   Se lee en el equipo (pdf.js); los datos llenan el reporte y el PDF queda adjunto al accidente. ── */
+let furatPdfPend = null, furatPara = 'nuevo';
+const pdfB64 = (f)=> new Promise((ok, mal)=> {
+  if (f.size > 10 * 1024 * 1024) return mal(new Error('el PDF pasa de 10 MB'));
+  const fr = new FileReader(); fr.onload = ()=> ok(String(fr.result).split(',')[1]); fr.onerror = ()=> mal(fr.error); fr.readAsDataURL(f); });
+async function leerFurat(f){
+  UI.toast('Leyendo el FURAT…');
+  try { return LectorExamen.furat(await LectorExamen.textoPdf(f), LISTAS); } catch (e) { UI.toast('No pude leer ese PDF: ' + e.message, 'mal'); return null; }
+}
+async function adjuntarFurat(id, f){
+  try { const r = await SGSST.enviar({ action: 'adjuntar', id, uid: 'adj-' + Date.now().toString(36), nombre: 'FURAT ' + id +
+    '.pdf', mime: 'application/pdf', base64: await pdfB64(f), ref: 'furat' }); return !!r.ok; } catch (e) { return false; }
+}
+function abrirFurat(para){ furatPara = para; $('fFuratPdf').click(); }
+$('btnDesdeFurat').addEventListener('click', ()=> abrirFurat('nuevo'));
+{ let cu = false; try { cu = typeof Sesion !== 'undefined' && localStorage.getItem(Sesion.KEY_MODO) === '1'; } catch (e) {}
+  if (cu && !Sesion.token()) $('btnDesdeFurat').hidden = true; }   // el FURAT lo sube SST, no quien reporta sin usuario
+$('fFuratPdf').addEventListener('change', async (e)=> {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const r = await leerFurat(f); if (!r) return;
+  const c = r.campos;
+  if (furatPara === 'detalle' && actual) {   // a un accidente ya registrado: radicado + adjunto (y lo que falte del lesionado)
+    const l = Object.assign({}, actual.lesionado || {});
+    ['nombre', 'cedula', 'cargo', 'parteCuerpo', 'tipoLesion', 'mecanismo', 'agente'].forEach((k)=> { if (!l[k] && c[k]) l[k] = c[k]; });
+    const fa = actual.furat || {};
+    const campos = { furat: { radicado: !!(c.fechaRadicado || c.numero), fecha: c.fechaRadicado || fa.fecha || '',
+      numero: c.numero || fa.numero || '' }, lesionado: l };
+    if (c.mortal) campos.mortal = campos.grave = true; else if (c.grave) campos.grave = true;
+    const ok = await parche(campos, '✓ FURAT leído');
+    const adj = await adjuntarFurat(actual.id, f);
+    UI.toast((ok ? '✓ FURAT leído' : 'No se guardaron los datos') + (adj ? ' y adjunto al accidente.' : '; no se pudo adjuntar el PDF.') + (r.avisos.length ? ' ' +
+      r.avisos.join(' ') : ''), ok && adj ? '' : 'mal');
+    pintarDetalle(); return;
+  }
+  // Nuevo accidente con los datos del FURAT: se abre el formulario lleno para revisarlo y enviarlo
+  nuevo(); ponerClase(AT);
+  const pon = (id, v)=> { if (v && $(id)) $(id).value = v; };
+  pon('nFecha', c.fecha); pon('nHora', c.hora); pon('nLugar', c.lugar); pon('nDesc', c.descripcion);
+  pon('nRelacionados', [c.nombre, c.cargo].filter(Boolean).join(' · '));
+  pon('lNombre', c.nombre); pon('lCedula', c.cedula); pon('lCargo', c.cargo); pon('lParte', c.parteCuerpo); pon('lTipo', c.tipoLesion); pon('lMecanismo', c.mecanismo); pon('lAgente', c.agente);
+  if ($('lGrave')) $('lGrave').checked = !!c.grave; if ($('lMortal')) $('lMortal').checked = !!c.mortal;
+  furatPdfPend = { f, numero: c.numero || '', fecha: c.fechaRadicado || '' };
+  $('msgNuevo').innerHTML = '<div class="aviso info">📄 Datos tomados del FURAT' + (c.numero ? ' (radicado ' + esc(c.numero) + ')' : '') +
+    '. Revísalos y completa lo que falte; al enviar, el PDF queda adjunto y el FURAT como radicado.' + (r.avisos.length ? '<br>' + r.avisos.map(esc).join('<br>') : '') + '</div>';
+});
+
 $('btnReportar').addEventListener('click', nuevo);
 // v180: entrada directa para registrar un accidente de trabajo (ya con la clase elegida)
 $('btnAccidente').addEventListener('click', ()=> { nuevo(); ponerClase(AT); });

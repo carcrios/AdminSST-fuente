@@ -17,7 +17,7 @@
      la versión más nueva del formulario cuando hay señal).
    ============================================================ */
 
-const CACHE_NAME = 'ssta-portal-v180';
+const CACHE_NAME = 'ssta-portal-v181';
 
 const PAGES = [
   './',
@@ -172,7 +172,7 @@ const NUCLEO = ['./', './index.html', './preoperacional.html', './reportes.html'
   './permiso-core.js', './qr.js', './preop-formularios.js', './preop-base.js', './ats-catalogo.js', './ayuda-guias.js', './manifest.json', './icon-192.png', './logo-empresa.svg',
   './fonts/plex-sans-400.woff2', './fonts/plex-sans-600.woff2', './empezar-reglas.js', './guia-preguntas.js', './agenda-tareas.js',
   /* v163: el JS propio de cada pantalla del núcleo (sin esto, ATS y Reportes abrían sin su código en la primera instalación sin señal) */
-  './ats.app.js', './reportes.app.js', './registros.js', './cifrado.js', './licencia.js'];
+  './ats.app.js', './reportes.app.js', './lector-examen.js', './registros.js', './cifrado.js', './licencia.js'];
 const RESTO = APP_SHELL.filter((u) => NUCLEO.indexOf(u) === -1 && !/og\.png$|icon-512/.test(u));
 function datosBaratos() { const c = self.navigator && self.navigator.connection; return !!c && !c.saveData && (c.type === 'wifi' || c.type === 'ethernet'); }
 // v145: siempre la copia nueva del servidor (no la de la caché HTTP del navegador), para no guardar un archivo viejo toda la versión.

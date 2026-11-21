@@ -3862,6 +3862,20 @@ grupo('v180: salud desde la IPS, MEDEVAC por situación, firmas, normograma en l
   ok('inicio: sin el bloque «Lo tuyo»', !/>Lo tuyo</.test(leer('index.html')));
 });
 
+grupo('v181: accidentes e investigación a la vista y el FURAT en PDF', () => {
+  const L = require(path.join(RAIZ, 'lector-examen.js'));
+  const f = L.furat('Número de radicado: 2026-AT-55871\nFecha de radicación: 12/11/2026\nPrimer apellido: PÉREZ\nSegundo apellido: GÓMEZ\nNombres: JUAN CARLOS\nDocumento de identificación: CC 1.020.333.444\nCargo: Operario de producción\n' +
+    'Fecha del accidente: 10/11/2026\nHora del accidente: 3:45 pm\nLugar donde ocurrió: Planta, línea 2\nParte del cuerpo afectada: Mano\nTipo de lesión: Herida\nDescripción del accidente:\nSe cortó la mano con el borde de la banda.\nNombre de quien reporta: Ana',
+    { parte: ['Cabeza', 'Mano'], tipo: ['Herida', 'Fractura'], mecanismo: [], agente: [] }).campos;
+  ok('FURAT: radicado, fechas, hora, accidentado (nombre completo, cédula, cargo), lugar y descripción', f.numero === '2026-AT-55871' && f.fechaRadicado === '2026-11-12' && f.fecha === '2026-11-10' && f.hora === '15:45' &&
+    f.nombre === 'JUAN CARLOS PÉREZ GÓMEZ' && f.cedula === '1020333444' && f.cargo === 'Operario de producción' && f.lugar === 'Planta, línea 2' && /cortó la mano/.test(f.descripcion), JSON.stringify(f));
+  ok('FURAT: parte del cuerpo y tipo de lesión con las listas del portal', f.parteCuerpo === 'Mano' && f.tipoLesion === 'Herida');
+  const ra = leer('reportes.app.js'), rh = leer('reportes.html');
+  ok('reportes: registrar desde el FURAT, subirlo a un accidente y queda adjunto (ref furat)', /id="btnDesdeFurat"/.test(rh) && /btnSubirFurat/.test(ra) && /ref: 'furat'/.test(ra) && /lector-examen\.js/.test(rh));
+  ok('investigaciones: entrada clara para registrar el accidente (o desde el FURAT) e investigarlo', /Investigar un accidente/.test(ra) && /btnNuevoAtFurat/.test(ra));
+  ok('inicio (gestión): tarjeta «Accidentes e investigación»', /href="reportes\.html\?tab=investigaciones"><span class="card-icon">/.test(leer('index.html')));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');
