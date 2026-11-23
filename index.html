@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-Qaq8c2AynObzc1WeOir1sEIiy234q5sXIGAHnB+HmY0=' 'sha256-mRN8eukGG0OxKRb2uWviNwRSVIRi53ARhmZ1vw4IHDk=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-3idzMRl+jG+Awd/40FbOkNRZi7L5T+96lMYWn4Su8TA=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-oLUIcb2tmbiDQwEk5AlhJ7xsat+IbceWuG8BylNtCDk=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-Qaq8c2AynObzc1WeOir1sEIiy234q5sXIGAHnB+HmY0=' 'sha256-mRN8eukGG0OxKRb2uWviNwRSVIRi53ARhmZ1vw4IHDk=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-3idzMRl+jG+Awd/40FbOkNRZi7L5T+96lMYWn4Su8TA=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-oLUIcb2tmbiDQwEk5AlhJ7xsat+IbceWuG8BylNtCDk=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M=' 'sha256-VQIsArNPAyi22aJKOTfv6YdZQpLcYVrQXT1gjN6wpaw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal SSTA</title>
 <meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
@@ -293,6 +293,12 @@
 
   /* v174: lo de hoy y la semana al lado del calendario */
   .dia-grid{display:grid;gap:0 16px;align-items:start;}
+  .dia-hoy{background:var(--n-0);border:1px solid var(--line);border-left:6px solid var(--ambar-500);border-radius:var(--r-l);padding:16px 18px;margin:0 0 14px;}
+  .dia-hoy h2{margin:0 0 6px;font-size:var(--fs-titulo);} .dia-hoy ul{list-style:none;margin:6px 0 12px;padding:0;display:grid;gap:6px;}
+  .dia-hoy li a{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--tinta);font-size:var(--fs-base);padding:6px 0;}
+  .dia-hoy li b{min-width:2.2em;text-align:center;border-radius:var(--r-pill);padding:2px 8px;background:var(--n-100);font-weight:800;}
+  .dia-hoy li.mal b{background:var(--rojo-50);color:var(--rojo-700);} .dia-hoy .dia-ok{color:var(--verde-700);font-weight:700;}
+  .dia-hoy .fila-btn{display:flex;flex-wrap:wrap;gap:8px;} .dia-hoy .fila-btn .btn{flex:1 1 220px;min-height:52px;}
   @media (min-width:900px){ .dia-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);} }
   #mes{display:none !important;}   /* v176: se quitó «Cronograma del mes» */
   .ag-nueva.btn{width:auto;margin:0 0 0 auto;padding:10px 18px;min-height:44px;}   /* v176: mismo botón que el resto del portal */
@@ -605,6 +611,8 @@
     </section>
     <!-- v159: «Lo mío hoy» es lo primero que ve quien entra con usuario -->
     <div id="avisoLicencia"></div>
+    <!-- v182: «Empezar el día»: lo que toca hoy en una frase y un solo botón -->
+    <section class="dia-hoy" id="diaHoy" hidden aria-labelledby="diaTit"></section>
     <div class="dia-grid">
     <section class="pend" id="pend" hidden aria-labelledby="pendTit">
     <div class="pend-cab">
@@ -1547,6 +1555,53 @@ document.getElementById('buscarMenu') && document.getElementById('buscarMenu').a
 (function () { const b = document.getElementById('btnSol'); if (!b || typeof ModoSol === 'undefined') return;
   const pintar = () => b.setAttribute('aria-pressed', ModoSol.activo() ? 'true' : 'false'); pintar();
   b.addEventListener('click', () => { ModoSol.alternar(); pintar(); }); })();
+</script>
+<script>
+/* v182 · «Empezar el día»: al entrar, en una frase lo que toca hoy y esta semana, agrupado (inspecciones,
+   firmas, acciones, salud…) y un solo botón: «Empezar con lo más urgente». Lo arma con la misma lista de
+   pendientes (evento ssta-pend), así que respeta el rol y «Lo mío». */
+(function () {
+  const caja = document.getElementById('diaHoy'); if (!caja) return;
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const GRUPOS = [
+    ['firmas', 'por firmar', (x) => /firma/i.test(x.texto || '')],
+    ['permisos', 'permisos de trabajo', (x) => /permiso/i.test(x.modulo || '') || x.tipo === 'permiso'],
+    ['inspecciones', 'inspecciones y preoperacionales', (x) => /inspecci|preoperacional|equipo/i.test((x.modulo || '') + ' ' + (x.tipo || ''))],
+    ['acciones', 'acciones del plan', (x) => x.tipo === 'accion' || /plan-accion/.test(x.modulo || '')],
+    ['salud', 'exámenes y salud', (x) => /examen|salud|reintegro|restricci/i.test((x.texto || '') + ' ' + (x.tipo || '') + ' ' + (x.modulo || ''))],
+    ['accidentes', 'accidentes e investigaciones', (x) => /reporte|investigaci|furat|accidente/i.test((x.texto || '') + ' ' + (x.modulo || ''))],
+    ['capacitaciones', 'capacitaciones y charlas', (x) => /capacitaci|charla|induccion|plan-anual/i.test((x.texto || '') + ' ' + (x.modulo || ''))],
+    ['personal', 'personal y documentos', (x) => /habilitacion|personal|trabajador|seguridad social|documento|vence/i.test((x.texto || '') + ' ' + (x.modulo || ''))],
+    ['otros', 'otras tareas', () => true],
+  ];
+  const hrefOk = (h) => /^[a-z0-9-]+\.html([?#][\w%.:=&-]*)?$/i.test(h || '');
+  function pintar() {
+    const d = window.__sstaPend; if (!d) return;
+    const hoy = d.hoy, en7 = new Date(new Date(hoy + 'T12:00:00').getTime() + 7 * 864e5).toISOString().slice(0, 10);
+    const l = (d.mios || []).filter((x) => x.nivel === 'vencido' || !x.fecha || x.fecha <= en7);
+    const yo = typeof Sesion !== 'undefined' && Sesion.yo ? Sesion.yo() : null, nom = yo && yo.nombre ? String(yo.nombre).split(' ')[0] : '';
+    const h = new Date().getHours(), saludo = (h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches') + (nom ? ', ' + nom : '');
+    if (!l.length) { caja.hidden = false; caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="dia-ok">✓ No tienes nada vencido ni por hacer esta semana.</p>'; return; }
+    const usados = new Set(), filas = [];
+    GRUPOS.forEach(([k, t, f]) => {
+      const g = l.filter((x, i) => !usados.has(i) && f(x)); if (!g.length) return;
+      l.forEach((x, i) => { if (g.indexOf(x) !== -1) usados.add(i); });
+      const venc = g.filter((x) => x.nivel === 'vencido').length, primero = g.find((x) => hrefOk(x.modulo));
+      filas.push('<li class="' + (venc ? 'mal' : '') + '"><a href="' + (primero ? esc(primero.modulo) : '#pend') + '"><b>' + g.length + '</b><span>' + esc(t) + (venc ? ' · ' + venc + ' vencido' + (venc === 1 ? '' : 's') : '') + '</span></a></li>');
+    });
+    // Lo más urgente: lo vencido más antiguo; si no hay, lo que vence primero.
+    const orden = l.slice().sort((a, b) => (a.nivel === 'vencido' ? 0 : 1) - (b.nivel === 'vencido' ? 0 : 1) || String(a.fecha || '9').localeCompare(String(b.fecha || '9')));
+    const urg = orden.find((x) => hrefOk(x.modulo));
+    caja.hidden = false;
+    caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="u-mt0">Hoy y esta semana tienes:</p><ul>' + filas.join('') + '</ul>' +
+      '<div class="fila-btn">' + (urg ? '<a class="btn amber" id="diaUrg" href="' + esc(urg.modulo) + '">Empezar con lo más urgente</a>' : '') +
+      '<a class="btn ghost" href="#planear" id="diaMenu">Ver todo el menú</a></div>' + (urg ? '<p class="ayuda u-mt8">Lo más urgente: ' + esc(urg.texto) + '</p>' : '');
+    const mn = document.getElementById('diaMenu');
+    if (mn) mn.addEventListener('click', (e) => { const p = document.getElementById('planear'); if (!p) return; e.preventDefault(); p.open = true; p.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  }
+  document.addEventListener('ssta-pend', pintar);
+  pintar();
+})();
 </script>
 </body>
 </html>

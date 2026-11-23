@@ -3,6 +3,21 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v182 — Empezar el día, asistentes paso a paso, cruce al investigar, indicadores que hablan, paquete de auditoría y fotos con fecha y GPS
+
+- **Empezar el día**: al entrar, «Buenos días, Carlos. Hoy y esta semana tienes: 3 inspecciones · 1 por firmar · 2 acciones del plan…» (agrupado y con lo vencido en rojo) y un solo botón: **«Empezar con lo más urgente»** (abre lo vencido más antiguo o lo que vence primero). «Ver todo el menú» baja al menú. Respeta el rol y «Lo mío».
+- **Asistentes paso a paso** («Paso 2 de 5», con Atrás y Siguiente; «Ver todo junto» deja el formulario completo y el portal lo recuerda):
+  - *Accidente e incidente*: ¿qué pasó? → ¿quién? → ¿dónde y cuándo? → evidencias y qué se hizo → quién reporta.
+  - *Permisos de trabajo* (los cinco): tipo de trabajo → personas → peligros y verificación → controles y EPP → firmas. Al cerrar un permiso se ve completo.
+  - *Entrega de EPP*: ¿a quién? → qué se entrega y tallas → firma.
+  - Si al guardar falta algo de otro paso, el asistente va a ese paso.
+- **Cruce al investigar un accidente** («¿Estaba todo en regla antes del accidente?»): a la fecha del accidente revisa si estaba en Personal habilitado, el concepto médico, la inducción, la seguridad social, los cursos del trabajo que hacía (alturas, confinados, eléctrico, caliente, izaje: los detecta en la descripción), una restricción médica y el último EPP entregado. «Pasar esto al análisis» lo escribe en la investigación.
+- **Indicadores que hablan**: arriba de los indicadores, frases como «Tu frecuencia de accidentalidad está 18 % por debajo del mismo mes del año pasado», «Llevas 45 días sin accidentes de trabajo», «Hay 3 acciones del plan vencidas».
+- **Informe del mes con su valor**: «Cómo vamos frente al mes pasado» (inspecciones, reportes, acciones cerradas, EPP, charlas, accidentes, días perdidos), también en el PDF, y «Copiar el resumen para el gerente» (listo para correo o WhatsApp).
+- **Paquete de auditoría con un clic** (Auditorías): todos los soportes de un periodo en un .zip —una hoja de Excel por registro (accidentes, plan de acción, inspecciones, preoperacionales, actas, auditorías, inducciones, EPP, simulacros, revisión por la dirección, gestión del cambio, mediciones) y lo vigente (política, matriz legal, peligros, listado maestro, plan anual)— con un LEEME de resumen. Sin datos de salud de las personas.
+- **Fotos con fecha, hora y GPS**: cada foto de evidencia (reportes, inspecciones, preoperacionales, plan de acción…) lleva impresas abajo la fecha y la hora y, si la persona da permiso, la ubicación. Las PQRS (pueden ser anónimas) no llevan ubicación.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v181 — Accidentes e investigación a la vista, y el FURAT en PDF
 
 - **Tarjeta «Accidentes e investigación» en Gestión** (antes solo se llegaba desde «Reportar»): abre la lista de accidentes e incidentes con el estado de su investigación y el plazo de 15 días.

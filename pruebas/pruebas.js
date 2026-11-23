@@ -3876,6 +3876,31 @@ grupo('v181: accidentes e investigación a la vista y el FURAT en PDF', () => {
   ok('inicio (gestión): tarjeta «Accidentes e investigación»', /href="reportes\.html\?tab=investigaciones"><span class="card-icon">/.test(leer('index.html')));
 });
 
+grupo('v182: empezar el día, paso a paso, cruce al investigar, indicadores que hablan, paquete de auditoría y fotos con GPS', () => {
+  const F = require(path.join(RAIZ, 'frases-indicadores.js'));
+  const a = F.comparar('tu frecuencia de accidentalidad', 0.82, 1, 'el mismo mes del año pasado', true);
+  ok('indicadores que hablan: «18 % por debajo» y en verde cuando bajar es bueno', /18 % por debajo de el mismo mes/.test(a.texto) && a.tono === 'bien', a.texto);
+  const b = F.comparar('los actos y condiciones reportados', 5, 10, 'el mes pasado', false);
+  ok('indicadores que hablan: menos reportes es malo (en rojo)', b.tono === 'mal' && /50 % por debajo/.test(b.texto));
+  ok('indicadores que hablan: sin dato no hay frase; días sin accidentes', F.comparar('x', null, 3, 'y', true) === null && F.diasSinAT(['2026-10-01', '2026-11-01'], '2026-11-21') === 20);
+  const IM = require(path.join(RAIZ, 'informe-mes-reglas.js'));
+  ok('informe del mes: «cómo vamos frente al mes pasado» con las mismas reglas', typeof IM.valor === 'function' && /Copiar el resumen para el gerente/.test(leer('informe-mes.app.js')));
+  const PA = require(path.join(RAIZ, 'paquete-auditoria.js'));
+  const rows = { reporte: [{ id: 'R1', resumen: { clase: 'Accidente de trabajo', fecha: '2026-03-02', descripcion: 'Golpe; en la mano', firma: 'data:image/png;base64,AAA' } }, { id: 'R2', resumen: { fecha: '2025-01-01' } }],
+    legal: [{ id: 'L1', resumen: { norma: 'Res. 0312', estado: 'Vigente' } }], examen: [{ id: 'E1', resumen: { fecha: '2026-03-01', concepto: 'Apto' } }] };
+  const pq = PA.armar(rows, '2026-01-01', '2026-12-31', 'Empresa X');
+  const rep = pq.archivos['06-accidentes-incidentes-y-reportes.csv'] || '';
+  ok('paquete de auditoría: filtra por periodo, CSV para Excel (BOM y «;») y la firma no se copia', rep.charCodeAt(0) === 0xfeff && /R1/.test(rep) && !/R2/.test(rep) && /\(firmado\)/.test(rep) && /"Golpe; en la mano"/.test(rep) && !/base64/.test(rep));
+  ok('paquete de auditoría: lo vigente (matriz legal), LEEME y SIN datos de salud', !!pq.archivos['02-matriz-legal.csv'] && !!pq.archivos['LEEME.html'] && !Object.keys(pq.archivos).some((k) => /examen|salud/i.test(k)) && !PA.PARTES.some((x) => x[0] === 'examen'));
+  ok('paquete de auditoría: botón en Auditorías', /PaqueteAuditoria\.abrir\(\)/.test(leer('auditorias.html')) && /paquete-auditoria\.js/.test(leer('auditorias.html')));
+  const ix = leer('index.html');
+  ok('empezar el día: saludo, lo de hoy agrupado y «Empezar con lo más urgente»', /id="diaHoy"/.test(ix) && /Empezar con lo más urgente/.test(ix) && /addEventListener\('ssta-pend', pintar\)/.test(ix));
+  ok('paso a paso: en common.js y en accidente, permisos y entrega de EPP', /const PasoAPaso = /.test(leer('common.js')) && /PasoAPaso\.montar/.test(leer('reportes.app.js')) && /wizardPermiso_\(\)/.test(leer('permiso-core.js')) && /PasoAPaso\.montar/.test(leer('entrega-epp.html')));
+  ok('cruce al investigar: habilitación, examen, cursos y EPP a la fecha del accidente, y se pasa al análisis', /async function verificacionPrevia/.test(leer('reportes.app.js')) && /id="iPrevio"/.test(leer('reportes.html')) && /Verificación a la fecha del accidente/.test(leer('reportes.app.js')));
+  const ui = leer('sgsst-ui.js');
+  ok('fotos con fecha, hora y GPS impresos; las PQRS (anónimas) sin ubicación', /async function selloFoto/.test(ui) && /function sellar\(/.test(ui) && /sinSello: true/.test(leer('reportes.app.js')) && !/selloFoto|sellar/.test(leer('buzon.html')));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');

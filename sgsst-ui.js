@@ -114,6 +114,44 @@ const UI = (function () {
       fr.readAsDataURL(archivo);
     });
   }
+  /* v182 · Evidencia con fecha, hora y GPS: cada foto lleva impresos abajo la fecha y hora en que se tomó
+     (la del archivo si es reciente, si no la de ahora) y, si la persona da permiso, la ubicación.
+     Va impreso en la imagen: no se pierde al imprimir, al pasar a PDF ni al reenviar. */
+  function gpsAhora() {
+    return new Promise((ok) => {
+      try { const g = JSON.parse(sessionStorage.getItem('ssta-gps') || 'null'); if (g && Date.now() - g.t < 600000) return ok(g); } catch (e) {}
+      if (!navigator.geolocation) return ok(null);
+      const t = setTimeout(() => ok(null), 6000);
+      try {
+        navigator.geolocation.getCurrentPosition((p) => { clearTimeout(t); const g = { lat: p.coords.latitude, lon: p.coords.longitude, prec: p.coords.accuracy, t: Date.now() };
+          try { sessionStorage.setItem('ssta-gps', JSON.stringify(g)); } catch (e) {} ok(g); }, () => { clearTimeout(t); ok(null); }, { enableHighAccuracy: true, maximumAge: 300000, timeout: 5500 });
+      } catch (e) { clearTimeout(t); ok(null); }
+    });
+  }
+  async function selloFoto(archivo) {
+    const lm = archivo && archivo.lastModified, ahora = Date.now();
+    const cuando = new Date(lm && ahora - lm < 7 * 864e5 && lm <= ahora + 6e4 ? lm : ahora);
+    const dos = (n) => String(n).padStart(2, '0');
+    const txt = dos(cuando.getDate()) + '/' + dos(cuando.getMonth() + 1) + '/' + cuando.getFullYear() + ' ' + dos(cuando.getHours()) + ':' + dos(cuando.getMinutes());
+    const g = await gpsAhora();
+    return txt + (g ? ' · ' + g.lat.toFixed(5) + ', ' + g.lon.toFixed(5) + (g.prec ? ' (±' + Math.round(g.prec) + ' m)' : '') : '');
+  }
+  function sellar(dataUrl, texto) {
+    return new Promise((ok) => {
+      const img = new Image();
+      img.onerror = () => ok(dataUrl);
+      img.onload = () => {
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const fs = Math.max(12, Math.round(c.width / 38)), h = Math.round(fs * 1.7);
+        g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, c.height - h, c.width, h);
+        g.fillStyle = '#fff'; g.font = '600 ' + fs + 'px system-ui, sans-serif'; g.textBaseline = 'middle';
+        g.fillText(texto, Math.round(fs * 0.6), c.height - h / 2, c.width - fs);
+        ok(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = dataUrl;
+    });
+  }
   /** Galería de fotos con botón de cámara. Devuelve {get, set}. */
   function fotos(contenedor, opciones) {
     opciones = opciones || {};
@@ -125,7 +163,9 @@ const UI = (function () {
       const inp = contenedor.querySelector('input[type=file]');
       if (inp) inp.addEventListener('change', async () => {
         const f = inp.files[0]; if (!f) return;
-        try { lista.push(await comprimir(f)); pintar(); if (opciones.alCambiar) opciones.alCambiar(); } catch (e) { toast('No se pudo agregar la foto: ' + e.message, 'mal'); }
+        try { const sello = opciones.sinSello ? null : await selloFoto(f);
+          lista.push(await comprimir(f).then((d)=> sello ? sellar(d, sello) : d)); pintar(); if (opciones.alCambiar) opciones.alCambiar(); } catch (e) { toast('No se pudo agregar la foto: ' +
+            e.message, 'mal'); }
       });
       contenedor.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => { lista.splice(+b.dataset.q, 1); pintar(); if (opciones.alCambiar) opciones.alCambiar(); }));
     };

@@ -231,7 +231,21 @@ function ponerClase(c){
   // v129: el acto seguro no lleva potencial de daño ni campo de reconocimiento.
   $('filaPot').hidden = c === 'Acto seguro'; if (c === 'Acto seguro') $('filaInmediataTxt').hidden = true;
   if (obs) pintarCategorias(c);
-
+  wizardReporte(c);
+}
+/* v182 · Accidente e incidente se llenan por pasos: ¿qué pasó? → ¿quién? → ¿dónde y cuándo? → evidencias → quién reporta.
+   «Ver todo junto» deja el formulario completo. Después de enviarlo sigue la investigación. */
+let wizRep = null;
+function wizardReporte(c){
+  if (wizRep) { wizRep.destruir(); wizRep = null; }
+  if ((c !== AT && c !== 'Incidente') || typeof PasoAPaso === 'undefined') return;
+  const f = (id)=> { const e = $(id); return e ? (e.closest('.grid2') || e.closest('.field')) : null; };
+  wizRep = PasoAPaso.montar({ antes: $('cardEvento'), fin: $('btnEnviar'), pasos: [
+    { titulo: '¿Qué pasó?', els: [f('nDesc'), $('filaPot')], validar: ()=> $('nDesc').value.trim().length < 10 ? 'Cuenta qué pasó (por lo menos una frase).' : '' },
+    { titulo: '¿Quién?', els: [c === AT ? $('cardLesion') : null, $('filaRelacionados')] },
+    { titulo: '¿Dónde y cuándo?', els: [f('nFecha'), f('nLugar'), f('nCentro')] },
+    { titulo: 'Evidencias y qué se hizo', els: [f('nFotos'), $('filaAccionTomada'), $('filaInmediataTxt'), $('filaPlan'), $('filaConsecuencias')] },
+    { titulo: 'Quién reporta', els: [$('cardQuien')] } ] });
 }
 function nuevo(){
   furatPdfPend = null;
@@ -250,7 +264,7 @@ function nuevo(){
   $('pAnonima').checked = false; $('pDatos').hidden = false;
   $('pTipo').querySelectorAll('button').forEach((x)=> x.classList.remove('on')); $('pPresenta').querySelectorAll('button').forEach((x)=> x.classList.remove('on'));
   $('pTipoAyuda').textContent = 'Elige una opción.'; $('pFilaEmpresa').hidden = true;
-  fotosPqrs = UI.fotos($('pFotos'), { max: 2 });
+  fotosPqrs = UI.fotos($('pFotos'), { max: 2, sinSello: true });   // v182: las PQRS pueden ser anónimas: sin GPS
   $('pPlazo').textContent = 'Plazo para responder: ' + DIAS_PQRS + ' días hábiles (a más tardar el ' + UI.corta(Festivos.sumarHabiles(UI.hoy(), DIAS_PQRS)) + ').';
   ponerClase(''); $('msgNuevo').textContent = '';
   show('scrNuevo');
@@ -537,8 +551,66 @@ function abrirInvestigacion(){
   $('msgInv').textContent = '';
   pintarPorques();
   $('iFurPersona').innerHTML = '<div class="empty">Cargando datos…</div>';
-  Habilitacion.cargar().catch(()=> null).then(()=> { if (document.getElementById('scrInv').classList.contains('active')) pintarFurat(); });
+  Habilitacion.cargar().catch(()=> null).then(()=> { if (document.getElementById('scrInv').classList.contains('active')) { pintarFurat(); verificacionPrevia(); } });
   show('scrInv');
+}
+
+/* v182 · Cruce al investigar: con la cédula del lesionado y la fecha del accidente, el portal revisa solo
+   si estaba en Personal habilitado, su concepto médico, la inducción, los cursos del trabajo que hacía
+   (alturas, confinados, eléctrico…), la seguridad social y el último EPP entregado. Lo que encuentra se
+   pasa al análisis con un botón. Es lo que pide la ARL y antes se buscaba a mano. */
+async function verificacionPrevia(){
+  const caja = $('iPrevio'); if (!caja || !actual) return;
+  const l = actual.lesionado || {}, ced = Habilitacion.clave(l.cedula), fa = String(actual.fecha || '').slice(0, 10) || UI.hoy();
+  if (actual.clase !== AT) { $('iPrevioCard').hidden = true; return; }
+  $('iPrevioCard').hidden = false;
+  if (!ced) { caja.innerHTML = '<div class="empty">Falta la cédula del lesionado en el reporte: escríbela y vuelve a abrir la investigación.</div>'; return; }
+  const t = (Habilitacion._mapa || {})[ced], cfg = Habilitacion.config(), filas = [];
+  const fila = (ok, tit, det)=> filas.push({ ok, tit, det });
+  const texto = UI.norm([actual.descripcion, l.mecanismo, l.agente, actual.lugar].join(' '));
+  const ctx = [['alturas', /altura|andamio|escalera|techo|cubierta|arnes|caida de (nivel|altura)/],
+    ['confinados', /confinad|tanque|pozo|alcantarill/], ['electrico', /electric|tablero|descarga|corto/],
+    ['caliente', /soldad|oxicorte|esmeril|pulidora|chispa|caliente/], ['izajes', /izaje|grua|montacarga|diferencial|carga suspendida/]].filter(([, re])=> re.test(texto)).map(([k])=> k);
+  if (!t) fila(false, 'Personal habilitado', 'No estaba registrado en Personal habilitado.');
+  else {
+    fila(t.activo !== false, 'Personal habilitado', t.activo === false ? 'Estaba marcado como inactivo.' : 'Registrado' + (t.cargo ? ' como ' + t.cargo : '') + '.');
+    Habilitacion.exigidos(ctx).forEach((k)=> {
+      const def = cfg.requisitos[k] || { nombre: k }, r = (t.req || {})[k];
+      if (!r || (!r.fecha && !r.vence)) { fila(false, def.nombre, 'Sin registro.'); return; }
+      const ini = String(r.fecha || '').slice(0, 10), vence = String(r.vence || (ini && def.meses ? Festivos.sumarDias(Festivos.sumarMeses(ini, def.meses), -1) : '')).slice(0, 10);
+      if (ini && ini > fa) { fila(false, def.nombre, 'Lo obtuvo DESPUÉS del accidente (' + UI.corta(ini) + ').'); return; }
+      if (vence && vence < fa) { fila(false, def.nombre, 'Estaba vencido desde el ' + UI.corta(vence) + '.'); return; }
+      if (def.apto && /no apto|aplazado/i.test(r.apto || '')) { fila(false, def.nombre, 'Concepto: ' + r.apto + '.'); return; }
+      fila(true, def.nombre, 'Vigente' + (ini ? ' desde el ' + UI.corta(ini) : '') + (vence ? ' hasta el ' + UI.corta(vence) : '') +
+        (def.apto && /restricci/i.test(r.apto || '') ? ' · apto con restricciones (revisa su ficha)' : '') + '.');
+    });
+    const rm = t.restr;
+    const afecta = rm && ctx.some((c)=> rm.para.indexOf(c) !== -1 || rm.para.indexOf('todo') !== -1);
+    if (rm && (rm.para || []).length && (!rm.hasta || rm.hasta >= fa)) fila(afecta ? false : null, 'Restricción médica', 'Tenía restricción para: ' + rm.para.join(', ') +
+      (rm.hasta ? ' (hasta el ' + UI.corta(rm.hasta) + ')' : '') + '.');
+  }
+  caja.innerHTML = '<div class="empty">Revisando el EPP entregado…</div>';
+  let ent = [];
+  try { const r = await SGSST.listar('entrega', { sinPedir: true });
+    ent = (r.rows || []).filter((x)=> Habilitacion.clave(x.resumen.cedula) === ced && String(x.resumen.fecha || '').slice(0, 10) <= fa)
+      .sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha))); } catch (e) {}
+  if (ent.length) { const u = ent[0].resumen, dias = Math.round((Date.parse(fa) - Date.parse(String(u.fecha).slice(0, 10))) / 864e5);
+    fila(dias <= 365 ? true : null, 'EPP entregado', 'Última entrega el ' + UI.corta(u.fecha) + ' (hace ' + dias + ' días)' + (u.elementosTexto ? ': ' +
+      String(u.elementosTexto).slice(0, 220) : '') + '.'); }
+  else fila(false, 'EPP entregado', 'No hay entregas de EPP registradas antes del accidente.');
+  const mal = filas.filter((f)=> f.ok === false);
+  caja.innerHTML = (mal.length ? '<div class="aviso mal">' + mal.length +
+    ' cosa(s) no estaban en regla. Tenlas en cuenta en las causas.</div>' : '<div class="aviso ok">Todo lo que el portal puede revisar estaba en regla.</div>') +
+    filas.map((f)=> '<div class="item ' + (f.ok === true ? 'ok' : f.ok === false ? 'mal' : 'pronto') + '" style="cursor:default;"><div class="fila"><div><div class="t">' + esc(f.tit) +
+      '</div><div class="m">' + esc(f.det) + '</div></div><span class="chip ' + (f.ok === true ? 'ok' : f.ok === false ? 'mal' : 'pronto') + '">' +
+        (f.ok === true ? 'En regla' : f.ok === false ? 'No' : 'Revisar') + '</span></div></div>').join('') +
+    (ctx.length ? '<p class="ayuda">Trabajo detectado en la descripción: ' + esc(ctx.join(', ')) + '.</p>' : '') +
+    '<button type="button" class="btn ghost u-mt8" id="iPrevioPasar">Pasar esto al análisis</button>';
+  $('iPrevioPasar').addEventListener('click', ()=> {
+    const txt = 'Verificación a la fecha del accidente (' + UI.corta(fa) + '):\n' + filas.map((f)=> '- ' + f.tit + ': ' + (f.ok === true ? 'en regla' : f.ok === false ? 'NO' : 'revisar') +
+      '. ' + f.det).join('\n');
+    const a = $('iAnalisis'); if (a.value.indexOf('Verificación a la fecha del accidente') === -1) a.value = (a.value ? a.value.trim() + '\n\n' : '') + txt;
+    a.dispatchEvent(new Event('input', { bubbles: true })); UI.toast('✓ Pasado al análisis.'); a.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
 }
 /* «Otra» causa: se agrega al grupo ya marcada. */
 document.addEventListener('click', (e)=> {

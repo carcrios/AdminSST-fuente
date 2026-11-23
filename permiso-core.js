@@ -1288,6 +1288,22 @@ const PermisoCore = (function () {
     $('app').style.display = 'block';
     $('footerActions').style.display = 'flex';
   }
+  /* v182 · Abrir un permiso por pasos: tipo de trabajo → personas → peligros → controles → firmas.
+     Agrupa las secciones del formulario por su título (cada permiso tiene las suyas). «Ver todo junto»
+     deja el formato completo. Al cerrar un permiso se ve todo, como siempre. */
+  let wizPermiso = null;
+  function wizardPermiso_() {
+    if (wizPermiso) { wizPermiso.destruir(); wizPermiso = null; }
+    const fase = $('openPhase'); if (!fase || typeof PasoAPaso === 'undefined') return;
+    const secs = [...fase.querySelectorAll(':scope > .section')].filter((s) => !s.querySelector('#titleSecClose'));
+    const tit = (s) => { const t = s.querySelector('.section-title'); return (t ? t.textContent : '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); };
+    const G = [['Tipo de trabajo', /planeacion|datos generales|descripcion|duracion|generalidades|autorizacion del trabajo|tipo de trabajo|documentos adjuntos/],
+      ['Personas', /ejecutantes|trabajadores autorizados/], ['Peligros y verificación', /medicion|gases|acceso|anclaje|calculos|preparacion|lista de verificacion|verificacion|condiciones/],
+      ['Controles y EPP', /proteccion|epp|controles|medidas|observaciones/], ['Firmas', /firmas|termino de responsabilidad|roles/]];
+    const pasos = G.map(([t]) => ({ titulo: t, els: [] }));
+    secs.forEach((s) => { const k = G.findIndex(([, re]) => re.test(tit(s))); (pasos[k === -1 ? 0 : k]).els.push(s); });
+    wizPermiso = PasoAPaso.montar({ antes: secs[0], fin: $('mainActionBtn'), navTras: secs[secs.length - 1], pasos: pasos.filter((p) => p.els.length) });
+  }
   function startNewPermit() {
     MODE = 'open';
     permitCode = genCode();
@@ -1310,6 +1326,7 @@ const PermisoCore = (function () {
     $('closeFields').classList.add('hidden');
     atsRelacionado = null; codigoAvisadoAlAts = null; copiadoDe = null;
     pintarAtsRelacionado_();
+    wizardPermiso_();
     checkForOpenDraft();
     aplicarPrefillDesdeAts_();
     prellenarBasicos_();
@@ -1352,6 +1369,7 @@ const PermisoCore = (function () {
     $('statusBannerText').textContent = data.status === 'CERRADO' ? 'Permiso ya cerrado (modo consulta)' : 'Permiso abierto — completa el cierre';
     $('permitCodeDisplay').textContent = permitCode;
     $('closeLockedMsg').classList.add('hidden');
+    if (wizPermiso) { wizPermiso.destruir(); wizPermiso = null; }   // v182: al cerrar se ve el permiso completo
     $('closeFields').classList.remove('hidden');
     refreshPadsIn($('closeFields'));
     const closeTitle = $(cfg.closeSectionTitleId || 'titleSec7');

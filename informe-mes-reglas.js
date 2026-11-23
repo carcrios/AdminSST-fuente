@@ -240,6 +240,20 @@ const INFORME_MES = (function () {
     return o;
   }
 
-  return { calcular, destacados, opciones, porDefecto, nombreMes, iso, elementos, temas };
+  /** v182 · El valor del mes para el gerente: este mes frente al anterior, en frases. RA = calcular() del mes anterior. */
+  function valor(R, RA, F) {
+    if (!F || !RA) return [];
+    const C = F.comparar, l = [];
+    l.push(C('las inspecciones', R.inspecciones.total, RA.inspecciones.total, 'el mes pasado', false));
+    l.push(C('los actos y condiciones reportados', R.eventos.actos + R.eventos.condiciones, RA.eventos.actos + RA.eventos.condiciones, 'el mes pasado', false));
+    l.push(C('las acciones del plan cerradas', R.acciones.cerradas, RA.acciones.cerradas, 'el mes pasado', false));
+    l.push(C('las entregas de EPP', R.epp.entregas, RA.epp.entregas, 'el mes pasado', false));
+    if (R.formacion.charlas !== null && RA.formacion.charlas !== null) l.push(C('las charlas', R.formacion.charlas, RA.formacion.charlas, 'el mes pasado', false));
+    l.push(C('los accidentes de trabajo', R.eventos.accidentes, RA.eventos.accidentes, 'el mes pasado', true));
+    if (R.eventos.dias || RA.eventos.dias) l.push(C('los días perdidos por accidentes', R.eventos.dias, RA.eventos.dias, 'el mes pasado', true));
+    return l.filter((x) => x && x.tono !== 'igual');
+  }
+
+  return { calcular, destacados, valor, opciones, porDefecto, nombreMes, iso, elementos, temas };
 })();
 if (typeof module !== 'undefined') module.exports = INFORME_MES;

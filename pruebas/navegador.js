@@ -171,7 +171,7 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
   const nav = await chromium.launch();
   // v116: el aviso de privacidad de la primera vez se da por visto (tiene su propia prueba abajo).
   const nuevoContexto = nav.newContext.bind(nav);
-  nav.newContext = async (o) => { const c = await nuevoContexto(o); if (!(o && o.__conAviso)) await c.addInitScript(() => { try { localStorage.setItem('ssta-aviso-privacidad', '2026-10'); } catch (e) {} }); await c.addInitScript(() => { if (!window.__sstaDialogoAuto) window.__sstaDialogoAuto = 'cancelar'; }); if (!(o && o.__conIrAGestion)) await c.addInitScript(() => { try { sessionStorage.setItem('ssta-sg-auto', '1'); } catch (e) {} }); /* v159: las pruebas del inicio público no caen en Gestión */ /* v132: como hacía Playwright con las ventanas del navegador */ return c; };
+  nav.newContext = async (o) => { const c = await nuevoContexto(o); await c.addInitScript(() => { try { if (!localStorage.getItem('ssta-paso-a-paso')) localStorage.setItem('ssta-paso-a-paso', 'todo'); } catch (e) {} }); /* v182: las pruebas viejas llenan el formulario completo */ if (!(o && o.__conAviso)) await c.addInitScript(() => { try { localStorage.setItem('ssta-aviso-privacidad', '2026-10'); } catch (e) {} }); await c.addInitScript(() => { if (!window.__sstaDialogoAuto) window.__sstaDialogoAuto = 'cancelar'; }); if (!(o && o.__conIrAGestion)) await c.addInitScript(() => { try { sessionStorage.setItem('ssta-sg-auto', '1'); } catch (e) {} }); /* v159: las pruebas del inicio público no caen en Gestión */ /* v132: como hacía Playwright con las ventanas del navegador */ return c; };
   const CELULAR = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3, serviceWorkers: 'block' };
   const PC = { viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' };
   try {
@@ -460,6 +460,36 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.click('#btnEnviar'); await pg.waitForTimeout(5000);
       const fr = await pg.evaluate(async () => { const r = await SGSST.listar('reporte'); const x = (r.rows || []).find((e) => e.resumen.lesionado === 'JUAN CARLOS PEREZ GOMEZ'); return x ? { furat: x.resumen.furat, adj: Number(x.resumen._adjTotal || 0) } : null; });
       ok('FURAT en PDF: el accidente queda con el FURAT radicado y el PDF adjunto', !!fr && fr.furat && fr.furat.radicado && fr.furat.numero === '2026-AT-77001' && fr.adj > 0, JSON.stringify(fr));
+      // v182: asistente paso a paso en el accidente, cruce al investigar, empezar el día, indicadores que hablan, paquete de auditoría
+      await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'pasos'));
+      await pg.goto(S.url + '/reportes.html?nuevo=accidente'); await pg.waitForTimeout(3000);
+      const w1 = await pg.evaluate(() => ({ tit: (document.querySelector('.pp-tit') || {}).textContent || '', desc: !!document.getElementById('nDesc').offsetParent, lugar: !!document.getElementById('nLugar').offsetParent, enviar: !!document.getElementById('btnEnviar').offsetParent }));
+      await pg.fill('#nDesc', 'Se golpeó la mano con una lámina al moverla en el taller.');
+      await pg.click('[data-pp="sig"]'); await pg.waitForTimeout(300); await pg.click('[data-pp="sig"]'); await pg.waitForTimeout(300);
+      const w3 = await pg.evaluate(() => ({ tit: document.querySelector('.pp-tit').textContent, lugar: !!document.getElementById('nLugar').offsetParent, desc: !!document.getElementById('nDesc').offsetParent }));
+      ok('paso a paso: el accidente va por pasos (paso 1 «¿Qué pasó?», paso 3 «¿Dónde y cuándo?») y guardar sale al final', /Paso 1 de 5 · ¿Qué pasó\?/.test(w1.tit) && w1.desc && !w1.lugar && !w1.enviar && /Paso 3 de 5/.test(w3.tit) && w3.lugar && !w3.desc, JSON.stringify([w1, w3]));
+      await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'todo'));
+      const repAT = await pg.evaluate(async () => { const r = await SGSST.listar('reporte'); const x = (r.rows || []).find((e) => e.resumen.lesionado === 'JUAN CARLOS PEREZ GOMEZ'); return x ? x.id : ''; });
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(3000);
+      const vp = await pg.evaluate(async (id) => { if (!id) return null; actual = await SGSST.doc(id); actual.id = id; abrirInvestigacion(); await new Promise((r) => setTimeout(r, 3500)); return document.getElementById('iPrevio').innerText; }, repAT);
+      ok('cruce al investigar: revisa habilitación y EPP a la fecha del accidente', !!vp && /Personal habilitado/.test(vp) && /EPP entregado/.test(vp), String(vp).slice(0, 200));
+      await pg.goto(S.url + '/indicadores.html'); await pg.waitForTimeout(3500);
+      const ih = await pg.evaluate(() => document.querySelectorAll('#indHabla .frases-ind li').length);
+      ok('indicadores que hablan: frases arriba de los indicadores', ih >= 1, String(ih));
+      await pg.goto(S.url + '/index.html'); await pg.waitForTimeout(4000);
+      const dh = await pg.evaluate(() => { const c = document.getElementById('diaHoy'); return c && !c.hidden ? c.innerText : ''; });
+      ok('empezar el día: saludo con lo de hoy y el botón de lo más urgente', /Buen(os|as) (días|tardes|noches)/.test(dh) && (/Empezar con lo más urgente/.test(dh) || /No tienes nada vencido/.test(dh)), dh.slice(0, 160));
+      // v182: permiso y entrega de EPP por pasos
+      await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'pasos'));
+      await pg.goto(S.url + '/permiso-trabajo-alturas.html'); await pg.waitForTimeout(2500);
+      await pg.evaluate(() => { const b = document.getElementById('cardNew'); if (b) b.click(); }); await pg.waitForTimeout(1500);
+      const pw = await pg.evaluate(() => ({ tit: (document.querySelector('.pp-tit') || {}).textContent || '', visibles: [...document.querySelectorAll('#openPhase > .section')].filter((x) => x.offsetParent).length, todas: document.querySelectorAll('#openPhase > .section').length, btn: !!document.getElementById('mainActionBtn').offsetParent }));
+      ok('paso a paso: el permiso de alturas se abre por pasos (tipo de trabajo primero) y guardar sale al final', /Paso 1 de \d · Tipo de trabajo/.test(pw.tit) && pw.visibles < pw.todas && !pw.btn, JSON.stringify(pw));
+      await pg.goto(S.url + '/entrega-epp.html'); await pg.waitForTimeout(3000);
+      await pg.evaluate(() => nuevaEntrega({})); await pg.waitForTimeout(600);
+      const ew = await pg.evaluate(() => ({ tit: (document.querySelector('#scrEnt .pp-tit') || {}).textContent || '', firma: !!document.getElementById('fRec').offsetParent, nom: !!document.getElementById('eNom').offsetParent }));
+      ok('paso a paso: la entrega de EPP va por pasos (¿a quién? → elementos → firma)', /Paso 1 de 3 · ¿A quién\?/.test(ew.tit) && ew.nom && !ew.firma, JSON.stringify(ew));
+      await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'todo'));
       ok('sin errores de JavaScript', !err.length, err.join(' | ').slice(0, 300));
       await ctx.close();
     }

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-t0lQ/5/EOoJ3+kO+YY3LFg39BV4ZrChLNrKOmy3IHlY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-x7daQuaT65gE51W6POCz+Qhc712zeimpJZZ2/TYdOy8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Indicadores SG-SST · Portal SSTA</title>
@@ -82,6 +82,7 @@ table.tend th{font-size:var(--fs-etiqueta);color:var(--muted);text-transform:upp
   </details>
 
   <h2 style="font-family:var(--font-display);font-size:var(--fs-titulo);margin:16px 2px 8px;">Res. 0312 de 2019 · mínimos</h2>
+  <div id="indHabla"></div>
   <div id="ind0312"><div class="empty">Cargando…</div></div>
   <h2 style="font-family:var(--font-display);font-size:var(--fs-titulo);margin:16px 2px 8px;">Gestión del mes</h2>
   <div id="indGestion"></div>
@@ -93,7 +94,7 @@ table.tend th{font-size:var(--fs-etiqueta);color:var(--muted);text-transform:upp
   </div>
   <button type="button" class="btn amber" id="btnPdf">🖨️ Informe del mes en PDF</button>
   <button type="button" class="btn ghost" id="btnFichas">Fichas técnicas de los indicadores (PDF)</button>
-  <div class="version-portal">Portal SSTA · versión v181</div>
+  <div class="version-portal">Portal SSTA · versión v182</div>
 </div>
 
 <script src="dialogo.js"></script>
@@ -107,6 +108,7 @@ table.tend th{font-size:var(--fs-etiqueta);color:var(--muted);text-transform:upp
 <script src="i18n-en.js"></script>
 <script src="i18n.js"></script>
 <script src="informe-reglas.js"></script>
+<script src="frases-indicadores.js"></script>
 <script>
 OfflineBanner.init();
 OutboxBadge.init();
@@ -213,8 +215,27 @@ function tarjeta(nombre, valor, unidad, formula, calc, nota){
 }
 const pct = (a, b)=> b ? a / b * 100 : null;
 
+/* v182 · Indicadores que hablan: este mes frente al anterior y frente al mismo mes del año pasado, y el acumulado del año. */
+function pintarHabla(m, r){
+  if (typeof FrasesInd === 'undefined') return;
+  if (!document.getElementById('estiloFrases')) { const st = document.createElement('style'); st.id = 'estiloFrases'; st.textContent = FrasesInd.CSS; document.head.appendChild(st); }
+  const ra = calcular(mesMas(m, -1)), ry = calcular(mesMas(m, -12)), C = FrasesInd.comparar;
+  const atAcum = (mm)=> D.reportes.filter((x)=> x.resumen.clase === AT && String(x.resumen.fecha).slice(0, 4) === mm.slice(0, 4) && mesDe(x.resumen.fecha) <= mm).length;
+  const sinAT = FrasesInd.diasSinAT(D.reportes.filter((x)=> x.resumen.clase === AT).map((x)=> x.resumen.fecha), UI.hoy());
+  const l = [
+    r.trab && ry.trab ? C('tu frecuencia de accidentalidad', r.frecuencia, ry.frecuencia, 'el mismo mes del año pasado', true) : null,
+    r.trab && ra.trab ? C('tu severidad de accidentalidad', r.severidad, ra.severidad, 'el mes pasado', true) : null,
+    C('los accidentes de trabajo en lo que va del año', atAcum(m), atAcum(mesMas(m, -12)), 'el mismo periodo del año pasado', true),
+    C('los actos y condiciones reportados', r.actos, ra.actos, 'el mes pasado', false),
+    r.insProg || ra.insProg ? C('las inspecciones hechas', r.insHechas, ra.insHechas, 'el mes pasado', false) : null,
+    sinAT !== null && String(m) === UI.hoy().slice(0, 7) ? { texto: sinAT === 0 ? 'Hoy hubo un accidente de trabajo.' : 'Llevas ' + sinAT + ' día' + (sinAT === 1 ? '' : 's') + ' sin accidentes de trabajo.', tono: sinAT >= 30 ? 'bien' : 'igual' } : null,
+    r.accVencidas ? { texto: 'Hay ' + r.accVencidas + ' acción(es) del plan vencidas hoy.', tono: 'mal' } : null,
+  ];
+  $('indHabla').innerHTML = FrasesInd.html(l, esc);
+}
 function pintar(){
   const m = $('mes').value, r = calcular(m), dm = r.dm;
+  pintarHabla(m, r);
   $('dTrab').value = dm.trabajadores || ''; $('dDiasProg').value = dm.diasProgramados || ''; $('dAus').value = dm.diasAusencia === undefined ? '' : dm.diasAusencia;
   $('dHht').value = dm.hht || ''; $('dEL').value = dm.casosEL === undefined ? '' : dm.casosEL; $('dELn').value = dm.casosELNuevos === undefined ? '' : dm.casosELNuevos;
   $('dInsProg').value = dm.inspeccionesProgramadas || ''; $('dCapProg').value = dm.capacitacionesProgramadas || '';

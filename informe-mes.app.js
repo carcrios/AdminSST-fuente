@@ -54,12 +54,20 @@ async function cargar() {
   datos = { rows: r.rows || [], permisos, ats, epp, charlas };
   calcular();
 }
+let VAL = [];
 function calcular() {
   if (!datos) return;
   try {
     history.replaceState(null, '', location.pathname + '?mes=' + mes);
   } catch (e) {}
   R = IM.calcular(Object.assign({ mes, hoy: UI.hoy() }, datos));
+  // v182: el mes anterior, para decir en frases cómo vamos (valor para el gerente)
+  const pm = new Date(Date.UTC(+mes.slice(0, 4), +mes.slice(5, 7) - 2, 1)).toISOString().slice(0, 7);
+  try {
+    VAL = IM.valor(R, IM.calcular(Object.assign({}, datos, { mes: pm, hoy: UI.hoy() })), typeof FrasesInd !== 'undefined' ? FrasesInd : null);
+  } catch (e) {
+    VAL = [];
+  }
   pintar();
 }
 
@@ -95,6 +103,10 @@ function pintar() {
       .map((t) => '<li>' + esc(t) + '</li>')
       .join('') +
     '</ul></div>' +
+    (VAL.length
+      ? '<div class="card"><h2>Cómo vamos frente al mes pasado</h2>' + FrasesInd.html(VAL, esc) +
+        '<div class="fila-btn"><button type="button" class="btn ghost" id="btnValor">Copiar el resumen para el gerente</button></div></div>'
+      : '') +
     '<div class="kpis">' +
     kpi(String(p.total), 'permisos de trabajo', p.ats !== null ? p.ats + ' ATS' : '') +
     kpi(String(e.accidentes), 'accidentes de trabajo', e.dias + ' días perdidos', e.accidentes ? 'mal' : 'ok') +
@@ -254,6 +266,7 @@ function pdf() {
         .map((t) => '<li>' + esc(t) + '</li>')
         .join('') +
       '</ul>' +
+      (VAL.length ? '<h3>Cómo vamos frente al mes pasado</h3><ul>' + VAL.map((v) => '<li>' + esc(v.texto) + '</li>').join('') + '</ul>' : '') +
       '<h3>1. Permisos de trabajo y ATS</h3>' +
       tPdf(
         ['Tipo', 'Abiertos', 'Cerrados', 'Siguen abiertos'],
@@ -314,3 +327,23 @@ $('selMes').addEventListener('change', () => {
 $('btnAct').addEventListener('click', cargar);
 $('btnPdf').addEventListener('click', pdf);
 cargar();
+/* v182 · Resumen de valor para el gerente: lo más importante y cómo vamos, listo para pegar en un correo o WhatsApp. */
+if (typeof FrasesInd !== 'undefined' && !document.getElementById('estiloFrases')) {
+  const st = document.createElement('style');
+  st.id = 'estiloFrases';
+  st.textContent = FrasesInd.CSS;
+  document.head.appendChild(st);
+}
+document.addEventListener('click', async (e) => {
+  if (!e.target.closest('#btnValor') || !R) return;
+  const t =
+    'Informe del SG-SST · ' + IM.nombreMes(R.mes) + ' · ' + (EMPRESA.nombre || '') + '\n\nLo más importante:\n' +
+    IM.destacados(R).map((x) => '• ' + x).join('\n') +
+    (VAL.length ? '\n\nFrente al mes pasado:\n' + VAL.map((v) => '• ' + v.texto).join('\n') : '');
+  try {
+    await navigator.clipboard.writeText(t);
+    UI.toast('Copiado: pégalo en el correo o el WhatsApp del gerente.');
+  } catch (er) {
+    Dialogo.avisar(t);
+  }
+});

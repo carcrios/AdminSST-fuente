@@ -26,6 +26,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `13-guia-flotante.js` | 171 | GuiaFlotante |
 | `14-licencia-modo.js` | 97 | LicenciaModo |
 | `15-datos-cruzados.js` | 51 | DatosCruzados |
+| `16-paso-a-paso.js` | 115 | PasoAPaso |
 
 ## 2. Código del sitio
 
@@ -48,6 +49,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `empresa-motor.js` | 415 | Lo que hace funcionar empresa.js (v116) | todas |
 | `empresa.js` | 746 | Sitio multiempresa (tu marca) | todas |
 | `evidencias-reglas.js` | 190 | Carpeta de evidencias por estándar (v105) | analitica, evidencias, informe |
+| `frases-indicadores.js` | 61 | Indicadores que hablan (v182) | indicadores, informe-mes |
 | `gtc45-catalogo.js` | 184 | Catálogo de peligros de la GTC 45 (2012) | peligros, percepcion-peligros |
 | `guia-preguntas.js` | 427 | La guía a la que se le pregunta (v172) | ayuda |
 | `i18n-en.js` | 282 | Diccionario español → inglés de los reportes y la gerencia (v169) | gerencia, indicadores, informe, pantalla-planta |
@@ -55,8 +57,8 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `iconos-emoji.js` | 126 | v122 | todas |
 | `importar.js` | 593 | Carga masiva: escribir en una tabla o pegar de Excel | 5 pantallas |
 | `induccion-banco.js` | 39 | Temas y evaluación de la inducción en SST | induccion-responder, induccion |
-| `informe-mes-reglas.js` | 245 | Cálculo del informe mensual de actividades (v171) | informe-mes |
-| `informe-mes.app.js` | 316 | Informe mensual de actividades (v171) | informe-mes |
+| `informe-mes-reglas.js` | 259 | Cálculo del informe mensual de actividades (v171) | informe-mes |
+| `informe-mes.app.js` | 349 | Informe mensual de actividades (v171) | informe-mes |
 | `informe-reglas.js` | 503 | Informe del SG-SST con sugerencias (v107) | 6 pantallas |
 | `inspecciones-plantillas.js` | 983 | Listas de chequeo de las inspecciones | 6 pantallas |
 | `inspecciones.app.js` | 824 | código de inspecciones.html (v162: fuera del HTML para que el celular lo guarde en caché). | inspecciones |
@@ -68,7 +70,8 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `normas-base.js` | 42 | Lista para empezar la matriz legal de SST (Colombia) | documental |
 | `normograma-app.js` | 221 | Normograma dentro de la matriz legal (v180) | documental |
 | `pantalla-planta.app.js` | 223 | El tablero para el televisor de la planta (v169) | pantalla-planta |
-| `permiso-core.js` | 2756 | Núcleo compartido de los 4 permisos de trabajo | 5 pantallas |
+| `paquete-auditoria.js` | 158 | Paquete de auditoría con un clic (v182) | auditorias |
+| `permiso-core.js` | 2774 | Núcleo compartido de los 4 permisos de trabajo | 5 pantallas |
 | `plan-sugerido.js` | 189 | Plan anual de trabajo armado según la empresa (v105) | plan-anual |
 | `preop-base.js` | 2718 | Preoperacionales base del portal (v123–v124) | admin, configurar-empresa, etiquetas-qr, preoperacional |
 | `preop-formularios.js` | 7 | Preoperacionales del portal (GENERADO) | 5 pantallas |
@@ -77,9 +80,9 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `proveedores.app.js` | 994 | código de proveedores.html (v162: fuera del HTML para que el celular lo guarde en caché). | proveedores |
 | `qr.js` | 388 | Generador de códigos QR del Portal SSTA | 18 pantallas |
 | `registros.js` | 126 | Formularios por esquema para los módulos de planeación | 37 pantallas |
-| `reportes.app.js` | 997 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
-| `sgsst-ui.js` | 692 | Piezas comunes de las pantallas del SG-SST | 64 pantallas |
-| `sw.js` | 295 | Service Worker del Portal SSTA — v2 | — |
+| `reportes.app.js` | 1069 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
+| `sgsst-ui.js` | 732 | Piezas comunes de las pantallas del SG-SST | 64 pantallas |
+| `sw.js` | 296 | Service Worker del Portal SSTA — v2 | — |
 | `valida.js` | 262 | Reglas de datos de los formularios (v107) | 67 pantallas |
 
 ## 3. Pantallas
@@ -98,7 +101,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `asistencia.html` | 1049 | — |
 | `ats.html` | 558 | qr.js, ats-catalogo.js, ats.app.js |
 | `auditor.html` | 84 | — |
-| `auditorias.html` | 629 | registros.js, auditorias-plantillas.js, auditor-enlaces.js |
+| `auditorias.html` | 632 | registros.js, paquete-auditoria.js, auditorias-plantillas.js, auditor-enlaces.js |
 | `ayuda.html` | 139 | ayuda-guias.js, guia-preguntas.js |
 | `bitacora.html` | 99 | — |
 | `buzon.html` | 288 | cifrado.js |
@@ -118,7 +121,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `emergencias.html` | 409 | registros.js, medevac-app.js |
 | `empezar.html` | 65 | registros.js, empezar-reglas.js, empezar.app.js |
 | `encuesta-cliente.html` | 213 | — |
-| `entrega-epp.html` | 550 | registros.js |
+| `entrega-epp.html` | 556 | registros.js |
 | `equipo.html` | 117 | registros.js, qr.js |
 | `estado.html` | 292 | — |
 | `etiquetas-qr.html` | 119 | preop-formularios.js, preop-base.js, qr.js |
@@ -128,11 +131,11 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `gerencia.html` | 215 | i18n-en.js, i18n.js, informe-reglas.js, registros.js, auditorias-plantillas.js |
 | `habeas.html` | 75 | — |
 | `habilitacion.html` | 542 | importar.js |
-| `index.html` | 1552 | licencia.js, preop-formularios.js, empezar-reglas.js, agenda-tareas.js |
-| `indicadores.html` | 401 | i18n-en.js, i18n.js, informe-reglas.js |
+| `index.html` | 1607 | licencia.js, preop-formularios.js, empezar-reglas.js, agenda-tareas.js |
+| `indicadores.html` | 422 | i18n-en.js, i18n.js, informe-reglas.js, frases-indicadores.js |
 | `induccion-responder.html` | 204 | induccion-banco.js, autorizacion-datos.js |
 | `induccion.html` | 262 | registros.js, induccion-banco.js, autorizacion-datos.js, qr.js |
-| `informe-mes.html` | 65 | registros.js, informe-mes-reglas.js, informe-mes.app.js |
+| `informe-mes.html` | 66 | registros.js, frases-indicadores.js, informe-mes-reglas.js, informe-mes.app.js |
 | `informe.html` | 372 | i18n-en.js, i18n.js, registros.js, auditorias-plantillas.js, evidencias-reglas.js, inspecciones-plantillas.js, informe-reglas.js |
 | `inspeccion-epp.html` | 1572 | — |
 | `inspecciones.html` | 228 | registros.js, inspecciones-plantillas.js, importar.js, qr.js, inspecciones.app.js |
@@ -165,7 +168,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `proveedores.html` | 156 | registros.js, proveedores-catalogo.js, proveedores.app.js |
 | `pve.html` | 353 | registros.js, informe-reglas.js |
 | `quimicos.html` | 807 | registros.js, importar.js |
-| `reportes.html` | 344 | lector-examen.js, reportes.app.js |
+| `reportes.html` | 347 | lector-examen.js, reportes.app.js |
 | `revision-direccion.html` | 329 | registros.js |
 | `salud.html` | 1126 | registros.js, lector-examen.js |
 | `terminos.html` | 71 | — |
@@ -223,6 +226,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3895 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3920 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
-| `pruebas/navegador.js` | 1604 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |
+| `pruebas/navegador.js` | 1634 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

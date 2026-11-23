@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-DhOHGYvw5XiO0oAdLrP6ss7LzCtiQEG01RsUFsNPY6E='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ut4UyAH+ySLaLLBbLo5/XujLb4zW2xOiJop78BDTQPU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Matriz y entrega de EPP · Portal SSTA</title>
@@ -67,7 +67,7 @@
   </div>
   <div class="sel-barra" id="selBarra" hidden></div>
   <div id="panel"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v181</div>
+  <div class="version-portal">Portal SSTA · versión v182</div>
 </div>
 <div class="screen" id="scrEnt"></div>
 </div>
@@ -385,6 +385,12 @@ async function nuevaEntrega(pre){
     '<button type="button" class="btn amber" id="eOk">Guardar entrega</button><div class="status-msg" id="eMsg"></div></div>';
   show('scrEnt');
   UI.activarPad('fRec');
+  // v182: la entrega por pasos: persona → qué se entrega y tallas → firma («Ver todo junto» la deja completa)
+  { const cs = [...s.querySelectorAll(':scope > .card')];
+    if (typeof PasoAPaso !== 'undefined' && cs.length >= 3) PasoAPaso.montar({ antes: cs[0], fin: $('eOk'), navTras: cs[cs.length - 1], pasos: [
+      { titulo: '¿A quién?', els: [cs[0]], validar: ()=> !$('eNom').value.trim() || !$('eCed').value.trim() ? 'Escribe el nombre y la cédula de quien recibe.' : '' },
+      { titulo: 'Qué se entrega y tallas', els: cs.slice(1, -1) },
+      { titulo: 'Firma de quien recibe', els: [cs[cs.length - 1]] } ] }); }
   let els = [], matrizUsada = null;
   const pintarEls = ()=> { $('eEls').innerHTML = els.length ? els.map((e, i)=> '<label class="el"><input type="checkbox" data-i="' + i + '"' + (e.va ? ' checked' : '') + '><div><b>' + esc(e.elemento) + '</b><small>' + esc([e.norma, e.vidaUtil ? 'vida útil ' + e.vidaUtil + ' meses' : ''].filter(Boolean).join(' · ')) + '</small></div>' +
       '<div class="det"><input type="number" min="1" data-c="' + i + '" value="' + esc(e.cantidad || 1) + '" aria-label="Cantidad"><input data-t="' + i + '" value="' + esc(e.talla || '') + '" placeholder="Talla / referencia">' +
