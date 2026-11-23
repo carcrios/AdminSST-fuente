@@ -38,7 +38,8 @@ QUÉ HAY EN ESTA CARPETA
                              pega en Google Apps Script (uno por empresa, en SU cuenta).
   PASO-2-SITIO/              Lo que se sube a GitHub, en tandas de menos de 100 archivos:
                                1-paginas/                las pantallas
-                               2-archivos/               lo demás (estilos, fuentes, videos…)
+                               2-archivos/               los programas (.js)
+                               2b-archivos/              lo demás (estilos, fuentes, videos…)
                                3-solo-la-primera-vez/    empresa.js y manifest.json (tu marca).
                                                          Al ACTUALIZAR, esta carpeta NO se sube.
   CHANGELOG.md               Qué cambió en cada versión (dice si hay que actualizar servidores).
@@ -52,7 +53,7 @@ QUÉ HAY EN ESTA CARPETA
                                sitio-demo/         empresa de ejemplo con datos inventados, para
                                                    mostrarle el portal a un cliente.
 
-CUANDO TE LLEGA UNA VERSIÓN NUEVA: Parte D de la guía (sube 1-paginas y 2-archivos, NUNCA la 3;
+CUANDO TE LLEGA UNA VERSIÓN NUEVA: Parte D de la guía (sube 1-paginas, 2-archivos y 2b-archivos, NUNCA la 3;
 y si el CHANGELOG lo pide, pega Portal-SSTA.gs en cada servidor → Gestionar implementaciones →
 lápiz → Nueva versión). DÓNDE SE CAMBIA CADA COSA (menús, marca, usuarios): Parte E.
 
@@ -70,17 +71,19 @@ const SOLO_FUENTE = new Set(['backends', 'pruebas', 'herramientas', 'servidor-un
    Se usan desde la copia privada (herramientas/proveedor.js las abre en el computador). */
 const SOLO_PROVEEDOR = new Set(['servidor-todo-en-uno', 'admin.html', 'configurar-empresa.html', 'asesor.html', 'instalar.html', 'consola.css', 'menus-empresa.js']);
 function sitioParaSubir(raiz, destino) {
-  const t1 = path.join(destino, '1-paginas'), t2 = path.join(destino, '2-archivos'), t3 = path.join(destino, '3-solo-la-primera-vez');
-  [t1, t2, t3].forEach((d) => fs.mkdirSync(d, { recursive: true }));
+  const t1 = path.join(destino, '1-paginas'), t2 = path.join(destino, '2-archivos'), t2b = path.join(destino, '2b-archivos');
+  const t3 = path.join(destino, '3-solo-la-primera-vez');
+  [t1, t2, t2b, t3].forEach((d) => fs.mkdirSync(d, { recursive: true }));
   for (const d of fs.readdirSync(raiz, { withFileTypes: true })) {
     if (SOLO_FUENTE.has(d.name) || SOLO_PROVEEDOR.has(d.name) || d.name.startsWith('.') || /\.(md|docx)$/i.test(d.name)) continue;
     const o = path.join(raiz, d.name);
-    if (d.isDirectory()) { copiar(o, path.join(t2, d.name)); continue; }
-    const dest = d.name === 'empresa.js' || d.name === 'manifest.json' ? t3 : d.name.endsWith('.html') ? t1 : t2;
+    if (d.isDirectory()) { copiar(o, path.join(t2b, d.name)); continue; }   // v181: 2-archivos pasó de 100: los .js en 2, lo demás en 2b
+    const dest = d.name === 'empresa.js' || d.name === 'manifest.json' ? t3
+      : d.name.endsWith('.html') ? t1 : d.name.endsWith('.js') ? t2 : t2b;
     fs.copyFileSync(o, path.join(dest, d.name));
   }
   const cuenta = (d) => { let n = 0; for (const x of fs.readdirSync(d, { withFileTypes: true })) n += x.isDirectory() ? cuenta(path.join(d, x.name)) : 1; return n; };
-  [t1, t2].forEach((d) => { if (cuenta(d) >= 100) throw new Error(path.basename(d) + ' tiene 100 archivos o más: GitHub no deja subirlos de una vez.'); });
+  [t1, t2, t2b].forEach((d) => { if (cuenta(d) >= 100) throw new Error(path.basename(d) + ' tiene 100 archivos o más: GitHub no deja subirlos de una vez.'); });
 }
 
 async function empaquetar(salida) {
@@ -106,7 +109,8 @@ async function empaquetar(salida) {
   sitioParaSubir(RAIZ, path.join(salida, 'PASO-2-SITIO'));
   // v132: lo que se sube va minificado (abre más rápido con poca señal); «avanzado/» queda legible.
   const min = require('./minificar');
-  const ahorro = (await min.carpeta(path.join(salida, 'PASO-2-SITIO', '1-paginas'), false)) + (await min.carpeta(path.join(salida, 'PASO-2-SITIO', '2-archivos'), false));
+  let ahorro = (await min.carpeta(path.join(salida, 'PASO-2-SITIO', '1-paginas'), false)) + (await min.carpeta(path.join(salida, 'PASO-2-SITIO', '2-archivos'), false));
+  ahorro += await min.carpeta(path.join(salida, 'PASO-2-SITIO', '2b-archivos'), false);
   console.log('   minificado: ' + Math.round(ahorro / 1024) + ' KB menos');
   if (fs.existsSync(path.join(RAIZ, 'GUIA-DE-INSTALACION.docx'))) fs.copyFileSync(path.join(RAIZ, 'GUIA-DE-INSTALACION.docx'), path.join(salida, 'GUIA-DE-INSTALACION.docx'));
   console.log('4/4 Sitio demo…');
