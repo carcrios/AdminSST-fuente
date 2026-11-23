@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-Qaq8c2AynObzc1WeOir1sEIiy234q5sXIGAHnB+HmY0=' 'sha256-mRN8eukGG0OxKRb2uWviNwRSVIRi53ARhmZ1vw4IHDk=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-3idzMRl+jG+Awd/40FbOkNRZi7L5T+96lMYWn4Su8TA=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-oLUIcb2tmbiDQwEk5AlhJ7xsat+IbceWuG8BylNtCDk=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M=' 'sha256-VQIsArNPAyi22aJKOTfv6YdZQpLcYVrQXT1gjN6wpaw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tqdl5KSjRyYi/NqpjiqpTfi+3cJSUbvY+gHgYwez8uI=' 'sha256-kAYaw+p4IsMt3Pls3UHdkSDmJdL7/HPn93PPIR8uO80=' 'sha256-RZqPs/INcW3KQpUJ2ufgTzMQ0VZq6UHq9PPXQBawboo=' 'sha256-mRN8eukGG0OxKRb2uWviNwRSVIRi53ARhmZ1vw4IHDk=' 'sha256-8BRYyxO0EQSUpFJbKEhDOvci/e9ezVNVhUEHJdPDiu4=' 'sha256-3idzMRl+jG+Awd/40FbOkNRZi7L5T+96lMYWn4Su8TA=' 'sha256-7klLkwyuQTRWeWo7M2ytALmo/KMFPULmGExCi4ECaUI=' 'sha256-PC7Er01QBEqCVEN++EkAz72RBIDwZa1DDos3V3mBkEI=' 'sha256-R7hceuNVD/cwY26wa/77b/pYjKlPm7f1q8hriaBeoC8=' 'sha256-oLUIcb2tmbiDQwEk5AlhJ7xsat+IbceWuG8BylNtCDk=' 'sha256-NC6luF/nJuLx/R4RpIueWFAsIhrHuZfLnuz7MbvxT+M=' 'sha256-XQe1kcb+egK6qJvvc2pwDBWJApRUJf+rmgcwN7bZLDo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal SSTA</title>
 <meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
@@ -293,12 +293,19 @@
 
   /* v174: lo de hoy y la semana al lado del calendario */
   .dia-grid{display:grid;gap:0 16px;align-items:start;}
-  .dia-hoy{background:var(--n-0);border:1px solid var(--line);border-left:6px solid var(--ambar-500);border-radius:var(--r-l);padding:16px 18px;margin:0 0 14px;}
-  .dia-hoy h2{margin:0 0 6px;font-size:var(--fs-titulo);} .dia-hoy ul{list-style:none;margin:6px 0 12px;padding:0;display:grid;gap:6px;}
-  .dia-hoy li a{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--tinta);font-size:var(--fs-base);padding:6px 0;}
-  .dia-hoy li b{min-width:2.2em;text-align:center;border-radius:var(--r-pill);padding:2px 8px;background:var(--n-100);font-weight:800;}
-  .dia-hoy li.mal b{background:var(--rojo-50);color:var(--rojo-700);} .dia-hoy .dia-ok{color:var(--verde-700);font-weight:700;}
-  .dia-hoy .fila-btn{display:flex;flex-wrap:wrap;gap:8px;} .dia-hoy .fila-btn .btn{flex:1 1 220px;min-height:52px;}
+  .dia-hoy{background:var(--n-0);border:1px solid var(--line);border-radius:var(--r-xl);padding:18px 18px 16px;margin:0 0 16px;box-shadow:var(--shadow-card);}
+  .dia-hoy h2{margin:0;font-size:var(--fs-titulo);font-weight:800;color:var(--ink);} .dia-hoy .dia-sub{margin:4px 0 12px;color:var(--ink-muted);font-size:var(--fs-base);}
+  .dia-hoy ul{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+  .dia-hoy li a{display:flex;flex-direction:column;gap:2px;height:100%;text-decoration:none;color:var(--ink);background:var(--n-50);border:1px solid var(--line-soft);border-radius:var(--r-l);padding:10px 12px;}
+  .dia-hoy li a:hover,.dia-hoy li a:focus-visible{border-color:var(--line);background:var(--n-100);}
+  .dia-hoy li b{font-size:var(--fs-titulo);font-weight:800;line-height:1.1;} .dia-hoy li span{font-size:var(--fs-menor);color:var(--ink-soft);line-height:1.3;}
+  .dia-hoy li small{font-size:var(--fs-menor);color:var(--ambar-700);font-weight:700;}
+  .dia-hoy .dia-ok{margin:6px 0 0;color:var(--verde-700);font-weight:700;}
+  .dia-ir{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box;min-height:56px;padding:10px 18px;border-radius:var(--r-pill);border:0;
+    background:linear-gradient(150deg,var(--ambar-300),var(--ambar-450));color:var(--n-1000);text-decoration:none;font-weight:800;font-size:var(--fs-base);box-shadow:var(--shadow-card);}
+  .dia-ir span{display:flex;flex-direction:column;min-width:0;} .dia-ir small{font-weight:600;font-size:var(--fs-menor);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dia-ir:focus-visible{outline:3px solid var(--foco);outline-offset:2px;}
+  .dia-menu{display:block;margin:10px auto 0;background:none;border:0;color:var(--ink-muted);font:inherit;font-size:var(--fs-menor);text-decoration:underline;cursor:pointer;min-height:36px;}
   @media (min-width:900px){ .dia-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);} }
   #mes{display:none !important;}   /* v176: se quitó «Cronograma del mes» */
   .ag-nueva.btn{width:auto;margin:0 0 0 auto;padding:10px 18px;min-height:44px;}   /* v176: mismo botón que el resto del portal */
@@ -1023,7 +1030,7 @@ window.Agenda = (function () {
     const sinFecha = items.filter((x) => !x.fecha);
     if (sel === 'antes') h += detalle(antes, 'Vencidos de meses anteriores');
     else if (sel) { const dd = new Date(sel + 'T12:00:00'); h += detalle(porDia[sel] || [], dd.getDate() + ' de ' + MESES[dd.getMonth()] + (sel === hoy ? ' (hoy)' : '')); }
-    else { const en7 = iso(new Date(new Date(hoy + 'T12:00:00').getTime() + 7 * 86400000)); h += detalle(items.filter((x) => x.fecha && x.fecha >= hoy && x.fecha <= en7).sort((a, b) => a.fecha.localeCompare(b.fecha)).concat(ym === ymHoy ? sinFecha : []), 'Próximos 7 días', 'Nada vence en los próximos 7 días.'); }
+    // v182: sin día elegido no se repite la lista de «Para hoy y esta semana»: se toca un día del calendario para verlo.
     cal.innerHTML = h;
   }
   function pintarVista() {
@@ -1581,23 +1588,23 @@ document.getElementById('buscarMenu') && document.getElementById('buscarMenu').a
     const l = (d.mios || []).filter((x) => x.nivel === 'vencido' || !x.fecha || x.fecha <= en7);
     const yo = typeof Sesion !== 'undefined' && Sesion.yo ? Sesion.yo() : null, nom = yo && yo.nombre ? String(yo.nombre).split(' ')[0] : '';
     const h = new Date().getHours(), saludo = (h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches') + (nom ? ', ' + nom : '');
-    if (!l.length) { caja.hidden = false; caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="dia-ok">✓ No tienes nada vencido ni por hacer esta semana.</p>'; return; }
+    if (!l.length) { caja.hidden = false; caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="dia-ok">✓ Todo al día: no tienes nada pendiente esta semana.</p>'; return; }
     const usados = new Set(), filas = [];
     GRUPOS.forEach(([k, t, f]) => {
       const g = l.filter((x, i) => !usados.has(i) && f(x)); if (!g.length) return;
       l.forEach((x, i) => { if (g.indexOf(x) !== -1) usados.add(i); });
       const venc = g.filter((x) => x.nivel === 'vencido').length, primero = g.find((x) => hrefOk(x.modulo));
-      filas.push('<li class="' + (venc ? 'mal' : '') + '"><a href="' + (primero ? esc(primero.modulo) : '#pend') + '"><b>' + g.length + '</b><span>' + esc(t) + (venc ? ' · ' + venc + ' vencido' + (venc === 1 ? '' : 's') : '') + '</span></a></li>');
+      filas.push('<li><a href="' + (primero ? esc(primero.modulo) : '#pend') + '"><b>' + g.length + '</b><span>' + esc(t) + '</span>' + (venc ? '<small>' + (venc === g.length ? 'atrasad' + (venc === 1 ? 'a' : 'as') : venc + ' atrasad' + (venc === 1 ? 'a' : 'as')) + '</small>' : '') + '</a></li>');
     });
     // Lo más urgente: lo vencido más antiguo; si no hay, lo que vence primero.
     const orden = l.slice().sort((a, b) => (a.nivel === 'vencido' ? 0 : 1) - (b.nivel === 'vencido' ? 0 : 1) || String(a.fecha || '9').localeCompare(String(b.fecha || '9')));
     const urg = orden.find((x) => hrefOk(x.modulo));
     caja.hidden = false;
-    caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="u-mt0">Hoy y esta semana tienes:</p><ul>' + filas.join('') + '</ul>' +
-      '<div class="fila-btn">' + (urg ? '<a class="btn amber" id="diaUrg" href="' + esc(urg.modulo) + '">Empezar con lo más urgente</a>' : '') +
-      '<a class="btn ghost" href="#planear" id="diaMenu">Ver todo el menú</a></div>' + (urg ? '<p class="ayuda u-mt8">Lo más urgente: ' + esc(urg.texto) + '</p>' : '');
+    caja.innerHTML = '<h2 id="diaTit">' + esc(saludo) + '</h2><p class="dia-sub">Esto es lo que tienes para hoy y esta semana. Vamos de a una.</p><ul>' + filas.join('') + '</ul>' +
+      (urg ? '<a class="dia-ir" id="diaUrg" href="' + esc(urg.modulo) + '"><span>Empezar por lo más urgente<small>' + esc(urg.texto) + '</small></span><span aria-hidden="true">→</span></a>' : '') +
+      '<button type="button" class="dia-menu" id="diaMenu">o ver todo el menú</button>';
     const mn = document.getElementById('diaMenu');
-    if (mn) mn.addEventListener('click', (e) => { const p = document.getElementById('planear'); if (!p) return; e.preventDefault(); p.open = true; p.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    if (mn) mn.addEventListener('click', () => { const p = document.getElementById('planear'); if (!p) return; p.open = true; p.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   }
   document.addEventListener('ssta-pend', pintar);
   pintar();

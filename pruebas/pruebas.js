@@ -3894,7 +3894,7 @@ grupo('v182: empezar el día, paso a paso, cruce al investigar, indicadores que 
   ok('paquete de auditoría: lo vigente (matriz legal), LEEME y SIN datos de salud', !!pq.archivos['02-matriz-legal.csv'] && !!pq.archivos['LEEME.html'] && !Object.keys(pq.archivos).some((k) => /examen|salud/i.test(k)) && !PA.PARTES.some((x) => x[0] === 'examen'));
   ok('paquete de auditoría: botón en Auditorías', /PaqueteAuditoria\.abrir\(\)/.test(leer('auditorias.html')) && /paquete-auditoria\.js/.test(leer('auditorias.html')));
   const ix = leer('index.html');
-  ok('empezar el día: saludo, lo de hoy agrupado y «Empezar con lo más urgente»', /id="diaHoy"/.test(ix) && /Empezar con lo más urgente/.test(ix) && /addEventListener\('ssta-pend', pintar\)/.test(ix));
+  ok('empezar el día: saludo, lo de hoy agrupado y «Empezar con lo más urgente»', /id="diaHoy"/.test(ix) && /Empezar por lo más urgente/.test(ix) && /addEventListener\('ssta-pend', pintar\)/.test(ix));
   ok('paso a paso: en common.js y en accidente, permisos y entrega de EPP', /const PasoAPaso = /.test(leer('common.js')) && /PasoAPaso\.montar/.test(leer('reportes.app.js')) && /wizardPermiso_\(\)/.test(leer('permiso-core.js')) && /PasoAPaso\.montar/.test(leer('entrega-epp.html')));
   ok('cruce al investigar: habilitación, examen, cursos y EPP a la fecha del accidente, y se pasa al análisis', /async function verificacionPrevia/.test(leer('reportes.app.js')) && /id="iPrevio"/.test(leer('reportes.html')) && /Verificación a la fecha del accidente/.test(leer('reportes.app.js')));
   const ui = leer('sgsst-ui.js');

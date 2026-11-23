@@ -3,6 +3,13 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v183 — Inicio más tranquilo: «Empezar el día» rediseñado
+
+- La tarjeta «Empezar el día» se ve como el resto del portal: el saludo, «Esto es lo que tienes para hoy y esta semana. Vamos de a una.», cuadritos por tema (número grande, nombre y «atrasadas» en ámbar, sin rojo que alarme) y **un solo botón grande** «Empezar por lo más urgente» que dice qué es. «o ver todo el menú» queda como enlace discreto.
+- Los botones quedaron bien hechos (antes salían sin estilo, con subrayado).
+- El calendario ya no repite debajo la lista de «Próximos 7 días» (era la misma de «Para hoy y esta semana»): se toca un día para ver qué hay.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v182 — Empezar el día, asistentes paso a paso, cruce al investigar, indicadores que hablan, paquete de auditoría y fotos con fecha y GPS
 
 - **Empezar el día**: al entrar, «Buenos días, Carlos. Hoy y esta semana tienes: 3 inspecciones · 1 por firmar · 2 acciones del plan…» (agrupado y con lo vencido en rojo) y un solo botón: **«Empezar con lo más urgente»** (abre lo vencido más antiguo o lo que vence primero). «Ver todo el menú» baja al menú. Respeta el rol y «Lo mío».

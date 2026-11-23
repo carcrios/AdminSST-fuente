@@ -478,7 +478,7 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       ok('indicadores que hablan: frases arriba de los indicadores', ih >= 1, String(ih));
       await pg.goto(S.url + '/index.html'); await pg.waitForTimeout(4000);
       const dh = await pg.evaluate(() => { const c = document.getElementById('diaHoy'); return c && !c.hidden ? c.innerText : ''; });
-      ok('empezar el día: saludo con lo de hoy y el botón de lo más urgente', /Buen(os|as) (días|tardes|noches)/.test(dh) && (/Empezar con lo más urgente/.test(dh) || /No tienes nada vencido/.test(dh)), dh.slice(0, 160));
+      ok('empezar el día: saludo con lo de hoy y el botón de lo más urgente', /Buen(os|as) (días|tardes|noches)/.test(dh) && (/Empezar por lo más urgente/.test(dh) || /Todo al día/.test(dh)), dh.slice(0, 160));
       // v182: permiso y entrega de EPP por pasos
       await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'pasos'));
       await pg.goto(S.url + '/permiso-trabajo-alturas.html'); await pg.waitForTimeout(2500);
