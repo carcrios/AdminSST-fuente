@@ -80,7 +80,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `proveedores.app.js` | 994 | código de proveedores.html (v162: fuera del HTML para que el celular lo guarde en caché). | proveedores |
 | `qr.js` | 388 | Generador de códigos QR del Portal SSTA | 18 pantallas |
 | `registros.js` | 126 | Formularios por esquema para los módulos de planeación | 37 pantallas |
-| `reportes.app.js` | 1069 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
+| `reportes.app.js` | 1203 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
 | `sgsst-ui.js` | 732 | Piezas comunes de las pantallas del SG-SST | 64 pantallas |
 | `sw.js` | 296 | Service Worker del Portal SSTA — v2 | — |
 | `valida.js` | 262 | Reglas de datos de los formularios (v107) | 67 pantallas |
@@ -168,7 +168,7 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `proveedores.html` | 156 | registros.js, proveedores-catalogo.js, proveedores.app.js |
 | `pve.html` | 353 | registros.js, informe-reglas.js |
 | `quimicos.html` | 807 | registros.js, importar.js |
-| `reportes.html` | 347 | lector-examen.js, reportes.app.js |
+| `reportes.html` | 356 | lector-examen.js, reportes.app.js |
 | `revision-direccion.html` | 329 | registros.js |
 | `salud.html` | 1126 | registros.js, lector-examen.js |
 | `terminos.html` | 71 | — |
@@ -226,6 +226,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3920 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3933 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
-| `pruebas/navegador.js` | 1634 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |
+| `pruebas/navegador.js` | 1648 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

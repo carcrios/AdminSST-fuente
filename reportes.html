@@ -20,6 +20,15 @@
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="sgsst.css">
 <style>
+.costo-fila{border-top:1px solid var(--line-soft);padding-top:8px;margin-top:8px;}
+#dCosto summary{cursor:pointer;list-style:none;} #dCosto summary::-webkit-details-marker{display:none;}
+.costo-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:var(--fs-titulo);font-weight:800;}
+.costo-cab b{background:var(--n-100);border-radius:var(--r-pill);padding:4px 12px;font-size:var(--fs-base);}
+#dCosto .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;} #dCosto .grid3 .field{margin:0;} #dCosto .grid3 label{font-size:var(--fs-menor);}
+.costo-sec{margin-top:10px;border:1px solid var(--line-soft);border-radius:var(--r-l);padding:10px 12px;background:var(--n-50);}
+.costo-sec > summary{font-weight:700;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;} .costo-sec > summary::after{content:'▾';margin-left:auto;} .costo-sec[open] > summary::after{content:'▴';}
+.costo-sec > summary small{font-weight:500;color:var(--ink-muted);font-size:var(--fs-menor);}
+.h-anio{min-height:44px;padding:0 12px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--n-0);font:inherit;font-weight:700;}
 .clases{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:12px;}
 .clases button{border:2px solid var(--line);background:#fff;border-radius:var(--r-m);padding:12px 10px;text-align:left;cursor:pointer;font-family:inherit;color:var(--ink);min-height:74px;}
 .clases button b{display:block;font-size:var(--fs-base);}
@@ -124,7 +133,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
   <div id="pendLegales"></div>
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-tab="abiertos">Abiertos <span class="n" id="nAb">0</span></button>
-    <button type="button" data-tab="accidentes">Accidentes <span class="n" id="nAt">0</span></button>
+    <button type="button" data-tab="accidentes">Historial de accidentes <span class="n" id="nAt">0</span></button>
     <button type="button" data-tab="investigaciones">Investigaciones <span class="n" id="nInv">0</span></button>
     <button type="button" data-tab="todos">Todos <span class="n" id="nTo">0</span></button>
     <button type="button" data-tab="pqrs">PQRS <span class="n" id="nPq">0</span></button>
@@ -132,7 +141,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
   <div id="filtroActivo"></div>
   <input type="search" class="buscar" id="buscar" placeholder="Buscar por lugar, descripción o persona">
   <div id="lista"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v183</div>
+  <div class="version-portal">Portal SSTA · versión v184</div>
 </div>
 
 <!-- ═══════ NUEVO REPORTE ═══════ -->

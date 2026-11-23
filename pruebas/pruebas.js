@@ -3901,6 +3901,19 @@ grupo('v182: empezar el día, paso a paso, cruce al investigar, indicadores que 
   ok('fotos con fecha, hora y GPS impresos; las PQRS (anónimas) sin ubicación', /async function selloFoto/.test(ui) && /function sellar\(/.test(ui) && /sinSello: true/.test(leer('reportes.app.js')) && !/selloFoto|sellar/.test(leer('buzon.html')));
 });
 
+grupo('v184: accidente siempre para SST, historial de accidentalidad y costo del accidente', () => {
+  const ra = leer('reportes.app.js');
+  const src = ra.slice(ra.indexOf('const COSTO_TIEMPOS'), ra.indexOf('function pintarCosto'));
+  const ctx = {}; require('vm').runInNewContext(src + '\nthis.calcularCosto = calcularCosto;', ctx);
+  const r = ctx.calcularCosto({ salario: 2300000, prestaciones: 454250, tiempos: { sst: { horas: 2, personas: 2, valorHora: 90000 } }, materiales: { ambiente: { cantidad: 1, valor: 50000 } }, reembolso: 31808 }, 1);
+  ok('costo: valor día = (salario + prestaciones) ÷ 30 y ausentismo × días (como el Excel)', Math.round(r.valorDia) === 91808 && Math.round(r.ausentismo) === 91808);
+  ok('costo: tiempo = horas × personas × valor hora; suma también las pérdidas al ambiente; menos el reembolso', r.tiempos === 360000 && r.materiales === 50000 && Math.round(r.perdida) === Math.round(91808.33 + 360000 + 50000 - 31808));
+  ok('costo: sin prestaciones se toman 19,75 % del salario', ctx.calcularCosto({ salario: 2300000 }, 0).prestaciones === 454250);
+  ok('el accidente siempre se puede registrar por SST o el administrador', /t === 'Accidente de trabajo' && \/\^\(admin\|sst\)\$\/\.test\(rol\)/.test(ra));
+  ok('historial de accidentalidad con totales, lo más frecuente y «Detalle ATEL» en Excel', /async function pintarHistorialAT/.test(ra) && /function excelATEL/.test(ra) && /Factores personales/.test(ra) && /Historial de accidentes/.test(leer('reportes.html')));
+  ok('escolaridad en los datos del accidentado', /\['escolaridad', 'Escolaridad', 'sel', 'escolaridad'\]/.test(ra));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');

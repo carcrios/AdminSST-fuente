@@ -114,7 +114,7 @@ async function cargar(){
   }
   if ($('btnEntrarRep')) $('btnEntrarRep').addEventListener('click', ()=> Sesion.pedir());
   conLista = !r.sinSesion;
-  filas = r.rows.filter((x)=> x.tipo !== 'pqrs'); pqrs = r.rows.filter((x)=> x.tipo === 'pqrs');
+  filas = r.rows.filter((x)=> x.tipo !== 'pqrs'); histDocs = null; pqrs = r.rows.filter((x)=> x.tipo === 'pqrs');
   pintar();
 }
 /* ── Lo que falta (cifras clicables → lista filtrada) ── */
@@ -173,6 +173,7 @@ function pintar(){
   $('pendLegales').innerHTML = pend.map(({ x, p })=> '<button type="button" class="plazo ' + p.c + '" data-id="' + esc(x.id) + '" style="width:100%;text-align:left;cursor:pointer;font-family:inherit;"><b>' + esc(p.t) + '</b>' + esc(x.resumen.clase + ' · ' + UI.corta(x.resumen.fecha) + ' · ' + (x.resumen.lesionado || x.resumen.lugar || '')) + '</button>').join('');
   if (tab === 'pqrs') { pintarPqrs(q); return; }
   if (tab === 'investigaciones') { pintarInvestigaciones(q); return; }
+  if (tab === 'accidentes') { pintarHistorialAT(q); return; }
   let l = tab === 'abiertos' ? ab : tab === 'accidentes' ? filas.filter((x)=> x.resumen.clase === AT) : filas.slice();
   if (filtro) l = l.filter(FILTROS[filtro][1]);
   if (q) l = l.filter((x)=> UI.norm([x.resumen.lugar, x.resumen.descripcion, x.resumen.lesionado, x.resumen.reportadoPor, x.resumen.centro].join(' ')).includes(q));
@@ -184,6 +185,134 @@ function pintar(){
       (s.fotos ? ' · 📷 ' + s.fotos : '') + (s.acciones ? ' · ' + s.acciones + ' acción(es)' : '') + (x.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div></div>' +
       '<span class="chip ' + (x.estado === 'CERRADO' ? '' : c) + '">' + esc(x.estado === 'CERRADO' ? 'Cerrado' : (s.potencial ? 'Potencial ' + s.potencial.toLowerCase() : 'Abierto')) + '</span></div></button>';
   }).join('') : '<div class="empty">' + (filas.length ? 'Nada en esta lista.' : 'Todavía no hay reportes. Cada acto o condición insegura reportado a tiempo es un accidente que no pasa.') + '</div>';
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   v184 · Costo del accidente y historial de accidentalidad
+   Igual que el Excel de indicadores de accidentalidad (hoja «Costo Accidentalidad» y «Detalle ATEL»):
+   - Costo: salario base + prestaciones → valor día → valor del ausentismo; horas perdidas de otras personas
+     (proceso, paro, gestión humana, SST, seguimiento, mano de obra del plan) = horas × personas × valor hora;
+     materiales, maquinaria, equipos y herramientas, daños a terceros y pérdidas al ambiente = cantidad × valor;
+     menos el reembolso de incapacidades de la EPS/ARL = pérdida total. Sin diagnóstico (dato de salud).
+   - Historial: cada accidente con el trabajador, tipo, días, lugar, lesión, parte, agente, mecanismo, causas y
+     costo; totales del año y descarga en Excel con las columnas de «Detalle ATEL».
+   ════════════════════════════════════════════════════════════════════════ */
+const COSTO_TIEMPOS = [['proceso', 'Tiempo perdido del personal directo del proceso'], ['paro', 'Tiempo de paro del proceso'], ['gh', 'Tiempo de gestión humana (oficina de personal)'],
+  ['sst', 'Tiempo dedicado por SST (investigación, reportes)'], ['seguimiento', 'Seguimiento a la implementación de los controles'], ['planObra', 'Mano de obra en el plan de acción del accidente']];
+const COSTO_MATERIALES = [['materiales', 'Otros materiales de producción'], ['maquinaria', 'Recuperación de maquinaria'], ['equipos', 'Mantenimiento de equipos y herramientas'], ['terceros',
+  'Bienes y daños a terceros'], ['ambiente', 'Pérdidas al ambiente']];
+const PRESTACIONES = 0.1975;   // como el Excel: 454.250 sobre 2.300.000
+const pesos = (n)=> '$ ' + Math.round(Number(n) || 0).toLocaleString('es-CO');
+/** Pura: total del costo. c = {salario, prestaciones, dias, tiempos:{k:{horas, personas, valorHora}}, materiales:{k:{descripcion, cantidad, valor}}, reembolso} */
+function calcularCosto(c, dias){
+  c = c || {};
+  const sal = Number(c.salario) || 0, pre = c.prestaciones === '' || c.prestaciones == null ? Math.round(sal * PRESTACIONES) : Number(c.prestaciones) || 0;
+  const valorDia = (sal + pre) / 30, d = Number(dias != null ? dias : c.dias) || 0, ausentismo = valorDia * d;
+  let tiempos = 0; COSTO_TIEMPOS.forEach(([k])=> { const t = (c.tiempos || {})[k] || {}; tiempos += (Number(t.horas) || 0) * (Number(t.personas) || 0) * (Number(t.valorHora) || 0); });
+  let materiales = 0; COSTO_MATERIALES.forEach(([k])=> { const m = (c.materiales || {})[k] || {}; materiales += (Number(m.cantidad) || 0) * (Number(m.valor) || 0); });
+  const costo = ausentismo + tiempos + materiales, reembolso = Number(c.reembolso) || 0;
+  return { prestaciones: pre, valorDia, ausentismo, tiempos, materiales, costo, reembolso, perdida: costo - reembolso };
+}
+function pintarCosto(d){
+  let caja = $('dCosto');
+  if (d.clase !== AT) { if (caja) caja.hidden = true; return; }
+  if (!caja) { caja = document.createElement('div'); caja.className = 'card'; caja.id = 'dCosto'; $('dFurat').insertAdjacentElement('afterend', caja); }
+  caja.hidden = false;
+  const c = d.costo || {}, inv = d.investigacion || {}, fu = inv.furat || {};
+  const sal = c.salario || fu.salario || '', r = calcularCosto(Object.assign({}, c, { salario: sal }), d.diasIncapacidad);
+  caja.innerHTML = '<details' + (c.salario ? '' : ' open') + '><summary class="costo-cab"><span>Costo del accidente</span><b>' + pesos(r.perdida) + '</b></summary>' +
+    '<p class="ayuda">Lo que le costó a la empresa (como la hoja «Costo Accidentalidad»). Los días de incapacidad salen de arriba (' + (d.diasIncapacidad || 0) + '). Sin diagnóstico.</p>' +
+    '<div class="grid2"><div class="field"><label for="cSal">Salario base mensual</label><input type="number" min="0" id="cSal" value="' + esc(sal) + '"></div>' +
+    '<div class="field"><label for="cPre">Prestaciones (vacío = ' + Math.round(PRESTACIONES * 1000) / 10 + ' %)</label><input type="number" min="0" id="cPre" value="' +
+      esc(c.prestaciones == null ? '' : c.prestaciones) + '"></div></div>' +
+    '<details class="costo-sec"><summary>Tiempo de otras personas <small>horas × personas × valor hora</small></summary>' +
+    COSTO_TIEMPOS.map(([k, t])=> { const v = (c.tiempos || {})[k] || {}; return '<div class="costo-fila"><div class="m"><b>' + esc(t) + '</b></div><div class="grid3">' +
+      '<div class="field"><label>Horas</label><input type="number" min="0" step="0.5" data-ct="' + k + '|horas" value="' + esc(v.horas || '') + '"></div>' +
+      '<div class="field"><label>Personas</label><input type="number" min="0" data-ct="' + k + '|personas" value="' + esc(v.personas || '') + '"></div>' +
+      '<div class="field"><label>Valor hora</label><input type="number" min="0" data-ct="' + k + '|valorHora" value="' + esc(v.valorHora || '') + '"></div></div></div>'; }).join('') +
+    '</details><details class="costo-sec"><summary>Materiales, equipos y daños <small>cantidad × valor</small></summary>' +
+    COSTO_MATERIALES.map(([k, t])=> { const v = (c.materiales || {})[k] || {}; return '<div class="costo-fila"><div class="m"><b>' + esc(t) + '</b></div><div class="grid3">' +
+      '<div class="field"><label>Descripción</label><input type="text" data-cm="' + k + '|descripcion" value="' + esc(v.descripcion || '') + '"></div>' +
+      '<div class="field"><label>Cantidad</label><input type="number" min="0" data-cm="' + k + '|cantidad" value="' + esc(v.cantidad || '') + '"></div>' +
+      '<div class="field"><label>Valor unitario</label><input type="number" min="0" data-cm="' + k + '|valor" value="' + esc(v.valor || '') + '"></div></div></div>'; }).join('') +
+    '</details><div class="field u-mt8"><label for="cReem">Reembolso de incapacidades (EPS o ARL)</label><input type="number" min="0" id="cReem" value="' + esc(c.reembolso || '') + '"></div>' +
+    '<div id="cRes"></div><button type="button" class="btn amber" id="cOk">Guardar el costo</button></details>';
+  const leerC = ()=> { const o = { salario: $('cSal').value, prestaciones: $('cPre').value === '' ? null : $('cPre').value, reembolso: $('cReem').value, tiempos: {}, materiales: {} };
+    caja.querySelectorAll('[data-ct]').forEach((i)=> { const [k, f] = i.dataset.ct.split('|'); (o.tiempos[k] = o.tiempos[k] || {})[f] = i.value; });
+    caja.querySelectorAll('[data-cm]').forEach((i)=> { const [k, f] = i.dataset.cm.split('|'); (o.materiales[k] = o.materiales[k] || {})[f] = i.value; }); return o; };
+  const res = ()=> { const x = calcularCosto(leerC(), d.diasIncapacidad);
+    $('cRes').innerHTML = '<table class="tabla u-mt8"><tr><td>Valor del día (salario + prestaciones ÷ 30)</td><td class="n">' + pesos(x.valorDia) + '</td></tr><tr><td>Ausentismo (' +
+      (d.diasIncapacidad || 0) + ' días)</td><td class="n">' + pesos(x.ausentismo) + '</td></tr>' +
+      '<tr><td>Tiempo de otras personas</td><td class="n">' + pesos(x.tiempos) + '</td></tr><tr><td>Materiales, equipos y daños</td><td class="n">' + pesos(x.materiales) + '</td></tr>' +
+      '<tr><td><b>Costo del accidente</b></td><td class="n"><b>' + pesos(x.costo) + '</b></td></tr><tr><td>Menos reembolso</td><td class="n">' + pesos(x.reembolso) +
+        '</td></tr><tr><td><b>Pérdida total</b></td><td class="n"><b>' + pesos(x.perdida) + '</b></td></tr></table>'; };
+  caja.addEventListener('input', res); res();
+  $('cOk').addEventListener('click', async ()=> { const o = leerC(), x = calcularCosto(o, d.diasIncapacidad); o.total = Math.round(x.perdida); o.costo = Math.round(x.costo);
+    await parche({ costo: o }, '✓ Costo guardado: ' + pesos(x.perdida)); });
+}
+/** Edad en el rango del Excel («31 - 35») a la fecha del accidente. */
+function rangoEdad(nac, f){ if (!nac || !f) return ''; const e = Math.floor((Date.parse(f) - Date.parse(nac)) / (365.25 * 864e5)); if (!(e > 0)) return '';
+  const a = Math.floor((e - 1) / 5) * 5 + 1; return e < 18 ? 'Menor de 18' : a + ' - ' + (a + 4); }
+let histDocs = null, histAnio = '';
+async function pintarHistorialAT(q){
+  const at = filas.filter((x)=> x.resumen.clase === AT).sort((a, b)=> String(b.resumen.fecha).localeCompare(String(a.resumen.fecha)));
+  const anios = [...new Set(at.map((x)=> String(x.resumen.fecha).slice(0, 4)))].filter(Boolean).sort().reverse();
+  if (!histAnio) histAnio = anios[0] || UI.hoy().slice(0, 4);
+  $('lista').innerHTML = '<div class="card"><h2>Historial de accidentalidad</h2><div class="empty">Cargando los accidentes…</div></div>';
+  if (!histDocs) { histDocs = {}; await Promise.all(at.map(async (x)=> { try { histDocs[x.id] = await SGSST.doc(x.id); } catch (e) {} })); }
+  const deAnio = at.filter((x)=> histAnio === 'todos' || String(x.resumen.fecha).slice(0, 4) === histAnio).filter((x)=> !q || UI.norm([x.resumen.lesionado, x.resumen.lugar,
+    x.resumen.descripcion].join(' ')).includes(q));
+  const filasH = deAnio.map((x)=> histFila(x, histDocs[x.id] || {}));
+  const tot = (k)=> filasH.reduce((s, f)=> s + (Number(f[k]) || 0), 0), cuenta = (k)=> { const m = {}; filasH.forEach((f)=> { if (f[k]) m[f[k]] = (m[f[k]] || 0) +
+    1; }); return Object.entries(m).sort((a, b)=> b[1] - a[1]).slice(0, 3); };
+  const top = (k, t)=> { const c = cuenta(k); return c.length ? '<div class="m"><b>' + t + ':</b> ' + c.map(([v, n])=> esc(v) + ' (' + n + ')').join(' · ') + '</div>' : ''; };
+  $('lista').innerHTML = '<div class="card"><div class="fila" style="align-items:center;gap:8px;flex-wrap:wrap;"><h2 style="margin:0">Historial de accidentalidad</h2>' +
+    '<select id="hAnio" class="h-anio" aria-label="Año">' + ['todos'].concat(anios.length ? anios : [histAnio]).map((a)=> '<option value="' + a + '"' + (a === histAnio ? ' selected' : '') + '>' +
+      (a === 'todos' ? 'Todos los años' : a) + '</option>').join('') + '</select></div>' +
+    '<div class="kpis u-mt8">' + kpiH(filasH.length, 'accidentes de trabajo') + kpiH(filasH.filter((f)=> f.tipo === 'A.T. con tiempo perdido').length, 'con tiempo perdido') +
+      kpiH(tot('dias'), 'días de incapacidad') +
+    kpiH(pesos(tot('costo')), 'costo total') + kpiH(filasH.filter((f)=> f.investigado).length + ' de ' + filasH.length, 'investigados') + '</div>' +
+    top('parte', 'Parte del cuerpo más afectada') + top('mecanismo', 'Mecanismo más frecuente') + top('agente', 'Agente') + top('cargo', 'Cargos') +
+    '<div class="fila-btn u-mt8"><button type="button" class="btn amber" id="hNuevo">🚑 Registrar un accidente</button><button type="button" class="btn ghost" id="hExcel">Descargar' +
+      ' «Detalle ATEL» (Excel)</button></div></div>' +
+    (filasH.length ? filasH.map((f)=> '<button type="button" class="item ' + (f.investigado ? 'ok' : 'pronto') + '" data-id="' + esc(f.id) + '"><div class="fila"><div><div class="t">' +
+      esc(UI.corta(f.fecha)) + ' · ' + esc(f.nombre || 'Sin nombre') + (f.cargo ? ' · ' + esc(f.cargo) : '') + '</div>' +
+      '<div class="m">' + esc([f.tipo, f.dias ? f.dias + ' día(s)' : '', f.lesion, f.parte, f.mecanismo].filter(Boolean).join(' · ')) + '</div><div class="m">' +
+        esc(String(f.descripcion || '').slice(0, 160)) + '</div></div>' +
+      '<span class="chip ' + (f.costo ? '' : 'gris') + '">' + (f.costo ? pesos(f.costo) : 'sin costo') +
+        '</span></div></button>').join('') : '<div class="empty">No hay accidentes de trabajo en ' + esc(histAnio === 'todos' ? 'el portal' : histAnio) + '.</div>');
+  $('hAnio').addEventListener('change', ()=> { histAnio = $('hAnio').value; pintarHistorialAT(q); });
+  $('hNuevo').addEventListener('click', ()=> { nuevo(); ponerClase(AT); });
+  $('hExcel').addEventListener('click', ()=> excelATEL(filasH));
+}
+const kpiH = (v, n)=> '<div class="kpi"><div class="v">' + esc(String(v)) + '</div><div class="n">' + esc(n) + '</div></div>';
+/** Una fila del historial (las columnas de «Detalle ATEL»), desde el reporte y su investigación. */
+function histFila(x, d){
+  const s = x.resumen, inv = d.investigacion || {}, fu = inv.furat || {}, l = d.lesionado || {}, c = inv.causas || {};
+  const dias = Number(d.diasIncapacidad || s.diasIncapacidad) || 0, costo = d.costo ? (Number(d.costo.total) || calcularCosto(d.costo, dias).perdida) : 0;
+  return { id: x.id, nombre: l.nombre || s.lesionado || [fu.nombre1, fu.nombre2, fu.apellido1, fu.apellido2].filter(Boolean).join(' '), cedula: l.cedula || fu.numId || '',
+    edad: rangoEdad(fu.nacimiento, d.fecha), sexo: fu.sexo || '',
+    escolaridad: fu.escolaridad || '', vinculacion: fu.vinculacion || '', tipo: d.mortal ? 'A.T. mortal' : dias > 0 ? 'A.T. con tiempo perdido' : 'A.T. sin tiempo perdido',
+      fecha: d.fecha || s.fecha, dias,
+    descripcion: inv.hechos || d.descripcion || s.descripcion || '', municipio: fu.municipioAcc || '', depto: fu.deptoAcc || '',
+      sitio: [].concat(fu.sitio || []).join(', ') || d.lugar || s.lugar || '', cliente: d.centro || s.centro || '',
+    lesion: [].concat(fu.lesion || l.tipoLesion || []).join(', '), parte: [].concat(fu.parte || l.parteCuerpo || []).join(', '), agente: fu.agente || l.agente || '',
+      mecanismo: fu.mecanismo || l.mecanismo || '', cargo: l.cargo || fu.cargo || '',
+    fPersonales: (c.personales || []).join('; '), fTrabajo: (c.trabajo || []).join('; '), actos: (c.actos || []).join('; '), condiciones: (c.condiciones || []).join('; '),
+      investigado: inv.estado === 'CERRADA' || !!inv.raiz, costo };
+}
+function excelATEL(filasH){
+  const cols = [['N.º', null], ['Nombre completo', 'nombre'], ['Número de cédula', 'cedula'], ['Edad (años)', 'edad'], ['Sexo', 'sexo'], ['Escolaridad', 'escolaridad'],
+    ['Tipo de vinculación', 'vinculacion'], ['Tipo', 'tipo'], ['Fecha', 'fecha'],
+    ['Días de incapacidad', 'dias'], ['Descripción breve del evento', 'descripcion'], ['Ciudad / municipio', 'municipio'], ['Departamento', 'depto'], ['Sitio del evento', 'sitio'],
+      ['Cliente / centro', 'cliente'], ['Tipo de lesión', 'lesion'],
+    ['Parte del cuerpo afectada', 'parte'], ['Agente', 'agente'], ['Mecanismo', 'mecanismo'], ['Factores personales', 'fPersonales'], ['Factores de trabajo', 'fTrabajo'],
+      ['Actos subestándar', 'actos'], ['Condiciones subestándar', 'condiciones'], ['Costo del accidente', 'costo']];
+  const cel = (v)=> { const t = String(v == null ? '' : v).replace(/\r?\n/g, ' '); return /[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const csv = '﻿' + [cols.map((c)=> c[0]).join(';')].concat(filasH.slice().reverse().map((f, i)=> cols.map(([, k])=> cel(k ? f[k] : i + 1)).join(';'))).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'Detalle-ATEL_' + (histAnio || 'todos') + '.csv';
+  document.body.appendChild(a); a.click(); setTimeout(()=> { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
 }
 
 /* v161 · Investigación de accidentes: todos los accidentes e incidentes con el estado de su investigación,
@@ -271,7 +400,9 @@ function nuevo(){
 }
 /* v129: solo los tipos de reporte que la empresa ofrece (consola → Menús → Tipos de reporte). */
 (function(){
-  const ve = (t)=> typeof Empresa === 'undefined' || !Empresa.visible || Empresa.visible('reportes', t);
+  // v184: el accidente de trabajo SIEMPRE lo puede registrar SST o el administrador (aunque la empresa lo oculte a quien reporta sin usuario)
+  let rol = ''; try { rol = (typeof Sesion !== 'undefined' && Sesion.rol && Sesion.rol()) || ''; } catch (e) {}
+  const ve = (t)=> (t === 'Accidente de trabajo' && /^(admin|sst)$/.test(rol)) || typeof Empresa === 'undefined' || !Empresa.visible || Empresa.visible('reportes', t);
   document.querySelectorAll('#clases [data-c]').forEach((b)=> { if (!ve(b.dataset.c)) b.hidden = true; });
   if (!ve('Accidente de trabajo')) { const t = document.querySelector('#tabs [data-tab="accidentes"]'); if (t) t.hidden = true; }
   if (!ve('PQRS')) { const t = document.querySelector('#tabs [data-tab="pqrs"]'); if (t) t.hidden = true; }
@@ -447,6 +578,7 @@ function pintarDetalle(){
       await parche(campos, '✓ Guardado');
     });
   } else $('dFurat').hidden = true;
+  pintarCosto(d);
   // Investigación
   if (d.clase === AT || d.clase === 'Incidente' || d.investigacion) {
     const inv = d.investigacion || {};
@@ -797,6 +929,7 @@ function pintarMedidas(){
    Se precargan del reporte, de Personal habilitado y del perfil de la empresa; se guardan en investigacion.furat. */
 const FUR_OP = {
   vinculacion: ['Planta', 'Misión', 'Cooperado', 'Estudiante o aprendiz', 'Independiente'], tipoId: ['CC', 'CE', 'NU', 'TI', 'PEP', 'PA'], sexo: ['M', 'F'], zona: ['Urbana', 'Rural'],
+    escolaridad: ['Primaria', 'Bachiller', 'Técnico', 'Tecnólogo', 'Profesional', 'Posgrado', 'Ninguna'],
   jornadaHab: ['Diurna', 'Nocturna', 'Mixta', 'Turnos'], jornada: ['Normal', 'Extra'], siNo: ['Sí', 'No'], noSi: ['No', 'Sí'],
   tipoAcc: ['Propios del trabajo', 'Violencia', 'Tránsito', 'Deportivo', 'Recreativo', 'Ambiental'], dentro: ['Dentro de la empresa', 'Fuera de la empresa'],
   sitio: ['(1) Almacenes o depósitos', '(2) Áreas de producción', '(3) Áreas recreativas o deportivas', '(4) Corredores o pasillos', '(5) Escaleras', '(6) Parqueaderos o áreas de circulación vehicular', '(7) Oficinas', '(8) Otras áreas comunes', '(9) Otro'],
@@ -807,6 +940,7 @@ const FUR_OP = {
 };
 const FUR_PERSONA = [['vinculacion', 'Tipo de vinculación', 'sel', 'vinculacion'], ['apellido1', 'Primer apellido'], ['apellido2', 'Segundo apellido'], ['nombre1', 'Primer nombre'], ['nombre2', 'Segundo nombre'],
   ['tipoId', 'Tipo de identificación', 'sel', 'tipoId'], ['numId', 'Número de identificación'], ['nacimiento', 'Fecha de nacimiento', 'date'], ['sexo', 'Sexo', 'sel', 'sexo'],
+    ['escolaridad', 'Escolaridad', 'sel', 'escolaridad'],
   ['direccion', 'Dirección de residencia'], ['telefono', 'Teléfono'], ['depto', 'Departamento'], ['municipio', 'Municipio'], ['zona', 'Zona', 'sel', 'zona'], ['cargo', 'Cargo'],
   ['ocupacion', 'Ocupación habitual'], ['tiempoOcup', 'Tiempo en la ocupación habitual (ej. 9 meses)'], ['ingreso', 'Fecha de ingreso a la empresa', 'date'], ['salario', 'Salario u honorarios mensuales', 'num'], ['jornadaHab', 'Jornada de trabajo habitual', 'sel', 'jornadaHab']];
 const FUR_ACC = [['fecha', 'Fecha del accidente', 'date'], ['hora', 'Hora del accidente', 'time'], ['dia', 'Día de la semana'], ['jornada', 'Jornada en que sucede', 'sel', 'jornada'], ['laborHabitual', '¿Realizaba su labor habitual?', 'sel', 'siNo'],

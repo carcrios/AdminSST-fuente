@@ -479,6 +479,20 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.goto(S.url + '/index.html'); await pg.waitForTimeout(4000);
       const dh = await pg.evaluate(() => { const c = document.getElementById('diaHoy'); return c && !c.hidden ? c.innerText : ''; });
       ok('empezar el día: saludo con lo de hoy y el botón de lo más urgente', /Buen(os|as) (días|tardes|noches)/.test(dh) && (/Empezar por lo más urgente/.test(dh) || /Todo al día/.test(dh)), dh.slice(0, 160));
+      // v184: accidente visible para SST, costo del accidente e historial de accidentalidad
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(3000);
+      const atVis = await pg.evaluate(() => { const b = document.querySelector('#clases [data-c="Accidente de trabajo"]'); return !!b && !b.hidden; });
+      ok('reportes: SST ve siempre «Accidente de trabajo»', atVis);
+      const co = await pg.evaluate(async (id) => { if (!id) return null; actual = await SGSST.doc(id); actual.id = id; pintarDetalle(); await new Promise((r) => setTimeout(r, 400));
+        const c = document.getElementById('dCosto'); if (!c) return null; c.querySelector('details').open = true;
+        document.getElementById('cSal').value = '2300000'; document.getElementById('cSal').dispatchEvent(new Event('input', { bubbles: true }));
+        return document.getElementById('cRes').innerText; }, repAT);
+      ok('costo del accidente: calcula valor día, ausentismo y pérdida total', !!co && /Valor del día/.test(co) && /Pérdida total/.test(co) && /91\.808/.test(co), String(co).slice(0, 160));
+      await pg.evaluate(() => document.getElementById('cOk').click()); await pg.waitForTimeout(2500);
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(3000);
+      await pg.click('#tabs [data-tab="accidentes"]'); await pg.waitForTimeout(3500);
+      const hi = await pg.evaluate(() => document.getElementById('lista').innerText);
+      ok('historial de accidentalidad: totales, costo y descarga del Detalle ATEL', /Historial de accidentalidad/.test(hi) && /costo total/i.test(hi) && /JUAN CARLOS PEREZ GOMEZ/.test(hi) && /Descargar «Detalle ATEL»/.test(hi), hi.slice(0, 240));
       // v182: permiso y entrega de EPP por pasos
       await pg.evaluate(() => localStorage.setItem('ssta-paso-a-paso', 'pasos'));
       await pg.goto(S.url + '/permiso-trabajo-alturas.html'); await pg.waitForTimeout(2500);

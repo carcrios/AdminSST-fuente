@@ -3,6 +3,19 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v184 — Accidentes: siempre se pueden registrar, historial de accidentalidad y costo de cada accidente
+
+- **El accidente de trabajo siempre aparece para SST y el administrador**, aunque la empresa lo haya quitado de los tipos de reporte de quien reporta sin usuario (por eso no salía la opción).
+- **Historial de accidentalidad** (Reportes → «Historial de accidentes»), como la hoja «Detalle ATEL»:
+  - Por año: cuántos accidentes, cuántos con tiempo perdido, días de incapacidad, **costo total** y cuántos están investigados.
+  - Lo que más se repite: parte del cuerpo, mecanismo, agente y cargos.
+  - Cada accidente con el trabajador, tipo (con o sin tiempo perdido, mortal), días, lesión, parte del cuerpo, mecanismo y su costo.
+  - **Descargar «Detalle ATEL» (Excel)** con las mismas columnas del formato: nombre, cédula, edad (rango), sexo, escolaridad, vinculación, tipo, fecha, días, descripción, municipio, departamento, sitio, cliente, lesión, parte, agente, mecanismo, factores personales y de trabajo, actos y condiciones, y costo.
+- **Costo del accidente** (en cada accidente), como la hoja «Costo Accidentalidad»: salario y prestaciones → valor del día → ausentismo; tiempo de otras personas (proceso, paro, gestión humana, SST, seguimiento, plan de acción) = horas × personas × valor hora; materiales, maquinaria, equipos, daños a terceros y pérdidas al ambiente; menos el reembolso de incapacidades = pérdida total. El salario se toma de la investigación (FURAT). Sin diagnóstico.
+  - Nota: en el Excel, el «Total salario tiempo perdido» multiplica solo personas × valor hora (no usa las horas) y el total no suma «Pérdidas al ambiente». El portal usa horas × personas × valor hora y suma todo.
+- **Escolaridad** en los datos del accidentado (investigación), para el Detalle ATEL.
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v183 — Inicio más tranquilo: «Empezar el día» rediseñado
 
 - La tarjeta «Empezar el día» se ve como el resto del portal: el saludo, «Esto es lo que tienes para hoy y esta semana. Vamos de a una.», cuadritos por tema (número grande, nombre y «atrasadas» en ámbar, sin rojo que alarme) y **un solo botón grande** «Empezar por lo más urgente» que dice qué es. «o ver todo el menú» queda como enlace discreto.
