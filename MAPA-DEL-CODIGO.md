@@ -229,4 +229,4 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 |---|---|---|
 | `pruebas/pruebas.js` | 3974 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
-| `pruebas/navegador.js` | 1654 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |
+| `pruebas/navegador.js` | 1687 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |
