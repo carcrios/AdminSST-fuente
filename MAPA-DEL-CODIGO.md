@@ -63,7 +63,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `inspecciones-plantillas.js` | 983 | Listas de chequeo de las inspecciones | 6 pantallas |
 | `inspecciones.app.js` | 824 | código de inspecciones.html (v162: fuera del HTML para que el celular lo guarde en caché). | inspecciones |
 | `kit-documental.js` | 253 | Documentos del SG-SST con los datos de la empresa | documentos |
-| `lector-examen.js` | 742 | Lee el concepto de un examen médico ocupacional (v176) | reportes, salud |
+| `lector-examen.js` | 755 | Lee el concepto de un examen médico ocupacional (v176) | reportes, salud |
 | `licencia.js` | 52 | Licencia de uso del Portal SSTA (v162) | index, licencia |
 | `medevac-app.js` | 428 | MEDEVAC: ¿qué está pasando? y los pasos de esa situación (v180) | emergencias, medevac |
 | `menus-empresa.js` | 122 | Qué ve cada empresa en sus menús (v124) | admin, configurar-empresa |

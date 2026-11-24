@@ -713,6 +713,19 @@ const LectorExamen = (function () {
         .map((f) => f.c.map((k) => k.s).join(' ').trim())
         .filter((x) => x && !/^(observaciones|todos los derechos reservados)/i.test(sinTildes(x)) && !vistas[x] && (vistas[x] = 1));
       if (ls.length) c.descripcion = ls.join(' ').replace(/\s+/g, ' ').slice(0, 1500);
+      // v188: Colmena pega el aviso telefónico («cargo : … descripción evento : …»): el relato es lo que sigue a «descripción evento»
+      const txt = (f) => f.c.map((k) => k.s).join(' ').replace(/\s+/g, ' ').trim();
+      const iE = filas.findIndex((f, i) => i > hDes.i && /^descripci[oó]n (del )?evento\b/i.test(sinTildes(txt(f)).replace(/descripcion/i, 'descripción')));
+      if (iE !== -1) {
+        const rel = [txt(filas[iE]).replace(/^.*?evento\s*:?\s*/i, '')];
+        for (let i = iE + 1; i < filas.length && i < iE + 8; i++) {
+          const x = txt(filas[i]);
+          if (!x || /^[^:]{1,25}:|personas que presenciaron|^\d{7,}/i.test(x)) break;
+          rel.push(x);
+        }
+        const r = rel.join(' ').replace(/\s+/g, ' ').trim();
+        if (r.length > 15) c.descripcion = r.charAt(0).toUpperCase() + r.slice(1, 1500);
+      }
     }
     // Testigos: solo los que tienen nombre escrito
     const iT = fila(/personas que presenciaron/, iA);

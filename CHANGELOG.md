@@ -3,6 +3,11 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v188 — FURAT de Colmena: la descripción completa
+
+- En el FURAT de **Colmena Seguros** la descripción trae pegado el aviso telefónico (teléfono, cargo, correo…). Ahora se
+  toma el relato que sigue a «descripción evento» y no el teléfono ni la cédula.
+
 ## v187 — El FURAT se lee como está hecho: solo lo marcado, nada de más
 
 - Probado con FURAT reales de **ARL SURA** y **Colmena Seguros**. Cada dato se toma de **debajo de su rótulo, en su
