@@ -3,6 +3,19 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v187 — El FURAT se lee como está hecho: solo lo marcado, nada de más
+
+- Probado con FURAT reales de **ARL SURA** y **Colmena Seguros**. Cada dato se toma de **debajo de su rótulo, en su
+  columna** (primer y segundo apellido, nombres, número de identificación, cargo, fecha y hora, sitio y municipio del
+  accidente, descripción, testigos). Ya no se mezclan rótulos con datos (antes salía «Personas que presenciaron…»).
+- En los FURAT con **círculos para marcar** (SURA) se mira cuál está marcado: parte del cuerpo, tipo de lesión, agente,
+  mecanismo, sitio, dentro/fuera de la empresa y **¿causó la muerte?**. Antes tomaba la primera opción de cada lista y
+  marcaba «grave» y «mortal» solo porque las palabras aparecían en el formato.
+- Las opciones del FURAT se pasan a las listas del portal (p. ej. «Golpes por o contra objetos» → «Pisadas, choques o golpes»).
+- Si el FURAT no trae algo, queda vacío: **nunca se inventa**. Los testigos solo si dice que hubo.
+- En el **accidente de trabajo** el paso «Evidencias y qué se hizo» ya no pide plan de acción ni consecuencias (van en la
+  investigación) y la acción inmediata es opcional.
+
 ## v186 — El FURAT en PDF ahora sí trae los datos · Reuniones con acta y firmas
 
 - **Lectura del FURAT (y de cualquier PDF)**: lee también los **campos rellenables** del formulario (los FURAT de las ARL

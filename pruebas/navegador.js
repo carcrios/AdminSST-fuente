@@ -1660,6 +1660,16 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       ok('del FURAT rellenable salen nombre, cédula, cargo, fecha, hora, lugar y descripción', f.nom === 'LUIS ALBERTO PEREZ GOMEZ' && f.ced === '1098765432' && f.cargo === 'SOLDADOR' &&
         f.fecha === '2026-11-12' && f.hora === '14:20' && /soldadura/i.test(f.lugar) && /esquirla/.test(f.desc), JSON.stringify(f));
       ok('arriba del formulario dice qué encontró en el PDF', /Esto encontré en el PDF/.test(f.resumen) && /Accidentado: LUIS ALBERTO/.test(f.resumen), f.resumen.slice(0, 300));
+      // v187: FURAT con casillas dibujadas (como el de ARL SURA): solo lo marcado, nada de más
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(2500);
+      await pg.evaluate(() => { furatPara = 'nuevo'; });
+      await pg.setInputFiles('#fFuratPdf', require('path').join(__dirname, 'fixtures', 'furat-casillas.pdf'));
+      await esperar(() => pg.evaluate(() => !document.getElementById('furatLeido').hidden), 20000);
+      const g = await pg.evaluate(() => ({ nom: lNombre.value, ced: lCedula.value, lugar: nLugar.value, parte: lParte.value, tipo: lTipo.value, agente: lAgente.value, meca: lMecanismo.value,
+        grave: lGrave.checked, mortal: lMortal.checked, plan: document.getElementById('filaPlan').hidden && document.getElementById('filaConsecuencias').hidden }));
+      ok('v187: del FURAT con casillas sale el nombre completo y solo las opciones marcadas', g.nom === 'JUAN CARLOS PRUEBA FICTICIO' && g.ced === '99887766' && /producción/.test(g.lugar) &&
+        g.parte === 'Manos' && g.tipo === 'Herida' && g.agente === 'Máquinas o equipos' && g.meca === 'Pisadas, choques o golpes', JSON.stringify(g));
+      ok('v187: no marca grave ni mortal si el FURAT dice «No», y el accidente no pide plan ni consecuencias', !g.grave && !g.mortal && g.plan, JSON.stringify(g));
       // Reuniones: nueva, con un asistente agregado que firma; se guarda y queda en la lista
       await pg.goto(S.url + '/reuniones.html'); await pg.waitForTimeout(2500);
       ok('Reuniones abre sin pestaña de conformación', await pg.evaluate(() => !document.querySelector('[data-tab="conformacion"]') && !!document.getElementById('btnLibre')));

@@ -300,13 +300,11 @@ const LectorExamen = (function () {
     const conDiagnostico = descartadas > 0 || /diagnost|cie-?10|cie 10|impresion diag|\bdx\b/.test(n);
     return { conDiagnostico, ok: !!(campos.concepto || campos.fecha), campos, persona, avisos, descartadas };
   }
-  /** Saca el texto de un PDF con pdf.js (se carga solo cuando se usa). */
   /**
-   * v186: arma las líneas como se ven en la hoja (de arriba abajo, de izquierda a derecha) y empareja las
-   * cuadrículas «rótulo arriba, dato abajo» de los formatos (FURAT, certificados): por cada celda de una fila de
-   * rótulos busca la celda de la fila siguiente que empieza en la misma columna y entrega «Rótulo: dato».
+   * v187: las filas de la hoja como se ven (de arriba abajo, de izquierda a derecha), con la posición de cada celda.
+   * Con esto el FURAT se lee por columnas: el dato es lo que está debajo (o a la derecha) de su rótulo.
    */
-  function ordenarCeldas(items, par) {
+  function ordenarCeldas(items, p) {
     const fs = [];
     (items || []).forEach((it) => {
       const s = String(it.str || '').trim();
@@ -315,11 +313,11 @@ const LectorExamen = (function () {
         y = it.transform[5],
         w = it.width || s.length * 4;
       let f = fs.find((r) => Math.abs(r.y - y) <= 3);
-      if (!f) fs.push((f = { y, c: [] }));
+      if (!f) fs.push((f = { p: p || 1, y, c: [] }));
       f.c.push({ x, x2: x + w, s });
     });
     fs.sort((a, b) => b.y - a.y);
-    const filas = fs.map((f) => {
+    fs.forEach((f) => {
       f.c.sort((a, b) => a.x - b.x);
       const celdas = [];
       f.c.forEach((k) => {
@@ -329,27 +327,69 @@ const LectorExamen = (function () {
           u.x2 = k.x2;
         } else celdas.push({ x: k.x, x2: k.x2, s: k.s });
       });
-      return celdas;
+      f.c = celdas;
     });
-    const rot = (s) => /[a-záéíóúñ]{3}/i.test(s) && !/\d{3}/.test(s) && s.length <= 60;
-    for (let i = 0; i + 1 < filas.length; i++) {
-      const a = filas[i],
-        b = filas[i + 1];
-      if (a.length < 2 || !a.every((k) => rot(k.s))) continue;
-      let hubo = 0;
-      a.forEach((k, j) => {
-        const fin = j + 1 < a.length ? a[j + 1].x - 2 : 1e9;
-        const v = b.filter((z) => z.x >= k.x - 12 && z.x < fin).map((z) => z.s).join(' ').trim();
-        if (v && v !== k.s && !/:\s*\S/.test(k.s)) {
-          par(k.s.replace(/[:\s]+$/, '') + ': ' + v);
-          hubo++;
-        }
-      });
-      if (hubo) i++; // la fila de datos ya se usó: no es rótulo de la siguiente
-    }
-    return filas.map((c) => c.map((k) => k.s).join('   ')).join('\n') + '\n';
+    return fs;
   }
 
+  /**
+   * v187: las casillas y círculos marcados. Los FURAT de las ARL (SURA, Positiva…) dibujan cada opción como una
+   * imagen pequeña: la marcada tiene el centro oscuro. Se dibuja la hoja y se mira el centro de cada una.
+   */
+  async function marcasPagina(pg, p) {
+    const OPS = pdfjsLib.OPS,
+      ol = await pg.getOperatorList(),
+      pila = [],
+      cajas = [];
+    let m = [1, 0, 0, 1, 0, 0];
+    const por = (a, b) => [
+      a[0] * b[0] + a[2] * b[1],
+      a[1] * b[0] + a[3] * b[1],
+      a[0] * b[2] + a[2] * b[3],
+      a[1] * b[2] + a[3] * b[3],
+      a[0] * b[4] + a[2] * b[5] + a[4],
+      a[1] * b[4] + a[3] * b[5] + a[5],
+    ];
+    const caja = (t) => {
+      const w = Math.hypot(t[0], t[1]),
+        h = Math.hypot(t[2], t[3]);
+      if (w >= 4 && w <= 16 && Math.abs(w - h) < 2.5) cajas.push({ x: t[4] + t[0] / 2 + t[2] / 2, y: t[5] + t[1] / 2 + t[3] / 2, w });
+    };
+    ol.fnArray.forEach((fn, i) => {
+      const ar = ol.argsArray[i];
+      if (fn === OPS.save) pila.push(m.slice());
+      else if (fn === OPS.restore) m = pila.pop() || m;
+      else if (fn === OPS.transform) m = por(m, ar);
+      else if (fn === OPS.paintFormXObjectBegin) {
+        pila.push(m.slice());
+        if (ar && ar[0]) m = por(m, ar[0]);
+      } else if (fn === OPS.paintFormXObjectEnd) m = pila.pop() || m;
+      else if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject || fn === OPS.paintImageMaskXObject) caja(m);
+      else if (fn === OPS.paintImageXObjectRepeat && ar && ar[3])
+        for (let k = 0; k + 1 < ar[3].length; k += 2) caja(por(m, [ar[1], 0, 0, ar[2], ar[3][k], ar[3][k + 1]]));
+    });
+    if (cajas.length < 2 || typeof document === 'undefined') return [];
+    const vp = pg.getViewport({ scale: 3 }),
+      cv = document.createElement('canvas');
+    cv.width = Math.ceil(vp.width);
+    cv.height = Math.ceil(vp.height);
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    cx.fillStyle = '#fff';
+    cx.fillRect(0, 0, cv.width, cv.height);
+    await pg.render({ canvasContext: cx, viewport: vp }).promise;
+    return cajas
+      .filter((b) => {
+        const q = vp.convertToViewportPoint(b.x, b.y),
+          r = Math.max(1, Math.round(b.w * 3 * 0.12)),
+          d = cx.getImageData(Math.round(q[0]) - r, Math.round(q[1]) - r, 2 * r + 1, 2 * r + 1).data;
+        let s = 0;
+        for (let k = 0; k < d.length; k += 4) s += (d[k] + d[k + 1] + d[k + 2]) / 3;
+        return s / (d.length / 4) < 140;
+      })
+      .map((b) => ({ p, x: b.x, y: b.y }));
+  }
+
+  /** Saca el texto de un PDF con pdf.js (se carga solo cuando se usa). */
   async function textoPdf(archivo) {
     if (typeof pdfjsLib === 'undefined') {
       await new Promise((ok, mal) => {
@@ -363,12 +403,13 @@ const LectorExamen = (function () {
     }
     const datos = new Uint8Array(await archivo.arrayBuffer());
     const pdf = await pdfjsLib.getDocument({ data: datos, isEvalSupported: false }).promise;
-    let out = '',
-      pares = '';
+    let pares = '';
+    const filas = [],
+      marcas = [];
     for (let p = 1; p <= Math.min(pdf.numPages, 6); p++) {
       const pg = await pdf.getPage(p),
         c = await pg.getTextContent();
-      // v186: los FURAT de las ARL suelen ser formularios rellenables: el dato está en el campo, no en el texto
+      // Formularios rellenables: el dato está en el campo, no en el texto
       try {
         (await pg.getAnnotations()).forEach((a) => {
           if (!a || !a.fieldName) return;
@@ -380,9 +421,13 @@ const LectorExamen = (function () {
           if (v && v !== 'Off') pares += r + ': ' + v + '\n';
         });
       } catch (e) {}
-      out += ordenarCeldas(c.items, (x) => (pares += x + '\n'));
+      ordenarCeldas(c.items, p).forEach((f) => filas.push(f));
+      try {
+        (await marcasPagina(pg, p)).forEach((m) => marcas.push(m));
+      } catch (e) {}
     }
-    LectorExamen.ultimoPdf = { pares: pares.trim(), texto: out.trim(), sinTexto: !out.replace(/\s/g, '') && !pares };
+    const out = filas.map((f) => f.c.map((k) => k.s).join('   ')).join('\n');
+    LectorExamen.ultimoPdf = { pares: pares.trim(), texto: out.trim(), filas, marcas, sinTexto: !out.replace(/\s/g, '') && !pares };
     return (pares ? pares + '\n' : '') + out;
   }
 
@@ -469,95 +514,226 @@ const LectorExamen = (function () {
     return { campos: c, avisos, leidos };
   }
   /**
-   * v181: el FURAT (Formato Único de Reporte de Accidente de Trabajo) que se radicó en la ARL.
-   * Saca el radicado, la fecha de radicado, el accidentado, la fecha, hora y lugar del accidente,
-   * la descripción y, si se les pasa las listas del portal, parte del cuerpo, tipo de lesión, mecanismo y agente.
+   * v187: el FURAT leído por su forma, no por palabras sueltas. Cada dato es lo que está DEBAJO (o a la derecha)
+   * de su rótulo, en la misma columna; las opciones (parte del cuerpo, tipo de lesión, agente, mecanismo, sitio,
+   * ¿causó la muerte?) son solo las MARCADAS. Probado con el FURAT de ARL SURA y el de Colmena Seguros.
+   * Lo que no esté en el PDF queda vacío: nunca se inventa.
    */
   function furat(texto, listas) {
-    const t = String(texto || '').replace(/\r/g, ''),
-      lineas = t
-        .split(/\n/)
-        .map((x) => x.replace(/\s+/g, ' ').trim())
-        .filter(Boolean),
-      ln = lineas.map((x) => sinTildes(x).toLowerCase()),
-      n = ln.join('\n');
+    const t = String(texto || '').replace(/\r/g, '');
+    const est = LectorExamen.ultimoPdf;
+    let filas, marcas;
+    const deTexto = (txt) =>
+      txt.split('\n').map((l, i) => {
+        const c = [];
+        const re = /\S+(?: \S+)*/g;
+        let m;
+        while ((m = re.exec(l))) c.push({ x: m.index * 5, x2: (m.index + m[0].length) * 5, s: m[0] });
+        return { p: 1, y: -i * 12, c };
+      }).filter((f) => f.c.length);
+    const conPares = !!(est && est.pares);
+    if (est && est.filas && est.filas.length && est.texto && t.indexOf(est.texto.slice(0, 300)) !== -1 && !conPares) {
+      filas = est.filas;
+      marcas = est.marcas || [];
+    } else {
+      // Sin posiciones (texto pegado, o campos rellenables «Rótulo: dato»): la columna es la posición del carácter
+      filas = deTexto(t);
+      marcas = [];
+    }
+    const nz = (x) => sinTildes(x).toLowerCase().replace(/\s+/g, ' ').replace(/\s*:$/, '').trim();
+    // «Rótulo: dato» en una misma celda → dos celdas (el dato queda a la derecha del rótulo)
+    filas = filas.map((f) => {
+      const c = [];
+      f.c.forEach((k) => {
+        const m = /^([A-Za-zÁÉÍÓÚÑáéíóúñ¿?() /.]{3,60}):\s*(.*)$/.exec(k.s);
+        if (!m) return c.push(Object.assign({}, k));
+        const xm = k.x + (m[1].length + 1) * ((k.x2 - k.x) / Math.max(1, k.s.length));
+        c.push({ x: k.x, x2: xm, s: m[1], dos: true });
+        if (m[2].trim()) c.push({ x: xm + 0.5, x2: k.x2, s: m[2].trim() });
+      });
+      return { p: f.p, y: f.y, c };
+    });
+    filas.forEach((f) => f.c.forEach((k) => (k.n = nz(k.s))));
     const c = {},
       avisos = [];
-    const val = (re) => (tras(lineas, re, 1, true)[0] || '').replace(/\s{2,}.*$/, '').trim();
-    const rad =
-      /(?:radicado|n(?:umero|o\.?|°)\s*(?:de\s*)?(?:radicacion|reporte|radicado|siniestro)|consecutivo|numero del reporte)\s*:?\s*([A-Z0-9][A-Z0-9-]{3,})/i.exec(
-        sinTildes(t),
-      );
-    if (rad) c.numero = rad[1];
-    const lfr = lineas.find((x, i) => /fecha (de )?(radicacion|radicado|diligenciamiento|del reporte|de reporte|de envio)/.test(ln[i]));
-    c.fechaRadicado = fecha(lfr || '');
-    const lfa = lineas.find((x, i) => /fecha (del|de ocurrencia del|en que ocurrio el) accidente|fecha del evento|fecha de ocurrencia/.test(ln[i]));
-    c.fecha = fecha(lfa || '');
-    const lh = lfa ? lineas[lineas.indexOf(lfa)] + ' ' + (lineas[lineas.indexOf(lfa) + 1] || '') : '';
-    const hora = /(?:hora[^0-9]{0,15})?(\d{1,2})[:.h](\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?)?/i.exec(
-      sinTildes(lineas.find((x, i) => /\bhora\b/.test(ln[i])) || lh),
-    );
-    if (hora) {
-      let hh = +hora[1];
-      if (hora[3] && /p/i.test(hora[3]) && hh < 12) hh += 12;
-      if (hora[3] && /a/i.test(hora[3]) && hh === 12) hh = 0;
-      if (hh < 24) c.hora = (hh < 10 ? '0' : '') + hh + ':' + hora[2];
-    }
-    // El accidentado: nombre completo (también partido en apellidos y nombres), documento y cargo
-    const limpiaN = (x) =>
-      String(x || '')
-        .replace(/\s+(apellidos?|primer|segundo|nombres?|documento|identificacion|tipo|cedula|c\.?c\.?|fecha|sexo|cargo)\b.*$/i, '')
-        .replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñü .'-]/g, '')
-        .trim();
-    const pa = limpiaN(val(/primer apellido\s*:?/i)),
-      sa = limpiaN(val(/segundo apellido\s*:?/i)),
-      no = limpiaN(val(/\bnombres?\s*:/i));
-    let nom = limpiaN(val(/(?:nombre(?:s)? (?:y apellidos|completo)|nombre del (?:trabajador|accidentado|lesionado))\s*:?/i));
-    if (!nom && (no || pa)) nom = [no, pa, sa].filter(Boolean).join(' ');
-    if (nom) c.nombre = nom.slice(0, 90);
-    const ced = /(?:c\.?\s?c\.?|cedula|documento|identificacion)[^\d]{0,30}([\d.]{5,15})/i.exec(sinTildes(t));
-    if (ced) c.cedula = ced[1].replace(/\./g, '');
-    const cg = val(/\b(?:cargo|ocupaci[oó]n habitual|ocupaci[oó]n|oficio)\s*:?/i);
-    if (cg && !/^\d+$/.test(cg)) c.cargo = cg.replace(/\s+(tiempo|fecha|salario|jornada)\b.*$/i, '').slice(0, 60);
-    const lugar = val(
-      /(?:lugar donde ocurri[oó](?: el accidente)?|sitio (?:donde ocurri[oó]|del accidente)|lugar del accidente|lugar de ocurrencia|direcci[oó]n (?:del|donde ocurri[oó] el) accidente)\s*:?/i,
-    );
-    if (lugar) c.lugar = lugar.slice(0, 120);
-    const desc = tras(lineas, /descripci[oó]n (?:del accidente|de los hechos|del evento)[^:]*:?/i, 12, true)
-      .filter((x) => !/^(nombre|cedula|firma|cargo|fecha)\b/i.test(sinTildes(x)))
-      .join(' ');
-    if (desc) c.descripcion = desc.slice(0, 1500);
-    c.mortal = /causo la muerte[^\n]{0,20}\bsi\b|accidente mortal|fallecio/.test(n);
-    c.grave = c.mortal || /amputacion|fractura|trauma craneoencefalico|perdida (de|del) (ojo|vision)|quemadura de (segundo|tercer) grado/.test(n);
-    // Clasificación: el primer valor de cada lista del portal que aparezca en el FURAT
-    const busca = (lista, rotulo) => {
-      if (!lista || !lista.length) return '';
-      const i = ln.findIndex((x) => rotulo.test(x));
-      const zona = i >= 0 ? ln.slice(i, i + 4).join(' ') : n;
-      const hit =
-        lista.find((v) => v && zona.indexOf(sinTildes(v).toLowerCase()) !== -1) ||
-        lista.find((v) => v && sinTildes(v).length > 5 && n.indexOf(sinTildes(v).toLowerCase()) !== -1);
-      return hit || '';
+    /** La primera celda que dice eso (desde la fila «desde»). */
+    const celda = (re, desde) => {
+      for (let i = desde || 0; i < filas.length; i++) {
+        const j = filas[i].c.findIndex((k) => re.test(k.n));
+        if (j !== -1) return { i, j, k: filas[i].c[j], f: filas[i] };
+      }
+      return null;
     };
-    if (listas) {
-      c.parteCuerpo = busca(listas.parte, /parte del cuerpo/);
-      c.tipoLesion = busca(listas.tipo, /tipo de lesion/);
-      c.mecanismo = busca(listas.mecanismo, /mecanismo|forma del accidente|tipo de accidente/);
-      c.agente = busca(listas.agente, /agente/);
+    const fila = (re, desde) => {
+      const r = celda(re, desde);
+      return r ? r.i : -1;
+    };
+    /** Lo que está debajo del rótulo, en su columna (hasta donde empieza el rótulo siguiente). */
+    const abajo = (r, filasMax) => {
+      if (!r) return '';
+      const sig = r.f.c[r.j + 1],
+        x0 = r.k.x - 14,
+        x1 = sig ? sig.x - 3 : 1e9;
+      for (let i = r.i + 1; i <= Math.min(filas.length - 1, r.i + (filasMax || 2)); i++) {
+        if (filas[i].p !== r.f.p) break;
+        const v = filas[i].c.filter((k) => k.x >= x0 && k.x < x1);
+        if (v.length) return v.map((k) => k.s).join(' ').trim();
+      }
+      return '';
+    };
+    const derecha = (r) => (r && r.f.c[r.j + 1] ? r.f.c[r.j + 1].s.trim() : '');
+    /** El dato del rótulo: a la derecha si el rótulo termina en «:» y trae dato; si no, debajo. */
+    const dato = (r) => (r && r.k.dos ? derecha(r) || (r.f.c.length === 1 ? abajo(r) : '') : abajo(r));
+    /** Para las listas (parte del cuerpo…): lo de debajo solo si es UN valor, no la lista de opciones sin marcar. */
+    const unico = (r) => {
+      if (!r) return '';
+      if (r.k.dos) return derecha(r);
+      const v = abajo(r, 1);
+      const sg = filas[r.i + 2];
+      if (!v || !sg || sg.p !== r.f.p) return v;
+      const deb = sg.c.find((k) => k.x >= r.k.x - 14 && k.x < r.k.x + 60);
+      return !deb || /^(agente|mecanismo|tipo de|parte del|sitio|lugar|descripcion|el accidente|iv\.|personas|hubo)/.test(deb.n) ? v : '';
+    };
+    /** La opción marcada debajo del rótulo (hasta el rótulo «hasta»), en su columna. */
+    const marcada = (r, hasta, soloFila) => {
+      if (!r || !marcas.length) return '';
+      const sig = r.f.c[r.j + 1],
+        x1 = sig ? sig.x - 4 : 1e9,
+        yFin = hasta && hasta.f.p === r.f.p ? hasta.f.y : -1e9;
+      const ms = marcas
+        .filter((m) => m.p === r.f.p && m.y < r.f.y + 2 && m.y > yFin + 2 && m.x >= r.k.x - 16 && m.x < x1 && (!soloFila || r.f.y - m.y < 22))
+        .sort((a, b) => b.y - a.y || a.x - b.x);
+      for (const m of ms) {
+        const f = filas.find((z) => z.p === m.p && Math.abs(z.y - (m.y - 2.5)) <= 4.5);
+        const k = f && f.c.filter((z) => z.x > m.x && z.x - m.x < 40).sort((a, b) => a.x - b.x)[0];
+        if (k) return k.s.trim();
+      }
+      return '';
+    };
+    const marcadaDer = (r) => {
+      if (!r || !marcas.length) return '';
+      const m = marcas.filter((z) => z.p === r.f.p && Math.abs(z.y - 2.5 - r.f.y) <= 5 && z.x > r.k.x2).sort((a, b) => a.x - b.x)[0];
+      const k = m && r.f.c.filter((z) => z.x > m.x && z.x - m.x < 40).sort((a, b) => a.x - b.x)[0];
+      return k ? k.s.trim() : '';
+    };
+    const ddmmaaaa = (v) => {
+      const m = /\b(\d{2})(\d{2})(\d{4})\b/.exec(String(v || ''));
+      return m && +m[2] >= 1 && +m[2] <= 12 && +m[1] <= 31 ? m[3] + '-' + m[2] + '-' + m[1] : fecha(v);
+    };
+    const horaDe = (v) => {
+      const h = /(\d{1,2})\s?:\s?(\d{2})(?::\d{2})?\s*(a\.?\s?m\.?|p\.?\s?m\.?)?/i.exec(String(v || ''));
+      if (!h) return '';
+      let hh = +h[1];
+      if (h[3] && /p/i.test(h[3]) && hh < 12) hh += 12;
+      if (h[3] && /a/i.test(h[3]) && hh === 12) hh = 0;
+      return hh < 24 ? dos(hh) + ':' + h[2] : '';
+    };
+    const iP = conPares ? 0 : Math.max(0, fila(/identificacion de la persona|informacion de la persona|datos del trabajador|persona que se accidento/)),
+      iA = conPares ? 0 : Math.max(iP, fila(/informacion sobre el accidente|datos del accidente/, iP));
+    // Radicado: rotulado, o el número suelto arriba de la primera hoja (Colmena)
+    const rad =
+      /(?:radicado|n(?:umero|o\.?|°)\s*(?:de\s*)?(?:radicacion|reporte|radicado|siniestro)|consecutivo|numero del reporte)\s*:?\s*([A-Z0-9][A-Z0-9-]{3,})/i.exec(sinTildes(t));
+    if (rad) c.numero = rad[1];
+    else {
+      const f0 = filas.slice(0, 3).find((f) => f.p === 1 && f.c.length === 1 && /^\d{5,12}$/.test(f.c[0].s));
+      if (f0) c.numero = f0.c[0].s;
     }
-    const tes = tras(lineas, /\btestigos?\b[^:]*:?/i, 4, true)
-      .map(limpiaN)
-      .filter((x) => x.split(' ').length >= 2 && !/^(si|no|nombre|nombres)$/i.test(x));
-    if (tes.length) c.testigos = tes.slice(0, 3).join(', ');
-    if (!c.lugar) {
-      const mun = val(/\bmunicipio\b[^:]*:?/i);
-      if (mun && /[a-z]{3}/i.test(mun)) c.lugar = mun.slice(0, 120);
+    const fr = celda(/^fecha de (diligenciamiento|radicacion|radicado|recibido)/);
+    if (fr) c.fechaRadicado = ddmmaaaa(fr.f.c.slice(fr.j + 1).map((k) => k.s).join(' ') || abajo(fr));
+    // Fecha y hora del accidente
+    const fa = celda(/^fecha (y hora )?del accidente$|^fecha de ocurrencia|^fecha del evento/, iA) || celda(/^fecha (y hora )?del accidente/);
+    const vfa = dato(fa) || derecha(fa);
+    c.fecha = ddmmaaaa(vfa);
+    c.hora = horaDe(vfa) || horaDe(dato(celda(/^hora( del accidente| de ocurrencia)?$/, iA)));
+    // El accidentado
+    const limpia = (v) => String(v || '').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñü .'-]/g, '').replace(/\s+/g, ' ').trim();
+    const no = limpia(dato(celda(/^nombres?$/, iP))),
+      pa = limpia(dato(celda(/^primer apellido$/, iP))),
+      sa = limpia(dato(celda(/^segundo apellido$/, iP)));
+    let nom = [no, pa, sa].filter(Boolean).join(' ');
+    if (!nom) nom = limpia(dato(celda(/^(apellidos y nombres|nombre completo|nombre del (trabajador|accidentado|lesionado))$/, iP)));
+    if (nom.split(' ').length >= 2) c.nombre = nom.slice(0, 90);
+    const id = celda(/^(numero|numero de (identificacion|documento)|identificacion|documento de (identidad|identificacion)|cedula)$/, iP);
+    const vid = /\b(\d{5,12})\b/.exec((dato(id) + ' ' + derecha(id)).replace(/\./g, ''));
+    if (vid) c.cedula = vid[1];
+    const cg = limpia(dato(celda(/^cargo$/, iP)));
+    if (cg) c.cargo = cg.slice(0, 60);
+    // Dónde
+    const hLes = celda(/^tipo de lesion$/, iA),
+      hAge = celda(/^agente del accidente/, iA),
+      hMec = celda(/^mecanismos? o forma del accidente$/, iA),
+      hDes = celda(/descripcion del accidente$/, iA);
+    const sitio = marcada(celda(/^indique cual sitio$/, iA), hLes) || unico(celda(/^sitio de ocurrencia$|^sitio donde ocurrio/, iA));
+    const rl = celda(/^lugar (donde ocurrio|del accidente|de ocurrencia)/, iA);
+    const lugar = marcadaDer(rl) || (marcas.length ? '' : unico(rl));
+    const muni = dato(celda(/^municipio (del accidente|de ocurrencia)$/, iA));
+    c.lugar = [sitio, lugar && !sitio ? lugar : '', muni].filter(Boolean).join(' — ').slice(0, 120);
+    // Clasificación: solo lo marcado (o lo escrito debajo del rótulo)
+    const parte = marcada(celda(/^parte del cuerpo/, iA), hLes) || unico(celda(/^parte del cuerpo/, iA));
+    const tipo = marcada(hLes, hAge) || unico(hLes);
+    const agente = marcada(hAge, hDes) || unico(hAge);
+    const meca = marcada(hMec, hDes) || unico(hMec);
+    const muerte = celda(/causo la muerte|genero muerte|accidente mortal/, iA);
+    const vm = marcada(muerte, null, true) || (/^(si|no)$/i.test(nz(dato(muerte))) ? dato(muerte) : '');
+    c.mortal = /^si\b/i.test(nz(vm));
+    // Mapear a las listas del portal (por palabras en común); si no hay, «Otro»
+    const mapa = (lista, v) => {
+      if (!v || !lista || !lista.length) return '';
+      const pal = (x) => nz(x).split(/[^a-z]+/).filter((w) => w.length >= 3 && !/^(del|las|los|por|con|sin|que|otr[oa]s?|y\/o|incluye)$/.test(w)).map((w) => w.slice(0, 5));
+      const pv = pal(v);
+      let mejor = '',
+        pun = 0;
+      lista.forEach((o) => {
+        const po = pal(o),
+          igual = (w) => po.some((z) => z.indexOf(w) === 0 || w.indexOf(z) === 0),
+          n = pv.filter(igual).length + (pv[0] && igual(pv[0]) ? 0.5 : 0);
+        if (n > pun) {
+          pun = n;
+          mejor = o;
+        }
+      });
+      if (mejor) return mejor;
+      return /^otr/.test(nz(v)) ? lista.find((o) => /^otr/i.test(sinTildes(o))) || '' : '';
+    };
+    c.parteCuerpo = mapa(listas && listas.parte, parte);
+    c.tipoLesion = mapa(listas && listas.tipo, tipo);
+    c.agente = mapa(listas && listas.agente, agente);
+    c.mecanismo = mapa(listas && listas.mecanismo, meca);
+    c.grave = c.mortal || /amputa/.test(nz(tipo));
+    c.leido = { parte, tipo, agente, mecanismo: meca, sitio, muerte: vm };
+    // Descripción: las filas debajo del rótulo hasta «Personas que presenciaron»
+    if (hDes && hDes.k.dos && derecha(hDes)) c.descripcion = derecha(hDes).slice(0, 1500);
+    else if (hDes) {
+      let fin = fila(/personas que presenciaron/, hDes.i + 1);
+      const fr2 = filas.findIndex((f, i) => i > hDes.i && f.c[0] && f.c[0].dos && /^(nombre|persona|firma|responsable|cargo|fecha)/.test(f.c[0].n));
+      if (fr2 !== -1 && (fin === -1 || fr2 < fin)) fin = fr2;
+      const vistas = {};
+      const ls = filas
+        .slice(hDes.i + 1, fin === -1 ? hDes.i + 14 : fin)
+        .map((f) => f.c.map((k) => k.s).join(' ').trim())
+        .filter((x) => x && !/^(observaciones|todos los derechos reservados)/i.test(sinTildes(x)) && !vistas[x] && (vistas[x] = 1));
+      if (ls.length) c.descripcion = ls.join(' ').replace(/\s+/g, ' ').slice(0, 1500);
+    }
+    // Testigos: solo los que tienen nombre escrito
+    const iT = fila(/personas que presenciaron/, iA);
+    if (iT !== -1) {
+      const hubo = marcadaDer(celda(/hubo personas que presenciaron/, iT));
+      const iR = fila(/persona responsable del informe/, iT + 1);
+      const tes = [];
+      if (!/^no$/i.test(hubo))
+        filas.slice(iT + 1, iR === -1 ? iT + 8 : iR).forEach((f) => {
+          const cs = f.c.map((k) => k.s.trim()).filter((s) => !/^(apellidos y nombres|nombre|identificaci[oó]n|documento de identidad|cargo|no\.?|cc|ti|ce|nu|pa|si|hubo personas.*)$/i.test(s));
+          const n = cs.find((s) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ .'-]+$/.test(s) && s.split(' ').length >= 2);
+          const d = cs.find((s) => /^\d{5,12}$/.test(s));
+          if (n) tes.push(n + (d ? ' (' + d + ')' : ''));
+        });
+      if (tes.length) c.testigos = tes.slice(0, 4).join(', ');
     }
     const leidos = ['numero', 'fecha', 'nombre', 'cedula', 'descripcion'].filter((k) => c[k]).length;
-    if (LectorExamen.ultimoPdf && LectorExamen.ultimoPdf.sinTexto)
+    if (est && est.sinTexto)
       avisos.push('Ese PDF es una imagen (escaneado o foto): no tiene texto que leer. Descarga el FURAT original de la página de la ARL o llena los datos a mano.');
-    if (leidos < 3) avisos.push('Encontré poca información en el PDF (¿es una imagen escaneada?): completa a mano lo que falte.');
-    if (!c.numero) avisos.push('No encontré el número de radicado: escríbelo.');
+    else if (leidos < 3) avisos.push('Encontré poca información en el PDF: completa a mano lo que falte.');
+    if (!c.numero) avisos.push('El FURAT no trae número de radicado: escríbelo si la ARL te lo dio.');
     return { campos: c, avisos, leidos };
   }
   const LectorExamen = { leer, textoPdf, fecha, condiciones, furat, ordenarCeldas };

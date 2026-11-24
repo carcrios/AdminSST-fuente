@@ -3942,12 +3942,15 @@ grupo('v186: el FURAT en PDF trae los datos (campos rellenables y cuadrículas) 
   const it = (str, x, y) => ({ str, transform: [1, 0, 0, 1, x, y], width: str.length * 5 });
   const items = [it('Primer apellido', 40, 700), it('Segundo apellido', 200, 700), it('Nombres', 360, 700), it('RIOS', 40, 688), it('CASTILLO', 200, 688), it('CARLOS ANDRES', 360, 688),
     it('Tipo identificación', 40, 660), it('Número', 200, 660), it('Cargo', 360, 660), it('CC', 40, 648), it('1020304050', 200, 648), it('OPERARIO', 360, 648),
-    it('Fecha del accidente', 40, 620), it('Hora', 200, 620), it('Municipio', 360, 620), it('15/10/2026', 40, 608), it('10:30', 200, 608), it('BOGOTA', 360, 608)];
-  const pares = []; const txt = ctx.LE.ordenarCeldas(items, (x) => pares.push(x));
-  ok('empareja «Primer apellido: RIOS» y no toma los datos como rótulos', pares.indexOf('Primer apellido: RIOS') !== -1 && !pares.some((x) => /^RIOS:/.test(x)));
-  const c = ctx.LE.furat(pares.join('\n') + '\n' + txt, {}).campos;
-  ok('del FURAT en cuadrícula salen nombre, cédula, cargo, fecha, hora y lugar', c.nombre === 'CARLOS ANDRES RIOS CASTILLO' && c.cedula === '1020304050' && c.cargo === 'OPERARIO' &&
-    c.fecha === '2026-10-15' && c.hora === '10:30' && c.lugar === 'BOGOTA');
+    it('Identificación de la persona que se accidentó', 40, 720), it('Información sobre el accidente', 40, 632), it('Fecha del accidente', 40, 620), it('Hora', 200, 620), it('Municipio', 360, 620),
+    it('15/10/2026', 40, 608), it('10:30', 200, 608), it('BOGOTA', 360, 608), it('Parte del cuerpo aparentemente afectado', 40, 590), it('Cabeza', 50, 578), it('Manos', 50, 566),
+    it('¿Causó la muerte al trabajador?', 40, 550), it('Si', 50, 538), it('No', 80, 538), it('Tipo de Lesión', 40, 520), it('Fractura', 50, 508), it('Amputación', 50, 496)];
+  const filas = ctx.LE.ordenarCeldas(items, 1);
+  ctx.LE.ultimoPdf = { filas, marcas: [], texto: filas.map((f) => f.c.map((k) => k.s).join('   ')).join('\n') };
+  const c = ctx.LE.furat(ctx.LE.ultimoPdf.texto, {}).campos;
+  ok('del FURAT en cuadrícula salen nombre, cédula, cargo, fecha y hora (lo de debajo de cada rótulo)', c.nombre === 'CARLOS ANDRES RIOS CASTILLO' && c.cedula === '1020304050' && c.cargo === 'OPERARIO' &&
+    c.fecha === '2026-10-15' && c.hora === '10:30', JSON.stringify(c));
+  ok('v187: sin casillas marcadas no inventa parte del cuerpo, lesión, agente, mecanismo ni gravedad', !c.parteCuerpo && !c.tipoLesion && !c.agente && !c.mecanismo && !c.mortal && !c.grave);
   ok('se muestra «Esto encontré en el PDF» arriba del formulario', /function resumenFurat/.test(ra) && /id="furatLeido"/.test(rh));
   const cm = leer('comites.js'), ru = leer('reuniones.html');
   ok('Reuniones usa el motor de los comités sin conformación', /clave: 'reuniones'/.test(ru) && /libre: true/.test(ru) && /C\.libre/.test(cm));

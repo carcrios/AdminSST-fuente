@@ -356,7 +356,9 @@ function ponerClase(c){
   const amplio = (obs || c === 'Incidente' || c === AT) && c !== 'Acto seguro';
   $('filaCategoria').hidden = !obs || c === 'Acto seguro'; $('filaRelacionados').hidden = !(obs || amplio);
   $('filaAccionTomada').hidden = !amplio; $('filaInmediataTxt').hidden = true;
-  $('filaPlan').hidden = $('filaConsecuencias').hidden = !amplio;
+  // v187: en el accidente de trabajo el plan y las consecuencias van en la investigación (no se piden dos veces)
+  $('filaPlan').hidden = $('filaConsecuencias').hidden = !amplio || c === AT;
+  $('lblAccionTomada').textContent = 'Acción inmediata tomada' + (c === AT ? ' (opcional)' : ' *');
   // v129: el acto seguro no lleva potencial de daño ni campo de reconocimiento.
   $('filaPot').hidden = c === 'Acto seguro'; if (c === 'Acto seguro') $('filaInmediataTxt').hidden = true;
   if (obs) pintarCategorias(c);
@@ -432,7 +434,7 @@ $('btnEnviar').addEventListener('click', async ()=>{
     { el: $('nCategoria'), etiqueta: 'Categoría del acto o condición', error: ()=> $('filaCategoria').hidden ? '' : (!$('nCategoria').value ? 'elige una categoría' : ($('nCategoria').value === 'Otros' && !$('nCategoriaOtra').value.trim() ? 'escribe cuál' : '')) },
     { el: $('nDesc'), etiqueta: '¿Qué sucedió?', error: ()=> { const e = Valida.texto($('nDesc').value, 10); return e === 'es muy corto' ? 'cuenta un poco más (qué, dónde y cómo)' : e; } },
     { el: $('nRelacionados'), etiqueta: 'Persona(s), equipo(s), máquina(s) o instalaciones relacionadas', error: ()=> $('filaRelacionados').hidden ? '' : (Valida.texto($('nRelacionados').value, 3) === 'falta' ? 'escribe a quién o a qué se refiere' : '') },
-    { el: $('nAccionTomada'), etiqueta: 'Acción inmediata tomada', error: ()=> $('filaAccionTomada').hidden ? '' : (!$('nAccionTomada').querySelector('input:checked') ? 'marca una opción' : ($('nAccionTomada').querySelector('input[value="Otros"]:checked') && !$('nAccionOtra').value.trim() ? 'escribe cuál otra' : '')) },
+    { el: $('nAccionTomada'), etiqueta: 'Acción inmediata tomada', error: ()=> $('filaAccionTomada').hidden || clase === AT ? '' : (!$('nAccionTomada').querySelector('input:checked') ? 'marca una opción' : ($('nAccionTomada').querySelector('input[value="Otros"]:checked') && !$('nAccionOtra').value.trim() ? 'escribe cuál otra' : '')) },
     { el: $('lNombre'), etiqueta: 'Persona lesionada', error: ()=> clase === AT ? Valida.texto($('lNombre').value, 3) : '' },
     { el: $('lCedula'), etiqueta: 'Cédula del lesionado', error: ()=> clase === AT && $('lCedula').value.trim() ? Valida.cedula($('lCedula').value) : '' },
     { el: $('nQuien'), etiqueta: 'Quién reporta', error: ()=> anonimo ? '' : (Valida.texto($('nQuien').value, 3) === 'falta' ? 'escribe tu nombre o marca «Reportar sin dar mi nombre»' : Valida.texto($('nQuien').value, 3)) }
