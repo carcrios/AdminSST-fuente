@@ -26,7 +26,7 @@ const CAUSAS = {
   trabajo: ['Liderazgo o supervisión inadecuada', 'Ingeniería o diseño inadecuado', 'Compras inadecuadas (equipos, EPP, materiales)', 'Mantenimiento inadecuado', 'Herramientas o equipos inadecuados',
     'Estándares o procedimientos inadecuados o inexistentes', 'Desgaste por uso normal', 'Abuso o mal uso', 'Comunicación deficiente']
 };
-let filas = [], acciones = [], tab = 'abiertos', clase = '', actual = null, fotosNuevo = null, padsEquipo = 0;
+let padsTestigo = 0, filas = [], acciones = [], tab = 'abiertos', clase = '', actual = null, fotosNuevo = null, padsEquipo = 0;
 /* v109: PQRS (las mismas de Calidad → PQRS: tipo de registro «pqrs») y filtros de las cifras */
 let pqrs = [], filtro = '', fotosPqrs = null, conLista = false;
 const PQ = 'PQRS';
@@ -929,6 +929,8 @@ function pintarMedidas(){
    Se precargan del reporte, de Personal habilitado y del perfil de la empresa; se guardan en investigacion.furat. */
 const FUR_OP = {
   vinculacion: ['Planta', 'Misión', 'Cooperado', 'Estudiante o aprendiz', 'Independiente'], tipoId: ['CC', 'CE', 'NU', 'TI', 'PEP', 'PA'], sexo: ['M', 'F'], zona: ['Urbana', 'Rural'],
+    evento: ['Laboral', 'Ambiental'], ambiental: ['(1) Derrame de un residuo (sólido, líquido o gaseoso)', '(2) Incendio', '(3) Contaminación de fuentes hídricas', '(4) Emisión de gases', '(5) Mezcla de residuos peligrosos', '(6) Explosión de gases',
+    '(7) Condiciones inseguras de almacenamiento de sustancias químicas o residuos', '(8) Rotura de luminarias', '(9) Fuga de gases contaminantes', '(10) Inundación'],
     escolaridad: ['Primaria', 'Bachiller', 'Técnico', 'Tecnólogo', 'Profesional', 'Posgrado', 'Ninguna'],
   jornadaHab: ['Diurna', 'Nocturna', 'Mixta', 'Turnos'], jornada: ['Normal', 'Extra'], siNo: ['Sí', 'No'], noSi: ['No', 'Sí'],
   tipoAcc: ['Propios del trabajo', 'Violencia', 'Tránsito', 'Deportivo', 'Recreativo', 'Ambiental'], dentro: ['Dentro de la empresa', 'Fuera de la empresa'],
@@ -938,14 +940,14 @@ const FUR_OP = {
   agente: ['(1) Máquinas y/o equipos', '(2) Medios de transporte', '(3) Aparatos', '(3.36) Herramientas, implementos o utensilios', '(4) Materiales o sustancias', '(4.4) Radiaciones', '(5) Ambiente de trabajo', '(6) Otros agentes no clasificados', '(6.61) Animales', '(7) Agentes no clasificados por falta de datos'],
   mecanismo: ['(1) Caída de personas', '(2) Caída de objetos', '(3) Pisadas, choques o golpes', '(4) Atrapamientos', '(5) Sobreesfuerzo, esfuerzo excesivo o falso movimiento', '(6) Exposición o contacto con temperatura extrema', '(7) Exposición o contacto con la electricidad', '(8) Exposición o contacto con sustancias nocivas, radiaciones o salpicaduras', '(9) Otro']
 };
-const FUR_PERSONA = [['vinculacion', 'Tipo de vinculación', 'sel', 'vinculacion'], ['apellido1', 'Primer apellido'], ['apellido2', 'Segundo apellido'], ['nombre1', 'Primer nombre'], ['nombre2', 'Segundo nombre'],
+const FUR_PERSONA = [['evento', 'Evento ocurrido', 'sel', 'evento'], ['ambiental', 'Si es ambiental: qué pasó (uno o varios)', 'multi', 'ambiental'], ['vinculacion', 'Tipo de vinculación', 'sel', 'vinculacion'], ['apellido1', 'Primer apellido'], ['apellido2', 'Segundo apellido'], ['nombre1', 'Primer nombre'], ['nombre2', 'Segundo nombre'],
   ['tipoId', 'Tipo de identificación', 'sel', 'tipoId'], ['numId', 'Número de identificación'], ['nacimiento', 'Fecha de nacimiento', 'date'], ['sexo', 'Sexo', 'sel', 'sexo'],
     ['escolaridad', 'Escolaridad', 'sel', 'escolaridad'],
-  ['direccion', 'Dirección de residencia'], ['telefono', 'Teléfono'], ['depto', 'Departamento'], ['municipio', 'Municipio'], ['zona', 'Zona', 'sel', 'zona'], ['cargo', 'Cargo'],
-  ['ocupacion', 'Ocupación habitual'], ['tiempoOcup', 'Tiempo en la ocupación habitual (ej. 9 meses)'], ['ingreso', 'Fecha de ingreso a la empresa', 'date'], ['salario', 'Salario u honorarios mensuales', 'num'], ['jornadaHab', 'Jornada de trabajo habitual', 'sel', 'jornadaHab']];
+  ['direccion', 'Dirección de residencia'], ['telefono', 'Teléfono'], ['fax', 'Fax (si tiene)'], ['depto', 'Departamento'], ['municipio', 'Municipio'], ['zona', 'Zona', 'sel', 'zona'], ['cargo', 'Cargo'],
+  ['ocupacion', 'Ocupación habitual'], ['codOcup', 'Código de la ocupación habitual'], ['tiempoOcup', 'Tiempo en la ocupación habitual (ej. 9 meses)'], ['ingreso', 'Fecha de ingreso a la empresa', 'date'], ['salario', 'Salario u honorarios mensuales', 'num'], ['jornadaHab', 'Jornada de trabajo habitual', 'sel', 'jornadaHab']];
 const FUR_ACC = [['fecha', 'Fecha del accidente', 'date'], ['hora', 'Hora del accidente', 'time'], ['dia', 'Día de la semana'], ['jornada', 'Jornada en que sucede', 'sel', 'jornada'], ['laborHabitual', '¿Realizaba su labor habitual?', 'sel', 'siNo'],
   ['laborCual', '¿Cuál? (solo si no era la habitual)'], ['tiempoPrevio', 'Tiempo laborado previo al evento (hh:mm)', 'time'], ['tipoAcc', 'Tipo de accidente', 'sel', 'tipoAcc'], ['muerte', '¿Causó la muerte?', 'sel', 'noSi'], ['fechaMuerte', 'Fecha de la muerte', 'date'],
-  ['deptoAcc', 'Departamento del accidente'], ['municipioAcc', 'Municipio del accidente'], ['zonaAcc', 'Zona del accidente', 'sel', 'zona'], ['dentro', 'Lugar donde ocurrió', 'sel', 'dentro'], ['sitio', 'Sitio', 'sel', 'sitio'], ['sitioOtro', 'Otro sitio (especifique)'],
+  ['deptoAcc', 'Departamento del accidente'], ['municipioAcc', 'Municipio del accidente'], ['zonaAcc', 'Zona del accidente', 'sel', 'zona'], ['dentro', 'Lugar donde ocurrió', 'sel', 'dentro'], ['sitio', 'Sitio', 'sel', 'sitio'], ['sitioOtro', 'Sitio específico (dónde exactamente)'],
   ['lesion', 'Tipo de lesión (una o varias)', 'multi', 'lesion'], ['lesionOtra', 'Otra lesión (especifique)'], ['parte', 'Parte del cuerpo afectada (una o varias)', 'multi', 'parte'], ['agente', 'Agente del accidente (con qué se lesionó)', 'sel', 'agente'], ['mecanismo', 'Mecanismo o forma del accidente', 'sel', 'mecanismo'], ['mecanismoOtro', 'Otro mecanismo (especifique)']];
 const FUR_RESP = [['respNombre', 'Apellidos y nombres'], ['respTipoId', 'Tipo de identificación', 'sel', 'tipoId'], ['respNum', 'Número'], ['respCargo', 'Cargo'], ['respFecha', 'Fecha de diligenciamiento', 'date']];
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -978,6 +980,11 @@ function pintarFurat(){
   $('iFurResp').innerHTML = FUR_RESP.map((c)=> campoFur(c, f[c[0]])).join('');
   $('iTestigos').innerHTML = ''; (f.testigos || []).forEach(agregarTestigo); contarTestigos();
   $('iLicExp').value = inv.licExpedida || ''; $('iRepLegal').value = inv.repLegal || (UI.perfilInstalacion() || {}).representante || '';
+  // v185: firmas del responsable del informe, del profesional en SST y del representante legal (como el formato SSTA-F-008)
+  $('iProfNom').value = inv.profNombre || ''; $('iProfCed').value = inv.profCedula || ''; $('iRepCed').value = inv.repCedula || '';
+  $('padRespCaja').innerHTML = '<label class="u-mt8">Firma del responsable del informe</label>' + UI.padHTML('padResp'); UI.activarPad('padResp', f.respFirma);
+  $('padProfCaja').innerHTML = '<label>Firma del profesional en SST</label>' + UI.padHTML('padProf'); UI.activarPad('padProf', inv.profFirma);
+  $('padRepCaja').innerHTML = '<label>Firma del representante legal</label>' + UI.padHTML('padRep'); UI.activarPad('padRep', inv.repFirma);
   const fe = $('fu_fecha'); if (fe) fe.addEventListener('change', ()=> { if (fe.value) $('fu_dia').value = DIAS[new Date(fe.value + 'T12:00:00').getDay()]; });
 }
 function agregarTestigo(t){
@@ -985,8 +992,9 @@ function agregarTestigo(t){
   d.innerHTML = '<div class="fur-grid"><div class="field"><label>Apellidos y nombres</label><input type="text" class="tNom" value="' + esc(t.nombre || '') + '"></div>' +
     '<div class="field"><label>Documento</label><input type="text" class="tDoc" inputmode="numeric" placeholder="Cédula" value="' + esc(t.doc || '') + '"></div>' +
     '<div class="field"><label>Cargo</label><input type="text" class="tCargo" value="' + esc(t.cargo || '') + '"></div>' +
-    '<div class="field ancho"><label>Declaración</label><textarea class="tDecl" rows="2" maxlength="1500">' + esc(t.declaracion || '') + '</textarea></div></div><button type="button" class="btn-mini" data-quitar-testigo>Quitar</button>';
-  $('iTestigos').appendChild(d); contarTestigos();
+    '<div class="field ancho"><label>Declaración</label><textarea class="tDecl" rows="2" maxlength="1500">' + esc(t.declaracion || '') + '</textarea></div></div>' + UI.padHTML('padTes' +
+      (++padsTestigo)) + '<button type="button" class="btn-mini" data-quitar-testigo>Quitar</button>';
+  d.dataset.pad = 'padTes' + padsTestigo; $('iTestigos').appendChild(d); UI.activarPad(d.dataset.pad, t.firma); contarTestigos();
 }
 const contarTestigos = ()=> { $('nTestigos').textContent = $('iTestigos').children.length || ''; };
 $('btnMasTestigo').addEventListener('click', ()=> agregarTestigo({}));
@@ -995,8 +1003,15 @@ function leerFurat(){
   if (!$('iFuratCard').querySelector('[data-fur]')) return (actual.investigacion || {}).furat || null;   // aún no se pintó: no se borra lo guardado
   const f = {};
   $('iFuratCard').querySelectorAll('[data-fur]').forEach((x)=> { f[x.dataset.fur] = x.dataset.multi != null ? [...x.querySelectorAll('input:checked')].map((c)=> c.value) : x.value.trim(); });
-  f.testigos = [...$('iTestigos').querySelectorAll('.testigo')].map((d)=> ({ nombre: d.querySelector('.tNom').value.trim(), doc: d.querySelector('.tDoc').value.trim(), cargo: d.querySelector('.tCargo').value.trim(), declaracion: d.querySelector('.tDecl').value.trim() })).filter((x)=> x.nombre);
+  f.testigos = [...$('iTestigos').querySelectorAll('.testigo')].map((d)=> ({ nombre: d.querySelector('.tNom').value.trim(), firma: UI.firma(d.dataset.pad) || null, doc: d.querySelector('.tDoc').value.trim(), cargo: d.querySelector('.tCargo').value.trim(), declaracion: d.querySelector('.tDecl').value.trim() })).filter((x)=> x.nombre);
   return f;
+}
+/* v185: representante legal y profesional en SST con su firma (como el formato SSTA-F-008). */
+function firmasCierre(inv, td){
+  const eq = inv.equipo || [], prof = inv.profNombre ? { nombre: inv.profNombre, cedula: inv.profCedula, firma: inv.profFirma } : (eq.find((x)=> /profesional|licencia/i.test(x.rol || '')) || eq.find((x)=> /\bsst\b|ssta/i.test(x.rol || '') && !/copasst/i.test(x.rol || '')) || {});
+  return '<table><tr>' + td('Representante legal', esc(inv.repLegal || '') + (inv.repCedula ? '<br>C.C. ' + esc(inv.repCedula) : '') + '<br>' + UI.firmaHoja(inv.repFirma)) +
+    td('Profesional en seguridad y salud en el trabajo', esc(prof.nombre || '') + (prof.cedula ? '<br>C.C. ' + esc(prof.cedula) : '') + '<br>Licencia N.º ' + esc(inv.licencia || '—') +
+      (inv.licExpedida ? ' · expedida por ' + esc(inv.licExpedida) : '') + '<br>' + UI.firmaHoja(prof.firma)) + '</tr></table>';
 }
 /* Formato de investigación (Res. 1401 de 2007) con las secciones del FURAT, en el orden del formato de la empresa. */
 function formatoInvestigacion(){
@@ -1007,27 +1022,35 @@ function formatoInvestigacion(){
   const sec = (t, cuerpo)=> UI.seccion(t, cuerpo);
   const nomPers = [f.apellido1, f.apellido2, f.nombre1, f.nombre2].filter(Boolean).join(' ');
   let h = UI.cabecera('SG-INV-AT', 'INVESTIGACIÓN DE ACCIDENTES DE TRABAJO', 'Res. 1401 de 2007 · ' + d.id + (inv.estado === 'CERRADA' ? ' · terminada el ' + UI.corta(inv.fecha) : ' · en curso'));
-  h += sec('0. Evento ocurrido', '<table><tr>' + td('Evento', '☒ Laboral &nbsp; ☐ Ambiental', 2) + '</tr></table>');
+  const amb = f.evento === 'Ambiental';
+  h += sec('0. Evento ocurrido', '<table><tr>' + td('Evento', amb ? '☐ Laboral &nbsp; ☒ Ambiental' : '☒ Laboral &nbsp; ☐ Ambiental', 4) + '</tr>' + (amb ? '<tr>' +
+    td('Ambiental', marcas('ambiental', f.ambiental), 4) + '</tr>' : '') + '</table>');
   h += sec('I. Información de la persona que se accidentó', '<table><tr>' + td('Tipo de vinculación', marcas('vinculacion', f.vinculacion), 4) + '</tr>' +
     '<tr>' + td('Primer apellido', esc(f.apellido1)) + td('Segundo apellido', esc(f.apellido2)) + td('Primer nombre', esc(f.nombre1)) + td('Segundo nombre', esc(f.nombre2)) + '</tr>' +
     '<tr>' + td('Tipo de identificación', marcas('tipoId', f.tipoId)) + td('Número', esc(f.numId)) + td('Fecha de nacimiento', esc(f.nacimiento ? UI.corta(f.nacimiento) : '')) + td('Sexo', marcas('sexo', f.sexo)) + '</tr>' +
-    '<tr>' + td('Dirección', esc(f.direccion), 2) + td('Teléfono', esc(f.telefono)) + td('Zona', marcas('zona', f.zona)) + '</tr>' +
+    '<tr>' + td('Dirección', esc(f.direccion), 2) + td('Teléfono', esc(f.telefono)) + td('Fax', esc(f.fax)) + '</tr>' +
+    '<tr>' + td('Escolaridad', esc(f.escolaridad), 2) + td('Zona', marcas('zona', f.zona), 2) + '</tr>' +
     '<tr>' + td('Departamento', esc(f.depto)) + td('Municipio', esc(f.municipio)) + td('Cargo', esc(f.cargo), 2) + '</tr>' +
-    '<tr>' + td('Ocupación habitual', esc(f.ocupacion), 2) + td('Tiempo en la ocupación habitual', esc(f.tiempoOcup), 2) + '</tr>' +
+    '<tr>' + td('Ocupación habitual', esc(f.ocupacion)) + td('Código de la ocupación', esc(f.codOcup)) + td('Tiempo en la ocupación habitual al momento del accidente', esc(f.tiempoOcup), 2) +
+      '</tr>' +
     '<tr>' + td('Fecha de ingreso a la empresa', esc(f.ingreso ? UI.corta(f.ingreso) : '')) + td('Salario u honorarios (mensual)', f.salario ? '$' + esc(Number(f.salario).toLocaleString('es-CO')) : '') + td('Jornada de trabajo habitual', marcas('jornadaHab', f.jornadaHab), 2) + '</tr></table>');
   h += sec('II. Información sobre el accidente', '<table><tr>' + td('Fecha del accidente', esc(f.fecha ? UI.corta(f.fecha) : '')) + td('Hora (0-23)', esc(f.hora)) + td('Día de la semana', esc(f.dia), 2) + '</tr>' +
     '<tr>' + td('Jornada en que sucede', marcas('jornada', f.jornada)) + td('¿Realizaba su labor habitual?', marcas('siNo', f.laborHabitual) + (f.laborCual ? '<br>Cuál: ' + esc(f.laborCual) : ''), 2) + td('Tiempo laborado previo', esc(f.tiempoPrevio)) + '</tr>' +
     '<tr>' + td('Tipo de accidente', marcas('tipoAcc', f.tipoAcc), 4) + '</tr>' +
     '<tr>' + td('¿Causó la muerte?', marcas('noSi', f.muerte) + (f.fechaMuerte ? ' · ' + esc(UI.corta(f.fechaMuerte)) : '')) + td('Departamento del accidente', esc(f.deptoAcc)) + td('Municipio del accidente', esc(f.municipioAcc)) + td('Zona', marcas('zona', f.zonaAcc)) + '</tr>' +
     '<tr>' + td('Lugar donde ocurrió', marcas('dentro', f.dentro), 4) + '</tr>' +
-    '<tr>' + td('Sitio', marcas('sitio', f.sitio) + (f.sitioOtro ? '<br>Otro: ' + esc(f.sitioOtro) : ''), 4) + '</tr>' +
+    '<tr>' + td('Sitio', marcas('sitio', f.sitio) + (f.sitioOtro ? '<br><b>Sitio específico:</b> ' + esc(f.sitioOtro) : ''), 4) + '</tr>' +
     '<tr>' + td('Tipo de lesión', marcas('lesion', f.lesion) + (f.lesionOtra ? '<br>Otro: ' + esc(f.lesionOtra) : ''), 4) + '</tr>' +
     '<tr>' + td('Parte del cuerpo aparentemente afectada', marcas('parte', f.parte), 4) + '</tr>' +
     '<tr>' + td('Agente del accidente (con qué se lesionó)', marcas('agente', f.agente), 2) + td('Mecanismo o forma del accidente', marcas('mecanismo', f.mecanismo) + (f.mecanismoOtro ? '<br>Otro: ' + esc(f.mecanismoOtro) : ''), 2) + '</tr></table>');
   const tes = f.testigos || [];
   h += sec('III. Descripción del accidente', UI.textoLargo(inv.hechos || d.descripcion || '') +
-    '<table><tr>' + td('¿Hubo personas que presenciaron el accidente?', tes.length ? '☒ Sí &nbsp; ☐ No' : '☐ Sí &nbsp; ☒ No', 4) + '</tr>' + tes.map((t)=> '<tr>' + td('Apellidos y nombres', esc(t.nombre)) + td('Documento', esc(t.doc)) + td('Cargo', esc(t.cargo)) + td('Firma', '') + '</tr><tr>' + td('Declaración', esc(t.declaracion), 4) + '</tr>').join('') + '</table>');
-  h += sec('IV. Persona responsable del informe (representante o delegado)', '<table><tr>' + td('Apellidos y nombres', esc(f.respNombre), 2) + td('Documento', esc((f.respTipoId || 'CC') + ' ' + (f.respNum || ''))) + td('Cargo', esc(f.respCargo)) + '</tr><tr>' + td('Firma', '', 2) + td('Fecha de diligenciamiento', esc(f.respFecha ? UI.corta(f.respFecha) : ''), 2) + '</tr></table>');
+    '<table><tr>' + td('¿Hubo personas que presenciaron el accidente?', tes.length ? '☒ Sí &nbsp; ☐ No' : '☐ Sí &nbsp; ☒ No', 4) + '</tr>' + tes.map((t)=> '<tr>' +
+      td('Apellidos y nombres', esc(t.nombre)) + td('Documento', esc(t.doc)) + td('Cargo', esc(t.cargo)) + td('Firma', UI.firmaHoja(t.firma)) + '</tr><tr>' +
+        td('Declaración', esc(t.declaracion), 4) + '</tr>').join('') + '</table>');
+  h += sec('IV. Persona responsable del informe (representante o delegado)', '<table><tr>' + td('Apellidos y nombres', esc(f.respNombre), 2) + td('Documento', esc((f.respTipoId || 'CC') +
+    ' ' + (f.respNum || ''))) + td('Cargo', esc(f.respCargo)) + '</tr><tr>' + td('Firma', UI.firmaHoja(f.respFirma), 2) +
+      td('Fecha de diligenciamiento', esc(f.respFecha ? UI.corta(f.respFecha) : ''), 2) + '</tr></table>');
   h += sec('V. Dibujo o fotos', (d.fotos || []).length ? UI.fotosHoja(d.fotos) : UI.textoLargo('Ver anexos.'));
   const pqs = inv.porques || [];
   h += sec('VI. Análisis de causa raíz (5 porqués)', (pqs.length ? '<table>' + (inv.problema ? '<tr><td class="l" style="width:22%">Qué pasó</td><td>' + esc(inv.problema) + '</td></tr>' : '') + pqs.map((t, i)=> '<tr><td class="l" style="width:22%">' + (i + 1) + '. ' + esc(preguntaPorque(inv.problema, pqs, i)) + '</td><td>' + esc(t) + '</td></tr>').join('') + '</table>' : '') +
@@ -1037,8 +1060,10 @@ function formatoInvestigacion(){
     '<tr><td>' + lst(c.personales) + '</td><td>' + lst(c.trabajo) + '</td><td>' + lst(c.condiciones) + '</td><td>' + lst(c.actos) + '</td></tr></table>' + (inv.conclusiones ? UI.tablaDatos([['Conclusiones', inv.conclusiones]]) : ''));
   h += sec('VIII. Soluciones: cómo prevenir que ocurran pérdidas', acciones.length ? '<table><tr><th style="width:8%">Causa N.º</th><th>Solución o recomendación</th><th>Responsable</th><th>Fecha acordada para cierre</th></tr>' + acciones.map((a, i)=> '<tr><td>' + (i + 1) + '</td><td>' + esc(a.resumen.accion || a.resumen.hallazgo || '') + '</td><td>' + esc(a.resumen.responsable || '') + '</td><td>' + esc(UI.corta(a.resumen.fechaCompromiso || '')) + '</td></tr>').join('') + '</table>' : UI.textoLargo('Sin acciones registradas todavía.'));
   const ciudad = f.municipioAcc || f.municipio || '', fe = inv.fecha || UI.hoy();
-  h += sec('IX. Participantes de la investigación', '<table><tr><th>Nombre</th><th>Cargo / rol</th><th>Ciudad</th><th>Fecha</th><th>Firma y documento</th></tr>' + (inv.equipo || []).map((x)=> '<tr><td>' + esc(x.nombre) + '</td><td>' + esc(x.rol) + '</td><td>' + esc(ciudad) + '</td><td>' + esc(UI.corta(fe)) + '</td><td>' + UI.firmaHoja(x.firma) + (x.cedula ? '<br>CC ' + esc(x.cedula) : '') + '</td></tr>').join('') + '</table>' +
-    '<table><tr>' + td('Representante legal', esc(inv.repLegal || '') + '<br><br>Firma y documento:') + td('Profesional en SST', esc(((inv.equipo || []).find((x)=> /licencia|profesional|sst/i.test(x.rol || '')) || {}).nombre || '') + '<br>Licencia N.º ' + esc(inv.licencia || '') + (inv.licExpedida ? ' · expedida por ' + esc(inv.licExpedida) : '') + '<br>Firma y documento:') + '</tr></table>');
+  h += sec('IX. Participantes de la investigación', '<table><tr><th>Nombre / documento</th><th>Cargo / rol</th><th>Ciudad</th><th>Fecha</th><th>Hora</th><th>Firma</th></tr>' +
+    (inv.equipo || []).map((x)=> '<tr><td>' + esc(x.nombre) + (x.cedula ? '<br>C.C. ' + esc(x.cedula) : '') + '</td><td>' + esc(x.rol) + '</td><td>' + esc(x.ciudad || ciudad) + '</td><td>' +
+      esc(UI.corta(fe)) + '</td><td>' + esc(x.hora || '') + '</td><td>' + UI.firmaHoja(x.firma) + '</td></tr>').join('') + '</table>' +
+    firmasCierre(inv, td));
   const sinFirmas = inv.estado !== 'CERRADA' || !(inv.equipo || []).length || (inv.equipo || []).some((x)=> !x.firma);
   UI.imprimir([h], false, { registro: { id: d.id, version: d.version, actualizado: d.updatedAt }, borrador: sinFirmas ? 'BORRADOR — investigación sin terminar o sin las firmas del equipo' : '' });
 }
@@ -1062,7 +1087,9 @@ function agregarIntegrante(p){
   d.className = 'equipo-inv'; d.dataset.n = n;
   d.innerHTML = '<div class="rol"><input type="text" class="rolTxt" value="' + esc(p.rol || '') + '" placeholder="Rol en la investigación" style="border:0;background:transparent;font-weight:700;font-size:var(--fs-etiqueta);text-transform:uppercase;color:var(--muted);width:100%;padding:0;"></div>' +
     '<div class="field"><input type="text" class="nom" placeholder="Nombre (escribe para buscar)" value="' + esc(p.nombre || '') + '"></div>' +
-    '<div class="field"><input type="text" class="ced" placeholder="Cédula" inputmode="numeric" value="' + esc(p.cedula || '') + '"></div>' + UI.padHTML('padInv' + n);
+    '<div class="field"><input type="text" class="ced" placeholder="Cédula" inputmode="numeric" value="' + esc(p.cedula || '') + '"></div>' +
+    '<div class="grid2"><div class="field"><input type="text" class="ciu" placeholder="Ciudad" value="' + esc(p.ciudad || '') +
+      '"></div><div class="field"><input type="time" class="hor" aria-label="Hora" value="' + esc(p.hora || '') + '"></div></div>' + UI.padHTML('padInv' + n);
   $('iEquipo').appendChild(d);
   UI.activarPad('padInv' + n, p.firma);
   UI.autocompletar(d.querySelector('.nom'), (x)=>{ d.querySelector('.nom').value = x.nombre; d.querySelector('.ced').value = x.cedula || ''; });
@@ -1072,10 +1099,12 @@ function leerInv(estado){
   const sel = (id)=> [...$(id).querySelectorAll('input:checked')].map((c)=> c.value);
   const prev = actual.investigacion || {};
   // v148: corregir una investigación ya cerrada no le cambia la fecha de terminación (antes quedaba «fuera de plazo»).
-  return { furat: leerFurat(), licExpedida: $('iLicExp').value.trim(), repLegal: $('iRepLegal').value.trim(), estado, fecha: estado === 'CERRADA' ? (prev.estado === 'CERRADA' && prev.fecha ? prev.fecha : UI.hoy()) : (prev.fecha || ''), licencia: ($('iLicencia') && $('iLicencia').value.trim()) || prev.licencia || '', inicio: prev.inicio || UI.hoy(), hechos: $('iHechos').value.trim(), analisis: $('iAnalisis').value.trim(), conclusiones: $('iConclusiones').value.trim(),
+  return { furat: leerFurat(), licExpedida: $('iLicExp').value.trim(), repLegal: $('iRepLegal').value.trim(), repCedula: $('iRepCed').value.trim(), repFirma: UI.firma('padRep') || prev.repFirma || null,
+    profNombre: $('iProfNom').value.trim(), profCedula: $('iProfCed').value.trim(), profFirma: UI.firma('padProf') || prev.profFirma || null, estado, fecha: estado === 'CERRADA' ? (prev.estado === 'CERRADA' && prev.fecha ? prev.fecha : UI.hoy()) : (prev.fecha || ''), licencia: ($('iLicencia') && $('iLicencia').value.trim()) || prev.licencia || '', inicio: prev.inicio || UI.hoy(), hechos: $('iHechos').value.trim(), analisis: $('iAnalisis').value.trim(), conclusiones: $('iConclusiones').value.trim(),
     problema: (capturarPorque(), pqEst.problema), porques: pqEst.resp.filter(Boolean), raizEn: pqEst.raizEn, raiz: $('iRaiz').value.trim(),
     causas: { actos: sel('cActos'), condiciones: sel('cCondiciones'), personales: sel('cPersonales'), trabajo: sel('cTrabajo') },
-    equipo: [...$('iEquipo').querySelectorAll('.equipo-inv')].map((d)=> ({ rol: d.querySelector('.rolTxt').value.trim(), nombre: d.querySelector('.nom').value.trim(), cedula: d.querySelector('.ced').value.trim(), firma: UI.firma('padInv' + d.dataset.n) || null })).filter((x)=> x.nombre) };
+    equipo: [...$('iEquipo').querySelectorAll('.equipo-inv')].map((d)=> ({ rol: d.querySelector('.rolTxt').value.trim(), nombre: d.querySelector('.nom').value.trim(), cedula: d.querySelector('.ced').value.trim(),
+      ciudad: (d.querySelector('.ciu') || {}).value || '', hora: (d.querySelector('.hor') || {}).value || '', firma: UI.firma('padInv' + d.dataset.n) || null })).filter((x)=> x.nombre) };
 }
 async function guardarInv(estado){
   const inv = leerInv(estado);
@@ -1148,7 +1177,7 @@ let furatPdfPend = null, furatPara = 'nuevo';
 const pdfB64 = (f)=> new Promise((ok, mal)=> {
   if (f.size > 10 * 1024 * 1024) return mal(new Error('el PDF pasa de 10 MB'));
   const fr = new FileReader(); fr.onload = ()=> ok(String(fr.result).split(',')[1]); fr.onerror = ()=> mal(fr.error); fr.readAsDataURL(f); });
-async function leerFurat(f){
+async function leerFuratPdf(f){
   UI.toast('Leyendo el FURAT…');
   try { return LectorExamen.furat(await LectorExamen.textoPdf(f), LISTAS); } catch (e) { UI.toast('No pude leer ese PDF: ' + e.message, 'mal'); return null; }
 }
@@ -1162,7 +1191,7 @@ $('btnDesdeFurat').addEventListener('click', ()=> abrirFurat('nuevo'));
   if (cu && !Sesion.token()) $('btnDesdeFurat').hidden = true; }   // el FURAT lo sube SST, no quien reporta sin usuario
 $('fFuratPdf').addEventListener('change', async (e)=> {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  const r = await leerFurat(f); if (!r) return;
+  const r = await leerFuratPdf(f); if (!r) return;
   const c = r.campos;
   if (furatPara === 'detalle' && actual) {   // a un accidente ya registrado: radicado + adjunto (y lo que falte del lesionado)
     const l = Object.assign({}, actual.lesionado || {});

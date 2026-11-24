@@ -3,6 +3,21 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v185 — Investigación de accidentes con todas las preguntas del formato y PDF uniforme
+
+- **Error corregido (importante)**: desde la v181, al guardar una investigación se perdían los datos del FURAT (persona, accidente, testigos, responsable), porque el lector del FURAT en PDF tenía el mismo nombre interno que el que lee el formulario. Ya no. Las investigaciones guardadas entre la v181 y la v184 pueden tener esa parte vacía: ábrelas y vuelve a llenarla (o súbele el FURAT en PDF). Se agregó una prueba que revisa todas las páginas para que no vuelva a pasar.
+- **Las mismas preguntas del formato SSTA-F-008**:
+  - 0. Evento ocurrido: laboral o **ambiental**, con sus 10 opciones (derrame, incendio, contaminación de fuentes hídricas, emisión de gases…).
+  - I. Persona: además, **fax**, **escolaridad** y **código de la ocupación habitual**.
+  - II. Accidente: **sitio específico** (dónde exactamente).
+  - III. Testigos: **firma** de cada testigo.
+  - IV. Responsable del informe: **firma**.
+  - IX. Participantes: **ciudad y hora** de cada uno, con su firma.
+  - **Representante legal** (nombre, cédula y firma) y **profesional en SST** (nombre, cédula, licencia, expedida por y firma).
+- **PDF**: todas esas firmas salen en el formato, con el mismo encabezado, secciones y pie de los demás documentos del portal.
+- **Impresión**: ya no sale una hoja en blanco al final de los formatos (era el espacio de la barra de abajo de la pantalla).
+- Solo cambia el sitio; el servidor no cambia.
+
 ## v184 — Accidentes: siempre se pueden registrar, historial de accidentalidad y costo de cada accidente
 
 - **El accidente de trabajo siempre aparece para SST y el administrador**, aunque la empresa lo haya quitado de los tipos de reporte de quien reporta sin usuario (por eso no salía la opción).

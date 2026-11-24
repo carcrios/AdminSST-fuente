@@ -3914,6 +3914,25 @@ grupo('v184: accidente siempre para SST, historial de accidentalidad y costo del
   ok('escolaridad en los datos del accidentado', /\['escolaridad', 'Escolaridad', 'sel', 'escolaridad'\]/.test(ra));
 });
 
+grupo('v185: investigación con todas las preguntas del formato SSTA-F-008, firmas y PDF sin hoja en blanco', () => {
+  const ra = leer('reportes.app.js'), rh = leer('reportes.html');
+  // Dos funciones con el mismo nombre en una página: la segunda reemplaza a la primera (así se perdió el FURAT al guardar en v181-v184)
+  const dups = [];
+  fs.readdirSync(RAIZ).filter((f) => f.endsWith('.html')).forEach((h) => {
+    const html = fs.readFileSync(path.join(RAIZ, h), 'utf8'), vistos = {};   // sin el .app.js pegado que agrega leer()
+    const partes = [...html.matchAll(/<script src="([^"]+\.js)"/g)].map((m) => m[1]).filter((f) => fs.existsSync(path.join(RAIZ, f)) && !/\.min\.js$/.test(f)).map((f) => [f, leer(f)])
+      .concat([...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m, i) => [h + '#' + i, m[1]]));
+    partes.forEach(([f, c]) => [...c.matchAll(/^(?:async )?function ([A-Za-z_$][\w$]*)\s*\(/gm)].forEach((m) => (vistos[m[1]] = vistos[m[1]] || []).push(f)));
+    Object.entries(vistos).forEach(([n, l]) => { if (l.length > 1) dups.push(h + ': ' + n + ' (' + l.join(', ') + ')'); });
+  });
+  ok('ninguna página tiene dos funciones con el mismo nombre', !dups.length, dups.join(' · '));
+  ok('el lector de FURAT en PDF no pisa el FURAT de la investigación', /async function leerFuratPdf\(f\)/.test(ra) && /function leerFurat\(\)\{/.test(ra));
+  ok('formato: evento laboral o ambiental (con sus 10 opciones), fax, escolaridad, código de ocupación y sitio específico', /\['evento', 'Evento ocurrido', 'sel', 'evento'\]/.test(ra) && /\(10\) Inundación/.test(ra) && /\['codOcup'/.test(ra) && /\['fax'/.test(ra) && /Sitio específico/.test(ra));
+  ok('formato: firmas de testigos, responsable del informe, profesional en SST y representante legal; ciudad y hora de cada participante', /padTes/.test(ra) && /padResp/.test(ra) && /padProf/.test(ra) && /padRep/.test(ra) && /class="hor"/.test(ra) && /id="iProfNom"/.test(rh) && /id="iRepCed"/.test(rh));
+  ok('PDF: las firmas salen en el formato (testigos, responsable, equipo, representante y profesional)', /td\('Firma', UI\.firmaHoja\(t\.firma\)\)/.test(ra) && /UI\.firmaHoja\(f\.respFirma\)/.test(ra) && /function firmasCierre/.test(ra));
+  ok('impresión: sin la hoja en blanco al final (el espacio de la barra de abajo no se imprime)', /html body\.hp-lista\{height:auto !important;min-height:0 !important;padding:0 !important/.test(leer('common.css')));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');

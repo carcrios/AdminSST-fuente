@@ -141,7 +141,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
   <div id="filtroActivo"></div>
   <input type="search" class="buscar" id="buscar" placeholder="Buscar por lugar, descripción o persona">
   <div id="lista"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v184</div>
+  <div class="version-portal">Portal SSTA · versión v185</div>
 </div>
 
 <!-- ═══════ NUEVO REPORTE ═══════ -->
@@ -291,7 +291,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
     <details class="grupo" open><summary>I. Persona que se accidentó</summary><div id="iFurPersona" class="fur-grid"></div></details>
     <details class="grupo"><summary>II. Información sobre el accidente</summary><div id="iFurAccidente" class="fur-grid"></div></details>
     <details class="grupo"><summary>Testigos <span class="n" id="nTestigos"></span></summary><div id="iTestigos"></div><button type="button" class="btn ghost mini" id="btnMasTestigo">+ Agregar testigo</button></details>
-    <details class="grupo"><summary>Responsable del informe</summary><div id="iFurResp" class="fur-grid"></div></details>
+    <details class="grupo"><summary>Responsable del informe</summary><div id="iFurResp" class="fur-grid"></div><div id="padRespCaja"></div></details>
   </div>
   <div class="card">
     <h2>Equipo investigador</h2>
@@ -321,9 +321,15 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
     <div id="iPorques"></div>
     <div id="iRaizCaja"></div>
     <div class="field"><label>Causa raíz (puedes ajustarla)</label><input type="text" id="iRaiz" maxlength="300" placeholder="Ej.: la compra de discos no exige revisar que sirvan para el equipo"></div>
-    <div class="field"><label for="iLicencia">N.º de licencia en SST del profesional (obligatorio si el AT es grave o mortal)</label><input type="text" id="iLicencia" maxlength="60" placeholder="Ej.: Resolución 1234 de 2020 · Secretaría de Salud"></div>
-    <div class="grid2"><div class="field"><label for="iLicExp">Licencia expedida por</label><input type="text" id="iLicExp" maxlength="80" placeholder="Ej.: Secretaría de Salud" data-no-ac></div>
-    <div class="field"><label for="iRepLegal">Representante legal</label><input type="text" id="iRepLegal" maxlength="80" data-no-ac></div></div>
+    <h3 class="u-mt12">Profesional en SST y representante legal (firman el informe)</h3>
+    <div class="grid2"><div class="field"><label for="iProfNom">Profesional en SST</label><input type="text" id="iProfNom" maxlength="80" placeholder="Nombre completo"></div>
+    <div class="field"><label for="iProfCed">Cédula del profesional</label><input type="text" id="iProfCed" maxlength="20" inputmode="numeric" data-no-ac></div></div>
+    <div class="grid2"><div class="field"><label for="iLicencia">N.º de licencia en SST (obligatoria si el AT es grave o mortal)</label><input type="text" id="iLicencia" maxlength="60" placeholder="Ej.: 250405" data-no-ac></div>
+    <div class="field"><label for="iLicExp">Licencia expedida por</label><input type="text" id="iLicExp" maxlength="80" placeholder="Ej.: Secretaría de Salud de Cundinamarca" data-no-ac></div></div>
+    <div id="padProfCaja"></div>
+    <div class="grid2"><div class="field"><label for="iRepLegal">Representante legal</label><input type="text" id="iRepLegal" maxlength="80" data-no-ac></div>
+    <div class="field"><label for="iRepCed">Cédula del representante legal</label><input type="text" id="iRepCed" maxlength="20" inputmode="numeric" data-no-ac></div></div>
+    <div id="padRepCaja"></div>
     <div class="field"><label>Análisis adicional (opcional)</label><textarea id="iAnalisis" style="min-height:80px;"></textarea></div>
     <div class="field"><label>Conclusiones y lecciones aprendidas</label><textarea id="iConclusiones"></textarea></div>
   </div>

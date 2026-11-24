@@ -479,6 +479,12 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       await pg.goto(S.url + '/index.html'); await pg.waitForTimeout(4000);
       const dh = await pg.evaluate(() => { const c = document.getElementById('diaHoy'); return c && !c.hidden ? c.innerText : ''; });
       ok('empezar el día: saludo con lo de hoy y el botón de lo más urgente', /Buen(os|as) (días|tardes|noches)/.test(dh) && (/Empezar por lo más urgente/.test(dh) || /Todo al día/.test(dh)), dh.slice(0, 160));
+      // v185: el FURAT de la investigación se lee del formulario (no del lector de PDF) y tiene las preguntas del formato
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(3000);
+      const fz = await pg.evaluate(async (id) => { actual = await SGSST.doc(id); actual.id = id; abrirInvestigacion(); await new Promise((r) => setTimeout(r, 3500)); pintarFurat();
+        const e = document.getElementById('fu_codOcup'); if (e) e.value = '7212';
+        const r = leerInv('EN CURSO'); return { promesa: !!(r.furat && typeof r.furat.then === 'function'), cod: r.furat && r.furat.codOcup, evento: !!document.getElementById('fu_evento'), firmas: ['padResp', 'padProf', 'padRep'].every((x) => !!document.getElementById(x)) }; }, repAT);
+      ok('investigación: guarda los datos del FURAT del formulario, con evento, código de ocupación y firmas del formato', !fz.promesa && fz.cod === '7212' && fz.evento && fz.firmas, JSON.stringify(fz));
       // v184: accidente visible para SST, costo del accidente e historial de accidentalidad
       await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(3000);
       const atVis = await pg.evaluate(() => { const b = document.querySelector('#clases [data-c="Accidente de trabajo"]'); return !!b && !b.hidden; });

@@ -828,6 +828,10 @@ canvas.pad-completa{
   body.hp-lista > *:not(#hojaPermiso){display:none !important;}
   body.hp-lista{padding:0 !important;margin:0 !important;background:#fff !important;}
   body.hp-lista #hojaPermiso{display:block !important;}
+  /* v185: sin hoja en blanco al final (el espacio de la barra de abajo no se imprime) */
+  html:has(body.hp-lista), html body.hp-lista{height:auto !important;min-height:0 !important;padding:0 !important;margin:0 !important;}
+  body.hp-lista::before, body.hp-lista::after{content:none !important;display:none !important;}
+  body.hp-lista #hojaPermiso > .hp:last-child{break-after:auto !important;page-break-after:auto !important;margin-bottom:0 !important;}
 }
 .hp{font-family:Arial, Helvetica, sans-serif;font-size:8px;line-height:1.25;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .hp table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:-1px;}
