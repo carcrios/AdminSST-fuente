@@ -16,7 +16,7 @@ const Comite = (function () {
   let C = null;                 // configuración del comité (ver copasst.html / convivencia.html)
   let comite = null;            // fila de la lista (resumen)
   let reuniones = [], acciones = [], tab = 'reuniones';
-  let acta = null, compNuevos = [], conf = null;
+  let acta = null, compNuevos = [], conf = null, personal = null;
   /* v109: las cifras de arriba dejan la lista filtrada. Una pestaña extra (p. ej. Quejas) puede traer su propio `filtrar`. */
   let fComp = '';
   window.filtrarKpi = (v) => { const extra = (C.tabsExtra || []).find((t) => t.id === tab); if (extra && extra.filtrar) { extra.filtrar(v || ''); return; } fComp = v || ''; pintar(); };
@@ -53,7 +53,7 @@ const Comite = (function () {
       '<div class="marca-titulo"><span class="marca" role="img" aria-label="Logo de la empresa"></span><div><div class="eyebrow">Gestión SST · Comités</div>' +
       '<h1 id="tituloComite">' + esc(C.nombre) + '</h1><p>' + esc(C.subtitulo) + '</p></div></div></div>' +
       '<div id="avisoSrv"></div><div id="avisoCopia"></div><div id="alertas"></div><div class="kpis" id="kpis"></div>' +
-      '<div class="tabs" id="tabs"><button type="button" class="on" data-tab="reuniones">Reuniones</button><button type="button" data-tab="conformacion">Conformación</button>' +
+      '<div class="tabs" id="tabs"><button type="button" class="on" data-tab="reuniones">Reuniones</button>' + (C.libre ? '' : '<button type="button" data-tab="conformacion">Conformación</button>') +
       '<button type="button" data-tab="compromisos">Compromisos <span class="n" id="nComp">0</span></button>' +
       (C.tabsExtra || []).map((t) => '<button type="button" data-tab="' + t.id + '">' + esc(t.nombre) + '</button>').join('') + '</div>' +
       '<div id="panel"><div class="empty">Cargando…</div></div><div class="version-portal">Portal SSTA · versión v109</div></div>' +
@@ -82,6 +82,16 @@ const Comite = (function () {
     const mesesCorridos = Number(h.slice(5, 7));
     const ab = acciones.filter((x) => x.estado !== 'CERRADA'), ve = ab.filter((x) => x.resumen.fechaCompromiso && x.resumen.fechaCompromiso < h);
     $('nComp').textContent = ab.length;
+    if (C.libre) {   // v186: reuniones generales, sin comité conformado ni quórum
+      const delAnio = reuniones.filter((x) => String(x.resumen.fecha).slice(0, 4) === a);
+      $('kpis').innerHTML = '<div class="kpi" data-ir="tab:reuniones"><div class="v">' + delAnio.length + '</div><div class="n">reuniones en ' + a + '</div></div>' +
+        '<div class="kpi" data-ir="tab:compromisos|filtro:abiertos"><div class="v">' + ab.length + '</div><div class="n">compromisos abiertos</div></div>' +
+        '<div class="kpi ' + (ve.length ? 'mal' : 'ok') + '" data-ir="tab:compromisos|filtro:' + (ve.length ? 'vencidos' : 'abiertos') + '"><div class="v">' + ve.length +
+          '</div><div class="n">compromisos vencidos</div></div>';
+      $('alertas').innerHTML = '';
+      if (tab === 'reuniones') return pintarReuniones($('panel'), mesesHechos);
+      if (tab === 'compromisos') return pintarCompromisos($('panel'));
+    }
     $('kpis').innerHTML =
       '<div class="kpi ' + (!p ? 'mal' : vigente() ? (UI.semaforo(p.fin, 45) === 'pronto' ? '' : 'ok') : 'mal') + '" data-ir="tab:conformacion"><div class="v">' + (!p ? '—' : vigente() ? '✓' : '✗') + '</div><div class="n">' +
         (!p ? 'sin conformar' : vigente() ? 'periodo vigente' : 'periodo vencido') + '</div>' + (p && p.fin ? '<div class="f">hasta ' + esc(UI.corta(p.fin)) + '</div>' : '') + '</div>' +
@@ -115,6 +125,7 @@ const Comite = (function () {
       const c = hecho ? 'ok' : (i + 1 < mesHoy ? 'mal' : i + 1 === mesHoy ? 'pronto' : 'gris');
       return '<div class="mes ' + c + '"><b>' + m + '</b><span>' + (hecho ? '✓' : (i + 1 < mesHoy ? 'Falta' : i + 1 === mesHoy ? 'Este mes' : '')) + '</span></div>';
     }).join('');
+    if (C.libre) return pintarLibres(panel);
     panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="btnOrd">+ Reunión ordinaria</button><button type="button" class="btn ghost" id="btnExt">+ Reunión extraordinaria</button>' + (C.clave === 'copasst' ? '<button type="button" class="btn rojo" id="btnRiesgo">⚠ Riesgo inminente / accidente grave</button>' : '') + '</div>' +
       '<div class="card"><h2>Reuniones ordinarias ' + anio() + '</h2><div class="calendario' + (C.trimestral ? ' tri' : '') + '">' + cal + '</div>' +
       '<p class="ayuda">' + esc(C.ayudaReuniones) + '</p></div>' +
@@ -130,6 +141,21 @@ const Comite = (function () {
     $('btnOrd').addEventListener('click', () => nuevaActa('Ordinaria'));
     $('btnExt').addEventListener('click', () => nuevaActa('Extraordinaria'));
     if ($('btnRiesgo')) $('btnRiesgo').addEventListener('click', () => nuevaActa('Extraordinaria', { riesgo: true }));
+  }
+
+  function pintarLibres(panel) {
+    const firmadas = (s) => Number(s.firmas || 0);
+    panel.innerHTML = '<div class="acciones-top"><button type="button" class="btn amber" id="btnLibre">+ Nueva reunión</button></div>' +
+      '<p class="ayuda">' + esc(C.ayudaReuniones || '') + '</p>' +
+      (reuniones.length ? reuniones.map((x) => {
+        const s = x.resumen;
+        return '<button type="button" class="item ok" data-acta="' + esc(x.id) + '"><div class="fila"><div><div class="t">' + esc(s.motivo || 'Reunión') + '</div>' +
+          '<div class="m">📅 ' + esc(UI.corta(s.fecha)) + ' · Acta ' + esc(s.numero) + (s.lugar ? ' · ' + esc(s.lugar) : '') + ' · ' + (s.asistentes || 0) + ' asistente(s)' +
+          (s.compromisos ? ' · ' + s.compromisos + ' compromiso(s)' : '') + (x.pendiente ? ' · <span class="pend">⏳ pendiente de enviar</span>' : '') + '</div></div>' +
+          (firmadas(s) ? '<span class="chip ok">' + firmadas(s) + ' firma(s)</span>' : '') + '</div></button>';
+      }).join('') : '<div class="empty">Aún no hay reuniones. Toca «+ Nueva reunión», anota quiénes asisten y que cada uno firme en el celular o con el enlace.</div>');
+    panel.querySelectorAll('[data-acta]').forEach((b) => b.addEventListener('click', () => abrirActa(b.dataset.acta)));
+    $('btnLibre').addEventListener('click', () => nuevaActa('Reunión'));
   }
 
   function pintarCompromisos(panel) {
@@ -305,12 +331,13 @@ const Comite = (function () {
     return ('0' + n).slice(-2) + '-' + a;
   }
   async function nuevaActa(tipoReunion, opc) {
-    if (!periodo()) { UI.toast('Primero registra la conformación del comité.', 'mal'); tab = 'conformacion'; document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === 'conformacion')); pintar(); return; }
-    const d = await docComite();
-    const per = d && d.periodos ? d.periodos[d.periodos.length - 1] : { miembros: periodo().miembros };
+    if (!C.libre && !periodo()) { UI.toast('Primero registra la conformación del comité.', 'mal'); tab = 'conformacion'; document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === 'conformacion')); pintar(); return; }
+    const d = C.libre ? null : await docComite();
+    const per = C.libre ? { miembros: [] } : d && d.periodos ? d.periodos[d.periodos.length - 1] : { miembros: periodo().miembros };
     acta = { id: SGSST.nuevoId('REU'), nuevo: true, comite: C.clave, tipoReunion, numero: siguienteNumero(UI.hoy()), fecha: UI.hoy(), horaInicio: '', horaFin: '', lugar: '', modalidad: 'Presencial', motivo: '',
       asistentes: (per.miembros || []).map((m) => ({ nombre: m.nombre, cedula: m.cedula || '', cargo: m.cargo || '', representa: m.representa, calidad: m.calidad, rol: m.rol || 'Integrante', asistio: m.calidad === 'Principal' ? 'Sí' : 'No', firma: '' })),
-      invitados: '', ordenDia: (tipoReunion === 'Ordinaria' ? C.ordenOrdinaria : C.ordenExtraordinaria).slice(), desarrollo: '', compromisos: [], compromisosDetalle: [], seguimiento: [], proximaReunion: '' };
+      invitados: '', ordenDia: ((tipoReunion === 'Extraordinaria' ? C.ordenExtraordinaria : C.ordenOrdinaria) || []).slice(), desarrollo: '',
+      compromisos: [], compromisosDetalle: [], seguimiento: [], proximaReunion: '' };
     if (opc && opc.riesgo) {
       /* Res. 2013 de 1986 art. 9: ante accidente grave o riesgo inminente el COPASST se reúne de forma
          extraordinaria dentro de los cinco días siguientes a la ocurrencia del hecho. */
@@ -343,14 +370,21 @@ const Comite = (function () {
   }
   function pintarActa() {
     const a = acta, s = $('scrActa');
-    s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">' + esc(C.nombre) + '</div><h1>Acta ' + esc(a.numero) + ' · Reunión ' + esc(a.tipoReunion.toLowerCase()) + '</h1><p id="actaSub">' + (a.nuevo ? 'Nueva' : esc(a.id)) + '</p></div>' +
+    s.innerHTML = '<div class="hdr"><a class="back" href="#" data-volver>← Volver</a><div class="eyebrow">' + esc(C.nombre) + '</div><h1>Acta ' + esc(a.numero) + ' · ' +
+      (C.libre ? esc(a.motivo || 'Reunión') : 'Reunión ' + esc(String(a.tipoReunion).toLowerCase())) + '</h1><p id="actaSub">' + (a.nuevo ? 'Nueva' : esc(a.id)) + '</p></div>' +
       (C.avisoActa ? '<div class="aviso info">' + C.avisoActa + '</div>' : '') +
       '<div class="card"><div class="grid2"><div class="field"><label>Fecha</label><input type="date" id="aFecha" value="' + esc(a.fecha) + '"></div><div class="field"><label>Acta N°</label><input type="text" id="aNum" value="' + esc(a.numero) + '"></div></div>' +
       '<div class="grid2"><div class="field"><label>Hora de inicio</label><input type="time" id="aHi" value="' + esc(a.horaInicio || '') + '"></div><div class="field"><label>Hora de fin</label><input type="time" id="aHf" value="' + esc(a.horaFin || '') + '"></div></div>' +
       '<div class="grid2"><div class="field"><label>Lugar</label><input type="text" id="aLugar" value="' + esc(a.lugar || '') + '" placeholder="Ej: Sala de reuniones"></div><div class="field"><label>Modalidad</label><select id="aMod"><option>Presencial</option><option>Virtual</option><option>Mixta</option></select></div></div>' +
+      (C.libre ? '<div class="field"><label>Tema de la reunión *</label><input type="text" id="aMotivo" value="' + esc(a.motivo || '') + '" placeholder="' +
+        esc(C.ejemploMotivo || 'Ej: Reunión de seguimiento con contratistas') + '"></div>' : '') +
       (a.tipoReunion === 'Extraordinaria' ? '<div class="field"><label>Motivo de la reunión extraordinaria</label><input type="text" id="aMotivo" value="' + esc(a.motivo || '') + '" placeholder="' + esc(C.ejemploMotivo) + '"></div>' : '') +
       (a.fechaHecho !== undefined ? '<div class="field"><label>Fecha del hecho (accidente grave o riesgo inminente)</label><input type="date" id="aFechaHecho" value="' + esc(a.fechaHecho || '') + '"><div class="ayuda">La reunión debe hacerse dentro de los 5 días siguientes al hecho (Res. 2013 de 1986, art. 9).</div></div>' : '') + '</div>' +
-      '<div class="card"><h2>Asistencia</h2><div id="aAsis"></div><div id="aQuorum"></div>' +
+      '<div class="card"><h2>Asistencia</h2><div id="aAsis"></div>' +
+      '<div class="grid2 u-mt10" id="aNuevoAsis"><div class="field"><label for="aAsisNom">Agregar asistente</label><input type="text" id="aAsisNom" placeholder="Nombre (escribe para' +
+        ' buscar)" list="aAsisLista"></div>' +
+      '<div class="field"><label for="aAsisCargo">Cargo o empresa</label><input type="text" id="aAsisCargo" placeholder="Ej: Supervisor de planta"></div></div><datalist id="aAsisLista"></datalist>' +
+      '<button type="button" class="btn ghost mini" id="aAsisAdd">+ Agregar a la asistencia</button><div id="aQuorum"></div>' +
       '<div class="field u-mt10"><label>Invitados (uno por línea: nombre — cargo)</label><textarea id="aInv" placeholder="Ej: Juan Pérez — Jefe de mantenimiento">' + esc(a.invitados || '') + '</textarea></div></div>' +
       '<div class="card"><h2>Orden del día</h2><div class="field"><textarea id="aOrden" style="min-height:140px;">' + esc((a.ordenDia || []).join('\n')) + '</textarea><div class="ayuda">Un tema por línea.</div></div></div>' +
       '<div class="card"><h2>Seguimiento a compromisos anteriores</h2><div id="aSeg"></div><button type="button" class="btn ghost mini" id="aSegAct">↻ Actualizar estado desde el plan de acción</button></div>' +
@@ -364,6 +398,18 @@ const Comite = (function () {
     $('aMod').value = a.modalidad || 'Presencial';
     pintarAsistencia(); pintarSeguimiento(false); pintarCompromisosActa();
     $('aInv').addEventListener('input', () => { a.invitados = $('aInv').value; });
+    // v186: agregar asistentes (todas las reuniones; en las generales es la única forma de armar la lista)
+    llenarPersonal();
+    $('aAsisAdd').addEventListener('click', () => {
+      const nom = $('aAsisNom').value.trim(); if (!nom) { UI.toast('Escribe el nombre del asistente.', 'mal'); $('aAsisNom').focus(); return; }
+      const per = (personal || []).find((x) => String(x.nombre).toLowerCase() === nom.toLowerCase()) || {};
+      guardarFirmas();
+      a.asistentes.push({ nombre: nom, cedula: per.cedula || '', cargo: $('aAsisCargo').value.trim() || per.cargo || '',
+        representa: C.libre ? '' : 'Invitado', calidad: C.libre ? '' : 'Invitado', rol: C.libre ? 'Asistente' : 'Invitado', asistio: 'Sí', firma: '' });
+      $('aAsisNom').value = ''; $('aAsisCargo').value = ''; pintarAsistencia();
+    });
+    $('aAsisNom').addEventListener('change', () => {
+      const per = (personal || []).find((x) => String(x.nombre).toLowerCase() === $('aAsisNom').value.trim().toLowerCase()); if (per && !$('aAsisCargo').value) $('aAsisCargo').value = per.cargo || ''; });
     $('aSegAct').addEventListener('click', () => pintarSeguimiento(true));
     $('aCompAdd').addEventListener('click', () => { leerCompromisos(); compNuevos.push({ accion: '', responsable: '', fecha: Festivos.sumarDias(UI.hoy(), 30) }); pintarCompromisosActa(); });
     if ($('aDatos')) $('aDatos').addEventListener('click', async () => { const t = await C.datosMes($('aFecha').value || UI.hoy()); $('aDes').value = ($('aDes').value ? $('aDes').value.trim() + '\n\n' : '') + t; });
@@ -379,12 +425,17 @@ const Comite = (function () {
   function pintarAsistencia() {
     const a = acta;
     $('aAsis').innerHTML = a.asistentes.map((p, i) => '<div class="asis"><div><b>' + esc(p.nombre) + '</b><small>' + esc([p.rol !== 'Integrante' ? p.rol : '', p.representa, p.calidad].filter(Boolean).join(' · ')) + '</small></div>' +
-      '<div class="seg-btn" data-i="' + i + '">' + ['Sí', 'No', 'Excusa'].map((v) => '<button type="button" data-v="' + v + '" class="' + (p.asistio === v ? 'on' : '') + '">' + v + '</button>').join('') + '</div></div>').join('');
+      '<div class="seg-btn" data-i="' + i + '">' + ['Sí', 'No', 'Excusa'].map((v) => '<button type="button" data-v="' + v + '" class="' + (p.asistio === v ? 'on' : '') + '">' + v +
+        '</button>').join('') +
+      (/^(Asistente|Invitado)$/.test(p.rol) && !p.firma ? '<button type="button" data-quitar="' + i + '" aria-label="Quitar a ' + esc(p.nombre) + '">✕</button>' : '') + '</div></div>').join('') ||
+      '<div class="m u-nota">Agrega a cada persona que asiste: luego firma abajo.</div>';
     $('aAsis').querySelectorAll('.seg-btn').forEach((g) => g.addEventListener('click', (e) => {
+      const qq = e.target.closest('[data-quitar]'); if (qq) { guardarFirmas(); a.asistentes.splice(+qq.dataset.quitar, 1); pintarAsistencia(); return; }
       const b = e.target.closest('[data-v]'); if (!b) return;
       guardarFirmas(); a.asistentes[+g.dataset.i].asistio = b.dataset.v; pintarAsistencia();
     }));
     const q = quorum(a.asistentes);
+    if (C.libre) { $('aQuorum').innerHTML = ''; pintarFirmas(); return; }
     $('aQuorum').innerHTML = '<div class="aviso ' + (q.ok ? 'ok' : 'amar') + '" style="margin-top:10px;">' + (q.ok ? '✓ Hay quórum: ' : '⚠ Sin quórum: ') + q.pres + ' de ' + q.total + ' integrantes con voto (se necesitan ' + q.min + ', la mitad más uno).</div>';
     pintarFirmas();
   }
@@ -398,6 +449,11 @@ const Comite = (function () {
       '<div class="field"><input type="text" readonly value="' + esc(url) + '" id="urlFirma"></div>' +
       '<a class="btn amber" style="display:block;text-align:center;text-decoration:none;" href="' + esc(wa) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a><button type="button" class="btn ghost" id="copiarFirma">Copiar enlace</button><button type="button" class="btn ghost" data-cerrar>Cerrar</button>');
     m.el.querySelector('#copiarFirma').addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); UI.toast('Enlace copiado.'); } catch (e) { m.el.querySelector('#urlFirma').select(); } });
+  }
+  async function llenarPersonal() {
+    if (!personal) { try { personal = ((await SGSST.listar('trabajador')).rows || []).filter((x) => x.resumen && x.resumen.activo !== false)
+        .map((x) => ({ nombre: x.resumen.nombre || '', cedula: x.resumen.cedula || '', cargo: x.resumen.cargo || '' })); } catch (e) { personal = []; } }
+    if ($('aAsisLista')) $('aAsisLista').innerHTML = personal.filter((x) => x.nombre).map((x) => '<option value="' + esc(x.nombre) + '">').join('');
   }
   function guardarFirmas() { acta.asistentes.forEach((p, i) => { const f = UI.firma('fA_' + i); if (f) p.firma = f; else if (document.getElementById('fA_' + i)) p.firma = ''; }); }
   function pintarFirmas() {
@@ -444,6 +500,7 @@ const Comite = (function () {
     leerActa();
     const a = acta, msg = $('aMsg');
     if (!a.fecha) { msg.textContent = 'Falta la fecha.'; return; }
+    if (C.libre && !a.motivo) { msg.textContent = 'Escribe el tema de la reunión.'; $('aMotivo').focus(); return; }
     if ($('aFechaHecho')) {
       a.fechaHecho = $('aFechaHecho').value;
       const lim = a.fechaHecho ? new Date(a.fechaHecho + 'T12:00:00') : null;
@@ -477,8 +534,27 @@ const Comite = (function () {
     await cargar();
     pintarActa();
   }
+  // v186: acta de una reunión general (sin quórum ni presidente/secretario): asistencia con la firma de cada uno
+  function pdfLibre(a) {
+    const asis = '<table><tr><th style="width:4%">N°</th><th>Nombre</th><th style="width:15%">Cédula</th><th style="width:22%">Cargo</th><th style="width:24%">Firma</th></tr>' +
+      a.asistentes.filter((p) => p.asistio === 'Sí').map((p, i) => '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(p.nombre) + '</td><td>' + esc(p.cedula || '') + '</td><td>' +
+        esc(p.cargo || '') + '</td><td>' + UI.firmaHoja(p.firma) + '</td></tr>').join('') + '</table>' +
+      (a.invitados ? '<table><tr><td><b>Invitados:</b> ' + esc(a.invitados.split('\n').filter(Boolean).join('; ')) + '</td></tr></table>' : '');
+    const caja = (t) => '<table><tr><td>' + t + '</td></tr></table>';
+    const comp = (a.compromisosDetalle || []).length ? '<table><tr><th style="width:4%">N°</th><th>Compromiso</th><th style="width:22%">Responsable</th><th style="width:12%">Fecha</th></tr>' +
+      a.compromisosDetalle.map((c, i) => '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(c.accion) + '</td><td>' + esc(c.responsable) + '</td><td>' + esc(UI.corta(c.fecha)) +
+        '</td></tr>').join('') + '</table>' : caja('Sin compromisos.');
+    UI.imprimir([UI.cabecera(C.formatoActa, 'ACTA DE REUNIÓN', 'Acta N° ' + a.numero + ' · ' + (a.motivo || 'Reunión')) +
+      UI.seccion('DATOS DE LA REUNIÓN', UI.tablaDatos([['Tema', a.motivo || '—'], ['Fecha', UI.corta(a.fecha)],
+        ['Hora', [a.horaInicio, a.horaFin].filter(Boolean).join(' a ') || '—'], ['Lugar', a.lugar || '—'], ['Modalidad', a.modalidad || '—']])) +
+      UI.seccion('ORDEN DEL DÍA', caja((a.ordenDia || []).map((t, i) => (i + 1) + '. ' + esc(t)).join('<br>') || '—')) +
+      UI.seccion('DESARROLLO Y CONCLUSIONES', caja(esc(a.desarrollo || '—').replace(/\n/g, '<br>'))) +
+      UI.seccion('COMPROMISOS', comp) + (a.proximaReunion ? UI.seccion('PRÓXIMA REUNIÓN', caja(esc(UI.corta(a.proximaReunion)))) : '') +
+      UI.seccion('ASISTENCIA Y FIRMAS', asis)]);
+  }
   function pdfActa() {
     const a = acta, q = quorum(a.asistentes);
+    if (C.libre) return pdfLibre(a);
     const asis = '<table><tr><th style="width:4%">N°</th><th>Nombre</th><th style="width:16%">Cargo</th><th style="width:11%">Representa</th><th style="width:9%">Calidad</th><th style="width:8%">Asistió</th><th style="width:20%">Firma</th></tr>' +
       a.asistentes.map((p, i) => '<tr><td class="a">' + (i + 1) + '</td><td>' + esc(p.nombre) + (p.rol && p.rol !== 'Integrante' ? ' (' + esc(p.rol) + ')' : '') + '</td><td>' + esc(p.cargo || '') + '</td><td>' + esc(p.representa) + '</td><td>' + esc(p.calidad) + '</td><td>' + esc(p.asistio) + '</td><td>' + UI.firmaHoja(p.firma) + '</td></tr>').join('') + '</table>' +
       '<table><tr><td><b>Quórum:</b> ' + (q.ok ? 'Sí' : 'No') + ' — ' + q.pres + ' de ' + q.total + ' integrantes con voto (mínimo ' + q.min + ').' + (a.invitados ? '<br><b>Invitados:</b> ' + esc(a.invitados.split('\n').filter(Boolean).join('; ')) : '') + '</td></tr></table>';

@@ -40,7 +40,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `autorizacion-datos.js` | 68 | Autorización de tratamiento de datos (Ley 1581 de 2012) | induccion-responder, induccion |
 | `ayuda-guias.js` | 78 | Las guías de «Ayuda» (v129) | admin, ayuda, configurar-empresa |
 | `cifrado.js` | 112 | Reserva de las quejas del Comité de Convivencia | buzon, convivencia |
-| `comites.js` | 504 | COPASST y Comité de Convivencia Laboral | comite-emergencias, convivencia, copasst |
+| `comites.js` | 580 | COPASST y Comité de Convivencia Laboral | comite-emergencias, convivencia, copasst, reuniones |
 | `config.js` | 128 | Configuración centralizada del Portal SSTA | todas |
 | `contratistas-docs.js` | 19 | v162 · Documentos que se piden a los contratistas (los usan Contratistas y el portal del contratista). | contratista-portal, contratistas |
 | `dialogo.js` | 79 | Ventanas del portal en vez de las del navegador (v132) | todas |
@@ -63,7 +63,7 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `inspecciones-plantillas.js` | 983 | Listas de chequeo de las inspecciones | 6 pantallas |
 | `inspecciones.app.js` | 824 | código de inspecciones.html (v162: fuera del HTML para que el celular lo guarde en caché). | inspecciones |
 | `kit-documental.js` | 253 | Documentos del SG-SST con los datos de la empresa | documentos |
-| `lector-examen.js` | 498 | Lee el concepto de un examen médico ocupacional (v176) | reportes, salud |
+| `lector-examen.js` | 566 | Lee el concepto de un examen médico ocupacional (v176) | reportes, salud |
 | `licencia.js` | 52 | Licencia de uso del Portal SSTA (v162) | index, licencia |
 | `medevac-app.js` | 428 | MEDEVAC: ¿qué está pasando? y los pasos de esa situación (v180) | emergencias, medevac |
 | `menus-empresa.js` | 122 | Qué ve cada empresa en sus menús (v124) | admin, configurar-empresa |
@@ -78,12 +78,12 @@ el porqué de las decisiones está en [TRASPASO.md](TRASPASO.md) y cómo sacar u
 | `presupuesto.app.js` | 495 | Presupuesto del SG-SST con su ejecución (v169) | presupuesto |
 | `proveedores-catalogo.js` | 455 | Evaluación de proveedores y contratistas (v107) | proveedores |
 | `proveedores.app.js` | 994 | código de proveedores.html (v162: fuera del HTML para que el celular lo guarde en caché). | proveedores |
-| `qr.js` | 388 | Generador de códigos QR del Portal SSTA | 18 pantallas |
+| `qr.js` | 388 | Generador de códigos QR del Portal SSTA | 19 pantallas |
 | `registros.js` | 126 | Formularios por esquema para los módulos de planeación | 37 pantallas |
-| `reportes.app.js` | 1232 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
-| `sgsst-ui.js` | 732 | Piezas comunes de las pantallas del SG-SST | 64 pantallas |
-| `sw.js` | 296 | Service Worker del Portal SSTA — v2 | — |
-| `valida.js` | 262 | Reglas de datos de los formularios (v107) | 67 pantallas |
+| `reportes.app.js` | 1245 | código de reportes.html (v162: fuera del HTML para que el celular lo guarde en caché). | reportes |
+| `sgsst-ui.js` | 732 | Piezas comunes de las pantallas del SG-SST | 65 pantallas |
+| `sw.js` | 297 | Service Worker del Portal SSTA — v2 | — |
+| `valida.js` | 262 | Reglas de datos de los formularios (v107) | 68 pantallas |
 
 ## 3. Pantallas
 
@@ -168,7 +168,8 @@ Cada pantalla es un `.html` con su código al final (las 5 más grandes lo tiene
 | `proveedores.html` | 156 | registros.js, proveedores-catalogo.js, proveedores.app.js |
 | `pve.html` | 353 | registros.js, informe-reglas.js |
 | `quimicos.html` | 807 | registros.js, importar.js |
-| `reportes.html` | 362 | lector-examen.js, reportes.app.js |
+| `reportes.html` | 364 | lector-examen.js, reportes.app.js |
+| `reuniones.html` | 60 | qr.js, comites.js |
 | `revision-direccion.html` | 329 | registros.js |
 | `salud.html` | 1126 | registros.js, lector-examen.js |
 | `terminos.html` | 71 | — |
@@ -226,6 +227,6 @@ Se edita en `backends/`. `servidor-unico/` (por partes) y `servidor-todo-en-uno/
 
 | Archivo | Líneas | Qué revisa |
 |---|---|---|
-| `pruebas/pruebas.js` | 3952 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
+| `pruebas/pruebas.js` | 3974 | El código: reglas de la casa, servidor simulado, caché, versiones, datos reales que no deben colarse |
 | `pruebas/unitarias.js` | 346 | Lógica pura: se ejecuta la función y se compara el resultado |
 | `pruebas/navegador.js` | 1654 | Un navegador de verdad con tamaño de celular: pantallas, permisos, firmas, sin señal |

@@ -113,6 +113,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
 .fur-multi{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-menor);}
 .fur-multi label{display:flex;gap:4px;align-items:flex-start;font-weight:400;text-transform:none;}
 .testigo{border:1px solid var(--n-300);border-radius:var(--r-m);padding:8px;margin:6px 0;}
+.furat-leido{margin-top:var(--s-2,8px);} .furat-leido ul{margin:6px 0 0;padding-left:18px;} .furat-leido li{margin:2px 0;}
 </style>
 </head>
 <body>
@@ -141,7 +142,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
   <div id="filtroActivo"></div>
   <input type="search" class="buscar" id="buscar" placeholder="Buscar por lugar, descripción o persona">
   <div id="lista"><div class="empty">Cargando…</div></div>
-  <div class="version-portal">Portal SSTA · versión v185</div>
+  <div class="version-portal">Portal SSTA · versión v186</div>
 </div>
 
 <!-- ═══════ NUEVO REPORTE ═══════ -->
@@ -152,6 +153,7 @@ details.grupo summary .n{font-weight:600;color:var(--muted);font-size:var(--fs-m
     <h1 id="nTitulo">Nuevo reporte</h1>
     <p>Funciona sin señal: se envía solo al volver la conexión</p>
   </div>
+  <div id="furatLeido" hidden></div>
   <div class="clases" id="clases" role="radiogroup" aria-label="Qué vas a reportar">
     <button type="button" data-c="Acto seguro"><b>✅ Acto seguro</b><span>Alguien trabajó bien: reconócelo para que se repita</span></button>
     <button type="button" data-c="Acto inseguro"><b>🙅 Acto inseguro</b><span>Algo que una persona hace mal (sin arnés, sin bloqueo…)</span></button>

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-hCPawWlh0RtDZwM/M3slKXNa+3bOUhYqyE2hBCSidaw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-4jg7w2RJVq7LzecaeDV5i4NNFa9WPjmKVvMUiIhpBq4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#151b24">
 <title>Firmar acta · Portal SSTA</title>
@@ -38,7 +38,7 @@
   <div id="avisoSrv"></div>
   <div id="cuerpo"></div>
   <div class="status-msg" id="msg" role="status"></div>
-  <div class="version-portal">Portal SSTA · versión v185</div>
+  <div class="version-portal">Portal SSTA · versión v186</div>
 </div>
 <div class="screen" id="scrListo"><div class="card listo" id="listo"></div></div>
 </div>
@@ -57,7 +57,7 @@ if (typeof Outbox !== 'undefined') Outbox.flush();
 /* v149: firma de actas con el enlace que comparte el secretario del comité (sin usuario).
    El enlace sirve solo para ESTA acta y solo para firmar. De Convivencia no se muestra el contenido. */
 const $ = UI.$, q = new URLSearchParams(location.search), ID = q.get('id') || '', K = q.get('k') || '';
-const NOMBRE_COMITE = { copasst: 'COPASST', convivencia: 'Comité de Convivencia Laboral', emergencias: 'Comité de Emergencias', vigia: 'Vigía de SST' };
+const NOMBRE_COMITE = { reuniones: 'Acta de reunión', copasst: 'COPASST', convivencia: 'Comité de Convivencia Laboral', emergencias: 'Comité de Emergencias', vigia: 'Vigía de SST' };
 let acta = null, elegido = null;
 async function cargar(){
   if (UI.avisoServidor($('avisoSrv'))) return;

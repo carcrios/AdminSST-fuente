@@ -301,6 +301,55 @@ const LectorExamen = (function () {
     return { conDiagnostico, ok: !!(campos.concepto || campos.fecha), campos, persona, avisos, descartadas };
   }
   /** Saca el texto de un PDF con pdf.js (se carga solo cuando se usa). */
+  /**
+   * v186: arma las líneas como se ven en la hoja (de arriba abajo, de izquierda a derecha) y empareja las
+   * cuadrículas «rótulo arriba, dato abajo» de los formatos (FURAT, certificados): por cada celda de una fila de
+   * rótulos busca la celda de la fila siguiente que empieza en la misma columna y entrega «Rótulo: dato».
+   */
+  function ordenarCeldas(items, par) {
+    const fs = [];
+    (items || []).forEach((it) => {
+      const s = String(it.str || '').trim();
+      if (!s) return;
+      const x = it.transform[4],
+        y = it.transform[5],
+        w = it.width || s.length * 4;
+      let f = fs.find((r) => Math.abs(r.y - y) <= 3);
+      if (!f) fs.push((f = { y, c: [] }));
+      f.c.push({ x, x2: x + w, s });
+    });
+    fs.sort((a, b) => b.y - a.y);
+    const filas = fs.map((f) => {
+      f.c.sort((a, b) => a.x - b.x);
+      const celdas = [];
+      f.c.forEach((k) => {
+        const u = celdas[celdas.length - 1];
+        if (u && k.x - u.x2 < 6) {
+          u.s += (k.x - u.x2 > 1.5 ? ' ' : '') + k.s;
+          u.x2 = k.x2;
+        } else celdas.push({ x: k.x, x2: k.x2, s: k.s });
+      });
+      return celdas;
+    });
+    const rot = (s) => /[a-záéíóúñ]{3}/i.test(s) && !/\d{3}/.test(s) && s.length <= 60;
+    for (let i = 0; i + 1 < filas.length; i++) {
+      const a = filas[i],
+        b = filas[i + 1];
+      if (a.length < 2 || !a.every((k) => rot(k.s))) continue;
+      let hubo = 0;
+      a.forEach((k, j) => {
+        const fin = j + 1 < a.length ? a[j + 1].x - 2 : 1e9;
+        const v = b.filter((z) => z.x >= k.x - 12 && z.x < fin).map((z) => z.s).join(' ').trim();
+        if (v && v !== k.s && !/:\s*\S/.test(k.s)) {
+          par(k.s.replace(/[:\s]+$/, '') + ': ' + v);
+          hubo++;
+        }
+      });
+      if (hubo) i++; // la fila de datos ya se usó: no es rótulo de la siguiente
+    }
+    return filas.map((c) => c.map((k) => k.s).join('   ')).join('\n') + '\n';
+  }
+
   async function textoPdf(archivo) {
     if (typeof pdfjsLib === 'undefined') {
       await new Promise((ok, mal) => {
@@ -314,19 +363,27 @@ const LectorExamen = (function () {
     }
     const datos = new Uint8Array(await archivo.arrayBuffer());
     const pdf = await pdfjsLib.getDocument({ data: datos, isEvalSupported: false }).promise;
-    let out = '';
+    let out = '',
+      pares = '';
     for (let p = 1; p <= Math.min(pdf.numPages, 6); p++) {
       const pg = await pdf.getPage(p),
         c = await pg.getTextContent();
-      let ultY = null;
-      c.items.forEach((it) => {
-        const y = Math.round(it.transform[5]);
-        out += (ultY !== null && Math.abs(y - ultY) > 2 ? '\n' : ' ') + it.str;
-        ultY = y;
-      });
-      out += '\n';
+      // v186: los FURAT de las ARL suelen ser formularios rellenables: el dato está en el campo, no en el texto
+      try {
+        (await pg.getAnnotations()).forEach((a) => {
+          if (!a || !a.fieldName) return;
+          let v = a.fieldValue;
+          if (a.checkBox || a.radioButton) v = a.fieldValue && a.fieldValue !== 'Off' ? a.buttonValue || a.fieldValue || 'X' : '';
+          if (Array.isArray(v)) v = v.join(', ');
+          v = String(v == null ? '' : v).trim();
+          const r = String(a.alternativeText || a.fieldName).replace(/[_.]+/g, ' ').replace(/\s+/g, ' ').trim();
+          if (v && v !== 'Off') pares += r + ': ' + v + '\n';
+        });
+      } catch (e) {}
+      out += ordenarCeldas(c.items, (x) => (pares += x + '\n'));
     }
-    return out;
+    LectorExamen.ultimoPdf = { pares: pares.trim(), texto: out.trim(), sinTexto: !out.replace(/\s/g, '') && !pares };
+    return (pares ? pares + '\n' : '') + out;
   }
 
   /**
@@ -488,11 +545,22 @@ const LectorExamen = (function () {
       c.mecanismo = busca(listas.mecanismo, /mecanismo|forma del accidente|tipo de accidente/);
       c.agente = busca(listas.agente, /agente/);
     }
+    const tes = tras(lineas, /\btestigos?\b[^:]*:?/i, 4, true)
+      .map(limpiaN)
+      .filter((x) => x.split(' ').length >= 2 && !/^(si|no|nombre|nombres)$/i.test(x));
+    if (tes.length) c.testigos = tes.slice(0, 3).join(', ');
+    if (!c.lugar) {
+      const mun = val(/\bmunicipio\b[^:]*:?/i);
+      if (mun && /[a-z]{3}/i.test(mun)) c.lugar = mun.slice(0, 120);
+    }
     const leidos = ['numero', 'fecha', 'nombre', 'cedula', 'descripcion'].filter((k) => c[k]).length;
+    if (LectorExamen.ultimoPdf && LectorExamen.ultimoPdf.sinTexto)
+      avisos.push('Ese PDF es una imagen (escaneado o foto): no tiene texto que leer. Descarga el FURAT original de la página de la ARL o llena los datos a mano.');
     if (leidos < 3) avisos.push('Encontré poca información en el PDF (¿es una imagen escaneada?): completa a mano lo que falte.');
     if (!c.numero) avisos.push('No encontré el número de radicado: escríbelo.');
     return { campos: c, avisos, leidos };
   }
-  return { leer, textoPdf, fecha, condiciones, furat };
+  const LectorExamen = { leer, textoPdf, fecha, condiciones, furat, ordenarCeldas };
+  return LectorExamen;
 })();
 if (typeof module !== 'undefined') module.exports = LectorExamen;

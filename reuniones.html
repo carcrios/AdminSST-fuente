@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-mjV61IVbG8OW+QFY7hY8T+SJJO+r+vuoaHMWfPD09e0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://drive.google.com; font-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' data: blob:; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Reuniones · Portal SSTA</title>
+<meta name="description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Reuniones · Portal SSTA">
+<meta property="og:description" content="Gestión de seguridad y salud en el trabajo (SG-SST): preoperacionales, reportes, inspecciones, permisos y más, desde el celular.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="sgsst.css">
+</head>
+<body>
+<div class="wrap" id="raizComite"></div>
+
+<script src="dialogo.js"></script>
+<script src="empresa.js"></script>
+<script src="empresa-motor.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="iconos-emoji.js"></script>
+<script src="valida.js"></script>
+<script src="sgsst-ui.js"></script>
+<script src="qr.js"></script>
+<script src="comites.js"></script>
+<script>
+OfflineBanner.init();
+OutboxBadge.init();
+if (typeof Outbox !== 'undefined') Outbox.flush();
+if (typeof UpdateManager !== 'undefined') UpdateManager.init();
+
+/* v186: reuniones generales con acta y firmas (seguimiento con contratistas, gerencia, áreas, capacitaciones
+   internas…): el mismo motor de los comités (comites.js), sin conformación ni quórum. Cada asistente firma en el
+   celular o con el enlace; los compromisos quedan en el plan de acción. */
+Comite.iniciar({
+  clave: 'reuniones', id: 'CMT-REUNIONES', nombre: 'Reuniones', corto: 'reuniones', origen: 'Reunión',
+  subtitulo: 'Actas de reunión con la firma de cada asistente',
+  norma: 'Dec. 1072 de 2015, art. 2.2.4.6.12 (documentación) · Res. 0312 de 2019',
+  formatoActa: 'SG-REUNION-ACTA', formatoConformacion: 'SG-REUNION-ACTA',
+  libre: true,
+  regla: () => ({ porParte: 0, sinConteo: true, texto: '' }),
+  ayudaReuniones: 'Para cualquier reunión que no sea de un comité: seguimiento con contratistas, gerencia, jefes de área, cierre de una auditoría… Anota a los asistentes, que cada uno firme (aquí o con el enlace) y descarga el acta en PDF.',
+  ayudaConformacion: '', ayudaCapacitacion: '', ejemploCapacitacion: '',
+  ejemploMotivo: 'Ej: Seguimiento SST con contratistas de mantenimiento',
+  ordenOrdinaria: ['Verificación de asistencia', 'Seguimiento a compromisos anteriores', 'Temas de la reunión', 'Compromisos y responsables'],
+  ordenExtraordinaria: ['Verificación de asistencia', 'Temas de la reunión', 'Compromisos y responsables']
+});
+</script>
+</body>
+</html>

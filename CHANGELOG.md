@@ -3,6 +3,18 @@
 Lo más nuevo arriba. Al sacar una versión: `node herramientas/subir-version.js`,
 anotarla aquí y `node herramientas/empaquetar.js`.
 
+## v186 — El FURAT en PDF ahora sí trae los datos · Reuniones con acta y firmas
+
+- **Lectura del FURAT (y de cualquier PDF)**: lee también los **campos rellenables** del formulario (los FURAT de las ARL
+  traen el dato en el campo, no en el texto) y empareja las **cuadrículas «rótulo arriba, dato abajo»** (primer apellido,
+  segundo apellido, nombres, cédula, cargo, fecha, hora, municipio…). Además lee los **testigos**.
+- Al subir el FURAT aparece arriba del formulario **«Esto encontré en el PDF»**: qué datos trajo y cuáles no encontró.
+  Si el PDF es una imagen escaneada, lo dice claro (no tiene texto que leer).
+- **Nuevo: Reuniones** (Comités → Reuniones): cualquier reunión que no sea de un comité, con tema, asistentes (se buscan en
+  el personal o se escriben), orden del día, desarrollo, compromisos (van al plan de acción), **la firma de cada asistente**
+  en el celular o con el **enlace/QR** para firmar sin usuario, y el **acta en PDF** con la asistencia firmada.
+- En las actas de los comités también se puede **agregar asistentes** (invitados) a la lista.
+
 ## v185 — Investigación de accidentes con todas las preguntas del formato y PDF uniforme
 
 - **Error corregido (importante)**: desde la v181, al guardar una investigación se perdían los datos del FURAT (persona, accidente, testigos, responsable), porque el lector del FURAT en PDF tenía el mismo nombre interno que el que lee el formulario. Ya no. Las investigaciones guardadas entre la v181 y la v184 pueden tener esa parte vacía: ábrelas y vuelve a llenarla (o súbele el FURAT en PDF). Se agregó una prueba que revisa todas las páginas para que no vuelva a pasar.

@@ -1645,6 +1645,39 @@ const PERMISOS = ['permiso-trabajo-alturas.html', 'permiso-trabajo-caliente.html
       ok('sin errores de JavaScript', !errores.length, errores.join(' | '));
       await ctx.close();
     }
+    console.log('\n▸ v186: el FURAT rellenable trae los datos · Reuniones con acta y firmas');
+    {
+      const ctx = await nav.newContext(PC);
+      await entrarComo(ctx, S.url, 0);
+      const pg = await ctx.newPage(); const errores = []; pg.on('pageerror', (e) => errores.push(String(e.message)));
+      await pg.addInitScript(() => { window.__sstaDialogoAuto = 'aceptar'; });
+      await pg.goto(S.url + '/reportes.html'); await pg.waitForTimeout(2500);
+      await pg.evaluate(() => { furatPara = 'nuevo'; });
+      await pg.setInputFiles('#fFuratPdf', require('path').join(__dirname, 'fixtures', 'furat-rellenable.pdf'));
+      await esperar(() => pg.evaluate(() => !document.getElementById('furatLeido').hidden), 15000);
+      const f = await pg.evaluate(() => ({ nom: lNombre.value, ced: lCedula.value, cargo: lCargo.value, fecha: nFecha.value, hora: nHora.value, lugar: nLugar.value, desc: nDesc.value,
+        resumen: document.getElementById('furatLeido').innerText }));
+      ok('del FURAT rellenable salen nombre, cédula, cargo, fecha, hora, lugar y descripción', f.nom === 'LUIS ALBERTO PEREZ GOMEZ' && f.ced === '1098765432' && f.cargo === 'SOLDADOR' &&
+        f.fecha === '2026-11-12' && f.hora === '14:20' && /soldadura/i.test(f.lugar) && /esquirla/.test(f.desc), JSON.stringify(f));
+      ok('arriba del formulario dice qué encontró en el PDF', /Esto encontré en el PDF/.test(f.resumen) && /Accidentado: LUIS ALBERTO/.test(f.resumen), f.resumen.slice(0, 300));
+      // Reuniones: nueva, con un asistente agregado que firma; se guarda y queda en la lista
+      await pg.goto(S.url + '/reuniones.html'); await pg.waitForTimeout(2500);
+      ok('Reuniones abre sin pestaña de conformación', await pg.evaluate(() => !document.querySelector('[data-tab="conformacion"]') && !!document.getElementById('btnLibre')));
+      await pg.evaluate(() => document.getElementById('btnLibre').click()); await pg.waitForTimeout(800);
+      await pg.fill('#aMotivo', 'Seguimiento SST con contratistas v186');
+      await pg.fill('#aAsisNom', 'Ana Prueba Reunión'); await pg.fill('#aAsisCargo', 'Contratista');
+      await pg.evaluate(() => document.getElementById('aAsisAdd').click()); await pg.waitForTimeout(400);
+      const firmas = await firmarConMouse(pg);
+      ok('el asistente agregado aparece con su recuadro de firma', firmas >= 1, firmas + ' firmas');
+      await pg.evaluate(() => document.getElementById('aGuardar').click());
+      const guardo = await esperar(() => pg.evaluate(async () => (await SGSST.listar('reunion')).rows.some((x) => x.resumen.comite === 'reuniones' && /v186/.test(x.resumen.motivo || ''))), 15000);
+      ok('el acta de la reunión se guarda', guardo);
+      const doc = await pg.evaluate(async () => { const r = (await SGSST.listar('reunion')).rows.find((x) => /v186/.test(x.resumen.motivo || '')); const d = r && await SGSST.doc(r.id);
+        return d ? { n: d.asistentes.length, firma: /^data:image/.test(d.asistentes[0].firma || ''), cargo: d.asistentes[0].cargo } : null; });
+      ok('el acta guarda al asistente con su firma', doc && doc.n === 1 && doc.firma && doc.cargo === 'Contratista', JSON.stringify(doc));
+      ok('sin errores de JavaScript', !errores.length, errores.join(' | '));
+      await ctx.close();
+    }
   } finally {
     await nav.close(); S.cerrar(); fs.rmSync(dir, { recursive: true, force: true });
   }

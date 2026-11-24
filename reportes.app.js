@@ -377,7 +377,7 @@ function wizardReporte(c){
     { titulo: 'Quién reporta', els: [$('cardQuien')] } ] });
 }
 function nuevo(){
-  furatPdfPend = null;
+  furatPdfPend = null; if ($('furatLeido')) { $('furatLeido').hidden = true; $('furatLeido').innerHTML = ''; }
   const ahora = new Date(); ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
   $('nFecha').value = ahora.toISOString().slice(0, 10); $('nHora').value = ahora.toISOString().slice(11, 16);
   ['nLugar', 'nCentro', 'nDesc', 'nInmediata', 'lNombre', 'lCedula', 'lCargo', 'nRelacionados', 'nPlan', 'nConsecuencias', 'nAccionOtra', 'nCategoriaOtra'].forEach((id)=> $(id).value = '');
@@ -1181,6 +1181,16 @@ async function leerFuratPdf(f){
   UI.toast('Leyendo el FURAT…');
   try { return LectorExamen.furat(await LectorExamen.textoPdf(f), LISTAS); } catch (e) { UI.toast('No pude leer ese PDF: ' + e.message, 'mal'); return null; }
 }
+// v186: lo que se leyó del PDF, a la vista, para que se note qué trajo y qué falta
+const ROT_FURAT = { numero: 'Radicado', fechaRadicado: 'Fecha de radicado', fecha: 'Fecha del accidente', hora: 'Hora', nombre: 'Accidentado',
+  cedula: 'Cédula', cargo: 'Cargo', lugar: 'Lugar', parteCuerpo: 'Parte del cuerpo', tipoLesion: 'Tipo de lesión', mecanismo: 'Mecanismo',
+  agente: 'Agente', testigos: 'Testigos', descripcion: 'Descripción' };
+function resumenFurat(c){
+  const si = Object.keys(ROT_FURAT).filter((k)=> c[k]), no = Object.keys(ROT_FURAT).filter((k)=> !c[k]);
+  return '<details class="furat-leido" open><summary>Esto encontré en el PDF (' + si.length + ' de ' +
+    Object.keys(ROT_FURAT).length + ')</summary><ul>' + si.map((k)=> '<li><b>' + ROT_FURAT[k] + ':</b> ' + esc(String(c[k]).slice(0, 140)) + '</li>').join('') +
+    '</ul>' + (no.length ? '<p class="mini">No lo encontré: ' + no.map((k)=> ROT_FURAT[k]).join(', ') + '.</p>' : '') + '</details>';
+}
 async function adjuntarFurat(id, f){
   try { const r = await SGSST.enviar({ action: 'adjuntar', id, uid: 'adj-' + Date.now().toString(36), nombre: 'FURAT ' + id +
     '.pdf', mime: 'application/pdf', base64: await pdfB64(f), ref: 'furat' }); return !!r.ok; } catch (e) { return false; }
@@ -1213,9 +1223,12 @@ $('fFuratPdf').addEventListener('change', async (e)=> {
   pon('nRelacionados', [c.nombre, c.cargo].filter(Boolean).join(' · '));
   pon('lNombre', c.nombre); pon('lCedula', c.cedula); pon('lCargo', c.cargo); pon('lParte', c.parteCuerpo); pon('lTipo', c.tipoLesion); pon('lMecanismo', c.mecanismo); pon('lAgente', c.agente);
   if ($('lGrave')) $('lGrave').checked = !!c.grave; if ($('lMortal')) $('lMortal').checked = !!c.mortal;
+  pon('nTestigos', c.testigos);
   furatPdfPend = { f, numero: c.numero || '', fecha: c.fechaRadicado || '' };
   $('msgNuevo').innerHTML = '<div class="aviso info">📄 Datos tomados del FURAT' + (c.numero ? ' (radicado ' + esc(c.numero) + ')' : '') +
     '. Revísalos y completa lo que falte; al enviar, el PDF queda adjunto y el FURAT como radicado.' + (r.avisos.length ? '<br>' + r.avisos.map(esc).join('<br>') : '') + '</div>';
+  $('furatLeido').innerHTML = '<div class="aviso ' + (r.leidos < 3 ? 'warn' : 'info') + '">' + (r.avisos.length ? r.avisos.map(esc).join('<br>') : '📄 Datos tomados del FURAT.') +
+    resumenFurat(c) + '</div>'; $('furatLeido').hidden = false; $('furatLeido').scrollIntoView({ block: 'start' });
 });
 
 $('btnReportar').addEventListener('click', nuevo);

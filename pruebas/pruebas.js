@@ -3933,6 +3933,28 @@ grupo('v185: investigación con todas las preguntas del formato SSTA-F-008, firm
   ok('impresión: sin la hoja en blanco al final (el espacio de la barra de abajo no se imprime)', /html body\.hp-lista\{height:auto !important;min-height:0 !important;padding:0 !important/.test(leer('common.css')));
 });
 
+grupo('v186: el FURAT en PDF trae los datos (campos rellenables y cuadrículas) · Reuniones con acta y firmas', () => {
+  const le = leer('lector-examen.js'), ra = leer('reportes.app.js'), rh = leer('reportes.html');
+  ok('el lector toma los campos rellenables del PDF', /getAnnotations\(\)/.test(le) && /fieldValue/.test(le));
+  ok('el lector empareja rótulo arriba / dato abajo', /function ordenarCeldas/.test(le));
+  const vm = require('vm'), ctx = { window: {}, console };
+  vm.createContext(ctx); vm.runInContext(le + ';this.LE = LectorExamen;', ctx);
+  const it = (str, x, y) => ({ str, transform: [1, 0, 0, 1, x, y], width: str.length * 5 });
+  const items = [it('Primer apellido', 40, 700), it('Segundo apellido', 200, 700), it('Nombres', 360, 700), it('RIOS', 40, 688), it('CASTILLO', 200, 688), it('CARLOS ANDRES', 360, 688),
+    it('Tipo identificación', 40, 660), it('Número', 200, 660), it('Cargo', 360, 660), it('CC', 40, 648), it('1020304050', 200, 648), it('OPERARIO', 360, 648),
+    it('Fecha del accidente', 40, 620), it('Hora', 200, 620), it('Municipio', 360, 620), it('15/10/2026', 40, 608), it('10:30', 200, 608), it('BOGOTA', 360, 608)];
+  const pares = []; const txt = ctx.LE.ordenarCeldas(items, (x) => pares.push(x));
+  ok('empareja «Primer apellido: RIOS» y no toma los datos como rótulos', pares.indexOf('Primer apellido: RIOS') !== -1 && !pares.some((x) => /^RIOS:/.test(x)));
+  const c = ctx.LE.furat(pares.join('\n') + '\n' + txt, {}).campos;
+  ok('del FURAT en cuadrícula salen nombre, cédula, cargo, fecha, hora y lugar', c.nombre === 'CARLOS ANDRES RIOS CASTILLO' && c.cedula === '1020304050' && c.cargo === 'OPERARIO' &&
+    c.fecha === '2026-10-15' && c.hora === '10:30' && c.lugar === 'BOGOTA');
+  ok('se muestra «Esto encontré en el PDF» arriba del formulario', /function resumenFurat/.test(ra) && /id="furatLeido"/.test(rh));
+  const cm = leer('comites.js'), ru = leer('reuniones.html');
+  ok('Reuniones usa el motor de los comités sin conformación', /clave: 'reuniones'/.test(ru) && /libre: true/.test(ru) && /C\.libre/.test(cm));
+  ok('se pueden agregar asistentes y cada uno firma', /id="aAsisAdd"/.test(cm) && /function pdfLibre/.test(cm));
+  ok('Reuniones está en el inicio, en el sw y en los módulos', /href="reuniones\.html"/.test(leer('index.html')) && /reuniones\.html/.test(leer('sw.js')) && /'reuniones\.html'/.test(leer('empresa-motor.js')));
+});
+
 /* ═══════════════════════════════════════════════════════════ */
 console.log('\n╔══════════════════════════════════════════════════════╗');
 console.log('║   PRUEBAS DEL PORTAL SSTA — antes de desplegar        ║');
